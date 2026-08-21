@@ -7,7 +7,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "golden:regression": "node dist/golden/run-regression.js",
+    "verify:build": "npm run build && npm run golden:regression"
   },
   "engines": {
     "node": ">=20"
