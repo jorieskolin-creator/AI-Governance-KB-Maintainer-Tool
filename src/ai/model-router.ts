@@ -12,10 +12,23 @@ export interface ModelRoute {
   fallback: ModelTarget;
 }
 
-function required(name: string): string {
+function optional(name: string): string | undefined {
   const value = process.env[name]?.trim();
+  return value || undefined;
+}
+
+function required(name: string): string {
+  const value = optional(name);
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;
+}
+
+function requiredAny(names: string[]): string {
+  for (const name of names) {
+    const value = optional(name);
+    if (value) return value;
+  }
+  throw new Error(`Missing required environment variable; expected one of: ${names.join(', ')}`);
 }
 
 function provider(name: string): ModelProvider {
@@ -44,9 +57,9 @@ export function getProviderApiKey(providerName: ModelProvider): string {
     case 'OPENAI':
       return required('OPENAI_API_KEY');
     case 'GROK':
-      return required('GROK_API_KEY');
+      return requiredAny(['GROK_API_KEY', 'XAI_API_KEY']);
     case 'KIMI':
-      return required('KIMI_API_KEY');
+      return requiredAny(['KIMI_API_KEY', 'MOONSHOT_API_KEY']);
   }
 }
 
@@ -57,6 +70,6 @@ export function getProviderBaseUrl(providerName: ModelProvider): string {
     KIMI: 'https://api.moonshot.ai/v1'
   };
   const variable = `${providerName}_BASE_URL`;
-  const configured = process.env[variable]?.trim();
+  const configured = optional(variable);
   return (configured || defaults[providerName]).replace(/\/$/, '');
 }
