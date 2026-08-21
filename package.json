@@ -15,6 +15,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@vercel/blob": "^2.6.1",
     "ajv": "^8.17.1",
     "drizzle-orm": "^0.44.5",
     "fastify": "^5.6.0",
