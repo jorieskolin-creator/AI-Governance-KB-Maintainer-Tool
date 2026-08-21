@@ -1,0 +1,53 @@
+{
+  "reference_id": "A1_AP-A1",
+  "reference_version": "1.0.0",
+  "classification": "QUALITY_REFERENCE_EXEMPLAR",
+  "normative": false,
+  "historical_schema_version": "2.0.0",
+  "active_production_schema_family": "2.1.0",
+  "authority_boundary": {
+    "mandatory_rules_come_from": [
+      "PRODUCTION_CONTRACT",
+      "CAPABILITY_SCHEMA",
+      "ANTIPATTERN_SCHEMA",
+      "SHARED_DEFINITIONS_SCHEMA",
+      "CATEGORIES_BASELINE",
+      "SOURCE_REGISTER",
+      "TACTIC_CATALOG_WHEN_APPLICABLE"
+    ],
+    "reference_is_used_for": [
+      "SEMANTIC_DEPTH_CALIBRATION",
+      "TRACEABILITY_CALIBRATION",
+      "EVIDENCE_DISCIPLINE_CALIBRATION",
+      "HUMAN_MACHINE_BOUNDARY_CALIBRATION",
+      "PUBLICATION_COMPLETENESS_REFERENCE",
+      "REGRESSION_AND_MUTATION_TESTING"
+    ],
+    "reference_must_not_define_by_example": [
+      "CATEGORY_SPECIFIC_WORDING",
+      "ATOMIC_ITEM_COUNT",
+      "EVIDENCE_OBJECT_COUNT",
+      "FINDING_COUNT",
+      "SOURCE_COUNT_OR_SOURCE_SELECTION",
+      "TACTIC_COUNT_OR_TACTIC_SELECTION",
+      "SEVERITY_DISTRIBUTION",
+      "CATEGORY_SPECIFIC_ASSURANCE_VALUES"
+    ]
+  },
+  "fixtures": [
+    {
+      "path": "golden/fixtures/A1_v1.0.0.json",
+      "object_id": "A1",
+      "version": "1.0.0",
+      "schema_version": "2.0.0",
+      "sha256": "f64493271b27439f8c43e39190cf301e41db88a0a030edd71fac5b42eab61086"
+    },
+    {
+      "path": "golden/fixtures/AP-A1_v1.0.0.json",
+      "object_id": "AP-A1",
+      "version": "1.0.0",
+      "schema_version": "2.0.0",
+      "sha256": "b922f4d64b08c8e67b2a5c02b08c5bb4dca51a7ca8329c9812cc95f046de8e18"
+    }
+  ]
+}
