@@ -61,8 +61,12 @@ function stable(value: unknown): string {
     .join(',')}}`;
 }
 
+export function serializeReleaseManifest(manifest: DomainReleaseManifest): string {
+  return stable(manifest);
+}
+
 export function manifestSha256(manifest: DomainReleaseManifest): string {
-  return createHash('sha256').update(stable(manifest)).digest('hex');
+  return createHash('sha256').update(serializeReleaseManifest(manifest)).digest('hex');
 }
 
 export function releaseBasePath(domain: string, domainReleaseVersion: string): string {
