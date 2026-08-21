@@ -38,6 +38,26 @@ function parseJsonText(text: string): unknown {
   return JSON.parse(fenced ?? trimmed);
 }
 
+function requestBody(request: ModelExecutionRequest): Record<string, unknown> {
+  const common: Record<string, unknown> = {
+    model: request.target.model,
+    messages: [
+      { role: 'system', content: request.systemPrompt },
+      { role: 'user', content: request.userPrompt }
+    ],
+    response_format: { type: 'json_object' }
+  };
+
+  // Kimi K2.5/K2.6 use model-fixed sampling parameters and reject arbitrary
+  // temperature values. Omit temperature for Kimi and let the provider apply
+  // its documented model defaults. OpenAI/Grok keep deterministic sampling.
+  if (request.target.provider !== 'KIMI') {
+    common.temperature = 0;
+  }
+
+  return common;
+}
+
 export async function executeModel(request: ModelExecutionRequest): Promise<ModelExecutionResponse> {
   const started = Date.now();
   const baseUrl = getProviderBaseUrl(request.target.provider);
@@ -52,15 +72,7 @@ export async function executeModel(request: ModelExecutionRequest): Promise<Mode
         'content-type': 'application/json',
         authorization: `Bearer ${apiKey}`
       },
-      body: JSON.stringify({
-        model: request.target.model,
-        messages: [
-          { role: 'system', content: request.systemPrompt },
-          { role: 'user', content: request.userPrompt }
-        ],
-        temperature: 0,
-        response_format: { type: 'json_object' }
-      }),
+      body: JSON.stringify(requestBody(request)),
       signal: controller.signal
     });
 
