@@ -7,12 +7,14 @@ import type {
   HumanAssurance
 } from '../cognitive/content-contracts.js';
 import type {
-  ApAbsenceContractOutput,
   ApFailureModelOutput,
   ApplicabilityOutput,
+  PairBoundaryOutput
+} from '../cognitive/initial-contracts.js';
+import type {
+  ApAbsenceContractOutput,
   ControlBoundaryOutput,
   FindingArchitectureOutput,
-  PairBoundaryOutput,
   PairCoherenceReviewOutput,
   ReferenceMappingOutput,
   SourceMappingOutput
