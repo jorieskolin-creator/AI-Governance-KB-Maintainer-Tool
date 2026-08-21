@@ -5,6 +5,11 @@
   "normative": false,
   "historical_schema_version": "2.0.0",
   "active_production_schema_family": "2.1.0",
+  "integrity_model": {
+    "semantic_identity": "SHA256_OF_DETERMINISTIC_CANONICAL_JSON",
+    "source_byte_hash": "PROVENANCE_ONLY",
+    "rationale": "Whitespace and JSON formatting are not governance semantics. Regression verifies deterministic canonical object identity; the original uploaded byte hash is retained separately for provenance."
+  },
   "authority_boundary": {
     "mandatory_rules_come_from": [
       "PRODUCTION_CONTRACT",
@@ -40,14 +45,16 @@
       "object_id": "A1",
       "version": "1.0.0",
       "schema_version": "2.0.0",
-      "sha256": "f64493271b27439f8c43e39190cf301e41db88a0a030edd71fac5b42eab61086"
+      "semantic_sha256": "8d7461248266df6f762cc6a9cd8aa16d4d348b37688a1ce89cd113ad917c0a58",
+      "source_byte_sha256": "f64493271b27439f8c43e39190cf301e41db88a0a030edd71fac5b42eab61086"
     },
     {
       "path": "golden/fixtures/AP-A1_v1.0.0.json",
       "object_id": "AP-A1",
       "version": "1.0.0",
       "schema_version": "2.0.0",
-      "sha256": "b922f4d64b08c8e67b2a5c02b08c5bb4dca51a7ca8329c9812cc95f046de8e18"
+      "semantic_sha256": "696930ccd06c4d5736c7fb4ef6f3d7305322e088212dca47b11f7595de070cb1",
+      "source_byte_sha256": "b922f4d64b08c8e67b2a5c02b08c5bb4dca51a7ca8329c9812cc95f046de8e18"
     }
   ]
 }
