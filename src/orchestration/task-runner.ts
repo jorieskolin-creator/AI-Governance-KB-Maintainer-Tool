@@ -7,6 +7,7 @@ import {
   canPersistTaskAsCompleted,
   type CompletionContext
 } from '../validation/cognitive-completion.js';
+import { validateLifecycleAssuranceCompletion } from '../validation/lifecycle-assurance.js';
 import type { ValidationFinding } from '../validation/contracts.js';
 import {
   completeTaskRun,
@@ -87,6 +88,28 @@ async function executeTarget(input: {
   throw lastError instanceof Error ? lastError : new Error('Model execution failed.');
 }
 
+function runDeterministicCompletionGate(input: {
+  contract: TaskContract;
+  completed: ReadonlySet<any>;
+  output: unknown;
+  completionContext: CompletionContext;
+}) {
+  if (input.contract.taskType === 'LIFECYCLE_ASSURANCE') {
+    return validateLifecycleAssuranceCompletion(
+      input.contract,
+      input.completed,
+      input.output,
+      input.completionContext
+    );
+  }
+  return canPersistTaskAsCompleted(
+    input.contract,
+    input.completed,
+    input.output,
+    input.completionContext
+  );
+}
+
 async function tryRoute(input: {
   taskRunId: string;
   pairRunId: string;
@@ -105,12 +128,12 @@ async function tryRoute(input: {
       isFallback: input.isFallback,
       packet: input.packet
     });
-    const gate = canPersistTaskAsCompleted(
-      input.contract,
-      input.completed,
+    const gate = runDeterministicCompletionGate({
+      contract: input.contract,
+      completed: input.completed,
       output,
-      input.completionContext
-    );
+      completionContext: input.completionContext
+    });
     return { passed: gate.passed, output, findings: gate.findings };
   } catch (error) {
     return {
@@ -152,8 +175,6 @@ export async function runCognitiveTask(input: {
     return { output: primary.output, usedFallback: false };
   }
 
-  // Primary failures are diagnostic only when fallback succeeds. They remain visible
-  // through model_calls and are not promoted to production validation findings.
   const fallback = await tryRoute({
     taskRunId,
     pairRunId: input.pairRunId,
