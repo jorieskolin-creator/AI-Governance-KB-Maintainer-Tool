@@ -138,7 +138,10 @@
         "source_version_or_date",
         "exact_locator",
         "relationship",
+        "supported_claim",
         "category_rationale",
+        "applicability_conditions",
+        "exclusions",
         "verification_status",
         "last_verified_date"
       ],
@@ -148,7 +151,10 @@
         "source_version_or_date": {"type": "string", "minLength": 1},
         "exact_locator": {"type": "string", "minLength": 3},
         "relationship": {"type": "string", "minLength": 1},
+        "supported_claim": {"type": "string", "minLength": 10},
         "category_rationale": {"type": "string", "minLength": 10},
+        "applicability_conditions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "exclusions": {"type": "array", "items": {"type": "string", "minLength": 1}},
         "verification_status": {"type": "string", "enum": ["VERIFIED"]},
         "last_verified_date": {"type": "string", "format": "date"}
       },
