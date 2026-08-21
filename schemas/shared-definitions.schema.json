@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai-governance:schema:shared-definitions:2.1.0",
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D", "E", "F"]
+    },
+    "capabilityId": {
+      "type": "string",
+      "pattern": "^[A-F][1-5]$"
+    },
+    "antipatternId": {
+      "type": "string",
+      "pattern": "^AP-[A-F][1-5]$"
+    },
+    "releaseStatus": {
+      "type": "string",
+      "enum": ["DRAFT", "APPROVED", "FROZEN"]
+    },
+    "technicalAssurance": {
+      "type": "string",
+      "enum": ["UNKNOWN", "DECLARED", "IMPLEMENTED", "TESTED", "OPERATIONALLY_OBSERVED"]
+    },
+    "humanAssurance": {
+      "type": "string",
+      "enum": ["PENDING", "HUMAN_VALIDATED", "FORMALLY_APPROVED"]
+    },
+    "lifecycleStage": {
+      "type": "string",
+      "enum": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ]
+    },
+    "approvalRecord": {
+      "type": "object",
+      "required": [
+        "approval_status",
+        "approval_scope",
+        "approved_by_role",
+        "approved_on",
+        "effective_from",
+        "review_due_on",
+        "release_version",
+        "supersedes",
+        "authority_statement",
+        "change_control"
+      ],
+      "properties": {
+        "approval_status": {"type": "string", "enum": ["APPROVED"]},
+        "approval_scope": {"type": "string", "minLength": 1},
+        "approved_by_role": {"type": "string", "minLength": 1},
+        "approved_on": {"type": "string", "format": "date"},
+        "effective_from": {"type": "string", "format": "date"},
+        "review_due_on": {"type": ["string", "null"], "format": "date"},
+        "release_version": {"$ref": "#/$defs/semver"},
+        "supersedes": {"type": ["string", "null"]},
+        "authority_statement": {"type": "string", "minLength": 20},
+        "change_control": {"type": "string", "minLength": 20}
+      },
+      "additionalProperties": false
+    },
+    "applicability": {
+      "type": "object",
+      "required": ["statement", "conditions", "exclusions", "reassessment_triggers"],
+      "properties": {
+        "statement": {"type": "string", "minLength": 10},
+        "conditions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "exclusions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "reassessment_triggers": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
+    },
+    "question": {
+      "type": "object",
+      "required": ["id", "dimension", "question"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^(AP-)?[A-F][1-5]-Q[1-3]$"},
+        "dimension": {
+          "type": "string",
+          "enum": ["DEFINITION_AND_INTENT", "IMPLEMENTATION_AND_OPERATION", "EVIDENCE_AND_EFFECTIVENESS"]
+        },
+        "question": {"type": "string", "minLength": 10}
+      },
+      "additionalProperties": false
+    },
+    "evidenceRequirement": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "claim_supported",
+        "evidence_class",
+        "minimum_technical_assurance",
+        "required_human_assurance",
+        "acceptance_conditions",
+        "limitations"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^EVD-(AP-)?[A-F][1-5]-[0-9]{3}$"},
+        "title": {"type": "string", "minLength": 3},
+        "claim_supported": {"type": "string", "minLength": 10},
+        "evidence_class": {"type": "string", "minLength": 1},
+        "minimum_technical_assurance": {"$ref": "#/$defs/technicalAssurance"},
+        "required_human_assurance": {"$ref": "#/$defs/humanAssurance"},
+        "acceptance_conditions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
+    },
+    "evidenceRules": {
+      "type": "object",
+      "required": ["evidence_ceilings", "false_positive_guards", "prohibited_inferences", "contradiction_handling", "freshness_rules"],
+      "properties": {
+        "evidence_ceilings": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "false_positive_guards": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "prohibited_inferences": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "contradiction_handling": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "freshness_rules": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
+    },
+    "sourceMapping": {
+      "type": "object",
+      "required": [
+        "mapping_id",
+        "source_id",
+        "source_version_or_date",
+        "exact_locator",
+        "relationship",
+        "category_rationale",
+        "verification_status",
+        "last_verified_date"
+      ],
+      "properties": {
+        "mapping_id": {"type": "string", "pattern": "^SRCMAP-"},
+        "source_id": {"type": "string", "pattern": "^SRC-"},
+        "source_version_or_date": {"type": "string", "minLength": 1},
+        "exact_locator": {"type": "string", "minLength": 3},
+        "relationship": {"type": "string", "minLength": 1},
+        "category_rationale": {"type": "string", "minLength": 10},
+        "verification_status": {"type": "string", "enum": ["VERIFIED"]},
+        "last_verified_date": {"type": "string", "format": "date"}
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "eligible_conclusion_states",
+        "mapped_atomic_item_ids",
+        "required_evidence_ids",
+        "default_severity",
+        "lifecycle_consequence",
+        "human_lock_required"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^FND-(AP-)?[A-F][1-5]-[0-9]{3}$"},
+        "title": {"type": "string", "minLength": 10},
+        "eligible_conclusion_states": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "SATISFIED",
+              "PARTIALLY_SATISFIED",
+              "NOT_SATISFIED",
+              "UNKNOWN",
+              "NOT_APPLICABLE",
+              "CONFIRMED_PRESENT",
+              "PARTIALLY_PRESENT",
+              "TESTED_ABSENT"
+            ]
+          }
+        },
+        "mapped_atomic_item_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "required_evidence_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^EVD-"}},
+        "default_severity": {"type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "BLOCKING"]},
+        "lifecycle_consequence": {"type": "string", "minLength": 10},
+        "human_lock_required": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "tacticRef": {
+      "type": "object",
+      "required": ["mapping_id", "tactic_id", "tactic_version", "finding_id", "relationship", "mapping_status", "catalog_version"],
+      "properties": {
+        "mapping_id": {"type": "string", "pattern": "^MAP-"},
+        "tactic_id": {"type": "string", "minLength": 1},
+        "tactic_version": {"$ref": "#/$defs/semver"},
+        "finding_id": {"type": "string", "pattern": "^FND-"},
+        "relationship": {"type": "string", "minLength": 1},
+        "mapping_status": {"type": "string", "enum": ["APPROVED"]},
+        "catalog_version": {"$ref": "#/$defs/semver"}
+      },
+      "additionalProperties": false
+    },
+    "runtimeBoundary": {
+      "type": "object",
+      "required": ["machine_may", "machine_must_not", "human_authority_required_for"],
+      "properties": {
+        "machine_may": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "machine_must_not": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "human_authority_required_for": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
+    }
+  }
+}
