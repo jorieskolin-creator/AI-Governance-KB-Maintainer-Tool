@@ -1,0 +1,148 @@
+{
+  "contract_id": "AI-GOV-KB-AUTHORING-PRODUCTION-CONTRACT",
+  "version": "1.1.0",
+  "status": "APPROVED_AUTHORING_REFERENCE",
+  "source_document": "AI_Governance_Categories_and_Anti-Patterns_v1.1.0",
+  "authority": {
+    "normative_for": [
+      "KNOWLEDGE_BASE_AUTHORING",
+      "CANONICAL_OBJECT_CONSTRUCTION",
+      "REFERENCE_INTEGRITY",
+      "PUBLICATION_READINESS"
+    ],
+    "does_not": [
+      "APPROVE_A_CATEGORY_PACKAGE",
+      "ESTABLISH_LEGAL_COMPLIANCE",
+      "ACCEPT_RESIDUAL_RISK",
+      "AUTHORIZE_A_LIFECYCLE_TRANSITION"
+    ]
+  },
+  "pair_production": {
+    "capability_and_antipattern_created_together": true,
+    "capability_and_antipattern_assessed_independently": true,
+    "domain_count": 6,
+    "capability_count": 30,
+    "antipattern_count": 30
+  },
+  "canonical_authority": {
+    "machine_authoritative_format": "JSON",
+    "human_publication_generated_from_canonical_json": true,
+    "assessment_run_evidence_must_not_enter_knowledge_base": true
+  },
+  "question_contract": {
+    "count_per_object": 3,
+    "dimensions_in_order": [
+      "DEFINITION_AND_INTENT",
+      "IMPLEMENTATION_AND_OPERATION",
+      "EVIDENCE_AND_EFFECTIVENESS"
+    ]
+  },
+  "assurance_vocabularies": {
+    "technical": [
+      "UNKNOWN",
+      "DECLARED",
+      "IMPLEMENTED",
+      "TESTED",
+      "OPERATIONALLY_OBSERVED"
+    ],
+    "human": [
+      "PENDING",
+      "HUMAN_VALIDATED",
+      "FORMALLY_APPROVED"
+    ]
+  },
+  "conclusion_vocabularies": {
+    "capability": [
+      "SATISFIED",
+      "PARTIALLY_SATISFIED",
+      "NOT_SATISFIED",
+      "UNKNOWN",
+      "NOT_APPLICABLE"
+    ],
+    "antipattern": [
+      "CONFIRMED_PRESENT",
+      "PARTIALLY_PRESENT",
+      "TESTED_ABSENT",
+      "UNKNOWN",
+      "NOT_APPLICABLE"
+    ]
+  },
+  "evidence_contract": {
+    "separate_claim_from_evidence": true,
+    "evidence_ceiling_required": true,
+    "false_positive_guards_required": true,
+    "prohibited_inferences_required": true,
+    "contradiction_handling_required": true,
+    "freshness_rules_required": true,
+    "missing_or_conflicting_evidence_remains_unknown": true,
+    "absence_from_silence_prohibited": true
+  },
+  "antipattern_absence_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts_nonempty": true
+  },
+  "lifecycle_policy": {
+    "stages_are_canonical": true,
+    "required_stages_in_order": [
+      "QUALIFICATION_AND_REGISTRATION",
+      "DESIGN_AND_DEVELOPMENT",
+      "VERIFICATION_AND_VALIDATION",
+      "DEPLOYMENT",
+      "OPERATION_AND_MONITORING",
+      "REVIEW_AND_EVALUATION",
+      "RETIREMENT"
+    ],
+    "controlled_pilot_is_operating_boundary_not_stage": true,
+    "material_change_is_reassessment_trigger_not_stage": true
+  },
+  "source_mapping_contract": {
+    "global_register_is_authoritative_source_identity_registry": true,
+    "exact_registered_source_id_required": true,
+    "exact_source_version_or_date_required": true,
+    "verified_source_required": true,
+    "exact_locator_required": true,
+    "supported_claim_required": true,
+    "relationship_required": true,
+    "category_rationale_required": true,
+    "applicability_conditions_required": true,
+    "exclusions_required": true,
+    "registration_does_not_establish_compliance_or_applicability": true,
+    "licensed_standard_content_restricted_to_metadata_and_locator_without_explicit_rights": true
+  },
+  "tactic_mapping_contract": {
+    "global_catalog_is_authoritative": true,
+    "exact_reciprocal_approved_mapping_required": true,
+    "fuzzy_or_keyword_fallback_prohibited": true,
+    "empty_references_allowed_when_no_approved_mapping_exists": true,
+    "tactic_completion_does_not_change_locked_finding": true
+  },
+  "machine_authority_boundary": {
+    "model_must_not": [
+      "RAISE_ASSURANCE",
+      "CLEAR_A_GATE",
+      "CHANGE_A_LOCKED_FINDING",
+      "ACCEPT_RESIDUAL_RISK",
+      "DEFINE_LEGAL_COMPLIANCE",
+      "GRANT_LIFECYCLE_AUTHORIZATION"
+    ]
+  },
+  "publication_gate": {
+    "schema_pass_required": true,
+    "internal_reference_pass_required": true,
+    "external_source_mapping_pass_required": true,
+    "external_tactic_mapping_pass_required": true,
+    "approval_record_required": true,
+    "generated_publication_must_match_canonical_json": true,
+    "external_mappings_must_be_attributable_and_current": true,
+    "no_draft_candidate_placeholder_or_pending_approval_wording_in_approved_content": true
+  },
+  "change_control": {
+    "stable_published_ids_immutable": true,
+    "semantic_changes_require_new_version": true,
+    "material_legal_model_prompt_schema_routing_control_or_kb_change_triggers_targeted_requalification": true
+  }
+}
