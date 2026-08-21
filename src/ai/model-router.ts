@@ -51,16 +51,12 @@ export function getProviderApiKey(providerName: ModelProvider): string {
 }
 
 export function getProviderBaseUrl(providerName: ModelProvider): string {
-  const defaults: Record<ModelProvider, string | undefined> = {
+  const defaults: Record<ModelProvider, string> = {
     OPENAI: 'https://api.openai.com/v1',
     GROK: 'https://api.x.ai/v1',
-    KIMI: undefined
+    KIMI: 'https://api.moonshot.ai/v1'
   };
   const variable = `${providerName}_BASE_URL`;
   const configured = process.env[variable]?.trim();
-  const value = configured || defaults[providerName];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${variable}`);
-  }
-  return value.replace(/\/$/, '');
+  return (configured || defaults[providerName]).replace(/\/$/, '');
 }
