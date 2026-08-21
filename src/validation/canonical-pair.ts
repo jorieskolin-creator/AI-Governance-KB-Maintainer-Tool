@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import Ajv2020, { type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js';
+import { Ajv2020 } from 'ajv/dist/2020.js';
+import type { ErrorObject, ValidateFunction } from 'ajv';
 
 export interface CanonicalValidationContext {
   activeSchemaVersion: string;
@@ -26,6 +27,8 @@ interface SchemaRegistry {
 
 let registryPromise: Promise<SchemaRegistry> | null = null;
 
+type JsonRecord = Record<string, any>;
+
 function isIsoDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00.000Z`);
@@ -33,34 +36,37 @@ function isIsoDate(value: string): boolean {
 }
 
 async function loadJson(path: string): Promise<Record<string, unknown>> {
-  const text = await readFile(resolve(process.cwd(), path), 'utf8');
-  return JSON.parse(text) as Record<string, unknown>;
+  return JSON.parse(await readFile(resolve(process.cwd(), path), 'utf8')) as Record<string, unknown>;
 }
 
 async function loadRegistry(): Promise<SchemaRegistry> {
   if (registryPromise) return registryPromise;
-
   registryPromise = (async () => {
     const [shared, capabilitySchema, antipatternSchema] = await Promise.all([
       loadJson('schemas/shared-definitions.schema.json'),
       loadJson('schemas/capability.schema.json'),
       loadJson('schemas/antipattern.schema.json')
     ]);
-
     const ajv = new Ajv2020({ allErrors: true, strict: true, validateFormats: true });
     ajv.addFormat('date', { type: 'string', validate: isIsoDate });
     ajv.addSchema(shared);
-
     return {
       capability: ajv.compile(capabilitySchema),
       antipattern: ajv.compile(antipatternSchema)
     };
   })();
-
   return registryPromise;
 }
 
-function issue(
+function asRecord(value: unknown): JsonRecord {
+  return value as JsonRecord;
+}
+
+function asArray(value: unknown): any[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function addIssue(
   issues: CanonicalValidationIssue[],
   checkId: string,
   objectId: string,
@@ -70,13 +76,13 @@ function issue(
   issues.push({ checkId, objectId, objectPath, issue: text });
 }
 
-function schemaIssues(
+function addSchemaIssues(
   issues: CanonicalValidationIssue[],
   objectId: string,
   errors: ErrorObject[] | null | undefined
 ): void {
   for (const error of errors ?? []) {
-    issue(
+    addIssue(
       issues,
       'CANONICAL_SCHEMA',
       objectId,
@@ -86,22 +92,14 @@ function schemaIssues(
   }
 }
 
-function record(value: unknown): Record<string, any> {
-  return value as Record<string, any>;
-}
-
-function array(value: unknown): any[] {
-  return Array.isArray(value) ? value : [];
-}
-
 function validateCommon(
-  object: Record<string, any>,
+  object: JsonRecord,
   context: CanonicalValidationContext,
   issues: CanonicalValidationIssue[]
 ): void {
   const objectId = String(object.id ?? 'UNKNOWN');
   if (object.schema_version !== context.activeSchemaVersion) {
-    issue(
+    addIssue(
       issues,
       'ACTIVE_SCHEMA_VERSION_MATCH',
       objectId,
@@ -112,11 +110,10 @@ function validateCommon(
 
   const expectedDomain = objectId.startsWith('AP-') ? objectId.slice(3, 4) : objectId.slice(0, 1);
   if (object.domain !== expectedDomain) {
-    issue(issues, 'DOMAIN_ID_MATCH', objectId, '/domain', `Expected domain ${expectedDomain}.`);
+    addIssue(issues, 'DOMAIN_ID_MATCH', objectId, '/domain', `Expected domain ${expectedDomain}.`);
   }
-
   if (object.approval_record?.release_version !== object.version) {
-    issue(
+    addIssue(
       issues,
       'APPROVAL_VERSION_MATCH',
       objectId,
@@ -125,14 +122,27 @@ function validateCommon(
     );
   }
 
-  const questionIds = new Set(array(object.primary_questions).map((item) => String(item.id)));
-  const evidenceIds = new Set(array(object.required_evidence).map((item) => String(item.id)));
-  const findingIds = new Set(array(object.finding_definitions).map((item) => String(item.id)));
+  const questions = asArray(object.primary_questions);
+  const evidence = asArray(object.required_evidence);
+  const findings = asArray(object.finding_definitions);
+  const questionIds = new Set(questions.map((item) => String(item.id)));
+  const evidenceIds = new Set(evidence.map((item) => String(item.id)));
+  const findingIds = new Set(findings.map((item) => String(item.id)));
 
-  for (const [index, finding] of array(object.finding_definitions).entries()) {
-    for (const evidenceId of array(finding.required_evidence_ids).map(String)) {
+  if (questionIds.size !== questions.length) {
+    addIssue(issues, 'QUESTION_IDS_UNIQUE', objectId, '/primary_questions', 'Question IDs must be unique.');
+  }
+  if (evidenceIds.size !== evidence.length) {
+    addIssue(issues, 'EVIDENCE_IDS_UNIQUE', objectId, '/required_evidence', 'Evidence IDs must be unique.');
+  }
+  if (findingIds.size !== findings.length) {
+    addIssue(issues, 'FINDING_IDS_UNIQUE', objectId, '/finding_definitions', 'Finding IDs must be unique.');
+  }
+
+  findings.forEach((finding, index) => {
+    for (const evidenceId of asArray(finding.required_evidence_ids).map(String)) {
       if (!evidenceIds.has(evidenceId)) {
-        issue(
+        addIssue(
           issues,
           'FINDING_EVIDENCE_REFERENCE_RESOLVES',
           objectId,
@@ -141,11 +151,11 @@ function validateCommon(
         );
       }
     }
-  }
+  });
 
-  for (const [index, tactic] of array(object.candidate_tactic_refs).entries()) {
+  asArray(object.candidate_tactic_refs).forEach((tactic, index) => {
     if (!findingIds.has(String(tactic.finding_id))) {
-      issue(
+      addIssue(
         issues,
         'TACTIC_FINDING_REFERENCE_RESOLVES',
         objectId,
@@ -153,11 +163,11 @@ function validateCommon(
         `${String(tactic.finding_id)} is absent from finding_definitions.`
       );
     }
-  }
+  });
 
-  for (const related of array(object.related_criteria).map(String)) {
+  for (const related of asArray(object.related_criteria).map(String)) {
     if (related === objectId) {
-      issue(
+      addIssue(
         issues,
         'RELATED_CRITERIA_NO_SELF_REFERENCE',
         objectId,
@@ -167,14 +177,14 @@ function validateCommon(
     }
   }
 
-  const lifecycle = array(object.target_assurance_by_lifecycle_stage).map((item) =>
+  const lifecycle = asArray(object.target_assurance_by_lifecycle_stage).map((item) =>
     String(item.lifecycle_stage)
   );
   if (
     lifecycle.length !== context.requiredLifecycleStages.length ||
     lifecycle.some((stage, index) => stage !== context.requiredLifecycleStages[index])
   ) {
-    issue(
+    addIssue(
       issues,
       'NORMATIVE_LIFECYCLE_COVERAGE',
       objectId,
@@ -182,110 +192,55 @@ function validateCommon(
       `Expected exact lifecycle sequence ${context.requiredLifecycleStages.join(', ')}.`
     );
   }
-
-  if (questionIds.size !== array(object.primary_questions).length) {
-    issue(issues, 'QUESTION_IDS_UNIQUE', objectId, '/primary_questions', 'Question IDs must be unique.');
-  }
-  if (evidenceIds.size !== array(object.required_evidence).length) {
-    issue(issues, 'EVIDENCE_IDS_UNIQUE', objectId, '/required_evidence', 'Evidence IDs must be unique.');
-  }
-  if (findingIds.size !== array(object.finding_definitions).length) {
-    issue(issues, 'FINDING_IDS_UNIQUE', objectId, '/finding_definitions', 'Finding IDs must be unique.');
-  }
 }
 
-function validateCapabilityRelations(
-  capability: Record<string, any>,
+function validateAtomicGraph(
+  object: JsonRecord,
+  atomicField: 'atomic_subcriteria' | 'atomic_tests',
   issues: CanonicalValidationIssue[]
 ): void {
-  const objectId = String(capability.id);
-  const questionIds = new Set(array(capability.primary_questions).map((item) => String(item.id)));
-  const evidenceIds = new Set(array(capability.required_evidence).map((item) => String(item.id)));
-  const atomicIds = new Set(array(capability.atomic_subcriteria).map((item) => String(item.id)));
+  const objectId = String(object.id ?? 'UNKNOWN');
+  const questionIds = new Set(asArray(object.primary_questions).map((item) => String(item.id)));
+  const evidenceIds = new Set(asArray(object.required_evidence).map((item) => String(item.id)));
+  const atomic = asArray(object[atomicField]);
+  const atomicIds = new Set(atomic.map((item) => String(item.id)));
 
-  for (const [index, atomic] of array(capability.atomic_subcriteria).entries()) {
-    if (!questionIds.has(String(atomic.question_id))) {
-      issue(
+  atomic.forEach((item, index) => {
+    if (!questionIds.has(String(item.question_id))) {
+      addIssue(
         issues,
         'ATOMIC_QUESTION_REFERENCE_RESOLVES',
         objectId,
-        `/atomic_subcriteria/${index}/question_id`,
-        `${String(atomic.question_id)} is absent from primary_questions.`
+        `/${atomicField}/${index}/question_id`,
+        `${String(item.question_id)} is absent from primary_questions.`
       );
     }
-    for (const evidenceId of array(atomic.required_evidence_ids).map(String)) {
+    for (const evidenceId of asArray(item.required_evidence_ids).map(String)) {
       if (!evidenceIds.has(evidenceId)) {
-        issue(
+        addIssue(
           issues,
           'ATOMIC_EVIDENCE_REFERENCE_RESOLVES',
           objectId,
-          `/atomic_subcriteria/${index}/required_evidence_ids`,
+          `/${atomicField}/${index}/required_evidence_ids`,
           `${evidenceId} is absent from required_evidence.`
         );
       }
     }
-  }
+  });
 
-  for (const [index, finding] of array(capability.finding_definitions).entries()) {
-    for (const atomicId of array(finding.mapped_atomic_item_ids).map(String)) {
+  asArray(object.finding_definitions).forEach((finding, index) => {
+    for (const atomicId of asArray(finding.mapped_atomic_item_ids).map(String)) {
       if (!atomicIds.has(atomicId)) {
-        issue(
+        addIssue(
           issues,
           'FINDING_ATOMIC_REFERENCE_RESOLVES',
           objectId,
           `/finding_definitions/${index}/mapped_atomic_item_ids`,
-          `${atomicId} is absent from atomic_subcriteria.`
+          `${atomicId} is absent from ${atomicField}.`
         );
       }
     }
-  }
-}
-
-function validateAntipatternRelations(
-  antipattern: Record<string, any>,
-  issues: CanonicalValidationIssue[]
-): void {
-  const objectId = String(antipattern.id);
-  const questionIds = new Set(array(antipattern.primary_questions).map((item) => String(item.id)));
-  const evidenceIds = new Set(array(antipattern.required_evidence).map((item) => String(item.id)));
-  const atomicIds = new Set(array(antipattern.atomic_tests).map((item) => String(item.id)));
-
-  for (const [index, atomic] of array(antipattern.atomic_tests).entries()) {
-    if (!questionIds.has(String(atomic.question_id))) {
-      issue(
-        issues,
-        'ATOMIC_QUESTION_REFERENCE_RESOLVES',
-        objectId,
-        `/atomic_tests/${index}/question_id`,
-        `${String(atomic.question_id)} is absent from primary_questions.`
-      );
-    }
-    for (const evidenceId of array(atomic.required_evidence_ids).map(String)) {
-      if (!evidenceIds.has(evidenceId)) {
-        issue(
-          issues,
-          'ATOMIC_EVIDENCE_REFERENCE_RESOLVES',
-          objectId,
-          `/atomic_tests/${index}/required_evidence_ids`,
-          `${evidenceId} is absent from required_evidence.`
-        );
-      }
-    }
-  }
-
-  for (const [index, finding] of array(antipattern.finding_definitions).entries()) {
-    for (const atomicId of array(finding.mapped_atomic_item_ids).map(String)) {
-      if (!atomicIds.has(atomicId)) {
-        issue(
-          issues,
-          'FINDING_ATOMIC_REFERENCE_RESOLVES',
-          objectId,
-          `/finding_definitions/${index}/mapped_atomic_item_ids`,
-          `${atomicId} is absent from atomic_tests.`
-        );
-      }
-    }
-  }
+  });
 }
 
 export async function validateCanonicalPair(
@@ -294,31 +249,32 @@ export async function validateCanonicalPair(
   context: CanonicalValidationContext
 ): Promise<CanonicalValidationReport> {
   const schemas = await loadRegistry();
-  const capability = record(capabilityInput);
-  const antipattern = record(antipatternInput);
+  const capability = asRecord(capabilityInput);
+  const antipattern = asRecord(antipatternInput);
+  const capabilityId = String(capabilityInput.id ?? 'UNKNOWN');
+  const antipatternId = String(antipatternInput.id ?? 'UNKNOWN');
+  const pairId = `${capabilityId}/${antipatternId}`;
   const issues: CanonicalValidationIssue[] = [];
 
-  if (!schemas.capability(capability)) {
-    schemaIssues(issues, String(capability.id ?? 'UNKNOWN'), schemas.capability.errors);
-  }
-  if (!schemas.antipattern(antipattern)) {
-    schemaIssues(issues, String(antipattern.id ?? 'UNKNOWN'), schemas.antipattern.errors);
-  }
+  const capabilityValid = schemas.capability(capabilityInput);
+  if (!capabilityValid) addSchemaIssues(issues, capabilityId, schemas.capability.errors);
+  const antipatternValid = schemas.antipattern(antipatternInput);
+  if (!antipatternValid) addSchemaIssues(issues, antipatternId, schemas.antipattern.errors);
 
-  if (antipattern.id !== `AP-${String(capability.id)}`) {
-    issue(
+  if (antipatternId !== `AP-${capabilityId}`) {
+    addIssue(
       issues,
       'PAIR_ID_COHERENCE',
-      `${String(capability.id)}/${String(antipattern.id)}`,
+      pairId,
       '/',
       'Anti-pattern ID must be the exact AP-* pair of the capability ID.'
     );
   }
   if (capability.domain !== antipattern.domain || capability.domain_title !== antipattern.domain_title) {
-    issue(
+    addIssue(
       issues,
       'PAIR_DOMAIN_COHERENCE',
-      `${String(capability.id)}/${String(antipattern.id)}`,
+      pairId,
       '/domain',
       'Capability and anti-pattern must share the exact domain and domain title.'
     );
@@ -326,8 +282,8 @@ export async function validateCanonicalPair(
 
   validateCommon(capability, context, issues);
   validateCommon(antipattern, context, issues);
-  validateCapabilityRelations(capability, issues);
-  validateAntipatternRelations(antipattern, issues);
+  validateAtomicGraph(capability, 'atomic_subcriteria', issues);
+  validateAtomicGraph(antipattern, 'atomic_tests', issues);
 
   return { passed: issues.length === 0, issues };
 }
