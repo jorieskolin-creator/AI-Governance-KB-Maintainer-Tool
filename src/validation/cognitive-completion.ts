@@ -3,204 +3,144 @@ import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding, ValidationReport } from './contracts.js';
 
-const nonEmptyString = z.string().trim().min(1);
-const meaningfulString = z.string().trim().min(10);
-const stringList = z.array(nonEmptyString).min(1);
+const nonEmpty = z.string().trim().min(1);
+const meaningful = z.string().trim().min(10);
+const strings = z.array(nonEmpty).min(1);
+const capabilityId = z.string().regex(/^[A-F][1-5]$/);
+const antipatternId = z.string().regex(/^AP-[A-F][1-5]$/);
+const pairIds = { capabilityId, antipatternId };
 
-const capabilityIdSchema = z.string().regex(/^[A-F][1-5]$/);
-const antipatternIdSchema = z.string().regex(/^AP-[A-F][1-5]$/);
+const pairBoundarySchema = z.object({
+  pairId: nonEmpty,
+  capabilityId,
+  antipatternId,
+  capability: z.object({
+    canonicalDefinition: meaningful,
+    governancePurpose: meaningful,
+    distinctClaim: meaningful,
+    ownedTopics: strings,
+    excludedTopics: z.array(z.object({ criterionId: z.string().regex(/^(AP-)?[A-F][1-5]$/), ownershipBoundary: meaningful }).strict())
+  }).strict(),
+  antipattern: z.object({ canonicalDefinition: meaningful, pairedRelationship: meaningful }).strict(),
+  boundaryRationale: meaningful
+}).strict();
 
-const excludedTopicSchema = z
-  .object({
-    criterionId: z.string().regex(/^(AP-)?[A-F][1-5]$/),
-    ownershipBoundary: meaningfulString
-  })
-  .strict();
+const apFailureSchema = z.object({
+  antipatternId,
+  failureMechanism: meaningful,
+  triggeringConditions: strings,
+  observableFailureSurfaces: strings,
+  nonExamples: strings,
+  distinctionFromCapabilityGap: meaningful
+}).strict();
 
-export const pairBoundaryOutputSchema = z
-  .object({
-    pairId: nonEmptyString,
-    capabilityId: capabilityIdSchema,
-    antipatternId: antipatternIdSchema,
-    capability: z
-      .object({
-        canonicalDefinition: meaningfulString,
-        governancePurpose: meaningfulString,
-        distinctClaim: meaningfulString,
-        ownedTopics: stringList,
-        excludedTopics: z.array(excludedTopicSchema)
-      })
-      .strict(),
-    antipattern: z
-      .object({
-        canonicalDefinition: meaningfulString,
-        pairedRelationship: meaningfulString
-      })
-      .strict(),
-    boundaryRationale: meaningfulString
-  })
-  .strict();
+const applicabilityItem = z.object({
+  statement: meaningful,
+  conditions: strings,
+  exclusions: z.array(nonEmpty),
+  reassessmentTriggers: strings
+}).strict();
+const applicabilitySchema = z.object({ ...pairIds, capability: applicabilityItem, antipattern: applicabilityItem, consistencyNotes: z.array(nonEmpty) }).strict();
 
-export const apFailureModelOutputSchema = z
-  .object({
-    antipatternId: antipatternIdSchema,
-    failureMechanism: meaningfulString,
-    triggeringConditions: stringList,
-    observableFailureSurfaces: stringList,
-    nonExamples: stringList,
-    distinctionFromCapabilityGap: meaningfulString
-  })
-  .strict();
+const dimensions = z.enum(['DEFINITION_AND_INTENT','IMPLEMENTATION_AND_OPERATION','EVIDENCE_AND_EFFECTIVENESS']);
+const question = z.object({ id: nonEmpty, dimension: dimensions, question: meaningful }).strict();
+const primaryQuestionsSchema = z.object({
+  ...pairIds,
+  capabilityQuestions: z.tuple([question, question, question]),
+  antipatternQuestions: z.tuple([question, question, question]),
+  coverageRationale: meaningful
+}).strict();
 
-const applicabilityObjectSchema = z
-  .object({
-    statement: meaningfulString,
-    conditions: stringList,
-    exclusions: z.array(nonEmptyString),
-    reassessmentTriggers: stringList
-  })
-  .strict();
+const capabilityAtomic = z.object({ id: z.string().regex(/^[A-F][1-5]-SC-[0-9]{3}$/), questionId: z.string().regex(/^[A-F][1-5]-Q[1-3]$/), criterion: meaningful, evidenceNeed: meaningful }).strict();
+const antipatternAtomic = z.object({ id: z.string().regex(/^AP-[A-F][1-5]-AT-[0-9]{3}$/), questionId: z.string().regex(/^AP-[A-F][1-5]-Q[1-3]$/), test: meaningful, evidenceNeed: meaningful }).strict();
+const atomicSchema = z.object({ ...pairIds, capabilitySubcriteria: z.array(capabilityAtomic).min(3), antipatternTests: z.array(antipatternAtomic).min(3), coverageNotes: z.array(nonEmpty) }).strict();
 
-export const applicabilityOutputSchema = z
-  .object({
-    capabilityId: capabilityIdSchema,
-    antipatternId: antipatternIdSchema,
-    capability: applicabilityObjectSchema,
-    antipattern: applicabilityObjectSchema,
-    consistencyNotes: z.array(nonEmptyString)
-  })
-  .strict();
+const technicalAssurance = z.enum(['UNKNOWN','DECLARED','IMPLEMENTED','TESTED','OPERATIONALLY_OBSERVED']);
+const humanAssurance = z.enum(['PENDING','HUMAN_VALIDATED','FORMALLY_APPROVED']);
+const evidence = z.object({
+  id: z.string().regex(/^EVD-(AP-)?[A-F][1-5]-[0-9]{3}$/),
+  title: z.string().trim().min(3),
+  claimSupported: meaningful,
+  evidenceClass: nonEmpty,
+  minimumTechnicalAssurance: technicalAssurance,
+  requiredHumanAssurance: humanAssurance,
+  acceptanceConditions: strings,
+  limitations: strings
+}).strict();
+const binding = z.object({ atomicItemId: nonEmpty, evidenceIds: z.array(z.string().regex(/^EVD-/)).min(1) }).strict();
+const evidenceArchitectureSchema = z.object({ ...pairIds, capabilityEvidence: z.array(evidence).min(1), antipatternEvidence: z.array(evidence).min(1), capabilityBindings: z.array(binding).min(1), antipatternBindings: z.array(binding).min(1), sufficiencyNotes: z.array(nonEmpty) }).strict();
 
-const dimensionSchema = z.enum([
-  'DEFINITION_AND_INTENT',
-  'IMPLEMENTATION_AND_OPERATION',
-  'EVIDENCE_AND_EFFECTIVENESS'
-]);
+const evidenceRules = z.object({ evidenceCeilings: strings, falsePositiveGuards: strings, prohibitedInferences: strings, contradictionHandling: strings, freshnessRules: strings }).strict();
+const evidenceSafetySchema = z.object({ ...pairIds, capabilityRules: evidenceRules, antipatternRules: evidenceRules, crossPairSafetyNotes: z.array(nonEmpty) }).strict();
 
-const primaryQuestionSchema = z
-  .object({
-    id: nonEmptyString,
-    dimension: dimensionSchema,
-    question: meaningfulString
-  })
-  .strict();
+const apAbsenceSchema = z.object({
+  antipatternId,
+  scopeDefined: z.literal(true),
+  executed: z.literal(true),
+  successful: z.literal(true),
+  current: z.literal(true),
+  independentlyVerified: z.literal(true),
+  requiredArtifacts: strings,
+  interpretationBoundary: meaningful
+}).strict();
 
-export const primaryQuestionsOutputSchema = z
-  .object({
-    capabilityId: capabilityIdSchema,
-    antipatternId: antipatternIdSchema,
-    capabilityQuestions: z.tuple([
-      primaryQuestionSchema,
-      primaryQuestionSchema,
-      primaryQuestionSchema
-    ]),
-    antipatternQuestions: z.tuple([
-      primaryQuestionSchema,
-      primaryQuestionSchema,
-      primaryQuestionSchema
-    ]),
-    coverageRationale: meaningfulString
-  })
-  .strict();
+const sourceMapping = z.object({
+  mappingId: z.string().regex(/^SRCMAP-/),
+  sourceId: z.string().regex(/^SRC-/),
+  sourceVersionOrDate: nonEmpty,
+  exactLocator: z.string().trim().min(3),
+  relationship: nonEmpty,
+  supportedClaim: meaningful,
+  categoryRationale: meaningful,
+  applicabilityConditions: z.array(nonEmpty),
+  exclusions: z.array(nonEmpty),
+  verificationStatus: z.literal('VERIFIED'),
+  lastVerifiedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+}).strict();
+const sourceMappingSchema = z.object({ ...pairIds, capabilityMappings: z.array(sourceMapping), antipatternMappings: z.array(sourceMapping), unmappedClaims: z.array(nonEmpty) }).strict();
 
-const capabilityAtomicDraftSchema = z
-  .object({
-    id: z.string().regex(/^[A-F][1-5]-SC-[0-9]{3}$/),
-    questionId: z.string().regex(/^[A-F][1-5]-Q[1-3]$/),
-    criterion: meaningfulString,
-    evidenceNeed: meaningfulString
-  })
-  .strict();
+const findingItem = z.object({
+  id: z.string().regex(/^FND-(AP-)?[A-F][1-5]-[0-9]{3}$/),
+  title: meaningful,
+  eligibleConclusionStates: strings,
+  mappedAtomicItemIds: strings,
+  requiredEvidenceIds: strings,
+  defaultSeverity: z.enum(['LOW','MEDIUM','HIGH','BLOCKING']),
+  lifecycleConsequence: meaningful,
+  humanLockRequired: z.boolean()
+}).strict();
+const findingSchema = z.object({ ...pairIds, capabilityFindings: z.array(findingItem).min(1), antipatternFindings: z.array(findingItem).min(1), findingLogicNotes: z.array(nonEmpty) }).strict();
 
-const antipatternAtomicDraftSchema = z
-  .object({
-    id: z.string().regex(/^AP-[A-F][1-5]-AT-[0-9]{3}$/),
-    questionId: z.string().regex(/^AP-[A-F][1-5]-Q[1-3]$/),
-    test: meaningfulString,
-    evidenceNeed: meaningfulString
-  })
-  .strict();
+const hardGate = z.object({ effect: z.enum(['NONE','WARN','BLOCK','CONSTRAIN']), conditions: z.array(nonEmpty), overrideAuthority: z.string().nullable() }).strict();
+const runtimeBoundary = z.object({ machineMay: strings, machineMustNot: strings, humanAuthorityRequiredFor: strings }).strict();
+const controlSchema = z.object({ ...pairIds, capabilityHardGate: hardGate, antipatternHardGate: hardGate, capabilityRuntimeBoundary: runtimeBoundary, antipatternRuntimeBoundary: runtimeBoundary, controlNotes: z.array(nonEmpty) }).strict();
 
-export const atomicDecompositionOutputSchema = z
-  .object({
-    capabilityId: capabilityIdSchema,
-    antipatternId: antipatternIdSchema,
-    capabilitySubcriteria: z.array(capabilityAtomicDraftSchema).min(3),
-    antipatternTests: z.array(antipatternAtomicDraftSchema).min(3),
-    coverageNotes: z.array(nonEmptyString)
-  })
-  .strict();
+const referenceSchema = z.object({
+  ...pairIds,
+  capabilityRelatedCriteria: z.array(z.string().regex(/^(AP-)?[A-F][1-5]$/)),
+  antipatternRelatedCriteria: z.array(z.string().regex(/^(AP-)?[A-F][1-5]$/)),
+  capabilityTacticRefs: z.array(nonEmpty),
+  antipatternTacticRefs: z.array(nonEmpty),
+  unresolvedTacticNeeds: z.array(nonEmpty)
+}).strict();
 
-const technicalAssuranceSchema = z.enum([
-  'UNKNOWN',
-  'DECLARED',
-  'IMPLEMENTED',
-  'TESTED',
-  'OPERATIONALLY_OBSERVED'
-]);
-
-const humanAssuranceSchema = z.enum(['PENDING', 'HUMAN_VALIDATED', 'FORMALLY_APPROVED']);
-
-const evidenceRequirementDraftSchema = z
-  .object({
-    id: z.string().regex(/^EVD-(AP-)?[A-F][1-5]-[0-9]{3}$/),
-    title: z.string().trim().min(3),
-    claimSupported: meaningfulString,
-    evidenceClass: nonEmptyString,
-    minimumTechnicalAssurance: technicalAssuranceSchema,
-    requiredHumanAssurance: humanAssuranceSchema,
-    acceptanceConditions: stringList,
-    limitations: stringList
-  })
-  .strict();
-
-const atomicEvidenceBindingSchema = z
-  .object({
-    atomicItemId: nonEmptyString,
-    evidenceIds: z.array(z.string().regex(/^EVD-/)).min(1)
-  })
-  .strict();
-
-export const evidenceArchitectureOutputSchema = z
-  .object({
-    capabilityId: capabilityIdSchema,
-    antipatternId: antipatternIdSchema,
-    capabilityEvidence: z.array(evidenceRequirementDraftSchema).min(1),
-    antipatternEvidence: z.array(evidenceRequirementDraftSchema).min(1),
-    capabilityBindings: z.array(atomicEvidenceBindingSchema).min(1),
-    antipatternBindings: z.array(atomicEvidenceBindingSchema).min(1),
-    sufficiencyNotes: z.array(nonEmptyString)
-  })
-  .strict();
-
-const evidenceRulesDraftSchema = z
-  .object({
-    evidenceCeilings: stringList,
-    falsePositiveGuards: stringList,
-    prohibitedInferences: stringList,
-    contradictionHandling: stringList,
-    freshnessRules: stringList
-  })
-  .strict();
-
-export const evidenceSafetyOutputSchema = z
-  .object({
-    capabilityId: capabilityIdSchema,
-    antipatternId: antipatternIdSchema,
-    capabilityRules: evidenceRulesDraftSchema,
-    antipatternRules: evidenceRulesDraftSchema,
-    crossPairSafetyNotes: z.array(nonEmptyString)
-  })
-  .strict();
+const defect = z.object({ defectId: nonEmpty, severity: z.enum(['LOW','MEDIUM','HIGH','BLOCKING']), affectedPaths: strings, issue: meaningful, violatedRule: nonEmpty, recommendedRepairScope: strings }).strict();
+const pairCoherenceSchema = z.object({ pairId: nonEmpty, passed: z.boolean(), defects: z.array(defect), coherenceSummary: meaningful }).strict();
 
 const OUTPUT_SCHEMAS: Partial<Record<CognitiveTaskType, z.ZodType>> = {
-  PAIR_BOUNDARY: pairBoundaryOutputSchema,
-  AP_FAILURE_MODEL: apFailureModelOutputSchema,
-  APPLICABILITY: applicabilityOutputSchema,
-  PRIMARY_QUESTIONS: primaryQuestionsOutputSchema,
-  ATOMIC_DECOMPOSITION: atomicDecompositionOutputSchema,
-  EVIDENCE_ARCHITECTURE: evidenceArchitectureOutputSchema,
-  EVIDENCE_SAFETY: evidenceSafetyOutputSchema
+  PAIR_BOUNDARY: pairBoundarySchema,
+  AP_FAILURE_MODEL: apFailureSchema,
+  APPLICABILITY: applicabilitySchema,
+  PRIMARY_QUESTIONS: primaryQuestionsSchema,
+  ATOMIC_DECOMPOSITION: atomicSchema,
+  EVIDENCE_ARCHITECTURE: evidenceArchitectureSchema,
+  EVIDENCE_SAFETY: evidenceSafetySchema,
+  AP_ABSENCE_CONTRACT: apAbsenceSchema,
+  SOURCE_MAPPING: sourceMappingSchema,
+  FINDING_ARCHITECTURE: findingSchema,
+  CONTROL_BOUNDARY: controlSchema,
+  REFERENCE_MAPPING: referenceSchema,
+  PAIR_COHERENCE_REVIEW: pairCoherenceSchema
 };
 
 export interface CompletionContext {
@@ -210,396 +150,107 @@ export interface CompletionContext {
   expectedAntipatternId: string;
 }
 
-function finding(
-  context: CompletionContext,
-  checkId: string,
-  objectPath: string,
-  issue: string
-): ValidationFinding {
-  return {
-    checkId,
-    kind: 'SCHEMA',
-    severity: 'BLOCKING',
-    objectId: context.expectedPairId,
-    objectPath,
-    issue,
-    dependencyScope: []
-  };
+function issue(context: CompletionContext, checkId: string, objectPath: string, text: string): ValidationFinding {
+  return { checkId, kind: 'SCHEMA', severity: 'BLOCKING', objectId: context.expectedPairId, objectPath, issue: text, dependencyScope: [] };
 }
 
-function validatePairIds(
-  value: Record<string, unknown>,
-  context: CompletionContext,
-  findings: ValidationFinding[]
-): void {
-  const capabilityId = value.capabilityId;
-  const antipatternId = value.antipatternId;
-  const pairId = value.pairId;
-
-  if (capabilityId !== undefined && capabilityId !== context.expectedCapabilityId) {
-    findings.push(
-      finding(
-        context,
-        'CAPABILITY_ID_MATCH',
-        'capabilityId',
-        `Expected ${context.expectedCapabilityId}, received ${String(capabilityId)}.`
-      )
-    );
-  }
-
-  if (antipatternId !== undefined && antipatternId !== context.expectedAntipatternId) {
-    findings.push(
-      finding(
-        context,
-        'ANTIPATTERN_ID_MATCH',
-        'antipatternId',
-        `Expected ${context.expectedAntipatternId}, received ${String(antipatternId)}.`
-      )
-    );
-  }
-
-  if (pairId !== undefined && pairId !== context.expectedPairId) {
-    findings.push(
-      finding(
-        context,
-        'PAIR_ID_MATCH',
-        'pairId',
-        `Expected ${context.expectedPairId}, received ${String(pairId)}.`
-      )
-    );
-  }
-
-  if (
-    capabilityId !== undefined &&
-    antipatternId !== undefined &&
-    antipatternId !== `AP-${String(capabilityId)}`
-  ) {
-    findings.push(
-      finding(
-        context,
-        'PAIR_ID_COHERENCE',
-        'antipatternId',
-        'The anti-pattern ID must be the exact paired AP-* ID of the capability.'
-      )
-    );
-  }
+function validateIds(value: Record<string, unknown>, context: CompletionContext, findings: ValidationFinding[]): void {
+  if (value.capabilityId !== undefined && value.capabilityId !== context.expectedCapabilityId) findings.push(issue(context,'CAPABILITY_ID_MATCH','capabilityId',`Expected ${context.expectedCapabilityId}, received ${String(value.capabilityId)}.`));
+  if (value.antipatternId !== undefined && value.antipatternId !== context.expectedAntipatternId) findings.push(issue(context,'ANTIPATTERN_ID_MATCH','antipatternId',`Expected ${context.expectedAntipatternId}, received ${String(value.antipatternId)}.`));
+  if (value.pairId !== undefined && value.pairId !== context.expectedPairId) findings.push(issue(context,'PAIR_ID_MATCH','pairId',`Expected ${context.expectedPairId}, received ${String(value.pairId)}.`));
+  if (value.capabilityId !== undefined && value.antipatternId !== undefined && value.antipatternId !== `AP-${String(value.capabilityId)}`) findings.push(issue(context,'PAIR_ID_COHERENCE','antipatternId','Anti-pattern ID must be the exact AP-* pair of the capability.'));
 }
 
-function validatePrimaryQuestionIds(
-  value: Record<string, unknown>,
-  context: CompletionContext,
-  findings: ValidationFinding[]
-): void {
-  const expectedDimensions = [
-    'DEFINITION_AND_INTENT',
-    'IMPLEMENTATION_AND_OPERATION',
-    'EVIDENCE_AND_EFFECTIVENESS'
-  ];
-  const groups = [
-    {
-      path: 'capabilityQuestions',
-      items: value.capabilityQuestions as Array<Record<string, unknown>> | undefined,
-      prefix: context.expectedCapabilityId
-    },
-    {
-      path: 'antipatternQuestions',
-      items: value.antipatternQuestions as Array<Record<string, unknown>> | undefined,
-      prefix: context.expectedAntipatternId
-    }
-  ];
-
-  for (const group of groups) {
-    if (!group.items) continue;
-    group.items.forEach((item, index) => {
-      const expectedId = `${group.prefix}-Q${index + 1}`;
-      if (item.id !== expectedId) {
-        findings.push(
-          finding(
-            context,
-            'QUESTION_ID_MATCH',
-            `${group.path}.${index}.id`,
-            `Expected ${expectedId}, received ${String(item.id)}.`
-          )
-        );
-      }
-      if (item.dimension !== expectedDimensions[index]) {
-        findings.push(
-          finding(
-            context,
-            'QUESTION_DIMENSION_ORDER',
-            `${group.path}.${index}.dimension`,
-            `Expected ${expectedDimensions[index]}, received ${String(item.dimension)}.`
-          )
-        );
-      }
+function validateQuestions(value: Record<string, unknown>, context: CompletionContext, findings: ValidationFinding[]): void {
+  const dims = ['DEFINITION_AND_INTENT','IMPLEMENTATION_AND_OPERATION','EVIDENCE_AND_EFFECTIVENESS'];
+  for (const [path,prefix] of [['capabilityQuestions',context.expectedCapabilityId],['antipatternQuestions',context.expectedAntipatternId]] as const) {
+    const items = value[path] as Array<Record<string,unknown>>;
+    items?.forEach((item,i) => {
+      if (item.id !== `${prefix}-Q${i+1}`) findings.push(issue(context,'QUESTION_ID_MATCH',`${path}.${i}.id`,`Expected ${prefix}-Q${i+1}.`));
+      if (item.dimension !== dims[i]) findings.push(issue(context,'QUESTION_DIMENSION_ORDER',`${path}.${i}.dimension`,`Expected ${dims[i]}.`));
     });
   }
 }
 
-function validateAtomicDecomposition(
-  value: Record<string, unknown>,
-  context: CompletionContext,
-  findings: ValidationFinding[]
-): void {
-  const capabilityItems = value.capabilitySubcriteria as Array<Record<string, unknown>> | undefined;
-  const antipatternItems = value.antipatternTests as Array<Record<string, unknown>> | undefined;
-
+function validateAtomic(value: Record<string, unknown>, context: CompletionContext, findings: ValidationFinding[]): void {
   const groups = [
-    {
-      path: 'capabilitySubcriteria',
-      items: capabilityItems,
-      idPrefix: `${context.expectedCapabilityId}-SC-`,
-      questionPrefix: context.expectedCapabilityId
-    },
-    {
-      path: 'antipatternTests',
-      items: antipatternItems,
-      idPrefix: `${context.expectedAntipatternId}-AT-`,
-      questionPrefix: context.expectedAntipatternId
-    }
-  ];
-
-  for (const group of groups) {
-    if (!group.items) continue;
-    const coveredQuestions = new Set<string>();
-    group.items.forEach((item, index) => {
-      const expectedId = `${group.idPrefix}${String(index + 1).padStart(3, '0')}`;
-      if (item.id !== expectedId) {
-        findings.push(
-          finding(
-            context,
-            'ATOMIC_ID_SEQUENCE',
-            `${group.path}.${index}.id`,
-            `Expected deterministic ID ${expectedId}, received ${String(item.id)}.`
-          )
-        );
-      }
-      const questionId = String(item.questionId ?? '');
-      if (!new RegExp(`^${group.questionPrefix}-Q[1-3]$`).test(questionId)) {
-        findings.push(
-          finding(
-            context,
-            'ATOMIC_QUESTION_REFERENCE',
-            `${group.path}.${index}.questionId`,
-            `Question reference ${questionId} does not resolve to the current object.`
-          )
-        );
-      } else {
-        coveredQuestions.add(questionId);
-      }
+    ['capabilitySubcriteria',`${context.expectedCapabilityId}-SC-`,context.expectedCapabilityId],
+    ['antipatternTests',`${context.expectedAntipatternId}-AT-`,context.expectedAntipatternId]
+  ] as const;
+  for (const [path,idPrefix,qPrefix] of groups) {
+    const items = value[path] as Array<Record<string,unknown>>;
+    const covered = new Set<string>();
+    items?.forEach((item,i) => {
+      const expected = `${idPrefix}${String(i+1).padStart(3,'0')}`;
+      if (item.id !== expected) findings.push(issue(context,'ATOMIC_ID_SEQUENCE',`${path}.${i}.id`,`Expected ${expected}.`));
+      const q = String(item.questionId ?? '');
+      if (!new RegExp(`^${qPrefix}-Q[1-3]$`).test(q)) findings.push(issue(context,'ATOMIC_QUESTION_REFERENCE',`${path}.${i}.questionId`,`${q} does not resolve.`)); else covered.add(q);
     });
-
-    for (let index = 1; index <= 3; index += 1) {
-      const expectedQuestion = `${group.questionPrefix}-Q${index}`;
-      if (!coveredQuestions.has(expectedQuestion)) {
-        findings.push(
-          finding(
-            context,
-            'PRIMARY_QUESTION_COVERAGE',
-            group.path,
-            `No atomic item covers required question ${expectedQuestion}.`
-          )
-        );
-      }
-    }
+    for (let i=1;i<=3;i+=1) if (!covered.has(`${qPrefix}-Q${i}`)) findings.push(issue(context,'PRIMARY_QUESTION_COVERAGE',path,`No atomic item covers ${qPrefix}-Q${i}.`));
   }
 }
 
-function validateEvidenceArchitecture(
-  value: Record<string, unknown>,
-  context: CompletionContext,
-  findings: ValidationFinding[]
-): void {
+function validateEvidence(value: Record<string, unknown>, context: CompletionContext, findings: ValidationFinding[]): void {
   const groups = [
-    {
-      evidencePath: 'capabilityEvidence',
-      evidence: value.capabilityEvidence as Array<Record<string, unknown>> | undefined,
-      bindingsPath: 'capabilityBindings',
-      bindings: value.capabilityBindings as Array<Record<string, unknown>> | undefined,
-      evidencePrefix: `EVD-${context.expectedCapabilityId}-`,
-      atomicPattern: new RegExp(`^${context.expectedCapabilityId}-SC-[0-9]{3}$`)
-    },
-    {
-      evidencePath: 'antipatternEvidence',
-      evidence: value.antipatternEvidence as Array<Record<string, unknown>> | undefined,
-      bindingsPath: 'antipatternBindings',
-      bindings: value.antipatternBindings as Array<Record<string, unknown>> | undefined,
-      evidencePrefix: `EVD-${context.expectedAntipatternId}-`,
-      atomicPattern: new RegExp(`^${context.expectedAntipatternId}-AT-[0-9]{3}$`)
-    }
-  ];
-
-  for (const group of groups) {
-    if (!group.evidence || !group.bindings) continue;
-    const evidenceIds = new Set<string>();
-    group.evidence.forEach((item, index) => {
-      const expectedId = `${group.evidencePrefix}${String(index + 1).padStart(3, '0')}`;
-      const actualId = String(item.id ?? '');
-      evidenceIds.add(actualId);
-      if (actualId !== expectedId) {
-        findings.push(
-          finding(
-            context,
-            'EVIDENCE_ID_SEQUENCE',
-            `${group.evidencePath}.${index}.id`,
-            `Expected deterministic ID ${expectedId}, received ${actualId}.`
-          )
-        );
-      }
-    });
-
-    const usedEvidence = new Set<string>();
-    const boundAtomic = new Set<string>();
-    for (let index = 0; index < group.bindings.length; index += 1) {
-      const binding = group.bindings[index] ?? {};
-      const atomicItemId = String(binding.atomicItemId ?? '');
-      if (!group.atomicPattern.test(atomicItemId)) {
-        findings.push(
-          finding(
-            context,
-            'ATOMIC_BINDING_REFERENCE',
-            `${group.bindingsPath}.${index}.atomicItemId`,
-            `Atomic item ${atomicItemId} does not belong to the current object.`
-          )
-        );
-      }
-      boundAtomic.add(atomicItemId);
-
-      const ids = (binding.evidenceIds as string[] | undefined) ?? [];
-      for (const id of ids) {
-        if (!evidenceIds.has(id)) {
-          findings.push(
-            finding(
-              context,
-              'EVIDENCE_BINDING_REFERENCE',
-              `${group.bindingsPath}.${index}.evidenceIds`,
-              `Evidence ID ${id} does not resolve in ${group.evidencePath}.`
-            )
-          );
-        } else {
-          usedEvidence.add(id);
-        }
-      }
-    }
-
-    for (const id of evidenceIds) {
-      if (!usedEvidence.has(id)) {
-        findings.push(
-          finding(
-            context,
-            'UNUSED_EVIDENCE_OBJECT',
-            group.evidencePath,
-            `Evidence object ${id} is not bound to any atomic item.`
-          )
-        );
-      }
-    }
-
-    if (boundAtomic.size !== group.bindings.length) {
-      findings.push(
-        finding(
-          context,
-          'DUPLICATE_ATOMIC_BINDING',
-          group.bindingsPath,
-          'Each atomic item must have exactly one binding object; combine multiple evidence IDs into that binding.'
-        )
-      );
-    }
+    ['capabilityEvidence','capabilityBindings',`EVD-${context.expectedCapabilityId}-`,new RegExp(`^${context.expectedCapabilityId}-SC-[0-9]{3}$`)],
+    ['antipatternEvidence','antipatternBindings',`EVD-${context.expectedAntipatternId}-`,new RegExp(`^${context.expectedAntipatternId}-AT-[0-9]{3}$`)]
+  ] as const;
+  for (const [ePath,bPath,prefix,atomicPattern] of groups) {
+    const ev = value[ePath] as Array<Record<string,unknown>>;
+    const binds = value[bPath] as Array<Record<string,unknown>>;
+    const ids = new Set<string>();
+    ev?.forEach((item,i) => { const expected=`${prefix}${String(i+1).padStart(3,'0')}`; const actual=String(item.id??''); ids.add(actual); if(actual!==expected)findings.push(issue(context,'EVIDENCE_ID_SEQUENCE',`${ePath}.${i}.id`,`Expected ${expected}.`)); });
+    const used = new Set<string>();
+    const atomic = new Set<string>();
+    binds?.forEach((b,i)=>{ const a=String(b.atomicItemId??''); if(!atomicPattern.test(a))findings.push(issue(context,'ATOMIC_BINDING_REFERENCE',`${bPath}.${i}.atomicItemId`,`${a} does not belong to current object.`)); atomic.add(a); for(const id of ((b.evidenceIds as string[])??[])){ if(!ids.has(id))findings.push(issue(context,'EVIDENCE_BINDING_REFERENCE',`${bPath}.${i}.evidenceIds`,`${id} does not resolve.`)); else used.add(id); }});
+    for(const id of ids) if(!used.has(id)) findings.push(issue(context,'UNUSED_EVIDENCE_OBJECT',ePath,`${id} is unused.`));
+    if (atomic.size !== (binds?.length ?? 0)) findings.push(issue(context,'DUPLICATE_ATOMIC_BINDING',bPath,'Each atomic item must have exactly one binding object.'));
   }
 }
 
-export function validateTaskPrerequisites(
-  contract: TaskContract,
-  completedTaskTypes: ReadonlySet<CognitiveTaskType>,
-  context: CompletionContext
-): ValidationReport {
-  const findings = contract.upstreamTaskTypes
-    .filter((taskType) => !completedTaskTypes.has(taskType))
-    .map((taskType) =>
-      finding(
-        context,
-        `TASK_PREREQUISITE_${taskType}`,
-        'upstreamTaskTypes',
-        `Required validated upstream task ${taskType} is missing.`
-      )
-    );
-
-  return {
-    runId: context.runId,
-    objectId: context.expectedPairId,
-    passed: findings.length === 0,
-    findings
-  };
+function validateFindings(value: Record<string, unknown>, context: CompletionContext, findings: ValidationFinding[]): void {
+  const groups = [
+    ['capabilityFindings',`FND-${context.expectedCapabilityId}-`,new RegExp(`^${context.expectedCapabilityId}-SC-[0-9]{3}$`),new RegExp(`^EVD-${context.expectedCapabilityId}-[0-9]{3}$`)],
+    ['antipatternFindings',`FND-${context.expectedAntipatternId}-`,new RegExp(`^${context.expectedAntipatternId}-AT-[0-9]{3}$`),new RegExp(`^EVD-${context.expectedAntipatternId}-[0-9]{3}$`)]
+  ] as const;
+  for(const [path,prefix,aPattern,ePattern] of groups){ const items=value[path] as Array<Record<string,unknown>>; items?.forEach((f,i)=>{ const expected=`${prefix}${String(i+1).padStart(3,'0')}`; if(f.id!==expected)findings.push(issue(context,'FINDING_ID_SEQUENCE',`${path}.${i}.id`,`Expected ${expected}.`)); for(const id of ((f.mappedAtomicItemIds as string[])??[]))if(!aPattern.test(id))findings.push(issue(context,'FINDING_ATOMIC_REFERENCE',`${path}.${i}.mappedAtomicItemIds`,`${id} does not belong to current object.`)); for(const id of ((f.requiredEvidenceIds as string[])??[]))if(!ePattern.test(id))findings.push(issue(context,'FINDING_EVIDENCE_REFERENCE',`${path}.${i}.requiredEvidenceIds`,`${id} does not belong to current object.`)); }); }
 }
 
-export function validateCognitiveTaskCompletion(
-  taskType: CognitiveTaskType,
-  output: unknown,
-  context: CompletionContext
-): ValidationReport {
-  const findings: ValidationFinding[] = [];
-  const schema = OUTPUT_SCHEMAS[taskType];
-
-  if (!schema) {
-    findings.push(
-      finding(
-        context,
-        'TASK_COMPLETION_SCHEMA_NOT_IMPLEMENTED',
-        taskType,
-        `No deterministic completion schema has been implemented yet for ${taskType}.`
-      )
-    );
-    return {
-      runId: context.runId,
-      objectId: context.expectedPairId,
-      passed: false,
-      findings
-    };
-  }
-
-  const parsed = schema.safeParse(output);
-  if (!parsed.success) {
-    for (const issue of parsed.error.issues) {
-      findings.push(
-        finding(
-          context,
-          'TASK_OUTPUT_CONTRACT',
-          issue.path.join('.') || taskType,
-          issue.message
-        )
-      );
-    }
-  } else {
-    const value = parsed.data as Record<string, unknown>;
-    validatePairIds(value, context, findings);
-
-    if (taskType === 'PRIMARY_QUESTIONS') {
-      validatePrimaryQuestionIds(value, context, findings);
-    }
-    if (taskType === 'ATOMIC_DECOMPOSITION') {
-      validateAtomicDecomposition(value, context, findings);
-    }
-    if (taskType === 'EVIDENCE_ARCHITECTURE') {
-      validateEvidenceArchitecture(value, context, findings);
-    }
-  }
-
-  return {
-    runId: context.runId,
-    objectId: context.expectedPairId,
-    passed: findings.length === 0,
-    findings
-  };
+function validateReferences(value: Record<string, unknown>, context: CompletionContext, findings: ValidationFinding[]): void {
+  for(const path of ['capabilityRelatedCriteria','antipatternRelatedCriteria'] as const){ for(const id of ((value[path] as string[])??[])){ if(id===context.expectedCapabilityId || id===context.expectedAntipatternId) findings.push(issue(context,'RELATED_CRITERIA_SELF_REFERENCE',path,`${id} is a self-reference.`)); }}
 }
 
-export function canPersistTaskAsCompleted(
-  contract: TaskContract,
-  completedTaskTypes: ReadonlySet<CognitiveTaskType>,
-  output: unknown,
-  context: CompletionContext
-): ValidationReport {
-  const prerequisiteReport = validateTaskPrerequisites(contract, completedTaskTypes, context);
-  if (!prerequisiteReport.passed) return prerequisiteReport;
+function validatePairReview(value: Record<string, unknown>, context: CompletionContext, findings: ValidationFinding[]): void {
+  const defects=(value.defects as Array<Record<string,unknown>>)??[];
+  const blocking=defects.some(d=>d.severity==='HIGH'||d.severity==='BLOCKING');
+  if(value.passed===true && blocking) findings.push(issue(context,'PAIR_REVIEW_PASS_CONTRADICTION','passed','Pair cannot pass while HIGH or BLOCKING defects remain.'));
+}
 
-  return validateCognitiveTaskCompletion(contract.taskType, output, context);
+export function validateTaskPrerequisites(contract: TaskContract, completedTaskTypes: ReadonlySet<CognitiveTaskType>, context: CompletionContext): ValidationReport {
+  const findings = contract.upstreamTaskTypes.filter(t=>!completedTaskTypes.has(t)).map(t=>issue(context,`TASK_PREREQUISITE_${t}`,'upstreamTaskTypes',`Required validated upstream task ${t} is missing.`));
+  return { runId: context.runId, objectId: context.expectedPairId, passed: findings.length===0, findings };
+}
+
+export function validateCognitiveTaskCompletion(taskType: CognitiveTaskType, output: unknown, context: CompletionContext): ValidationReport {
+  const findings: ValidationFinding[]=[];
+  const schema=OUTPUT_SCHEMAS[taskType];
+  if(!schema) return { runId:context.runId, objectId:context.expectedPairId, passed:false, findings:[issue(context,'TASK_COMPLETION_SCHEMA_NOT_IMPLEMENTED',taskType,`No deterministic completion schema has been implemented yet for ${taskType}.`)] };
+  const parsed=schema.safeParse(output);
+  if(!parsed.success){ for(const zIssue of parsed.error.issues)findings.push(issue(context,'TASK_OUTPUT_CONTRACT',zIssue.path.join('.')||taskType,zIssue.message)); }
+  else {
+    const value=parsed.data as Record<string,unknown>;
+    validateIds(value,context,findings);
+    if(taskType==='PRIMARY_QUESTIONS')validateQuestions(value,context,findings);
+    if(taskType==='ATOMIC_DECOMPOSITION')validateAtomic(value,context,findings);
+    if(taskType==='EVIDENCE_ARCHITECTURE')validateEvidence(value,context,findings);
+    if(taskType==='FINDING_ARCHITECTURE')validateFindings(value,context,findings);
+    if(taskType==='REFERENCE_MAPPING')validateReferences(value,context,findings);
+    if(taskType==='PAIR_COHERENCE_REVIEW')validatePairReview(value,context,findings);
+  }
+  return { runId:context.runId, objectId:context.expectedPairId, passed:findings.length===0, findings };
+}
+
+export function canPersistTaskAsCompleted(contract: TaskContract, completedTaskTypes: ReadonlySet<CognitiveTaskType>, output: unknown, context: CompletionContext): ValidationReport {
+  const pre=validateTaskPrerequisites(contract,completedTaskTypes,context);
+  return pre.passed ? validateCognitiveTaskCompletion(contract.taskType,output,context) : pre;
 }
