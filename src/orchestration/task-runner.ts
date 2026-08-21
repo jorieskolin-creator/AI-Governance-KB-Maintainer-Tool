@@ -7,6 +7,7 @@ import {
   canPersistTaskAsCompleted,
   type CompletionContext
 } from '../validation/cognitive-completion.js';
+import type { ValidationFinding } from '../validation/contracts.js';
 import {
   completeTaskRun,
   createTaskRun,
@@ -86,6 +87,40 @@ async function executeTarget(input: {
   throw lastError instanceof Error ? lastError : new Error('Model execution failed.');
 }
 
+async function tryRoute(input: {
+  taskRunId: string;
+  pairRunId: string;
+  contract: TaskContract;
+  target: ModelTarget;
+  isFallback: boolean;
+  packet: { system: string; user: string };
+  completed: ReadonlySet<any>;
+  completionContext: CompletionContext;
+}): Promise<{ passed: boolean; output?: unknown; findings: ValidationFinding[]; executionError?: Error }> {
+  try {
+    const output = await executeTarget({
+      taskRunId: input.taskRunId,
+      contract: input.contract,
+      target: input.target,
+      isFallback: input.isFallback,
+      packet: input.packet
+    });
+    const gate = canPersistTaskAsCompleted(
+      input.contract,
+      input.completed,
+      output,
+      input.completionContext
+    );
+    return { passed: gate.passed, output, findings: gate.findings };
+  } catch (error) {
+    return {
+      passed: false,
+      findings: [],
+      executionError: error instanceof Error ? error : new Error('Model execution failed.')
+    };
+  }
+}
+
 export async function runCognitiveTask(input: {
   pairRunId: string;
   contract: TaskContract;
@@ -101,52 +136,52 @@ export async function runCognitiveTask(input: {
   const packet = buildPromptPacket(input.contract);
   const route = getModelRoute(input.contract.modelRole);
 
-  try {
-    const primaryOutput = await executeTarget({
-      taskRunId,
-      contract: input.contract,
-      target: route.primary,
-      isFallback: false,
-      packet
-    });
-    const primaryGate = canPersistTaskAsCompleted(
-      input.contract,
-      completed,
-      primaryOutput,
-      input.completionContext
-    );
+  const primary = await tryRoute({
+    taskRunId,
+    pairRunId: input.pairRunId,
+    contract: input.contract,
+    target: route.primary,
+    isFallback: false,
+    packet,
+    completed,
+    completionContext: input.completionContext
+  });
 
-    if (primaryGate.passed) {
-      await completeTaskRun({ taskRunId, output: primaryOutput, outputHash: hash(primaryOutput) });
-      return { output: primaryOutput, usedFallback: false };
-    }
-
-    const fallbackOutput = await executeTarget({
-      taskRunId,
-      contract: input.contract,
-      target: route.fallback,
-      isFallback: true,
-      packet
-    });
-    const fallbackGate = canPersistTaskAsCompleted(
-      input.contract,
-      completed,
-      fallbackOutput,
-      input.completionContext
-    );
-
-    if (!fallbackGate.passed) {
-      await persistValidationFindings(input.pairRunId, fallbackGate.findings);
-      await failTaskRun(taskRunId);
-      throw new Error(
-        `Task ${input.contract.taskType} failed deterministic completion after primary and fallback execution.`
-      );
-    }
-
-    await completeTaskRun({ taskRunId, output: fallbackOutput, outputHash: hash(fallbackOutput) });
-    return { output: fallbackOutput, usedFallback: true };
-  } catch (error) {
-    await failTaskRun(taskRunId);
-    throw error;
+  if (primary.passed && primary.output !== undefined) {
+    await completeTaskRun({ taskRunId, output: primary.output, outputHash: hash(primary.output) });
+    return { output: primary.output, usedFallback: false };
   }
+
+  // Primary failures are diagnostic only when fallback succeeds. They remain visible
+  // through model_calls and are not promoted to production validation findings.
+  const fallback = await tryRoute({
+    taskRunId,
+    pairRunId: input.pairRunId,
+    contract: input.contract,
+    target: route.fallback,
+    isFallback: true,
+    packet,
+    completed,
+    completionContext: input.completionContext
+  });
+
+  if (fallback.passed && fallback.output !== undefined) {
+    await completeTaskRun({ taskRunId, output: fallback.output, outputHash: hash(fallback.output) });
+    return { output: fallback.output, usedFallback: true };
+  }
+
+  const terminalFindings = fallback.findings.length ? fallback.findings : primary.findings;
+  if (terminalFindings.length) {
+    await persistValidationFindings(input.pairRunId, terminalFindings);
+  }
+  await failTaskRun(taskRunId);
+
+  const failureMessages = [primary.executionError?.message, fallback.executionError?.message]
+    .filter(Boolean)
+    .join(' | ');
+  throw new Error(
+    `Task ${input.contract.taskType} failed primary and fallback routes${
+      failureMessages ? `: ${failureMessages}` : ' due to deterministic completion failure.'
+    }`
+  );
 }
