@@ -4,204 +4,75 @@
 
 A cognitive task is the smallest AI reasoning unit. It is not a pair, domain batch or approval unit.
 
-Every task is fail-closed and has:
+Every task is fail-closed and has one objective, a versioned contract, explicit upstream dependencies, immutable locked inputs, allowed references, DO-NOT boundaries, strict JSON output, deterministic completion checks and declared downstream dependency paths.
 
-- one objective;
-- versioned contract;
-- explicit upstream task dependencies;
-- immutable locked inputs;
-- allowed references;
-- explicit DO-NOT boundaries;
-- strict JSON output contract;
-- deterministic completion checks;
-- declared downstream dependency paths.
+The model conversation is never pipeline state. Validated persisted task artifacts are the only admissible upstream cognitive inputs.
 
-The model conversation is never the pipeline state. Validated task artifacts are persisted and become the only admissible upstream inputs for later tasks.
+## Pair task sequence
 
-## 1. PAIR_BOUNDARY
+1. `PAIR_BOUNDARY`
+2. `AP_FAILURE_MODEL`
+3. `APPLICABILITY`
+4. `PRIMARY_QUESTIONS`
+5. `ATOMIC_DECOMPOSITION`
+6. `EVIDENCE_ARCHITECTURE`
+7. `EVIDENCE_SAFETY`
+8. `AP_ABSENCE_CONTRACT`
+9. `SOURCE_MAPPING`
+10. `FINDING_ARCHITECTURE`
+11. `CONTROL_BOUNDARY`
+12. `REFERENCE_MAPPING`
+13. `PAIR_COHERENCE_REVIEW`
 
-Purpose: establish semantic ownership before any detailed authoring begins.
+A completed domain batch is reviewed separately with `DOMAIN_COHERENCE_REVIEW` before it can become ready for external approval.
 
-Produces only:
+## Cognitive isolation rules
 
-- capability canonical definition;
-- governance purpose;
-- distinct claim;
-- explicitly owned topics;
-- boundaries against adjacent criteria;
-- paired anti-pattern canonical definition and relationship;
-- boundary rationale.
+- `ATOMIC_DECOMPOSITION` describes evidence needs but does not create evidence IDs.
+- `EVIDENCE_ARCHITECTURE` owns evidence objects, deterministic evidence IDs and exact atomic bindings.
+- `EVIDENCE_SAFETY` owns ceilings, false-positive guards, prohibited inferences, contradiction handling and freshness rules.
+- `AP_ABSENCE_CONTRACT` is isolated so silence or missing evidence can never become tested absence.
+- `SOURCE_MAPPING` can use only the deterministic allowed-source packet created from the sealed Source Register baseline.
+- `PAIR_COHERENCE_REVIEW` and `DOMAIN_COHERENCE_REVIEW` are critic-only; they return localized defects, never replacement production content.
+- Tactic references remain empty unless an exact approved reciprocal catalog mapping can be deterministically verified.
 
-It must not create evidence, atomic criteria/tests, findings, sources, tactics or governance decisions.
+## Model roles
 
-Model role: `REASONER`.
+Cognitive services request a role, not a provider directly:
 
-## 2. AP_FAILURE_MODEL
+- `WORKHORSE`
+- `REASONER`
+- `QUALITY_CHECKER`
 
-Prerequisite: validated `PAIR_BOUNDARY`.
+Each role has an explicit primary provider/model and fallback provider/model. Provider choice is therefore configuration, while cognitive responsibility remains stable.
 
-Purpose: define the anti-pattern failure mechanism independently from evidence or findings.
+## Execution contract
 
-Produces only:
+`src/orchestration/task-runner.ts` executes the bounded task as follows:
 
-- failure mechanism;
-- triggering conditions;
-- observable failure surfaces;
-- non-examples;
-- distinction between the anti-pattern mechanism and an ordinary bounded capability gap.
+1. load the task contract and validated prerequisite state;
+2. persist the task as `STARTED` with deterministic input hash;
+3. build the provider-neutral prompt packet;
+4. execute the role's primary provider/model;
+5. run deterministic task completion;
+6. persist `COMPLETED` only when the output passes;
+7. if the primary execution or completion fails, execute the configured fallback;
+8. require the fallback to pass the same deterministic gate;
+9. persist model-call metadata for every attempt;
+10. persist failure findings and leave the task failed when neither route passes.
 
-It must not redefine the capability boundary or infer anti-pattern presence/absence for any real system.
+A model never overrides a deterministic gate.
 
-Model role: `REASONER`.
+## Local repair
 
-## 3. APPLICABILITY
+Validation findings resolve through the deterministic Impact Resolver. `LOCAL_REPAIR` receives the frozen object, exact allowed target paths, relevant dependencies and validators to rerun. It returns path/value patches only; a complete rewritten object is prohibited.
 
-Prerequisites:
+This implements:
 
-- validated `PAIR_BOUNDARY`;
-- validated `AP_FAILURE_MODEL`.
+`DETECT -> LOCALIZE -> RESOLVE IMPACT -> PATCH ONLY TARGET PATHS -> REVALIDATE AFFECTED DEPENDENCIES`
 
-Purpose: define capability and anti-pattern applicability as separate but coherent objects.
+## Golden Standard
 
-Produces only:
+A1/AP-A1 is the regression anchor. The mutation harness checks whether known corruptions are detected, including duplicate atomic IDs, broken evidence references, incomplete anti-pattern absence testing, missing lifecycle target coverage and removed evidence-safety rules.
 
-- applicability statement;
-- conditions;
-- exclusions;
-- reassessment triggers;
-- pair consistency notes.
-
-It does not determine legal applicability for a real system and does not create questions, evidence, findings, sources or tactics.
-
-Model role: `WORKHORSE`.
-
-## 4. PRIMARY_QUESTIONS
-
-Prerequisites:
-
-- validated `PAIR_BOUNDARY`;
-- validated `AP_FAILURE_MODEL`;
-- validated `APPLICABILITY`.
-
-Purpose: author exactly three primary questions for the capability and exactly three for the anti-pattern using the fixed dimensions:
-
-1. `DEFINITION_AND_INTENT`
-2. `IMPLEMENTATION_AND_OPERATION`
-3. `EVIDENCE_AND_EFFECTIVENESS`
-
-The orchestrator fixes IDs as `<capability>-Q1..Q3` and `<anti-pattern>-Q1..Q3`. The model cannot change their identity or order.
-
-This step must not create atomic items, evidence, findings, source mappings, tactics or lifecycle consequences.
-
-Model role: `REASONER`.
-
-## 5. ATOMIC_DECOMPOSITION
-
-Prerequisites: all validated artifacts through `PRIMARY_QUESTIONS`.
-
-Purpose: decompose each primary question into independently assessable capability subcriteria and independently executable anti-pattern tests.
-
-Important sequencing rule: this task describes each atomic item's **evidence need semantically**, but it does not create final evidence objects or evidence IDs. Evidence IDs belong to the next task.
-
-Capability atomic IDs are deterministic: `<capability>-SC-001..n`.
-Anti-pattern atomic IDs are deterministic: `<anti-pattern>-AT-001..n`.
-
-Completion checks require:
-
-- sequential deterministic IDs;
-- every atomic item references exactly one current primary question;
-- all three primary questions are covered for both objects;
-- no evidence IDs are invented at this stage.
-
-Model role: `REASONER`.
-
-## 6. EVIDENCE_ARCHITECTURE
-
-Prerequisites: all validated artifacts through `ATOMIC_DECOMPOSITION`.
-
-Purpose: define evidence objects and bind them to the validated atomic items.
-
-Each evidence object owns:
-
-- evidence ID;
-- title;
-- supported claim;
-- evidence class;
-- minimum technical assurance;
-- required human assurance;
-- acceptance conditions;
-- limitations.
-
-Capability evidence IDs are deterministic: `EVD-<capability>-001..n`.
-Anti-pattern evidence IDs are deterministic: `EVD-<anti-pattern>-001..n`.
-
-The task also creates explicit atomic-to-evidence bindings. Deterministic validation rejects unresolved evidence IDs, unused evidence objects, duplicate atomic binding objects and unknown atomic references. A separate cross-artifact gate compares the bindings against the actual validated `ATOMIC_DECOMPOSITION` artifact so no atomic item can disappear between steps.
-
-This task does not author evidence ceilings, false-positive guards, prohibited inferences, contradiction rules, freshness rules, findings, source mappings or tactics.
-
-Model role: `WORKHORSE`.
-
-## 7. EVIDENCE_SAFETY
-
-Prerequisites: all validated artifacts through `EVIDENCE_ARCHITECTURE`.
-
-Purpose: define how evidence may and may not be interpreted.
-
-Produces separate capability and anti-pattern rule families for:
-
-- evidence ceilings;
-- false-positive guards;
-- prohibited inferences;
-- contradiction handling;
-- freshness rules.
-
-The task must protect against unsupported assurance inflation, treating policy/document presence as implementation, inferring legal compliance, and especially inferring anti-pattern absence from silence or lack of discovered incidents.
-
-The formal anti-pattern absence-test contract is **not** authored here; this step defines interpretation safeguards only.
-
-Model role: `REASONER`.
-
-## Deterministic completion rule
-
-A task can be persisted as `COMPLETED` only when:
-
-1. every required upstream task is already validated;
-2. output satisfies the strict task-specific shape;
-3. target IDs match orchestrator-supplied IDs;
-4. capability and anti-pattern IDs form the exact pair;
-5. deterministic identity/reference invariants for the task pass;
-6. no undeclared output sections are returned.
-
-For cross-artifact dependencies, deterministic graph checks compare the new artifact against the validated upstream artifact rather than relying on ID patterns alone.
-
-If a completion schema has not yet been implemented for a task type, the gate fails closed.
-
-## Prompt assembly
-
-`src/cognitive/prompt-builder.ts` converts a Task Contract into a provider-neutral prompt packet. Provider adapters receive the same cognitive contract regardless of whether OpenAI, Grok or Kimi is selected by the model router.
-
-This keeps provider choice separate from reasoning architecture.
-
-## Implemented sequence
-
-```text
-PAIR_BOUNDARY
-  -> AP_FAILURE_MODEL
-  -> APPLICABILITY
-  -> PRIMARY_QUESTIONS
-  -> ATOMIC_DECOMPOSITION
-  -> EVIDENCE_ARCHITECTURE
-  -> EVIDENCE_SAFETY
-```
-
-## Next sequence
-
-The next cognitive layer should continue in dependency order:
-
-1. `SOURCE_MAPPING`
-2. `FINDING_ARCHITECTURE`
-3. `CONTROL_BOUNDARY`
-4. `REFERENCE_MAPPING`
-5. `PAIR_COHERENCE_REVIEW`
-
-Source mapping must remain separate from evidence authoring: the evidence architecture defines **what evidence is required**, while source mapping defines **which approved normative sources support the governance knowledge claims and at which exact locators**.
+The exact approved canonical A1/AP-A1 JSON fixtures must be committed byte-for-byte under `golden/fixtures/`. Historical approved fixtures retain their historical schema version and approval record; they are not silently migrated to the current authoring schema.
