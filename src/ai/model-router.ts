@@ -33,10 +33,12 @@ function requiredAny(names: string[]): string {
 
 function provider(name: string): ModelProvider {
   const value = required(name).toUpperCase();
-  if (value !== 'OPENAI' && value !== 'GROK' && value !== 'KIMI') {
-    throw new Error(`${name} must be OPENAI, GROK or KIMI; received ${value}`);
-  }
-  return value;
+  if (value === 'OPENAI') return 'OPENAI';
+  if (value === 'GROK' || value === 'XAI') return 'GROK';
+  if (value === 'KIMI' || value === 'MOONSHOT') return 'KIMI';
+  throw new Error(
+    `${name} must be OPENAI, GROK/XAI or KIMI/MOONSHOT; received ${value}`
+  );
 }
 
 export function getModelRoute(role: ModelRole): ModelRoute {
