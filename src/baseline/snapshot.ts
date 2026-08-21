@@ -3,13 +3,14 @@ import { getDbPool } from '../db/client.js';
 
 export interface BaselineArtifact {
   artifactType:
+    | 'PRODUCTION_CONTRACT'
     | 'CATEGORIES_BASELINE'
     | 'CAPABILITY_SCHEMA'
     | 'ANTIPATTERN_SCHEMA'
     | 'SHARED_DEFINITIONS_SCHEMA'
     | 'SOURCE_REGISTER'
     | 'TACTIC_CATALOG'
-    | 'GOLDEN_STANDARD'
+    | 'GOLDEN_REFERENCE'
     | 'PROMPT_CONFIGURATION';
   id: string;
   version: string;
@@ -43,13 +44,18 @@ function hash(value: unknown): string {
   return createHash('sha256').update(stable(value)).digest('hex');
 }
 
+// Normative rules and quality exemplars are intentionally separate.
+// PRODUCTION_CONTRACT + schemas + taxonomy/registers define what is mandatory.
+// GOLDEN_REFERENCE is a regression/calibration exemplar and must never create
+// additional mandatory rules merely because A1/AP-A1 happens to contain them.
 const REQUIRED_BASELINE_TYPES: BaselineArtifact['artifactType'][] = [
+  'PRODUCTION_CONTRACT',
   'CATEGORIES_BASELINE',
   'CAPABILITY_SCHEMA',
   'ANTIPATTERN_SCHEMA',
   'SHARED_DEFINITIONS_SCHEMA',
   'SOURCE_REGISTER',
-  'GOLDEN_STANDARD'
+  'GOLDEN_REFERENCE'
 ];
 
 export function buildBaselineManifest(artifacts: BaselineArtifact[]): BaselineManifestEntry[] {
