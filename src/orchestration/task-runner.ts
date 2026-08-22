@@ -2,12 +2,14 @@ import { createHash } from 'node:crypto';
 import { executeModel } from '../ai/provider-client.js';
 import { getModelRoute, type ModelTarget } from '../ai/model-router.js';
 import { buildPromptPacket } from '../cognitive/prompt-builder.js';
+import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import {
   canPersistTaskAsCompleted,
   type CompletionContext
 } from '../validation/cognitive-completion.js';
 import { validateLifecycleAssuranceCompletion } from '../validation/lifecycle-assurance.js';
+import { validateSirInitialCompletion } from '../validation/sir-initial-completion.js';
 import type { ValidationFinding } from '../validation/contracts.js';
 import {
   completeTaskRun,
@@ -17,6 +19,13 @@ import {
   persistModelCall,
   persistValidationFindings
 } from './store.js';
+
+const INITIAL_SIR_TASKS = new Set<CognitiveTaskType>([
+  'PAIR_BOUNDARY',
+  'AP_FAILURE_MODEL',
+  'APPLICABILITY',
+  'PRIMARY_QUESTIONS'
+]);
 
 function canonical(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -90,10 +99,21 @@ async function executeTarget(input: {
 
 function runDeterministicCompletionGate(input: {
   contract: TaskContract;
-  completed: ReadonlySet<any>;
+  completed: ReadonlySet<CognitiveTaskType>;
   output: unknown;
   completionContext: CompletionContext;
 }) {
+  if (input.contract.contractVersion === '2.0.0' && INITIAL_SIR_TASKS.has(input.contract.taskType)) {
+    return validateSirInitialCompletion(
+      input.contract,
+      input.completed,
+      input.output,
+      {
+        runId: input.completionContext.runId,
+        expectedPairId: input.completionContext.expectedPairId
+      }
+    );
+  }
   if (input.contract.taskType === 'LIFECYCLE_ASSURANCE') {
     return validateLifecycleAssuranceCompletion(
       input.contract,
@@ -117,7 +137,7 @@ async function tryRoute(input: {
   target: ModelTarget;
   isFallback: boolean;
   packet: { system: string; user: string };
-  completed: ReadonlySet<any>;
+  completed: ReadonlySet<CognitiveTaskType>;
   completionContext: CompletionContext;
 }): Promise<{ passed: boolean; output?: unknown; findings: ValidationFinding[]; executionError?: Error }> {
   try {
