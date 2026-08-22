@@ -23,6 +23,7 @@ const gates: Gate[] = [
   { id: 'SIR_SOURCE_MAPPING_MATERIALIZER', script: 'dist/sir/run-source-mapping-materializer-check.js' },
   { id: 'SIR_FINDING', script: 'dist/sir/run-finding-sir-check.js' },
   { id: 'SIR_FINDING_RESOLVER', script: 'dist/orchestration/run-finding-resolver-check.js' },
+  { id: 'SIR_FINDING_ARTIFACT', script: 'dist/orchestration/run-finding-artifact-verifier-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
