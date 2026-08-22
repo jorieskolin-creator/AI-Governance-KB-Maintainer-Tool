@@ -8,8 +8,9 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "architecture:check": "node dist/architecture/run-responsibility-check.js",
     "golden:regression": "node dist/golden/run-regression.js",
-    "verify:build": "npm run build && npm run golden:regression"
+    "verify:build": "npm run build && npm run architecture:check && npm run golden:regression"
   },
   "engines": {
     "node": ">=20"
