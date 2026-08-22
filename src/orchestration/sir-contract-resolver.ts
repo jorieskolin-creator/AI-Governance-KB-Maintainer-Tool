@@ -20,8 +20,10 @@ import {
   type SirApAbsenceOutput
 } from '../cognitive/sir-ap-absence-contract.js';
 import { buildSirSourceMappingContract } from '../cognitive/sir-source-mapping-contract.js';
+import { buildSirFindingArchitectureContract } from '../cognitive/sir-finding-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
 import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
+import type { MaterializedSirSourceMappings } from '../sir/source-mapping-materializer.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { SourceContextPacket } from './source-context-packet.js';
@@ -40,7 +42,8 @@ export type ResolvableSirTaskType =
   | 'EVIDENCE_ARCHITECTURE'
   | 'EVIDENCE_SAFETY'
   | 'AP_ABSENCE_CONTRACT'
-  | 'SOURCE_MAPPING';
+  | 'SOURCE_MAPPING'
+  | 'FINDING_ARCHITECTURE';
 
 export interface SirContractResolverInput {
   pairRunId: string;
@@ -104,122 +107,82 @@ export async function resolveSirTaskContract(
     goldenReference: input.goldenReference
   };
 
-  if (input.taskType === 'PAIR_BOUNDARY') {
-    return buildSirPairBoundaryContract(base);
-  }
+  if (input.taskType === 'PAIR_BOUNDARY') return buildSirPairBoundaryContract(base);
 
   const pairBoundary = assertCompatibleArtifact(
     await load<SirPairBoundaryOutput>(input.pairRunId, 'PAIR_BOUNDARY'),
-    'PAIR_BOUNDARY',
-    input.authoringPlan
+    'PAIR_BOUNDARY', input.authoringPlan
   );
-
-  if (input.taskType === 'AP_FAILURE_MODEL') {
-    return buildSirApFailureModelContract({ ...base, pairBoundary });
-  }
+  if (input.taskType === 'AP_FAILURE_MODEL') return buildSirApFailureModelContract({ ...base, pairBoundary });
 
   const apFailureModel = assertCompatibleArtifact(
     await load<SirApFailureModelOutput>(input.pairRunId, 'AP_FAILURE_MODEL'),
-    'AP_FAILURE_MODEL',
-    input.authoringPlan
+    'AP_FAILURE_MODEL', input.authoringPlan
   );
-
-  if (input.taskType === 'APPLICABILITY') {
-    return buildSirApplicabilityContract({ ...base, pairBoundary, apFailureModel });
-  }
+  if (input.taskType === 'APPLICABILITY') return buildSirApplicabilityContract({ ...base, pairBoundary, apFailureModel });
 
   const applicability = assertCompatibleArtifact(
     await load<SirApplicabilityOutput>(input.pairRunId, 'APPLICABILITY'),
-    'APPLICABILITY',
-    input.authoringPlan
+    'APPLICABILITY', input.authoringPlan
   );
-
   if (input.taskType === 'PRIMARY_QUESTIONS') {
     return buildSirPrimaryQuestionsContract({ ...base, pairBoundary, apFailureModel, applicability });
   }
 
   const primaryQuestions = assertCompatibleArtifact(
     await load<SirPrimaryQuestionsOutput>(input.pairRunId, 'PRIMARY_QUESTIONS'),
-    'PRIMARY_QUESTIONS',
-    input.authoringPlan
+    'PRIMARY_QUESTIONS', input.authoringPlan
   );
-
   if (input.taskType === 'ATOMIC_DECOMPOSITION') {
-    return buildSirAtomicDecompositionContract({
-      ...base,
-      pairBoundary,
-      apFailureModel,
-      applicability,
-      primaryQuestions
-    });
+    return buildSirAtomicDecompositionContract({ ...base, pairBoundary, apFailureModel, applicability, primaryQuestions });
   }
 
   const atomics = assertCompatibleArtifact(
     await load<MaterializedSirAtomics>(input.pairRunId, 'ATOMIC_DECOMPOSITION'),
-    'ATOMIC_DECOMPOSITION',
-    input.authoringPlan
+    'ATOMIC_DECOMPOSITION', input.authoringPlan
   );
-
   if (input.taskType === 'EVIDENCE_ARCHITECTURE') {
-    return buildSirEvidenceArchitectureContract({
-      ...base,
-      pairBoundary,
-      apFailureModel,
-      applicability,
-      primaryQuestions,
-      atomics
-    });
+    return buildSirEvidenceArchitectureContract({ ...base, pairBoundary, apFailureModel, applicability, primaryQuestions, atomics });
   }
 
   const evidence = assertCompatibleArtifact(
     await load<MaterializedSirEvidence>(input.pairRunId, 'EVIDENCE_ARCHITECTURE'),
-    'EVIDENCE_ARCHITECTURE',
-    input.authoringPlan
+    'EVIDENCE_ARCHITECTURE', input.authoringPlan
   );
-
   if (input.taskType === 'EVIDENCE_SAFETY') {
-    return buildSirEvidenceSafetyContract({
-      ...base,
-      pairBoundary,
-      apFailureModel,
-      applicability,
-      primaryQuestions,
-      atomics,
-      evidence
-    });
+    return buildSirEvidenceSafetyContract({ ...base, pairBoundary, apFailureModel, applicability, primaryQuestions, atomics, evidence });
   }
 
   const evidenceSafety = assertCompatibleArtifact(
     await load<SirEvidenceSafetyOutput>(input.pairRunId, 'EVIDENCE_SAFETY'),
-    'EVIDENCE_SAFETY',
-    input.authoringPlan
+    'EVIDENCE_SAFETY', input.authoringPlan
   );
-
   if (input.taskType === 'AP_ABSENCE_CONTRACT') {
-    return buildSirApAbsenceContract({
-      ...base,
-      pairBoundary,
-      apFailureModel,
-      applicability,
-      primaryQuestions,
-      atomics,
-      evidence,
-      evidenceSafety
-    });
+    return buildSirApAbsenceContract({ ...base, pairBoundary, apFailureModel, applicability, primaryQuestions, atomics, evidence, evidenceSafety });
   }
 
   const apAbsence = assertCompatibleArtifact(
     await load<SirApAbsenceOutput>(input.pairRunId, 'AP_ABSENCE_CONTRACT'),
-    'AP_ABSENCE_CONTRACT',
-    input.authoringPlan
+    'AP_ABSENCE_CONTRACT', input.authoringPlan
   );
 
-  if (!input.sourceContextPacket) {
-    throw new Error(`SOURCE_MAPPING requires a Source Context Packet for ${input.authoringPlan.identity.pairId}.`);
+  if (input.taskType === 'SOURCE_MAPPING') {
+    if (!input.sourceContextPacket) {
+      throw new Error(`SOURCE_MAPPING requires a Source Context Packet for ${input.authoringPlan.identity.pairId}.`);
+    }
+    verifySourceContextPacket(input.sourceContextPacket, input.authoringPlan);
+    return buildSirSourceMappingContract({
+      ...base, pairBoundary, apFailureModel, applicability, primaryQuestions,
+      atomics, evidence, evidenceSafety, apAbsence, sourceContextPacket:input.sourceContextPacket
+    });
   }
-  verifySourceContextPacket(input.sourceContextPacket, input.authoringPlan);
 
-  return buildSirSourceMappingContract({
+  const sourceMappings = assertCompatibleArtifact(
+    await load<MaterializedSirSourceMappings>(input.pairRunId, 'SOURCE_MAPPING'),
+    'SOURCE_MAPPING', input.authoringPlan
+  );
+
+  return buildSirFindingArchitectureContract({
     ...base,
     pairBoundary,
     apFailureModel,
@@ -229,6 +192,6 @@ export async function resolveSirTaskContract(
     evidence,
     evidenceSafety,
     apAbsence,
-    sourceContextPacket: input.sourceContextPacket
+    sourceMappings
   });
 }
