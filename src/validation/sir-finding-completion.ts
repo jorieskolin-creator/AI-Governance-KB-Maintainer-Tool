@@ -91,8 +91,10 @@ function validateFindingGroup(input:{
   context:SirFindingCompletionContext;
   findings:ValidationFinding[];
 }):void {
-  const atomicSet = new Set(input.atomics.map((item)=>item.handle));
-  const evidenceByHandle = new Map(input.evidence.map((item)=>[item.handle,item]));
+  const atomicSet = new Set<string>(input.atomics.map((item)=>item.handle));
+  const evidenceByHandle = new Map<string,SirEvidenceItem>(
+    input.evidence.map((item)=>[item.handle,item] as const)
+  );
   const titles = new Set<string>();
 
   input.items.forEach((item,index)=>{
@@ -113,7 +115,7 @@ function validateFindingGroup(input:{
       input.findings.push(finding(input.context,'SIR_FINDING_DUPLICATE_EVIDENCE_HANDLE',`${base}/evidenceHandles`,'Finding evidence handles must be unique.'));
     }
 
-    const selectedAtomicSet = new Set(item.atomicHandles);
+    const selectedAtomicSet = new Set<string>(item.atomicHandles);
     const selectedEvidence:SirEvidenceItem[] = [];
 
     for (const handle of item.atomicHandles) {
@@ -133,7 +135,9 @@ function validateFindingGroup(input:{
 
     for (const atomic of selectedAtomicSet) {
       if (!atomicSet.has(atomic)) continue;
-      const covered = selectedEvidence.some((evidence)=>evidence.supportsAtomicHandles.includes(atomic as any));
+      const covered = selectedEvidence.some((evidence)=>
+        evidence.supportsAtomicHandles.some((handle)=>String(handle)===atomic)
+      );
       if (!covered) {
         input.findings.push(finding(
           input.context,
@@ -145,7 +149,7 @@ function validateFindingGroup(input:{
     }
 
     for (const evidence of selectedEvidence) {
-      if (!evidence.supportsAtomicHandles.some((handle)=>selectedAtomicSet.has(handle))) {
+      if (!evidence.supportsAtomicHandles.some((handle)=>selectedAtomicSet.has(String(handle)))) {
         input.findings.push(finding(
           input.context,
           'SIR_FINDING_EVIDENCE_NOT_RELEVANT_TO_SELECTED_ATOMICS',
