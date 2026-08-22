@@ -2,7 +2,6 @@ import { z } from 'zod';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding, ValidationReport } from './contracts.js';
-import { validateTaskPrerequisites } from './cognitive-completion.js';
 
 interface ShortContext {
   runId: string;
@@ -27,16 +26,26 @@ function defect(
   context: ShortContext,
   checkId: string,
   objectPath: string,
-  issue: string
+  issue: string,
+  kind: ValidationFinding['kind'] = 'REFERENCE'
 ): ValidationFinding {
   return {
     checkId,
-    kind: 'SCHEMA',
+    kind,
     severity: 'BLOCKING',
     objectId: context.expectedPairId,
     objectPath,
     issue,
     dependencyScope: ['REFERENCE_MAPPING']
+  };
+}
+
+function report(context: ShortContext, findings: ValidationFinding[]): ValidationReport {
+  return {
+    runId: context.runId,
+    objectId: context.expectedPairId,
+    passed: findings.length === 0,
+    findings
   };
 }
 
@@ -50,8 +59,9 @@ function adjacentUniverse(contract: TaskContract): Map<string, string> | null {
   const raw = contract.lockedInputs.adjacent_criteria;
   if (!Array.isArray(raw)) return null;
   const map = new Map<string, string>();
-  for (const item of raw as AdjacentCriterionLike[]) {
-    if (!item || typeof item !== 'object') return null;
+  for (const rawItem of raw) {
+    if (!rawItem || typeof rawItem !== 'object' || Array.isArray(rawItem)) return null;
+    const item = rawItem as AdjacentCriterionLike;
     if (typeof item.criterionHandle !== 'string' || !/^criterion_.+/.test(item.criterionHandle)) return null;
     if (typeof item.criterionId !== 'string' || !/^(AP-)?[A-F][1-5]$/.test(item.criterionId)) return null;
     if (typeof item.boundarySummary !== 'string' || !item.boundarySummary.trim()) return null;
@@ -74,8 +84,9 @@ function validateSelections(
       defect(
         context,
         'SIR_REFERENCE_DUPLICATE_CRITERION_HANDLE',
-        `${label}RelatedCriterionHandles`,
-        'Related-criterion handles must be unique within each object.'
+        `/${label}RelatedCriterionHandles`,
+        'Related-criterion handles must be unique within each object.',
+        'SCHEMA'
       )
     );
   }
@@ -87,7 +98,7 @@ function validateSelections(
         defect(
           context,
           'SIR_REFERENCE_UNKNOWN_CRITERION_HANDLE',
-          `${label}RelatedCriterionHandles.${index}`,
+          `/${label}RelatedCriterionHandles/${index}`,
           `Criterion handle ${handle} is absent from the Authoring Plan adjacent-criterion universe.`
         )
       );
@@ -98,7 +109,7 @@ function validateSelections(
         defect(
           context,
           'SIR_REFERENCE_SELF_REFERENCE',
-          `${label}RelatedCriterionHandles.${index}`,
+          `/${label}RelatedCriterionHandles/${index}`,
           `${label} object ${ownId} cannot reference itself as a related criterion.`
         )
       );
@@ -112,17 +123,43 @@ export function validateSirReferenceMappingCompletion(
   output: unknown,
   context: ShortContext
 ): ValidationReport {
-  const prerequisite = validateTaskPrerequisites(contract, completedTaskTypes, context);
-  if (!prerequisite.passed) return prerequisite;
-
   const findings: ValidationFinding[] = [];
+
+  if (contract.contractVersion !== '2.0.0' || contract.taskType !== 'REFERENCE_MAPPING') {
+    findings.push(
+      defect(
+        context,
+        'SIR_REFERENCE_CONTRACT_IDENTITY',
+        '/',
+        'Reference Mapping SIR completion requires REFERENCE_MAPPING contractVersion 2.0.0.',
+        'SCHEMA'
+      )
+    );
+    return report(context, findings);
+  }
+
+  for (const prerequisite of contract.upstreamTaskTypes) {
+    if (!completedTaskTypes.has(prerequisite)) {
+      findings.push(
+        defect(
+          context,
+          'SIR_PREREQUISITE_MISSING',
+          '/',
+          `REFERENCE_MAPPING requires validated ${prerequisite}.`,
+          'SCHEMA'
+        )
+      );
+    }
+  }
+
   if (contract.lockedInputs.tactic_resolution_mode !== 'NO_APPROVED_TACTIC_AVAILABLE') {
     findings.push(
       defect(
         context,
         'SIR_REFERENCE_TACTIC_MODE_UNSUPPORTED',
-        'lockedInputs.tactic_resolution_mode',
-        'Reference Mapping SIR v2 may use the no-approved-tactic fail-safe only until an approved reciprocal tactic-mapping packet is implemented.'
+        '/lockedInputs/tactic_resolution_mode',
+        'Reference Mapping SIR v2 may use the no-approved-tactic fail-safe only until an approved reciprocal tactic-mapping packet is implemented.',
+        'TACTIC'
       )
     );
   }
@@ -130,7 +167,7 @@ export function validateSirReferenceMappingCompletion(
   const ids = pairIds(context.expectedPairId);
   if (!ids) {
     findings.push(
-      defect(context, 'SIR_REFERENCE_PAIR_ID_INVALID', 'targetObjectId', 'Expected pair ID is not canonical.')
+      defect(context, 'SIR_REFERENCE_PAIR_ID_INVALID', '/targetObjectId', 'Expected pair ID is not canonical.', 'IDENTIFIER')
     );
   }
 
@@ -140,8 +177,9 @@ export function validateSirReferenceMappingCompletion(
       defect(
         context,
         'SIR_REFERENCE_ADJACENT_UNIVERSE_INVALID',
-        'lockedInputs.adjacent_criteria',
-        'Adjacent-criterion universe is missing, malformed or contains duplicate handles.'
+        '/lockedInputs/adjacent_criteria',
+        'Adjacent-criterion universe is missing, malformed or contains duplicate handles.',
+        'SCHEMA'
       )
     );
   }
@@ -153,12 +191,16 @@ export function validateSirReferenceMappingCompletion(
         defect(
           context,
           'SIR_REFERENCE_OUTPUT_CONTRACT',
-          issue.path.join('.') || 'REFERENCE_MAPPING',
-          issue.message
+          `/${issue.path.join('/')}`,
+          issue.message,
+          'SCHEMA'
         )
       );
     }
-  } else if (ids && universe) {
+    return report(context, findings);
+  }
+
+  if (ids && universe) {
     validateSelections(
       parsed.data.capabilityRelatedCriterionHandles,
       'capability',
@@ -177,10 +219,5 @@ export function validateSirReferenceMappingCompletion(
     );
   }
 
-  return {
-    runId: context.runId,
-    objectId: context.expectedPairId,
-    passed: findings.length === 0,
-    findings
-  };
+  return report(context, findings);
 }
