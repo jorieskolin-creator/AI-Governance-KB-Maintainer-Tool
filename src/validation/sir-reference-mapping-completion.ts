@@ -2,27 +2,21 @@ import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding, ValidationReport } from './contracts.js';
 
-interface ShortContext {
+export interface SirReferenceMappingCompletionContext {
   runId: string;
   expectedPairId: string;
 }
 
-interface ParsedOutput {
+interface ParsedReferenceOutput {
   capabilityRelatedCriterionHandles: string[];
   antipatternRelatedCriterionHandles: string[];
   referenceNotes: string[];
 }
 
-interface AdjacentCriterionLike {
-  criterionHandle?: unknown;
-  criterionId?: unknown;
-  boundarySummary?: unknown;
-}
-
-function defect(
-  context: ShortContext,
+function finding(
+  context: SirReferenceMappingCompletionContext,
   checkId: string,
-  objectPath: string,
+  path: string,
   issue: string,
   kind: ValidationFinding['kind'] = 'REFERENCE'
 ): ValidationFinding {
@@ -31,13 +25,16 @@ function defect(
     kind,
     severity: 'BLOCKING',
     objectId: context.expectedPairId,
-    objectPath,
+    objectPath: path,
     issue,
-    dependencyScope: ['REFERENCE_MAPPING']
+    dependencyScope: []
   };
 }
 
-function report(context: ShortContext, findings: ValidationFinding[]): ValidationReport {
+function result(
+  context: SirReferenceMappingCompletionContext,
+  findings: ValidationFinding[]
+): ValidationReport {
   return {
     runId: context.runId,
     objectId: context.expectedPairId,
@@ -46,59 +43,38 @@ function report(context: ShortContext, findings: ValidationFinding[]): Validatio
   };
 }
 
-function pairIds(pairId: string): { capabilityId: string; antipatternId: string } | null {
-  const match = /^([A-F][1-5])_(AP-[A-F][1-5])$/.exec(pairId);
-  if (!match?.[1] || !match[2]) return null;
-  return { capabilityId: match[1], antipatternId: match[2] };
+function parsePairId(pairId: string): { capabilityId: string; antipatternId: string } | undefined {
+  const separator = pairId.indexOf('_');
+  if (separator < 1) return undefined;
+  const capabilityId = pairId.slice(0, separator);
+  const antipatternId = pairId.slice(separator + 1);
+  if (!/^[A-F][1-5]$/.test(capabilityId)) return undefined;
+  if (antipatternId !== `AP-${capabilityId}`) return undefined;
+  return { capabilityId, antipatternId };
 }
 
-function adjacentUniverse(contract: TaskContract): Map<string, string> | null {
-  const raw = contract.lockedInputs.adjacent_criteria;
-  if (!Array.isArray(raw)) return null;
-  const map = new Map<string, string>();
-  for (const rawItem of raw) {
-    if (!rawItem || typeof rawItem !== 'object' || Array.isArray(rawItem)) return null;
-    const item = rawItem as AdjacentCriterionLike;
-    if (typeof item.criterionHandle !== 'string' || !/^criterion_.+/.test(item.criterionHandle)) return null;
-    if (typeof item.criterionId !== 'string' || !/^(AP-)?[A-F][1-5]$/.test(item.criterionId)) return null;
-    if (typeof item.boundarySummary !== 'string' || !item.boundarySummary.trim()) return null;
-    if (map.has(item.criterionHandle)) return null;
-    map.set(item.criterionHandle, item.criterionId);
-  }
-  return map;
-}
-
-function stringArray(value: unknown, criterionHandles: boolean): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const result: string[] = [];
+function parseStringArray(value: unknown, requireCriterionHandle: boolean): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const parsed: string[] = [];
   for (const item of value) {
-    if (typeof item !== 'string' || !item.trim()) return null;
-    if (criterionHandles && !/^criterion_.+/.test(item)) return null;
-    result.push(item);
+    if (typeof item !== 'string' || item.trim().length === 0) return undefined;
+    if (requireCriterionHandle && !item.startsWith('criterion_')) return undefined;
+    parsed.push(item);
   }
-  return result;
+  return parsed;
 }
 
-function parseOutput(output: unknown): ParsedOutput | null {
-  if (!output || typeof output !== 'object' || Array.isArray(output)) return null;
-  const object = output as Record<string, unknown>;
-  const expectedKeys = [
-    'antipatternRelatedCriterionHandles',
-    'capabilityRelatedCriterionHandles',
-    'referenceNotes'
-  ];
-  const actualKeys = Object.keys(object).sort();
-  if (
-    actualKeys.length !== expectedKeys.length ||
-    actualKeys.some((key, index) => key !== expectedKeys[index])
-  ) {
-    return null;
+function parseOutput(value: unknown): ParsedReferenceOutput | undefined {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const object = value as Record<string, unknown>;
+  const keys = Object.keys(object).sort().join('|');
+  if (keys !== 'antipatternRelatedCriterionHandles|capabilityRelatedCriterionHandles|referenceNotes') {
+    return undefined;
   }
-
-  const capability = stringArray(object.capabilityRelatedCriterionHandles, true);
-  const antipattern = stringArray(object.antipatternRelatedCriterionHandles, true);
-  const notes = stringArray(object.referenceNotes, false);
-  if (!capability || !antipattern || !notes) return null;
+  const capability = parseStringArray(object.capabilityRelatedCriterionHandles, true);
+  const antipattern = parseStringArray(object.antipatternRelatedCriterionHandles, true);
+  const notes = parseStringArray(object.referenceNotes, false);
+  if (capability === undefined || antipattern === undefined || notes === undefined) return undefined;
   return {
     capabilityRelatedCriterionHandles: capability,
     antipatternRelatedCriterionHandles: antipattern,
@@ -106,46 +82,62 @@ function parseOutput(output: unknown): ParsedOutput | null {
   };
 }
 
-function validateSelections(
-  values: string[],
-  label: 'capability' | 'antipattern',
-  ownId: string,
+function criterionUniverse(contract: TaskContract): Map<string, string> | undefined {
+  const raw = contract.lockedInputs.adjacent_criteria;
+  if (!Array.isArray(raw)) return undefined;
+  const universe = new Map<string, string>();
+  for (const value of raw) {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined;
+    const item = value as Record<string, unknown>;
+    const handle = item.criterionHandle;
+    const id = item.criterionId;
+    const boundary = item.boundarySummary;
+    if (typeof handle !== 'string' || !handle.startsWith('criterion_')) return undefined;
+    if (typeof id !== 'string' || !/^(AP-)?[A-F][1-5]$/.test(id)) return undefined;
+    if (typeof boundary !== 'string' || boundary.trim().length === 0) return undefined;
+    if (universe.has(handle)) return undefined;
+    universe.set(handle, id);
+  }
+  return universe;
+}
+
+function validateObjectSelections(
+  handles: string[],
+  ownObjectId: string,
+  path: string,
   universe: Map<string, string>,
-  context: ShortContext,
+  context: SirReferenceMappingCompletionContext,
   findings: ValidationFinding[]
 ): void {
-  if (new Set(values).size !== values.length) {
+  if (new Set(handles).size !== handles.length) {
     findings.push(
-      defect(
+      finding(
         context,
         'SIR_REFERENCE_DUPLICATE_CRITERION_HANDLE',
-        `/${label}RelatedCriterionHandles`,
+        path,
         'Related-criterion handles must be unique within each object.',
         'SCHEMA'
       )
     );
   }
-
-  values.forEach((handle, index) => {
+  handles.forEach((handle, index) => {
     const criterionId = universe.get(handle);
-    if (!criterionId) {
+    if (criterionId === undefined) {
       findings.push(
-        defect(
+        finding(
           context,
           'SIR_REFERENCE_UNKNOWN_CRITERION_HANDLE',
-          `/${label}RelatedCriterionHandles/${index}`,
+          `${path}/${index}`,
           `Criterion handle ${handle} is absent from the Authoring Plan adjacent-criterion universe.`
         )
       );
-      return;
-    }
-    if (criterionId === ownId) {
+    } else if (criterionId === ownObjectId) {
       findings.push(
-        defect(
+        finding(
           context,
           'SIR_REFERENCE_SELF_REFERENCE',
-          `/${label}RelatedCriterionHandles/${index}`,
-          `${label} object ${ownId} cannot reference itself as a related criterion.`
+          `${path}/${index}`,
+          `${ownObjectId} cannot reference itself as a related criterion.`
         )
       );
     }
@@ -154,15 +146,15 @@ function validateSelections(
 
 export function validateSirReferenceMappingCompletion(
   contract: TaskContract,
-  completedTaskTypes: ReadonlySet<CognitiveTaskType>,
+  completed: ReadonlySet<CognitiveTaskType>,
   output: unknown,
-  context: ShortContext
+  context: SirReferenceMappingCompletionContext
 ): ValidationReport {
   const findings: ValidationFinding[] = [];
 
   if (contract.contractVersion !== '2.0.0' || contract.taskType !== 'REFERENCE_MAPPING') {
     findings.push(
-      defect(
+      finding(
         context,
         'SIR_REFERENCE_CONTRACT_IDENTITY',
         '/',
@@ -170,13 +162,13 @@ export function validateSirReferenceMappingCompletion(
         'SCHEMA'
       )
     );
-    return report(context, findings);
+    return result(context, findings);
   }
 
   for (const prerequisite of contract.upstreamTaskTypes) {
-    if (!completedTaskTypes.has(prerequisite)) {
+    if (!completed.has(prerequisite)) {
       findings.push(
-        defect(
+        finding(
           context,
           'SIR_PREREQUISITE_MISSING',
           '/',
@@ -189,68 +181,68 @@ export function validateSirReferenceMappingCompletion(
 
   if (contract.lockedInputs.tactic_resolution_mode !== 'NO_APPROVED_TACTIC_AVAILABLE') {
     findings.push(
-      defect(
+      finding(
         context,
         'SIR_REFERENCE_TACTIC_MODE_UNSUPPORTED',
         '/lockedInputs/tactic_resolution_mode',
-        'Reference Mapping SIR v2 may use the no-approved-tactic fail-safe only until an approved reciprocal tactic-mapping packet is implemented.',
+        'Reference Mapping SIR v2 requires the no-approved-tactic fail-safe until an approved reciprocal tactic-mapping packet is implemented.',
         'TACTIC'
       )
     );
   }
 
-  const ids = pairIds(context.expectedPairId);
-  if (!ids) {
+  const pair = parsePairId(context.expectedPairId);
+  if (pair === undefined) {
     findings.push(
-      defect(context, 'SIR_REFERENCE_PAIR_ID_INVALID', '/targetObjectId', 'Expected pair ID is not canonical.', 'IDENTIFIER')
+      finding(context, 'SIR_REFERENCE_PAIR_ID_INVALID', '/', 'Expected pair ID is invalid.', 'IDENTIFIER')
     );
   }
 
-  const universe = adjacentUniverse(contract);
-  if (!universe) {
+  const universe = criterionUniverse(contract);
+  if (universe === undefined) {
     findings.push(
-      defect(
+      finding(
         context,
         'SIR_REFERENCE_ADJACENT_UNIVERSE_INVALID',
         '/lockedInputs/adjacent_criteria',
-        'Adjacent-criterion universe is missing, malformed or contains duplicate handles.',
+        'Adjacent-criterion universe is missing or malformed.',
         'SCHEMA'
       )
     );
   }
 
   const parsed = parseOutput(output);
-  if (!parsed) {
+  if (parsed === undefined) {
     findings.push(
-      defect(
+      finding(
         context,
         'SIR_REFERENCE_OUTPUT_CONTRACT',
         '/',
-        'Reference Mapping output must contain only capabilityRelatedCriterionHandles, antipatternRelatedCriterionHandles and referenceNotes arrays with valid string items.',
+        'Output must contain only capabilityRelatedCriterionHandles, antipatternRelatedCriterionHandles and referenceNotes arrays.',
         'SCHEMA'
       )
     );
-    return report(context, findings);
+    return result(context, findings);
   }
 
-  if (ids && universe) {
-    validateSelections(
+  if (pair !== undefined && universe !== undefined) {
+    validateObjectSelections(
       parsed.capabilityRelatedCriterionHandles,
-      'capability',
-      ids.capabilityId,
+      pair.capabilityId,
+      '/capabilityRelatedCriterionHandles',
       universe,
       context,
       findings
     );
-    validateSelections(
+    validateObjectSelections(
       parsed.antipatternRelatedCriterionHandles,
-      'antipattern',
-      ids.antipatternId,
+      pair.antipatternId,
+      '/antipatternRelatedCriterionHandles',
       universe,
       context,
       findings
     );
   }
 
-  return report(context, findings);
+  return result(context, findings);
 }
