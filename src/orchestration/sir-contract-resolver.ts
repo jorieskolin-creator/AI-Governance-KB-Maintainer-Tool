@@ -15,11 +15,17 @@ import {
   buildSirEvidenceSafetyContract,
   type SirEvidenceSafetyOutput
 } from '../cognitive/sir-evidence-safety-contract.js';
-import { buildSirApAbsenceContract } from '../cognitive/sir-ap-absence-contract.js';
+import {
+  buildSirApAbsenceContract,
+  type SirApAbsenceOutput
+} from '../cognitive/sir-ap-absence-contract.js';
+import { buildSirSourceMappingContract } from '../cognitive/sir-source-mapping-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
 import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
+import type { SourceContextPacket } from './source-context-packet.js';
+import { verifySourceContextPacket } from './source-context-verifier.js';
 import {
   getLatestCompletedTaskArtifact,
   type CompletedTaskArtifact
@@ -33,7 +39,8 @@ export type ResolvableSirTaskType =
   | 'ATOMIC_DECOMPOSITION'
   | 'EVIDENCE_ARCHITECTURE'
   | 'EVIDENCE_SAFETY'
-  | 'AP_ABSENCE_CONTRACT';
+  | 'AP_ABSENCE_CONTRACT'
+  | 'SOURCE_MAPPING';
 
 export interface SirContractResolverInput {
   pairRunId: string;
@@ -41,6 +48,7 @@ export interface SirContractResolverInput {
   authoringPlan: AuthoringPlan;
   categoryBaseline: Record<string, unknown>;
   goldenReference: Record<string, unknown>;
+  sourceContextPacket?: SourceContextPacket;
   loadArtifact?: <T>(
     pairRunId: string,
     taskType: CognitiveTaskType
@@ -187,7 +195,31 @@ export async function resolveSirTaskContract(
     input.authoringPlan
   );
 
-  return buildSirApAbsenceContract({
+  if (input.taskType === 'AP_ABSENCE_CONTRACT') {
+    return buildSirApAbsenceContract({
+      ...base,
+      pairBoundary,
+      apFailureModel,
+      applicability,
+      primaryQuestions,
+      atomics,
+      evidence,
+      evidenceSafety
+    });
+  }
+
+  const apAbsence = assertCompatibleArtifact(
+    await load<SirApAbsenceOutput>(input.pairRunId, 'AP_ABSENCE_CONTRACT'),
+    'AP_ABSENCE_CONTRACT',
+    input.authoringPlan
+  );
+
+  if (!input.sourceContextPacket) {
+    throw new Error(`SOURCE_MAPPING requires a Source Context Packet for ${input.authoringPlan.identity.pairId}.`);
+  }
+  verifySourceContextPacket(input.sourceContextPacket, input.authoringPlan);
+
+  return buildSirSourceMappingContract({
     ...base,
     pairBoundary,
     apFailureModel,
@@ -195,6 +227,8 @@ export async function resolveSirTaskContract(
     primaryQuestions,
     atomics,
     evidence,
-    evidenceSafety
+    evidenceSafety,
+    apAbsence,
+    sourceContextPacket: input.sourceContextPacket
   });
 }
