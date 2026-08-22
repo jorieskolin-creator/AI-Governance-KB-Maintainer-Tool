@@ -4,12 +4,15 @@ import { getModelRoute, type ModelTarget } from '../ai/model-router.js';
 import { buildPromptPacket } from '../cognitive/prompt-builder.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
+import { materializeValidatedSirTaskOutput } from '../sir/task-artifact.js';
 import {
   canPersistTaskAsCompleted,
   type CompletionContext
 } from '../validation/cognitive-completion.js';
 import { validateLifecycleAssuranceCompletion } from '../validation/lifecycle-assurance.js';
 import { validateSirInitialCompletion } from '../validation/sir-initial-completion.js';
+import { validateSirAtomicCompletion } from '../validation/sir-atomic-completion.js';
+import { validateSirEvidenceCompletion } from '../validation/sir-evidence-completion.js';
 import type { ValidationFinding } from '../validation/contracts.js';
 import {
   completeTaskRun,
@@ -114,6 +117,31 @@ function runDeterministicCompletionGate(input: {
       }
     );
   }
+
+  if (input.contract.contractVersion === '2.0.0' && input.contract.taskType === 'ATOMIC_DECOMPOSITION') {
+    return validateSirAtomicCompletion(
+      input.contract,
+      input.completed,
+      input.output,
+      {
+        runId: input.completionContext.runId,
+        expectedPairId: input.completionContext.expectedPairId
+      }
+    );
+  }
+
+  if (input.contract.contractVersion === '2.0.0' && input.contract.taskType === 'EVIDENCE_ARCHITECTURE') {
+    return validateSirEvidenceCompletion(
+      input.contract,
+      input.completed,
+      input.output,
+      {
+        runId: input.completionContext.runId,
+        expectedPairId: input.completionContext.expectedPairId
+      }
+    );
+  }
+
   if (input.contract.taskType === 'LIFECYCLE_ASSURANCE') {
     return validateLifecycleAssuranceCompletion(
       input.contract,
@@ -164,6 +192,20 @@ async function tryRoute(input: {
   }
 }
 
+async function persistCompletedOutput(input: {
+  taskRunId: string;
+  contract: TaskContract;
+  modelOutput: unknown;
+}): Promise<unknown> {
+  const persistedOutput = materializeValidatedSirTaskOutput(input.contract, input.modelOutput);
+  await completeTaskRun({
+    taskRunId: input.taskRunId,
+    output: persistedOutput,
+    outputHash: hash(persistedOutput)
+  });
+  return persistedOutput;
+}
+
 export async function runCognitiveTask(input: {
   pairRunId: string;
   contract: TaskContract;
@@ -191,8 +233,12 @@ export async function runCognitiveTask(input: {
   });
 
   if (primary.passed && primary.output !== undefined) {
-    await completeTaskRun({ taskRunId, output: primary.output, outputHash: hash(primary.output) });
-    return { output: primary.output, usedFallback: false };
+    const output = await persistCompletedOutput({
+      taskRunId,
+      contract: input.contract,
+      modelOutput: primary.output
+    });
+    return { output, usedFallback: false };
   }
 
   const fallback = await tryRoute({
@@ -207,8 +253,12 @@ export async function runCognitiveTask(input: {
   });
 
   if (fallback.passed && fallback.output !== undefined) {
-    await completeTaskRun({ taskRunId, output: fallback.output, outputHash: hash(fallback.output) });
-    return { output: fallback.output, usedFallback: true };
+    const output = await persistCompletedOutput({
+      taskRunId,
+      contract: input.contract,
+      modelOutput: fallback.output
+    });
+    return { output, usedFallback: true };
   }
 
   const terminalFindings = fallback.findings.length ? fallback.findings : primary.findings;
