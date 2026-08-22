@@ -8,6 +8,7 @@ interface Gate {
 const gates: Gate[] = [
   { id: 'RESPONSIBILITY_MAP', script: 'dist/architecture/run-responsibility-check.js' },
   { id: 'AUTHORING_PLAN', script: 'dist/authoring/run-authoring-plan-check.js' },
+  { id: 'ARTIFACT_HASH', script: 'dist/orchestration/run-artifact-hash-check.js' },
   { id: 'SIR_FOUNDATION', script: 'dist/sir/run-sir-foundation-check.js' },
   { id: 'SIR_INITIAL', script: 'dist/sir/run-initial-sir-check.js' },
   { id: 'SIR_ATOMIC', script: 'dist/sir/run-atomic-sir-check.js' },
