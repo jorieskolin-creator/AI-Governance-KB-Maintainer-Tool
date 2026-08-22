@@ -1,6 +1,7 @@
 import { buildAuthoringPlan, type AuthoringPlanInput } from '../authoring/authoring-plan.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
+import { canonicalArtifactHash } from './artifact-hash.js';
 import type { CompletedTaskArtifact } from './store.js';
 import { resolveSirTaskContract } from './sir-contract-resolver.js';
 
@@ -57,7 +58,7 @@ function put(taskType: CognitiveTaskType, output: unknown, lockedInputs: Record<
     output,
     taskContract: contract(taskType, lockedInputs),
     inputHash: `input-${taskType}`,
-    outputHash: `output-${taskType}`
+    outputHash: canonicalArtifactHash(output)
   });
 }
 
