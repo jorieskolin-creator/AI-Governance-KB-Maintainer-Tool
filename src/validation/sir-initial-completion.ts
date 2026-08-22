@@ -104,6 +104,18 @@ function finding(
   };
 }
 
+function report(
+  context: SirInitialCompletionContext,
+  findings: ValidationFinding[]
+): ValidationReport {
+  return {
+    runId: context.runId,
+    objectId: context.authoringPlan.identity.pairId,
+    passed: findings.length === 0,
+    findings
+  };
+}
+
 function walkForbiddenKeys(
   value: unknown,
   path: string,
@@ -215,7 +227,7 @@ export function validateSirInitialCompletion(
         `Initial SIR completion requires contractVersion 2.0.0; received ${contract.contractVersion}.`
       )
     );
-    return { passed: false, findings };
+    return report(context, findings);
   }
 
   validatePrerequisites(contract, completed, context, findings);
@@ -225,7 +237,7 @@ export function validateSirInitialCompletion(
     findings.push(
       finding(context, 'SIR_COMPLETION_SCHEMA_MISSING', '/', `No SIR completion schema for ${contract.taskType}.`)
     );
-    return { passed: false, findings };
+    return report(context, findings);
   }
 
   const parsed = schema.safeParse(output);
@@ -240,7 +252,7 @@ export function validateSirInitialCompletion(
         )
       );
     }
-    return { passed: false, findings };
+    return report(context, findings);
   }
 
   walkForbiddenKeys(parsed.data, '', context, findings);
@@ -253,5 +265,5 @@ export function validateSirInitialCompletion(
     validateQuestionSlots(record, context, findings);
   }
 
-  return { passed: findings.length === 0, findings };
+  return report(context, findings);
 }
