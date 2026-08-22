@@ -2,6 +2,7 @@ import { buildAuthoringPlan } from '../authoring/authoring-plan.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { materializeSirSourceMappings } from '../sir/source-mapping-materializer.js';
+import { canonicalArtifactHash } from './artifact-hash.js';
 import { buildSourceContextPacket } from './source-context-packet.js';
 import { resolveSirTaskContract } from './sir-contract-resolver.js';
 import type { CompletedTaskArtifact } from './store.js';
@@ -68,7 +69,7 @@ function put(
     output,
     taskContract:contract(taskType,options.version??'2.0.0',options.extraLockedInputs??{}),
     inputHash:`input-${taskType}`,
-    outputHash:options.outputHash??`hash-${taskType}`
+    outputHash:options.outputHash??canonicalArtifactHash(output)
   });
 }
 
@@ -114,17 +115,29 @@ artifacts.set('SOURCE_MAPPING',{...originalSource,outputHash:''});
 await expectReject(()=>resolveSirTaskContract({...base,taskType:'FINDING_ARCHITECTURE'}),'has no persisted output hash');
 artifacts.set('SOURCE_MAPPING',originalSource);
 
+const rawSemanticOutput={capabilityMappings:[{sourceHandle:'source_001',locatorHandle:'locator_001'}],antipatternMappings:[],unmappedClaims:[],mappingNotes:[]};
 artifacts.set('SOURCE_MAPPING',{
   ...originalSource,
-  output:{capabilityMappings:[{sourceHandle:'source_001',locatorHandle:'locator_001'}],antipatternMappings:[],unmappedClaims:[],mappingNotes:[]}
+  output:rawSemanticOutput,
+  outputHash:canonicalArtifactHash(rawSemanticOutput)
 });
 await expectReject(()=>resolveSirTaskContract({...base,taskType:'FINDING_ARCHITECTURE'}),'not bound to its Source Context Packet hash');
 artifacts.set('SOURCE_MAPPING',originalSource);
 
 const tamperedOutput=structuredClone(materializedSourceMappings);
 tamperedOutput.capability[0]!.exactLocator='Article 999';
-artifacts.set('SOURCE_MAPPING',{...originalSource,output:tamperedOutput});
+artifacts.set('SOURCE_MAPPING',{
+  ...originalSource,
+  output:tamperedOutput,
+  outputHash:canonicalArtifactHash(tamperedOutput)
+});
 await expectReject(()=>resolveSirTaskContract({...base,taskType:'FINDING_ARCHITECTURE'}),'exact locator drifted');
+artifacts.set('SOURCE_MAPPING',originalSource);
+
+const staleHashOutput=structuredClone(materializedSourceMappings);
+staleHashOutput.capability[0]!.supportedClaim='Tampered after persistence without updating the stored output hash.';
+artifacts.set('SOURCE_MAPPING',{...originalSource,output:staleHashOutput});
+await expectReject(()=>resolveSirTaskContract({...base,taskType:'FINDING_ARCHITECTURE'}),'output hash mismatch');
 artifacts.set('SOURCE_MAPPING',originalSource);
 
 artifacts.set('SOURCE_MAPPING',{
@@ -154,6 +167,7 @@ console.log(JSON.stringify({
   missingSourceMappingOutputHash:'REJECTED',
   rawSemanticSourceMapping:'REJECTED',
   tamperedMaterializedSourceMapping:'REJECTED',
+  persistedSourceMappingHashMismatch:'REJECTED',
   sourceMappingPacketHashDrift:'REJECTED',
   missingLockedSourceContextPacket:'REJECTED'
 },null,2));
