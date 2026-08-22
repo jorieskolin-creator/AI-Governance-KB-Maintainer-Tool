@@ -6,6 +6,7 @@ export type SirHandleKind =
   | 'evidence'
   | 'finding'
   | 'source'
+  | 'locator'
   | 'tactic'
   | 'criterion';
 
@@ -48,7 +49,7 @@ export interface SirFinding {
 
 export interface SirSourceInterpretation {
   sourceHandle: SirHandle;
-  exactLocator: string;
+  locatorHandle: SirHandle;
   relationship: string;
   supportedClaim: string;
   categoryRationale: string;
