@@ -21,7 +21,11 @@ import {
 } from '../cognitive/sir-ap-absence-contract.js';
 import { buildSirSourceMappingContract } from '../cognitive/sir-source-mapping-contract.js';
 import { buildSirFindingArchitectureContract } from '../cognitive/sir-finding-contract.js';
-import { buildSirControlBoundaryContract } from '../cognitive/sir-control-contract.js';
+import {
+  buildSirControlBoundaryContract,
+  type SirControlBoundaryOutput
+} from '../cognitive/sir-control-contract.js';
+import { buildSirLifecycleAssuranceContract } from '../cognitive/sir-lifecycle-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
 import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
 import type { MaterializedSirFindings } from '../sir/finding-materializer.js';
@@ -29,6 +33,7 @@ import type { MaterializedSirSourceMappings } from '../sir/source-mapping-materi
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { canonicalArtifactHash } from './artifact-hash.js';
+import { verifyPersistedControlArtifact } from './control-artifact-verifier.js';
 import { verifyMaterializedFindingArtifact } from './finding-artifact-verifier.js';
 import type { SourceContextPacket } from './source-context-packet.js';
 import { verifySourceContextPacket } from './source-context-verifier.js';
@@ -49,7 +54,8 @@ export type ResolvableSirTaskType =
   | 'AP_ABSENCE_CONTRACT'
   | 'SOURCE_MAPPING'
   | 'FINDING_ARCHITECTURE'
-  | 'CONTROL_BOUNDARY';
+  | 'CONTROL_BOUNDARY'
+  | 'LIFECYCLE_ASSURANCE';
 
 export interface SirContractResolverInput {
   pairRunId: string;
@@ -245,11 +251,44 @@ export async function resolveSirTaskContract(
     authoringPlan: input.authoringPlan
   });
 
-  return buildSirControlBoundaryContract({
+  if (input.taskType === 'CONTROL_BOUNDARY') {
+    return buildSirControlBoundaryContract({
+      ...base,
+      pairBoundary,
+      evidenceSafety,
+      apAbsence,
+      findings
+    });
+  }
+
+  const controlArtifact = await load<SirControlBoundaryOutput>(
+    input.pairRunId,
+    'CONTROL_BOUNDARY'
+  );
+  const controlBoundary = assertCompatibleArtifact(
+    controlArtifact,
+    'CONTROL_BOUNDARY',
+    input.authoringPlan
+  );
+  if (!controlArtifact) {
+    throw new Error(`Missing completed dependency CONTROL_BOUNDARY for ${input.authoringPlan.identity.pairId}.`);
+  }
+  verifyPersistedControlArtifact({
+    output: controlBoundary,
+    controlTaskContract: controlArtifact.taskContract,
+    authoringPlan: input.authoringPlan,
+    verifiedFindings: findings,
+    verifiedEvidenceSafety: evidenceSafety,
+    verifiedApAbsence: apAbsence
+  });
+
+  return buildSirLifecycleAssuranceContract({
     ...base,
     pairBoundary,
+    evidence,
     evidenceSafety,
     apAbsence,
-    findings
+    findings,
+    controlBoundary
   });
 }
