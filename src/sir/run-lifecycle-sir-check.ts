@@ -1,7 +1,17 @@
 import { buildAuthoringPlan } from '../authoring/authoring-plan.js';
-import type { SirLifecycleAssuranceOutput } from '../cognitive/sir-lifecycle-contract.js';
-import { buildSirLifecycleAssuranceContract } from '../cognitive/sir-lifecycle-contract.js';
+import type { SirApAbsenceOutput } from '../cognitive/sir-ap-absence-contract.js';
+import type { SirControlBoundaryOutput } from '../cognitive/sir-control-contract.js';
+import type { SirEvidenceArchitectureOutput } from '../cognitive/sir-evidence-contract.js';
+import type { SirEvidenceSafetyOutput } from '../cognitive/sir-evidence-safety-contract.js';
+import type { SirFindingArchitectureOutput } from '../cognitive/sir-finding-contract.js';
+import type { SirPairBoundaryOutput } from '../cognitive/sir-initial-contracts.js';
+import {
+  buildSirLifecycleAssuranceContract,
+  type SirLifecycleAssuranceOutput
+} from '../cognitive/sir-lifecycle-contract.js';
 import type { CognitiveTaskType } from '../domain/states.js';
+import { materializeSirEvidence } from './evidence-materializer.js';
+import { materializeSirFindings } from './finding-materializer.js';
 import { materializeSirLifecycleTargets } from './lifecycle-materializer.js';
 import { validateSirLifecycleCompletion } from '../validation/sir-lifecycle-completion.js';
 
@@ -21,43 +31,54 @@ const plan = buildAuthoringPlan({
   allowedSources:[],allowedTactics:[],adjacentCriteria:[]
 });
 
-const findings = {
-  capability:[{handle:'finding_001',title:'Capability finding.',eligibleConclusionStates:['NOT_SATISFIED','UNKNOWN'],atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH',lifecycleConsequence:'Constrain progression pending evidence.',humanLockRequired:true}],
-  antipattern:[{handle:'finding_001',title:'Anti-pattern finding.',eligibleConclusionStates:['CONFIRMED_PRESENT','UNKNOWN','TESTED_ABSENT'],atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH',lifecycleConsequence:'Require human review before progression.',humanLockRequired:true}],
-  findingLogicNotes:['Findings remain reusable knowledge definitions.']
-};
+const pairBoundary = {
+  capability:{canonicalDefinition:'Bounded capability definition.',governancePurpose:'Bounded governance purpose.',distinctClaim:'Distinct capability claim.',ownedTopics:['Owned topic'],excludedTopics:[]},
+  antipattern:{canonicalDefinition:'Bounded anti-pattern definition.',pairedRelationship:'The anti-pattern captures failure of the paired capability.'},
+  boundaryRationale:'The pair boundary is explicit.'
+} satisfies SirPairBoundaryOutput;
 
-const evidence = {
-  capability:[{handle:'evidence_001',title:'Capability evidence',claimSupported:'Bounded capability claim.',evidenceClass:'DECISION_RECORD',minimumTechnicalAssurance:'DECLARED',requiredHumanAssurance:'HUMAN_VALIDATED',acceptanceConditions:['Evidence is attributable.'],limitations:['Presence alone is insufficient.'],supportsAtomicHandles:['atomic_001']}],
-  antipattern:[{handle:'evidence_001',title:'Anti-pattern evidence',claimSupported:'Bounded anti-pattern claim.',evidenceClass:'TEST_RECORD',minimumTechnicalAssurance:'TESTED',requiredHumanAssurance:'HUMAN_VALIDATED',acceptanceConditions:['Evidence covers the defined scope.'],limitations:['Silence alone is insufficient.'],supportsAtomicHandles:['atomic_001']}]
-};
+const evidence = materializeSirEvidence({
+  capabilityEvidence:[{
+    title:'Capability evidence',claimSupported:'Bounded capability claim.',evidenceClass:'DECISION_RECORD',minimumTechnicalAssurance:'DECLARED',requiredHumanAssurance:'HUMAN_VALIDATED',acceptanceConditions:['Evidence is attributable.'],limitations:['Presence alone is insufficient.'],supportsAtomicHandles:['atomic_001']
+  }],
+  antipatternEvidence:[{
+    title:'Anti-pattern evidence',claimSupported:'Bounded anti-pattern claim.',evidenceClass:'TEST_RECORD',minimumTechnicalAssurance:'TESTED',requiredHumanAssurance:'HUMAN_VALIDATED',acceptanceConditions:['Evidence covers the defined scope.'],limitations:['Silence alone is insufficient.'],supportsAtomicHandles:['atomic_001']
+  }],
+  sufficiencyNotes:['The bounded regression evidence graph is explicit.']
+} satisfies SirEvidenceArchitectureOutput);
+
+const findings = materializeSirFindings({
+  capabilityFindings:[{
+    title:'Capability finding.',eligibleConclusionStates:['NOT_SATISFIED','UNKNOWN'],atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH',lifecycleConsequence:'Constrain progression pending evidence.',humanLockRequired:true
+  }],
+  antipatternFindings:[{
+    title:'Anti-pattern finding.',eligibleConclusionStates:['CONFIRMED_PRESENT','UNKNOWN','TESTED_ABSENT'],atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH',lifecycleConsequence:'Require human review before progression.',humanLockRequired:true
+  }],
+  findingLogicNotes:['Findings remain reusable knowledge definitions.']
+} satisfies SirFindingArchitectureOutput);
 
 const evidenceSafety = {
   capabilityRules:{evidenceCeilings:['Capability ceiling.'],falsePositiveGuards:['Capability guard.'],prohibitedInferences:['Capability prohibited inference.'],contradictionHandling:['Capability contradiction rule.'],freshnessRules:['Capability freshness rule.']},
   antipatternRules:{evidenceCeilings:['AP ceiling.'],falsePositiveGuards:['AP guard.'],prohibitedInferences:['AP prohibited inference.'],contradictionHandling:['AP contradiction rule.'],freshnessRules:['AP freshness rule.']},
   crossPairSafetyNotes:['Conclusions remain evidence-bounded.']
-};
+} satisfies SirEvidenceSafetyOutput;
 
 const apAbsence = {
   requiredArtifacts:['Scoped executed absence test','Independent verification record'],
   interpretationBoundary:'TESTED_ABSENT requires scoped, executed, successful, current and independently verified testing.'
-};
+} satisfies SirApAbsenceOutput;
 
 const controlBoundary = {
-  capabilityHardGate:{effect:'WARN' as const,conditions:['Evidence gap remains unresolved.'],overrideAuthority:'Named human governance authority.'},
-  antipatternHardGate:{effect:'BLOCK' as const,conditions:['The governed failure mechanism is confirmed present.'],overrideAuthority:'Named human governance authority.'},
+  capabilityHardGate:{effect:'WARN',conditions:['Evidence gap remains unresolved.'],overrideAuthority:'Named human governance authority.'},
+  antipatternHardGate:{effect:'BLOCK',conditions:['The governed failure mechanism is confirmed present.'],overrideAuthority:'Named human governance authority.'},
   capabilityRuntimeBoundary:{machineMay:['Summarize validated evidence.'],machineMustNot:['Approve lifecycle progression.'],humanAuthorityRequiredFor:['Lifecycle progression decision.']},
   antipatternRuntimeBoundary:{machineMay:['Surface validated failure indicators.'],machineMustNot:['Declare residual risk accepted.'],humanAuthorityRequiredFor:['Residual-risk decision.']},
   controlNotes:['Machine reasoning supports analysis but never authorizes lifecycle transitions.']
-};
+} satisfies SirControlBoundaryOutput;
 
 const contract = buildSirLifecycleAssuranceContract({
   authoringPlan:plan,
-  pairBoundary:{
-    capability:{canonicalDefinition:'Bounded capability definition.',governancePurpose:'Bounded governance purpose.',distinctClaim:'Distinct capability claim.',ownedTopics:['Owned topic'],excludedTopics:[]},
-    antipattern:{canonicalDefinition:'Bounded anti-pattern definition.',pairedRelationship:'The anti-pattern captures failure of the paired capability.'},
-    boundaryRationale:'The pair boundary is explicit.'
-  },
+  pairBoundary,
   evidence,
   evidenceSafety,
   apAbsence,
@@ -75,40 +96,46 @@ const validOutput:SirLifecycleAssuranceOutput = {
   rationaleNotes:['Assurance targets are category-specific reusable knowledge expectations and do not authorize a real-system transition.']
 };
 
-function expectPass(output:unknown):void {
-  const report=validateSirLifecycleCompletion(contract,completed,output,{runId:'lifecycle-sir-regression',expectedPairId:plan.identity.pairId});
-  if(!report.passed) throw new Error(`Expected lifecycle validation PASS; received ${report.findings.map(item=>item.checkId).join(', ')}`);
+function validate(output:unknown,currentContract=contract,currentCompleted=completed){
+  return validateSirLifecycleCompletion(currentContract,currentCompleted,output,{runId:'lifecycle-sir-regression',expectedPairId:plan.identity.pairId});
 }
 
-function expectReject(output:unknown,expectedCheck:string,overrideContract=contract):void {
-  const report=validateSirLifecycleCompletion(overrideContract,completed,output,{runId:'lifecycle-sir-regression',expectedPairId:plan.identity.pairId});
-  if(report.passed) throw new Error(`Expected lifecycle rejection ${expectedCheck}, but validation passed.`);
-  if(!report.findings.some(item=>item.checkId===expectedCheck)) {
-    throw new Error(`Expected lifecycle rejection ${expectedCheck}; received ${report.findings.map(item=>item.checkId).join(', ')}`);
-  }
-}
-
-expectPass(validOutput);
+if(!validate(validOutput).passed) throw new Error('Valid Lifecycle SIR failed regression.');
 
 const wrongCount=structuredClone(validOutput);
 wrongCount.capabilityTargets.pop();
-expectReject(wrongCount,'SIR_LIFECYCLE_CAPABILITY_TARGET_COUNT');
+if(!validate(wrongCount).findings.some(item=>item.checkId==='SIR_LIFECYCLE_CAPABILITY_TARGET_COUNT')) {
+  throw new Error('Lifecycle target/stage cardinality mismatch was not rejected.');
+}
 
-const modelOwnedStage=structuredClone(validOutput) as any;
-modelOwnedStage.capabilityTargets[0].lifecycleStage='QUALIFICATION_AND_REGISTRATION';
-expectReject(modelOwnedStage,'SIR_LIFECYCLE_OUTPUT_CONTRACT');
+const modelOwnedStage=structuredClone(validOutput) as unknown as Record<string,unknown>;
+const stageTargets=(modelOwnedStage.capabilityTargets as Array<Record<string,unknown>>);
+stageTargets[0]!.lifecycleStage='QUALIFICATION_AND_REGISTRATION';
+if(!validate(modelOwnedStage).findings.some(item=>item.checkId==='SIR_LIFECYCLE_OUTPUT_CONTRACT')) {
+  throw new Error('Model-owned lifecycle stage identity was not rejected.');
+}
 
-const modelOwnedIdentity=structuredClone(validOutput) as any;
-modelOwnedIdentity.capabilityId='A2';
-expectReject(modelOwnedIdentity,'SIR_LIFECYCLE_OUTPUT_CONTRACT');
+const modelOwnedIdentity={...validOutput,capabilityId:'A2'};
+if(!validate(modelOwnedIdentity).findings.some(item=>item.checkId==='SIR_LIFECYCLE_OUTPUT_CONTRACT')) {
+  throw new Error('Model-owned canonical identity was not rejected.');
+}
 
-const narrowedVocabulary=structuredClone(contract);
-narrowedVocabulary.lockedInputs.governed_technical_assurance_vocabulary=['DECLARED'];
-expectReject(validOutput,'SIR_LIFECYCLE_TECHNICAL_ASSURANCE_NOT_GOVERNED',narrowedVocabulary);
+const narrowedVocabulary={...contract,lockedInputs:{...contract.lockedInputs,governed_technical_assurance_vocabulary:['DECLARED']}};
+if(!validate(validOutput,narrowedVocabulary).findings.some(item=>item.checkId==='SIR_LIFECYCLE_TECHNICAL_ASSURANCE_NOT_GOVERNED')) {
+  throw new Error('Assurance value outside the Authoring Plan vocabulary was not rejected.');
+}
 
-const missingControl=structuredClone(contract);
+const missingControl={...contract,lockedInputs:{...contract.lockedInputs}};
 delete missingControl.lockedInputs.control_boundary;
-expectReject(validOutput,'SIR_LIFECYCLE_CONTROL_BOUNDARY_REQUIRED',missingControl);
+if(!validate(validOutput,missingControl).findings.some(item=>item.checkId==='SIR_LIFECYCLE_CONTROL_BOUNDARY_REQUIRED')) {
+  throw new Error('Missing persisted Control dependency was not rejected.');
+}
+
+const incomplete=new Set<CognitiveTaskType>(completed);
+incomplete.delete('CONTROL_BOUNDARY');
+if(!validate(validOutput,contract,incomplete).findings.some(item=>item.checkId==='SIR_PREREQUISITE_MISSING')) {
+  throw new Error('Missing Control prerequisite was not rejected.');
+}
 
 const materialized=materializeSirLifecycleTargets(validOutput,plan.vocabulary.lifecycleStages);
 if(materialized.capability.length!==plan.vocabulary.lifecycleStages.length||materialized.antipattern.length!==plan.vocabulary.lifecycleStages.length) {
@@ -134,6 +161,7 @@ console.log(JSON.stringify({
   governedStageCardinality:'PASS',
   governedAssuranceVocabulary:'PASS',
   controlDependencyRequired:'PASS',
+  prerequisiteGate:'PASS',
   modelOwnedStageIdentity:'REJECTED',
   modelOwnedCanonicalIdentity:'REJECTED',
   deterministicLifecycleStageMaterialization:'PASS',
