@@ -100,17 +100,43 @@ export async function getCompletedTaskTypes(pairRunId: string): Promise<Set<Cogn
   return new Set(result.rows.map((row) => row.task_type));
 }
 
-export async function getLatestCompletedTaskOutput<T>(
+export interface CompletedTaskArtifact<T = unknown> {
+  output: T;
+  taskContract: TaskContract;
+  inputHash: string;
+  outputHash: string;
+}
+
+export async function getLatestCompletedTaskArtifact<T>(
   pairRunId: string,
   taskType: CognitiveTaskType
-): Promise<T | undefined> {
-  const result = await getDbPool().query<{ output: T }>(
-    `select output from task_runs
+): Promise<CompletedTaskArtifact<T> | undefined> {
+  const result = await getDbPool().query<{
+    output: T;
+    task_contract: TaskContract;
+    input_hash: string;
+    output_hash: string;
+  }>(
+    `select output, task_contract, input_hash, output_hash from task_runs
      where pair_run_id = $1 and task_type = $2 and status = 'COMPLETED'
      order by completed_at desc limit 1`,
     [pairRunId, taskType]
   );
-  return result.rows[0]?.output;
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    output: row.output,
+    taskContract: row.task_contract,
+    inputHash: row.input_hash,
+    outputHash: row.output_hash
+  };
+}
+
+export async function getLatestCompletedTaskOutput<T>(
+  pairRunId: string,
+  taskType: CognitiveTaskType
+): Promise<T | undefined> {
+  return (await getLatestCompletedTaskArtifact<T>(pairRunId, taskType))?.output;
 }
 
 export async function persistValidationFindings(
