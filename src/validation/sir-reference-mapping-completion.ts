@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding, ValidationReport } from './contracts.js';
@@ -8,19 +7,17 @@ interface ShortContext {
   expectedPairId: string;
 }
 
+interface ParsedOutput {
+  capabilityRelatedCriterionHandles: string[];
+  antipatternRelatedCriterionHandles: string[];
+  referenceNotes: string[];
+}
+
 interface AdjacentCriterionLike {
   criterionHandle?: unknown;
   criterionId?: unknown;
   boundarySummary?: unknown;
 }
-
-const outputSchema = z
-  .object({
-    capabilityRelatedCriterionHandles: z.array(z.string().regex(/^criterion_.+/)),
-    antipatternRelatedCriterionHandles: z.array(z.string().regex(/^criterion_.+/)),
-    referenceNotes: z.array(z.string().trim().min(1))
-  })
-  .strict();
 
 function defect(
   context: ShortContext,
@@ -51,8 +48,8 @@ function report(context: ShortContext, findings: ValidationFinding[]): Validatio
 
 function pairIds(pairId: string): { capabilityId: string; antipatternId: string } | null {
   const match = /^([A-F][1-5])_(AP-[A-F][1-5])$/.exec(pairId);
-  if (!match) return null;
-  return { capabilityId: match[1]!, antipatternId: match[2]! };
+  if (!match?.[1] || !match[2]) return null;
+  return { capabilityId: match[1], antipatternId: match[2] };
 }
 
 function adjacentUniverse(contract: TaskContract): Map<string, string> | null {
@@ -69,6 +66,44 @@ function adjacentUniverse(contract: TaskContract): Map<string, string> | null {
     map.set(item.criterionHandle, item.criterionId);
   }
   return map;
+}
+
+function stringArray(value: unknown, criterionHandles: boolean): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const result: string[] = [];
+  for (const item of value) {
+    if (typeof item !== 'string' || !item.trim()) return null;
+    if (criterionHandles && !/^criterion_.+/.test(item)) return null;
+    result.push(item);
+  }
+  return result;
+}
+
+function parseOutput(output: unknown): ParsedOutput | null {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) return null;
+  const object = output as Record<string, unknown>;
+  const expectedKeys = [
+    'antipatternRelatedCriterionHandles',
+    'capabilityRelatedCriterionHandles',
+    'referenceNotes'
+  ];
+  const actualKeys = Object.keys(object).sort();
+  if (
+    actualKeys.length !== expectedKeys.length ||
+    actualKeys.some((key, index) => key !== expectedKeys[index])
+  ) {
+    return null;
+  }
+
+  const capability = stringArray(object.capabilityRelatedCriterionHandles, true);
+  const antipattern = stringArray(object.antipatternRelatedCriterionHandles, true);
+  const notes = stringArray(object.referenceNotes, false);
+  if (!capability || !antipattern || !notes) return null;
+  return {
+    capabilityRelatedCriterionHandles: capability,
+    antipatternRelatedCriterionHandles: antipattern,
+    referenceNotes: notes
+  };
 }
 
 function validateSelections(
@@ -184,25 +219,23 @@ export function validateSirReferenceMappingCompletion(
     );
   }
 
-  const parsed = outputSchema.safeParse(output);
-  if (!parsed.success) {
-    for (const issue of parsed.error.issues) {
-      findings.push(
-        defect(
-          context,
-          'SIR_REFERENCE_OUTPUT_CONTRACT',
-          `/${issue.path.join('/')}`,
-          issue.message,
-          'SCHEMA'
-        )
-      );
-    }
+  const parsed = parseOutput(output);
+  if (!parsed) {
+    findings.push(
+      defect(
+        context,
+        'SIR_REFERENCE_OUTPUT_CONTRACT',
+        '/',
+        'Reference Mapping output must contain only capabilityRelatedCriterionHandles, antipatternRelatedCriterionHandles and referenceNotes arrays with valid string items.',
+        'SCHEMA'
+      )
+    );
     return report(context, findings);
   }
 
   if (ids && universe) {
     validateSelections(
-      parsed.data.capabilityRelatedCriterionHandles,
+      parsed.capabilityRelatedCriterionHandles,
       'capability',
       ids.capabilityId,
       universe,
@@ -210,7 +243,7 @@ export function validateSirReferenceMappingCompletion(
       findings
     );
     validateSelections(
-      parsed.data.antipatternRelatedCriterionHandles,
+      parsed.antipatternRelatedCriterionHandles,
       'antipattern',
       ids.antipatternId,
       universe,
