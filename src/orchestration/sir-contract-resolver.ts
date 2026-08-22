@@ -27,10 +27,12 @@ import {
 } from '../cognitive/sir-control-contract.js';
 import { buildSirLifecycleAssuranceContract } from '../cognitive/sir-lifecycle-contract.js';
 import { buildSirReferenceMappingContract } from '../cognitive/sir-reference-mapping-contract.js';
+import { buildSirPairCoherenceContract } from '../cognitive/sir-pair-coherence-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
 import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
 import type { MaterializedSirFindings } from '../sir/finding-materializer.js';
 import type { MaterializedSirLifecycleTargets } from '../sir/lifecycle-materializer.js';
+import type { MaterializedSirReferenceMappings } from '../sir/reference-mapping-materializer.js';
 import type { MaterializedSirSourceMappings } from '../sir/source-mapping-materializer.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
@@ -38,6 +40,9 @@ import { canonicalArtifactHash } from './artifact-hash.js';
 import { verifyPersistedControlArtifact } from './control-artifact-verifier.js';
 import { verifyMaterializedFindingArtifact } from './finding-artifact-verifier.js';
 import { verifyPersistedLifecycleArtifact } from './lifecycle-artifact-verifier.js';
+import { buildPairCoherencePacket } from './pair-coherence-packet.js';
+import { verifyPairCoherencePacket } from './pair-coherence-packet-verifier.js';
+import { verifyPersistedReferenceMappingArtifact } from './reference-mapping-artifact-verifier.js';
 import type { SourceContextPacket } from './source-context-packet.js';
 import { verifySourceContextPacket } from './source-context-verifier.js';
 import { verifyMaterializedSourceMappingArtifact } from './source-mapping-artifact-verifier.js';
@@ -59,7 +64,8 @@ export type ResolvableSirTaskType =
   | 'FINDING_ARCHITECTURE'
   | 'CONTROL_BOUNDARY'
   | 'LIFECYCLE_ASSURANCE'
-  | 'REFERENCE_MAPPING';
+  | 'REFERENCE_MAPPING'
+  | 'PAIR_COHERENCE_REVIEW';
 
 export interface SirContractResolverInput {
   pairRunId: string;
@@ -324,9 +330,57 @@ export async function resolveSirTaskContract(
     goldenReference: input.goldenReference
   });
 
-  return buildSirReferenceMappingContract({
-    ...base,
+  if (input.taskType === 'REFERENCE_MAPPING') {
+    return buildSirReferenceMappingContract({
+      ...base,
+      pairBoundary,
+      findings
+    });
+  }
+
+  const referenceArtifact = await load<MaterializedSirReferenceMappings>(
+    input.pairRunId,
+    'REFERENCE_MAPPING'
+  );
+  const referenceMappings = assertCompatibleArtifact(
+    referenceArtifact,
+    'REFERENCE_MAPPING',
+    input.authoringPlan
+  );
+  if (!referenceArtifact) {
+    throw new Error(`Missing completed dependency REFERENCE_MAPPING for ${input.authoringPlan.identity.pairId}.`);
+  }
+  verifyPersistedReferenceMappingArtifact({
+    output: referenceMappings,
+    referenceTaskContract: referenceArtifact.taskContract,
+    authoringPlan: input.authoringPlan,
+    verifiedPairBoundary: pairBoundary,
+    verifiedFindings: findings,
+    categoryBaseline: input.categoryBaseline,
+    goldenReference: input.goldenReference
+  });
+
+  const pairCoherenceSeed = {
+    authoringPlan: input.authoringPlan,
     pairBoundary,
-    findings
+    apFailureModel,
+    applicability,
+    primaryQuestions,
+    atomics,
+    evidence,
+    evidenceSafety,
+    apAbsence,
+    sourceMappings,
+    findings,
+    controlBoundary,
+    lifecycleTargets,
+    referenceMappings
+  };
+  const pairCoherencePacket = buildPairCoherencePacket(pairCoherenceSeed);
+  verifyPairCoherencePacket(pairCoherencePacket, pairCoherenceSeed);
+
+  return buildSirPairCoherenceContract({
+    ...base,
+    pairCoherencePacket
   });
 }
