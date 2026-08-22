@@ -19,6 +19,7 @@ const gates: Gate[] = [
   { id: 'SOURCE_CONTEXT_PACKET', script: 'dist/orchestration/run-source-context-packet-check.js' },
   { id: 'SIR_SOURCE_MAPPING', script: 'dist/sir/run-source-mapping-sir-check.js' },
   { id: 'SIR_SOURCE_MAPPING_RESOLVER', script: 'dist/orchestration/run-source-mapping-resolver-check.js' },
+  { id: 'SIR_SOURCE_MAPPING_MATERIALIZER', script: 'dist/sir/run-source-mapping-materializer-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
