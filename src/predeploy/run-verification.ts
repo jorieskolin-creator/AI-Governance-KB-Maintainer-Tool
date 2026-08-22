@@ -12,6 +12,7 @@ const gates: Gate[] = [
   { id: 'SIR_INITIAL', script: 'dist/sir/run-initial-sir-check.js' },
   { id: 'SIR_ATOMIC', script: 'dist/sir/run-atomic-sir-check.js' },
   { id: 'SIR_EVIDENCE', script: 'dist/sir/run-evidence-sir-check.js' },
+  { id: 'SIR_DEPENDENCY_RESOLVER', script: 'dist/orchestration/run-sir-resolver-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
