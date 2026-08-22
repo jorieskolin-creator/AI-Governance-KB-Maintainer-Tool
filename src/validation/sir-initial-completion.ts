@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { AuthoringPlan } from '../authoring/authoring-plan.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding, ValidationReport } from './contracts.js';
@@ -60,15 +61,22 @@ const forbiddenIdentityKeys = new Set([
 
 export interface SirInitialCompletionContext {
   runId: string;
-  expectedPairId: string;
+  expectedPairId?: string;
+  authoringPlan?: AuthoringPlan;
+}
+
+function resolvedPairId(context: SirInitialCompletionContext): string {
+  const id = context.expectedPairId ?? context.authoringPlan?.identity.pairId;
+  if (!id) throw new Error('SIR completion context requires expectedPairId or authoringPlan.');
+  return id;
 }
 
 function finding(context: SirInitialCompletionContext, checkId: string, objectPath: string, issue: string): ValidationFinding {
-  return { checkId, kind: 'SCHEMA', severity: 'BLOCKING', objectId: context.expectedPairId, objectPath, issue, dependencyScope: [] };
+  return { checkId, kind: 'SCHEMA', severity: 'BLOCKING', objectId: resolvedPairId(context), objectPath, issue, dependencyScope: [] };
 }
 
 function report(context: SirInitialCompletionContext, findings: ValidationFinding[]): ValidationReport {
-  return { runId: context.runId, objectId: context.expectedPairId, passed: findings.length === 0, findings };
+  return { runId: context.runId, objectId: resolvedPairId(context), passed: findings.length === 0, findings };
 }
 
 function walkForbiddenKeys(value: unknown, path: string, context: SirInitialCompletionContext, findings: ValidationFinding[]): void {
