@@ -28,6 +28,7 @@ import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { SourceContextPacket } from './source-context-packet.js';
 import { verifySourceContextPacket } from './source-context-verifier.js';
+import { verifyMaterializedSourceMappingArtifact } from './source-mapping-artifact-verifier.js';
 import {
   getLatestCompletedTaskArtifact,
   type CompletedTaskArtifact
@@ -177,10 +178,28 @@ export async function resolveSirTaskContract(
     });
   }
 
+  const sourceMappingArtifact = await load<MaterializedSirSourceMappings>(
+    input.pairRunId,
+    'SOURCE_MAPPING'
+  );
   const sourceMappings = assertCompatibleArtifact(
-    await load<MaterializedSirSourceMappings>(input.pairRunId, 'SOURCE_MAPPING'),
+    sourceMappingArtifact,
     'SOURCE_MAPPING', input.authoringPlan
   );
+  const persistedSourceContextPacket = sourceMappingArtifact?.taskContract.lockedInputs
+    .source_context_packet as SourceContextPacket | undefined;
+  if (!persistedSourceContextPacket) {
+    throw new Error('Persisted SOURCE_MAPPING dependency has no locked Source Context Packet.');
+  }
+  const lockedPacketHash = sourceMappingArtifact?.taskContract.lockedInputs.source_context_packet_sha256;
+  if (lockedPacketHash !== persistedSourceContextPacket.packetSha256) {
+    throw new Error('Persisted SOURCE_MAPPING contract Source Context Packet hash binding is inconsistent.');
+  }
+  verifyMaterializedSourceMappingArtifact({
+    output: sourceMappings,
+    sourceContextPacket: persistedSourceContextPacket,
+    authoringPlan: input.authoringPlan
+  });
 
   return buildSirFindingArchitectureContract({
     ...base,
