@@ -1,6 +1,7 @@
 import type { AuthoringPlan } from '../authoring/authoring-plan.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
+import type { SirHandle } from '../sir/model.js';
 import type {
   SirApFailureModelOutput,
   SirApplicabilityOutput,
@@ -16,7 +17,7 @@ export interface SirEvidenceContent {
   requiredHumanAssurance: string;
   acceptanceConditions: string[];
   limitations: string[];
-  supportsAtomicHandles: string[];
+  supportsAtomicHandles: SirHandle[];
 }
 
 export interface SirEvidenceArchitectureOutput {
