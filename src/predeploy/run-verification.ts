@@ -28,6 +28,7 @@ const gates: Gate[] = [
   { id: 'SIR_CONTROL', script: 'dist/sir/run-control-sir-check.js' },
   { id: 'SIR_CONTROL_RESOLVER', script: 'dist/orchestration/run-control-resolver-check.js' },
   { id: 'SIR_CONTROL_ARTIFACT', script: 'dist/orchestration/run-control-artifact-verifier-check.js' },
+  { id: 'SIR_LIFECYCLE', script: 'dist/sir/run-lifecycle-sir-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
