@@ -9,11 +9,15 @@ import {
   type SirApplicabilityOutput,
   type SirPrimaryQuestionsOutput
 } from '../cognitive/sir-initial-contracts.js';
-import {
-  buildSirAtomicDecompositionContract
-} from '../cognitive/sir-atomic-contract.js';
+import { buildSirAtomicDecompositionContract } from '../cognitive/sir-atomic-contract.js';
 import { buildSirEvidenceArchitectureContract } from '../cognitive/sir-evidence-contract.js';
+import {
+  buildSirEvidenceSafetyContract,
+  type SirEvidenceSafetyOutput
+} from '../cognitive/sir-evidence-safety-contract.js';
+import { buildSirApAbsenceContract } from '../cognitive/sir-ap-absence-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
+import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import {
@@ -27,7 +31,9 @@ export type ResolvableSirTaskType =
   | 'APPLICABILITY'
   | 'PRIMARY_QUESTIONS'
   | 'ATOMIC_DECOMPOSITION'
-  | 'EVIDENCE_ARCHITECTURE';
+  | 'EVIDENCE_ARCHITECTURE'
+  | 'EVIDENCE_SAFETY'
+  | 'AP_ABSENCE_CONTRACT';
 
 export interface SirContractResolverInput {
   pairRunId: string;
@@ -121,12 +127,7 @@ export async function resolveSirTaskContract(
   );
 
   if (input.taskType === 'PRIMARY_QUESTIONS') {
-    return buildSirPrimaryQuestionsContract({
-      ...base,
-      pairBoundary,
-      apFailureModel,
-      applicability
-    });
+    return buildSirPrimaryQuestionsContract({ ...base, pairBoundary, apFailureModel, applicability });
   }
 
   const primaryQuestions = assertCompatibleArtifact(
@@ -151,12 +152,49 @@ export async function resolveSirTaskContract(
     input.authoringPlan
   );
 
-  return buildSirEvidenceArchitectureContract({
+  if (input.taskType === 'EVIDENCE_ARCHITECTURE') {
+    return buildSirEvidenceArchitectureContract({
+      ...base,
+      pairBoundary,
+      apFailureModel,
+      applicability,
+      primaryQuestions,
+      atomics
+    });
+  }
+
+  const evidence = assertCompatibleArtifact(
+    await load<MaterializedSirEvidence>(input.pairRunId, 'EVIDENCE_ARCHITECTURE'),
+    'EVIDENCE_ARCHITECTURE',
+    input.authoringPlan
+  );
+
+  if (input.taskType === 'EVIDENCE_SAFETY') {
+    return buildSirEvidenceSafetyContract({
+      ...base,
+      pairBoundary,
+      apFailureModel,
+      applicability,
+      primaryQuestions,
+      atomics,
+      evidence
+    });
+  }
+
+  const evidenceSafety = assertCompatibleArtifact(
+    await load<SirEvidenceSafetyOutput>(input.pairRunId, 'EVIDENCE_SAFETY'),
+    'EVIDENCE_SAFETY',
+    input.authoringPlan
+  );
+
+  return buildSirApAbsenceContract({
     ...base,
     pairBoundary,
     apFailureModel,
     applicability,
     primaryQuestions,
-    atomics
+    atomics,
+    evidence,
+    evidenceSafety
   });
 }
