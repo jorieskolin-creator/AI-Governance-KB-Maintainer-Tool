@@ -8,6 +8,7 @@ import { materializeValidatedSirTaskOutput } from '../sir/task-artifact.js';
 import type { CompletionContext } from '../validation/cognitive-completion.js';
 import { validateTaskCompletion } from '../validation/task-completion-router.js';
 import type { ValidationFinding } from '../validation/contracts.js';
+import { canonicalArtifactHash } from './artifact-hash.js';
 import {
   completeTaskRun,
   createTaskRun,
@@ -16,20 +17,6 @@ import {
   persistModelCall,
   persistValidationFindings
 } from './store.js';
-
-function canonical(value: unknown): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  const object = value as Record<string, unknown>;
-  return `{${Object.keys(object)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonical(object[key])}`)
-    .join(',')}}`;
-}
-
-function hash(value: unknown): string {
-  return createHash('sha256').update(canonical(value)).digest('hex');
-}
 
 function retries(): number {
   const parsed = Number(process.env.MODEL_MAX_RETRIES ?? 2);
@@ -130,7 +117,7 @@ async function persistCompletedOutput(input: {
   await completeTaskRun({
     taskRunId: input.taskRunId,
     output: persistedOutput,
-    outputHash: hash(persistedOutput)
+    outputHash: canonicalArtifactHash(persistedOutput)
   });
   return persistedOutput;
 }
@@ -141,7 +128,7 @@ export async function runCognitiveTask(input: {
   completionContext: CompletionContext;
 }): Promise<{ output: unknown; usedFallback: boolean }> {
   const completed = await getCompletedTaskTypes(input.pairRunId);
-  const inputHash = hash({ contract: input.contract, completed: [...completed].sort() });
+  const inputHash = canonicalArtifactHash({ contract: input.contract, completed: [...completed].sort() });
   const taskRunId = await createTaskRun({
     pairRunId: input.pairRunId,
     contract: input.contract,
