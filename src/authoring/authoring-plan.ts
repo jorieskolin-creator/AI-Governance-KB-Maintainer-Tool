@@ -141,6 +141,26 @@ function assertPairIdentity(identity: AuthoritativeObjectIdentity): void {
   }
 }
 
+function assertTacticCatalogBinding(input: AuthoringPlanInput): void {
+  const hasVersion = input.baseline.tacticCatalogVersion !== null;
+  const hasHash = input.baseline.tacticCatalogSha256 !== null;
+  if (hasVersion !== hasHash) {
+    throw new Error('Tactic Catalog version and SHA-256 must either both be present or both be null.');
+  }
+  if (!hasVersion && input.allowedTactics.length > 0) {
+    throw new Error('Allowed tactic universe must be empty when no sealed Tactic Catalog identity is present.');
+  }
+  if (hasVersion) {
+    for (const tactic of input.allowedTactics) {
+      if (tactic.catalogVersion !== input.baseline.tacticCatalogVersion) {
+        throw new Error(
+          `Allowed tactic ${tactic.tacticId}@${tactic.tacticVersion} belongs to catalog ${tactic.catalogVersion}; expected ${String(input.baseline.tacticCatalogVersion)}.`
+        );
+      }
+    }
+  }
+}
+
 export function validateAuthoringPlanInput(input: AuthoringPlanInput): void {
   assertPairIdentity(input.identity);
 
@@ -173,6 +193,7 @@ export function validateAuthoringPlanInput(input: AuthoringPlanInput): void {
   assertUniqueHandles(input.allowedSources.map((item) => item.sourceHandle), 'Source');
   assertUniqueHandles(input.allowedTactics.map((item) => item.tacticHandle), 'Tactic');
   assertUniqueHandles(input.adjacentCriteria.map((item) => item.criterionHandle), 'Adjacent criterion');
+  assertTacticCatalogBinding(input);
 
   const sourceIds = input.allowedSources.map((item) => item.sourceId);
   if (new Set(sourceIds).size !== sourceIds.length) {
