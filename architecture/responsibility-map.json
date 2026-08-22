@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "purpose": "Define exactly one decision authority and one canonical materializer for every governed canonical field family before SIR refactoring.",
   "principles": [
     "GenAI owns semantic meaning only where interpretation is required.",
@@ -11,17 +11,8 @@
     "No canonical identity may originate from model output.",
     "The compiler must not invent a semantic relationship that is absent from SIR unless a normative contract mandates that relationship."
   ],
-  "decision_authorities": [
-    "AUTHORING_PLAN",
-    "GENAI_SEMANTIC",
-    "DETERMINISTIC_DERIVED",
-    "EXTERNAL_HUMAN",
-    "RELEASE_SYSTEM"
-  ],
-  "materializers": [
-    "CANONICAL_COMPILER",
-    "RELEASE_FINALIZER"
-  ],
+  "decision_authorities": ["AUTHORING_PLAN","GENAI_SEMANTIC","DETERMINISTIC_DERIVED","EXTERNAL_HUMAN","RELEASE_SYSTEM"],
+  "materializers": ["CANONICAL_COMPILER","RELEASE_FINALIZER"],
   "common_fields": [
     {"path":"/schema_version","authority":"AUTHORING_PLAN","materializer":"CANONICAL_COMPILER"},
     {"path":"/id","authority":"AUTHORING_PLAN","materializer":"CANONICAL_COMPILER"},
@@ -69,7 +60,7 @@
     {"path":"/normative_source_mappings/*/source_id","authority":"DETERMINISTIC_DERIVED","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/source_version_or_date","authority":"DETERMINISTIC_DERIVED","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/exact_locator","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
-    {"path":"/normative_source_mappings/*/relationship","authority":"DETERMINISTIC_DERIVED","materializer":"CANONICAL_COMPILER"},
+    {"path":"/normative_source_mappings/*/relationship","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/supported_claim","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/category_rationale","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/applicability_conditions","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
