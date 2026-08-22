@@ -37,6 +37,13 @@ export function completionValidatorRoute(contract: TaskContract): CompletionVali
   }
 
   if (contract.taskType === 'LIFECYCLE_ASSURANCE') return 'LIFECYCLE_ASSURANCE';
+
+  if (contract.contractVersion === '2.0.0') {
+    throw new Error(
+      `Unsupported SIR v2 completion route for task ${contract.taskType}. Register an explicit deterministic validator before enabling this task.`
+    );
+  }
+
   return 'LEGACY_COMPLETION';
 }
 
