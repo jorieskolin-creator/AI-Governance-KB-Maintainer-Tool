@@ -49,6 +49,7 @@ export interface SirFinding {
 export interface SirSourceInterpretation {
   sourceHandle: SirHandle;
   exactLocator: string;
+  relationship: string;
   supportedClaim: string;
   categoryRationale: string;
   applicabilityConditions: string[];
@@ -130,6 +131,7 @@ export interface AntipatternSir {
   evidenceRules: SirEvidenceRules;
   absenceTest: {
     requiredArtifacts: string[];
+    interpretationBoundary: string;
   };
   findings: SirFinding[];
   sources: SirSourceInterpretation[];
