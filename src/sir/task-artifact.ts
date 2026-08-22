@@ -1,8 +1,11 @@
 import type { TaskContract } from '../domain/task-contract.js';
 import type { SirAtomicDecompositionOutput } from '../cognitive/sir-atomic-contract.js';
 import type { SirEvidenceArchitectureOutput } from '../cognitive/sir-evidence-contract.js';
+import type { SirSourceMappingOutput } from '../cognitive/sir-source-mapping-contract.js';
+import type { SourceContextPacket } from '../orchestration/source-context-packet.js';
 import { materializeSirAtomics } from './atomic-materializer.js';
 import { materializeSirEvidence } from './evidence-materializer.js';
+import { materializeSirSourceMappings } from './source-mapping-materializer.js';
 
 /**
  * Convert a validated model-authored semantic payload into the persisted SIR artifact
@@ -20,6 +23,14 @@ export function materializeValidatedSirTaskOutput(
 
   if (contract.taskType === 'EVIDENCE_ARCHITECTURE') {
     return materializeSirEvidence(output as SirEvidenceArchitectureOutput);
+  }
+
+  if (contract.taskType === 'SOURCE_MAPPING') {
+    const packet = contract.lockedInputs.source_context_packet as SourceContextPacket | undefined;
+    if (!packet) {
+      throw new Error('Validated SOURCE_MAPPING output cannot be materialized without its Source Context Packet.');
+    }
+    return materializeSirSourceMappings(output as SirSourceMappingOutput, packet);
   }
 
   return output;
