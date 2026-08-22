@@ -1,18 +1,37 @@
 import { createHash } from 'node:crypto';
 
-export function canonicalArtifactValue(value: unknown): string {
-  if (value === null || typeof value !== 'object') {
-    const serialized = JSON.stringify(value);
-    return serialized === undefined ? 'undefined' : serialized;
+function jsonStorageValue(value: unknown): unknown {
+  let serialized: string | undefined;
+  try {
+    serialized = JSON.stringify(value);
+  } catch (error) {
+    throw new Error(
+      `Artifact value is not JSON-serializable: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
-  if (Array.isArray(value)) {
-    return `[${value.map(canonicalArtifactValue).join(',')}]`;
+  if (serialized === undefined) {
+    throw new Error('Artifact value has no JSON representation and cannot be persisted safely.');
   }
+  return JSON.parse(serialized) as unknown;
+}
+
+function canonicalJsonValue(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalJsonValue).join(',')}]`;
   const object = value as Record<string, unknown>;
   return `{${Object.keys(object)
     .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonicalArtifactValue(object[key])}`)
+    .map((key) => `${JSON.stringify(key)}:${canonicalJsonValue(object[key])}`)
     .join(',')}}`;
+}
+
+/**
+ * Canonicalize the exact JSON representation that PostgreSQL JSONB receives.
+ * JavaScript-only values are normalized exactly as JSON.stringify would normalize
+ * them before storage, preventing write-time and resume-time hash drift.
+ */
+export function canonicalArtifactValue(value: unknown): string {
+  return canonicalJsonValue(jsonStorageValue(value));
 }
 
 export function canonicalArtifactHash(value: unknown): string {
