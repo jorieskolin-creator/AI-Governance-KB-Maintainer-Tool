@@ -196,7 +196,9 @@ export function validateSirPairCoherenceCompletion(
   }
 
   if (!packet) return report(context, findings);
-  const allowedPaths = new Set(packet.pathRegistry.map((entry) => entry.pathHandle));
+  const allowedPaths = new Set<string>(
+    packet.pathRegistry.map((entry) => entry.pathHandle)
+  );
   if (allowedPaths.size !== packet.pathRegistry.length) {
     findings.push(
       finding(
