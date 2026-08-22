@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "purpose": "Define exactly one decision authority and one canonical materializer for every governed canonical field family before SIR refactoring.",
   "principles": [
     "GenAI owns semantic meaning only where interpretation is required.",
@@ -59,7 +59,7 @@
     {"path":"/normative_source_mappings/*/mapping_id","authority":"DETERMINISTIC_DERIVED","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/source_id","authority":"DETERMINISTIC_DERIVED","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/source_version_or_date","authority":"DETERMINISTIC_DERIVED","materializer":"CANONICAL_COMPILER"},
-    {"path":"/normative_source_mappings/*/exact_locator","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
+    {"path":"/normative_source_mappings/*/exact_locator","authority":"DETERMINISTIC_DERIVED","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/relationship","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/supported_claim","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
     {"path":"/normative_source_mappings/*/category_rationale","authority":"GENAI_SEMANTIC","materializer":"CANONICAL_COMPILER"},
@@ -121,6 +121,7 @@
     {"relationship":"FINDING_TO_ATOMIC","authority":"GENAI_SEMANTIC","canonical_materialization":"mapped_atomic_item_ids"},
     {"relationship":"FINDING_TO_EVIDENCE","authority":"GENAI_SEMANTIC","canonical_materialization":"required_evidence_ids"},
     {"relationship":"SOURCE_TO_SUPPORTED_CLAIM","authority":"GENAI_SEMANTIC","canonical_materialization":"normative_source_mappings"},
+    {"relationship":"SOURCE_TO_LOCATOR_SELECTION","authority":"GENAI_SEMANTIC","canonical_materialization":"exact_locator","constraint":"The model selects only a supplied locatorHandle from the sealed Source Context Packet; the exact locator string is materialized deterministically."},
     {"relationship":"RELATED_CRITERIA_SELECTION","authority":"GENAI_SEMANTIC","canonical_materialization":"related_criteria"},
     {"relationship":"TACTIC_SELECTION_FOR_FINDING","authority":"GENAI_SEMANTIC","canonical_materialization":"candidate_tactic_refs","constraint":"Canonical mapping is emitted only when an exact approved reciprocal Tactic Catalog mapping resolves the semantic selection."}
   ]
