@@ -32,6 +32,7 @@ const gates: Gate[] = [
   { id: 'SIR_LIFECYCLE_RESOLVER', script: 'dist/orchestration/run-lifecycle-resolver-check.js' },
   { id: 'SIR_LIFECYCLE_ARTIFACT', script: 'dist/orchestration/run-lifecycle-artifact-verifier-check.js' },
   { id: 'SIR_REFERENCE_MAPPING', script: 'dist/sir/run-reference-mapping-sir-check.js' },
+  { id: 'SIR_REFERENCE_MAPPING_RESOLVER', script: 'dist/orchestration/run-reference-mapping-resolver-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
