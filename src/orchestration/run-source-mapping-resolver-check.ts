@@ -1,6 +1,7 @@
 import { buildAuthoringPlan, type AuthoringPlanInput } from '../authoring/authoring-plan.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
+import { canonicalArtifactHash } from './artifact-hash.js';
 import { buildSourceContextPacket } from './source-context-packet.js';
 import { resolveSirTaskContract } from './sir-contract-resolver.js';
 import type { CompletedTaskArtifact } from './store.js';
@@ -61,7 +62,7 @@ function put(taskType: CognitiveTaskType, output: unknown, version = '2.0.0'): v
     output,
     taskContract: persistedContract(taskType, version),
     inputHash:`input-${taskType}`,
-    outputHash:`output-${taskType}`
+    outputHash:canonicalArtifactHash(output)
   });
 }
 
