@@ -21,12 +21,15 @@ import {
 } from '../cognitive/sir-ap-absence-contract.js';
 import { buildSirSourceMappingContract } from '../cognitive/sir-source-mapping-contract.js';
 import { buildSirFindingArchitectureContract } from '../cognitive/sir-finding-contract.js';
+import { buildSirControlBoundaryContract } from '../cognitive/sir-control-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
 import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
+import type { MaterializedSirFindings } from '../sir/finding-materializer.js';
 import type { MaterializedSirSourceMappings } from '../sir/source-mapping-materializer.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { canonicalArtifactHash } from './artifact-hash.js';
+import { verifyMaterializedFindingArtifact } from './finding-artifact-verifier.js';
 import type { SourceContextPacket } from './source-context-packet.js';
 import { verifySourceContextPacket } from './source-context-verifier.js';
 import { verifyMaterializedSourceMappingArtifact } from './source-mapping-artifact-verifier.js';
@@ -45,7 +48,8 @@ export type ResolvableSirTaskType =
   | 'EVIDENCE_SAFETY'
   | 'AP_ABSENCE_CONTRACT'
   | 'SOURCE_MAPPING'
-  | 'FINDING_ARCHITECTURE';
+  | 'FINDING_ARCHITECTURE'
+  | 'CONTROL_BOUNDARY';
 
 export interface SirContractResolverInput {
   pairRunId: string;
@@ -208,16 +212,44 @@ export async function resolveSirTaskContract(
     authoringPlan: input.authoringPlan
   });
 
-  return buildSirFindingArchitectureContract({
+  if (input.taskType === 'FINDING_ARCHITECTURE') {
+    return buildSirFindingArchitectureContract({
+      ...base,
+      pairBoundary,
+      apFailureModel,
+      applicability,
+      primaryQuestions,
+      atomics,
+      evidence,
+      evidenceSafety,
+      apAbsence,
+      sourceMappings
+    });
+  }
+
+  const findingArtifact = await load<MaterializedSirFindings>(
+    input.pairRunId,
+    'FINDING_ARCHITECTURE'
+  );
+  const findings = assertCompatibleArtifact(
+    findingArtifact,
+    'FINDING_ARCHITECTURE',
+    input.authoringPlan
+  );
+  if (!findingArtifact) {
+    throw new Error(`Missing completed dependency FINDING_ARCHITECTURE for ${input.authoringPlan.identity.pairId}.`);
+  }
+  verifyMaterializedFindingArtifact({
+    output: findings,
+    findingTaskContract: findingArtifact.taskContract,
+    authoringPlan: input.authoringPlan
+  });
+
+  return buildSirControlBoundaryContract({
     ...base,
     pairBoundary,
-    apFailureModel,
-    applicability,
-    primaryQuestions,
-    atomics,
-    evidence,
     evidenceSafety,
     apAbsence,
-    sourceMappings
+    findings
   });
 }
