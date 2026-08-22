@@ -1,4 +1,4 @@
-import type { AdjacentCriterionRef, AuthoringPlan } from '../authoring/authoring-plan.js';
+import type { AdjacentCriterionRef } from '../authoring/authoring-plan.js';
 import type { SirReferenceMappingOutput } from '../cognitive/sir-reference-mapping-contract.js';
 import type { SirHandle } from './model.js';
 
@@ -16,32 +16,42 @@ export interface MaterializedSirReferenceMappings {
   referenceNotes: string[];
 }
 
-function assertNoApprovedTacticCatalog(plan: AuthoringPlan): void {
-  if (
-    plan.baseline.tacticCatalogVersion !== null ||
-    plan.baseline.tacticCatalogSha256 !== null ||
-    plan.tacticUniverse.length > 0
-  ) {
+export interface ReferenceMappingMaterializationContext {
+  adjacentCriteria: AdjacentCriterionRef[];
+  tacticResolutionMode: 'NO_APPROVED_TACTIC_AVAILABLE';
+}
+
+function assertContext(context: ReferenceMappingMaterializationContext): void {
+  if (context.tacticResolutionMode !== 'NO_APPROVED_TACTIC_AVAILABLE') {
     throw new Error(
       'Cannot materialize Reference Mapping tactic refs without an approved reciprocal tactic-mapping packet.'
     );
+  }
+  const handles = new Set<string>();
+  for (const criterion of context.adjacentCriteria) {
+    if (!/^criterion_.+/.test(criterion.criterionHandle)) {
+      throw new Error(`Adjacent criterion handle ${criterion.criterionHandle} is not a SIR criterion handle.`);
+    }
+    if (!/^(AP-)?[A-F][1-5]$/.test(criterion.criterionId)) {
+      throw new Error(`Adjacent criterion ID ${criterion.criterionId} is not canonical.`);
+    }
+    if (!criterion.boundarySummary.trim()) {
+      throw new Error(`Adjacent criterion ${criterion.criterionHandle} has an empty boundary summary.`);
+    }
+    if (handles.has(criterion.criterionHandle)) {
+      throw new Error(`Adjacent criterion handle ${criterion.criterionHandle} is duplicated.`);
+    }
+    handles.add(criterion.criterionHandle);
   }
 }
 
 function resolveCriterion(
   handle: SirHandle,
-  plan: AuthoringPlan
+  context: ReferenceMappingMaterializationContext
 ): MaterializedSirRelatedCriterion {
-  const criterion = plan.adjacentCriteria.find((item) => item.criterionHandle === handle);
+  const criterion = context.adjacentCriteria.find((item) => item.criterionHandle === handle);
   if (!criterion) {
     throw new Error(`Cannot materialize unknown adjacent criterion handle ${handle}.`);
-  }
-  return materializeCriterion(criterion);
-}
-
-function materializeCriterion(criterion: AdjacentCriterionRef): MaterializedSirRelatedCriterion {
-  if (!/^criterion_.+/.test(criterion.criterionHandle)) {
-    throw new Error(`Adjacent criterion handle ${criterion.criterionHandle} is not a SIR criterion handle.`);
   }
   return {
     criterionHandle: criterion.criterionHandle as SirHandle,
@@ -52,15 +62,15 @@ function materializeCriterion(criterion: AdjacentCriterionRef): MaterializedSirR
 
 export function materializeSirReferenceMappings(
   output: SirReferenceMappingOutput,
-  plan: AuthoringPlan
+  context: ReferenceMappingMaterializationContext
 ): MaterializedSirReferenceMappings {
-  assertNoApprovedTacticCatalog(plan);
+  assertContext(context);
   return {
     capabilityRelatedCriteria: output.capabilityRelatedCriterionHandles.map((handle) =>
-      resolveCriterion(handle, plan)
+      resolveCriterion(handle, context)
     ),
     antipatternRelatedCriteria: output.antipatternRelatedCriterionHandles.map((handle) =>
-      resolveCriterion(handle, plan)
+      resolveCriterion(handle, context)
     ),
     capabilityTacticRefs: [],
     antipatternTacticRefs: [],
