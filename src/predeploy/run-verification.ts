@@ -17,6 +17,7 @@ const gates: Gate[] = [
   { id: 'SIR_DEPENDENCY_RESOLVER', script: 'dist/orchestration/run-sir-resolver-check.js' },
   { id: 'SIR_SAFETY_DEPENDENCY_RESOLVER', script: 'dist/orchestration/run-sir-safety-resolver-check.js' },
   { id: 'SOURCE_CONTEXT_PACKET', script: 'dist/orchestration/run-source-context-packet-check.js' },
+  { id: 'SIR_SOURCE_MAPPING', script: 'dist/sir/run-source-mapping-sir-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
