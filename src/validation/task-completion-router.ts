@@ -6,6 +6,7 @@ import { validateSirApAbsenceCompletion } from './sir-ap-absence-completion.js';
 import { validateSirAtomicCompletion } from './sir-atomic-completion.js';
 import { validateSirEvidenceCompletion } from './sir-evidence-completion.js';
 import { validateSirEvidenceSafetyCompletion } from './sir-evidence-safety-completion.js';
+import { validateSirFindingCompletion } from './sir-finding-completion.js';
 import { validateSirInitialCompletion } from './sir-initial-completion.js';
 import { validateSirSourceMappingCompletion } from './sir-source-mapping-completion.js';
 
@@ -16,6 +17,7 @@ export type CompletionValidatorRoute =
   | 'SIR_EVIDENCE_SAFETY'
   | 'SIR_AP_ABSENCE'
   | 'SIR_SOURCE_MAPPING'
+  | 'SIR_FINDING'
   | 'LIFECYCLE_ASSURANCE'
   | 'LEGACY_COMPLETION';
 
@@ -34,6 +36,7 @@ export function completionValidatorRoute(contract: TaskContract): CompletionVali
     if (contract.taskType === 'EVIDENCE_SAFETY') return 'SIR_EVIDENCE_SAFETY';
     if (contract.taskType === 'AP_ABSENCE_CONTRACT') return 'SIR_AP_ABSENCE';
     if (contract.taskType === 'SOURCE_MAPPING') return 'SIR_SOURCE_MAPPING';
+    if (contract.taskType === 'FINDING_ARCHITECTURE') return 'SIR_FINDING';
   }
 
   if (contract.taskType === 'LIFECYCLE_ASSURANCE') return 'LIFECYCLE_ASSURANCE';
@@ -71,6 +74,8 @@ export function validateTaskCompletion(input: {
       return validateSirApAbsenceCompletion(input.contract, input.completed, input.output, shortContext);
     case 'SIR_SOURCE_MAPPING':
       return validateSirSourceMappingCompletion(input.contract, input.completed, input.output, shortContext);
+    case 'SIR_FINDING':
+      return validateSirFindingCompletion(input.contract, input.completed, input.output, shortContext);
     case 'LIFECYCLE_ASSURANCE':
       return validateLifecycleAssuranceCompletion(
         input.contract,
