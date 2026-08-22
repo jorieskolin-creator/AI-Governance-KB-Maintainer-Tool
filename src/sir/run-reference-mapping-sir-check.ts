@@ -183,7 +183,10 @@ expectCheck(
   'SIR_REFERENCE_OUTPUT_CONTRACT'
 );
 
-const materialized = materializeSirReferenceMappings(validOutput, plan);
+const materialized = materializeSirReferenceMappings(validOutput, {
+  adjacentCriteria: contract.lockedInputs.adjacent_criteria as typeof plan.adjacentCriteria,
+  tacticResolutionMode: 'NO_APPROVED_TACTIC_AVAILABLE'
+});
 if (
   materialized.capabilityRelatedCriteria[0]?.criterionId !== 'AP-A2' ||
   materialized.capabilityRelatedCriteria[1]?.criterionId !== 'A1'
