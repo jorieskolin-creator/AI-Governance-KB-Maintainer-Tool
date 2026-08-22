@@ -28,7 +28,8 @@ const expected: Array<[CognitiveTaskType,CompletionValidatorRoute]> = [
   ['EVIDENCE_ARCHITECTURE','SIR_EVIDENCE'],
   ['EVIDENCE_SAFETY','SIR_EVIDENCE_SAFETY'],
   ['AP_ABSENCE_CONTRACT','SIR_AP_ABSENCE'],
-  ['SOURCE_MAPPING','SIR_SOURCE_MAPPING']
+  ['SOURCE_MAPPING','SIR_SOURCE_MAPPING'],
+  ['FINDING_ARCHITECTURE','SIR_FINDING']
 ];
 
 for (const [taskType,route] of expected) {
@@ -46,8 +47,8 @@ if (completionValidatorRoute(contract('FINDING_ARCHITECTURE','1.0.0')) !== 'LEGA
 }
 
 try {
-  completionValidatorRoute(contract('FINDING_ARCHITECTURE','2.0.0'));
-  throw new Error('Unregistered FINDING_ARCHITECTURE SIR v2 unexpectedly fell through completion routing.');
+  completionValidatorRoute(contract('CONTROL_BOUNDARY','2.0.0'));
+  throw new Error('Unregistered CONTROL_BOUNDARY SIR v2 unexpectedly fell through completion routing.');
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   if (!message.includes('Unsupported SIR v2 completion route')) {
@@ -60,6 +61,7 @@ console.log(JSON.stringify({
   evidenceSafetyRoute:'PASS',
   apAbsenceRoute:'PASS',
   sourceMappingRoute:'PASS',
+  findingRoute:'PASS',
   lifecycleDedicatedRoute:'PASS',
   legacyV1Fallback:'PASS',
   unregisteredSirV2Fallback:'REJECTED'
