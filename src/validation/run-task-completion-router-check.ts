@@ -30,7 +30,8 @@ const expected: Array<[CognitiveTaskType,CompletionValidatorRoute]> = [
   ['AP_ABSENCE_CONTRACT','SIR_AP_ABSENCE'],
   ['SOURCE_MAPPING','SIR_SOURCE_MAPPING'],
   ['FINDING_ARCHITECTURE','SIR_FINDING'],
-  ['CONTROL_BOUNDARY','SIR_CONTROL']
+  ['CONTROL_BOUNDARY','SIR_CONTROL'],
+  ['LIFECYCLE_ASSURANCE','SIR_LIFECYCLE']
 ];
 
 for (const [taskType,route] of expected) {
@@ -57,7 +58,6 @@ function expectUnsupported(taskType:CognitiveTaskType):void {
   }
 }
 
-expectUnsupported('LIFECYCLE_ASSURANCE');
 expectUnsupported('REFERENCE_MAPPING');
 
 console.log(JSON.stringify({
@@ -67,8 +67,8 @@ console.log(JSON.stringify({
   sourceMappingRoute:'PASS',
   findingRoute:'PASS',
   controlRoute:'PASS',
+  lifecycleSirV2Route:'PASS',
   legacyLifecycleDedicatedRoute:'PASS',
-  lifecycleSirV2BeforeRegistration:'REJECTED',
   legacyV1Fallback:'PASS',
   unregisteredSirV2Fallback:'REJECTED'
 }, null, 2));
