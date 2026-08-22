@@ -1,12 +1,16 @@
 import { buildAuthoringPlan } from '../authoring/authoring-plan.js';
 import type { SirControlBoundaryOutput } from '../cognitive/sir-control-contract.js';
 import type { SirLifecycleAssuranceOutput } from '../cognitive/sir-lifecycle-contract.js';
+import type { SirReferenceMappingOutput } from '../cognitive/sir-reference-mapping-contract.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { materializeSirFindings } from '../sir/finding-materializer.js';
 import { materializeSirLifecycleTargets } from '../sir/lifecycle-materializer.js';
+import type { MaterializedSirReferenceMappings } from '../sir/reference-mapping-materializer.js';
 import { materializeSirSourceMappings } from '../sir/source-mapping-materializer.js';
+import { materializeValidatedSirTaskOutput } from '../sir/task-artifact.js';
 import { canonicalArtifactHash } from './artifact-hash.js';
+import type { PairCoherencePacket } from './pair-coherence-packet.js';
 import { buildSourceContextPacket } from './source-context-packet.js';
 import { resolveSirTaskContract } from './sir-contract-resolver.js';
 import type { CompletedTaskArtifact } from './store.js';
@@ -358,21 +362,56 @@ artifacts.set('LIFECYCLE_ASSURANCE', {
   outputHash: canonicalArtifactHash(lifecycleOutput)
 });
 
-const resolved = await resolveSirTaskContract({ ...base, taskType: 'REFERENCE_MAPPING' });
-if (resolved.taskType !== 'REFERENCE_MAPPING' || resolved.contractVersion !== '2.0.0') {
+const referenceContract = await resolveSirTaskContract({ ...base, taskType: 'REFERENCE_MAPPING' });
+if (referenceContract.taskType !== 'REFERENCE_MAPPING' || referenceContract.contractVersion !== '2.0.0') {
   throw new Error('Resolver did not construct REFERENCE_MAPPING SIR v2 contract.');
 }
-const lockedAdjacent = resolved.lockedInputs.adjacent_criteria as Array<{ criterionHandle?: string }>;
+const lockedAdjacent = referenceContract.lockedInputs.adjacent_criteria as Array<{ criterionHandle?: string }>;
 if (lockedAdjacent[0]?.criterionHandle !== 'criterion_001') {
   throw new Error('Reference Mapping contract did not receive the Authoring Plan adjacent-criterion universe.');
 }
 if (
-  'lifecycle_stage_order' in resolved.lockedInputs ||
-  'control_boundary' in resolved.lockedInputs ||
-  'source_context_packet' in resolved.lockedInputs ||
-  'source_mappings' in resolved.lockedInputs
+  'lifecycle_stage_order' in referenceContract.lockedInputs ||
+  'control_boundary' in referenceContract.lockedInputs ||
+  'source_context_packet' in referenceContract.lockedInputs ||
+  'source_mappings' in referenceContract.lockedInputs
 ) {
   throw new Error('Reference Mapping prompt leaked gating-only Lifecycle/Control/Source context.');
+}
+
+const referenceSemantic: SirReferenceMappingOutput = {
+  capabilityRelatedCriterionHandles: ['criterion_001','criterion_003'],
+  antipatternRelatedCriterionHandles: ['criterion_002'],
+  referenceNotes: ['Related criteria are bounded to the Authoring Plan adjacent-criterion universe.']
+};
+const referenceOutput = materializeValidatedSirTaskOutput(
+  referenceContract,
+  referenceSemantic
+) as MaterializedSirReferenceMappings;
+artifacts.set('REFERENCE_MAPPING', {
+  output: referenceOutput,
+  taskContract: referenceContract,
+  inputHash: 'input-REFERENCE_MAPPING',
+  outputHash: canonicalArtifactHash(referenceOutput)
+});
+
+const pairCoherenceContract = await resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' });
+if (
+  pairCoherenceContract.taskType !== 'PAIR_COHERENCE_REVIEW' ||
+  pairCoherenceContract.contractVersion !== '2.0.0' ||
+  pairCoherenceContract.modelRole !== 'QUALITY_CHECKER'
+) {
+  throw new Error('Resolver did not construct QUALITY_CHECKER Pair Coherence SIR v2 contract.');
+}
+const coherencePacket = pairCoherenceContract.lockedInputs.pair_coherence_packet as PairCoherencePacket;
+if (!coherencePacket?.packetSha256 || coherencePacket.pairId !== plan.identity.pairId) {
+  throw new Error('Pair Coherence contract did not receive a valid deterministic Pair Coherence Packet.');
+}
+if (coherencePacket.snapshot.referenceMappings.capabilityRelatedCriteria[0]?.criterionId !== 'AP-A2') {
+  throw new Error('Pair Coherence Packet did not contain verified materialized Reference Mapping content.');
+}
+if (JSON.stringify(coherencePacket).includes('contextText')) {
+  throw new Error('Pair Coherence Packet leaked raw Source Context text into Quality Checker input.');
 }
 
 async function expectReject(fn: () => Promise<unknown>, expected: string): Promise<void> {
@@ -387,6 +426,67 @@ async function expectReject(fn: () => Promise<unknown>, expected: string): Promi
   }
   throw new Error(`Expected rejection containing ${expected}.`);
 }
+
+const originalReference = artifacts.get('REFERENCE_MAPPING')!;
+artifacts.set('REFERENCE_MAPPING', {
+  ...originalReference,
+  output: referenceSemantic,
+  outputHash: canonicalArtifactHash(referenceSemantic)
+});
+await expectReject(
+  () => resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' }),
+  'contains unexpected or missing fields'
+);
+artifacts.set('REFERENCE_MAPPING', originalReference);
+
+const badReferenceId = structuredClone(referenceOutput);
+badReferenceId.capabilityRelatedCriteria[0]!.criterionId = 'A5';
+artifacts.set('REFERENCE_MAPPING', {
+  ...originalReference,
+  output: badReferenceId,
+  outputHash: canonicalArtifactHash(badReferenceId)
+});
+await expectReject(
+  () => resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' }),
+  'materialized content drifted'
+);
+artifacts.set('REFERENCE_MAPPING', originalReference);
+
+const staleReference = structuredClone(referenceOutput);
+staleReference.referenceNotes = ['Tampered after persistence.'];
+artifacts.set('REFERENCE_MAPPING', {
+  ...originalReference,
+  output: staleReference
+});
+await expectReject(
+  () => resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' }),
+  'output hash mismatch'
+);
+artifacts.set('REFERENCE_MAPPING', originalReference);
+
+artifacts.set('REFERENCE_MAPPING', {
+  ...originalReference,
+  taskContract: { ...originalReference.taskContract, contractVersion: '1.0.0' }
+});
+await expectReject(
+  () => resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' }),
+  'SIR v2 requires 2.0.0'
+);
+artifacts.set('REFERENCE_MAPPING', originalReference);
+
+const driftedReferenceContract = structuredClone(referenceContract);
+driftedReferenceContract.lockedInputs.adjacent_criteria = [
+  { criterionHandle: 'criterion_001', criterionId: 'AP-A2', boundarySummary: 'Drifted boundary.' }
+];
+artifacts.set('REFERENCE_MAPPING', {
+  ...originalReference,
+  taskContract: driftedReferenceContract
+});
+await expectReject(
+  () => resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' }),
+  'adjacent-criterion universe drifted'
+);
+artifacts.set('REFERENCE_MAPPING', originalReference);
 
 const originalLifecycle = artifacts.get('LIFECYCLE_ASSURANCE')!;
 artifacts.set('LIFECYCLE_ASSURANCE', {
@@ -459,16 +559,25 @@ artifacts.set('SOURCE_MAPPING', {
   outputHash: canonicalArtifactHash(tamperedSource)
 });
 await expectReject(
-  () => resolveSirTaskContract({ ...base, taskType: 'REFERENCE_MAPPING' }),
+  () => resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' }),
   'exact locator drifted'
 );
 artifacts.set('SOURCE_MAPPING', originalSource);
 
 console.log(JSON.stringify({
   referenceMappingResolver: 'PASS',
+  pairCoherenceResolver: 'PASS',
+  qualityCheckerRole: 'PASS',
   verifiedPersistedLifecycleDependency: 'PASS',
-  lifecycleAsGatingOnlyDependency: 'PASS',
-  transitiveSourceFindingControlLifecycleIntegrity: 'PASS',
+  verifiedPersistedReferenceDependency: 'PASS',
+  deterministicPairCoherencePacket: 'PASS',
+  rawSourceContextLeakageToPairQc: 'PROHIBITED',
+  transitiveSourceFindingControlLifecycleReferenceIntegrity: 'PASS',
+  rawSemanticReferenceArtifact: 'REJECTED',
+  tamperedMaterializedReferenceId: 'REJECTED',
+  staleReferenceOutputHash: 'REJECTED',
+  legacyReferenceDependency: 'REJECTED',
+  lockedReferenceUniverseDrift: 'REJECTED',
   rawSemanticLifecycleArtifact: 'REJECTED',
   tamperedLifecycleStageIdentity: 'REJECTED',
   staleLifecycleOutputHash: 'REJECTED',
