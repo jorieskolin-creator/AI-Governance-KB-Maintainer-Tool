@@ -29,7 +29,8 @@ const expected: Array<[CognitiveTaskType,CompletionValidatorRoute]> = [
   ['EVIDENCE_SAFETY','SIR_EVIDENCE_SAFETY'],
   ['AP_ABSENCE_CONTRACT','SIR_AP_ABSENCE'],
   ['SOURCE_MAPPING','SIR_SOURCE_MAPPING'],
-  ['FINDING_ARCHITECTURE','SIR_FINDING']
+  ['FINDING_ARCHITECTURE','SIR_FINDING'],
+  ['CONTROL_BOUNDARY','SIR_CONTROL']
 ];
 
 for (const [taskType,route] of expected) {
@@ -39,22 +40,25 @@ for (const [taskType,route] of expected) {
   }
 }
 
-if (completionValidatorRoute(contract('LIFECYCLE_ASSURANCE','1.0.0')) !== 'LIFECYCLE_ASSURANCE') {
-  throw new Error('Lifecycle Assurance lost its dedicated validator route.');
+if (completionValidatorRoute(contract('LIFECYCLE_ASSURANCE','1.1.0')) !== 'LIFECYCLE_ASSURANCE') {
+  throw new Error('Legacy Lifecycle Assurance lost its dedicated validator route.');
 }
 if (completionValidatorRoute(contract('FINDING_ARCHITECTURE','1.0.0')) !== 'LEGACY_COMPLETION') {
   throw new Error('Legacy Finding Architecture no longer routes to the legacy validator.');
 }
 
-try {
-  completionValidatorRoute(contract('CONTROL_BOUNDARY','2.0.0'));
-  throw new Error('Unregistered CONTROL_BOUNDARY SIR v2 unexpectedly fell through completion routing.');
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  if (!message.includes('Unsupported SIR v2 completion route')) {
-    throw error;
+function expectUnsupported(taskType:CognitiveTaskType):void {
+  try {
+    completionValidatorRoute(contract(taskType,'2.0.0'));
+    throw new Error(`Unregistered ${taskType} SIR v2 unexpectedly fell through completion routing.`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes('Unsupported SIR v2 completion route')) throw error;
   }
 }
+
+expectUnsupported('LIFECYCLE_ASSURANCE');
+expectUnsupported('REFERENCE_MAPPING');
 
 console.log(JSON.stringify({
   explicitSirV2Routes:'PASS',
@@ -62,7 +66,9 @@ console.log(JSON.stringify({
   apAbsenceRoute:'PASS',
   sourceMappingRoute:'PASS',
   findingRoute:'PASS',
-  lifecycleDedicatedRoute:'PASS',
+  controlRoute:'PASS',
+  legacyLifecycleDedicatedRoute:'PASS',
+  lifecycleSirV2BeforeRegistration:'REJECTED',
   legacyV1Fallback:'PASS',
   unregisteredSirV2Fallback:'REJECTED'
 }, null, 2));
