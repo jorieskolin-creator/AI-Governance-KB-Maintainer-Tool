@@ -26,15 +26,18 @@ import {
   type SirControlBoundaryOutput
 } from '../cognitive/sir-control-contract.js';
 import { buildSirLifecycleAssuranceContract } from '../cognitive/sir-lifecycle-contract.js';
+import { buildSirReferenceMappingContract } from '../cognitive/sir-reference-mapping-contract.js';
 import type { MaterializedSirAtomics } from '../sir/atomic-materializer.js';
 import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
 import type { MaterializedSirFindings } from '../sir/finding-materializer.js';
+import type { MaterializedSirLifecycleTargets } from '../sir/lifecycle-materializer.js';
 import type { MaterializedSirSourceMappings } from '../sir/source-mapping-materializer.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { canonicalArtifactHash } from './artifact-hash.js';
 import { verifyPersistedControlArtifact } from './control-artifact-verifier.js';
 import { verifyMaterializedFindingArtifact } from './finding-artifact-verifier.js';
+import { verifyPersistedLifecycleArtifact } from './lifecycle-artifact-verifier.js';
 import type { SourceContextPacket } from './source-context-packet.js';
 import { verifySourceContextPacket } from './source-context-verifier.js';
 import { verifyMaterializedSourceMappingArtifact } from './source-mapping-artifact-verifier.js';
@@ -55,7 +58,8 @@ export type ResolvableSirTaskType =
   | 'SOURCE_MAPPING'
   | 'FINDING_ARCHITECTURE'
   | 'CONTROL_BOUNDARY'
-  | 'LIFECYCLE_ASSURANCE';
+  | 'LIFECYCLE_ASSURANCE'
+  | 'REFERENCE_MAPPING';
 
 export interface SirContractResolverInput {
   pairRunId: string;
@@ -191,7 +195,7 @@ export async function resolveSirTaskContract(
     verifySourceContextPacket(input.sourceContextPacket, input.authoringPlan);
     return buildSirSourceMappingContract({
       ...base, pairBoundary, apFailureModel, applicability, primaryQuestions,
-      atomics, evidence, evidenceSafety, apAbsence, sourceContextPacket:input.sourceContextPacket
+      atomics, evidence, evidenceSafety, apAbsence, sourceContextPacket: input.sourceContextPacket
     });
   }
 
@@ -282,13 +286,47 @@ export async function resolveSirTaskContract(
     verifiedApAbsence: apAbsence
   });
 
-  return buildSirLifecycleAssuranceContract({
+  if (input.taskType === 'LIFECYCLE_ASSURANCE') {
+    return buildSirLifecycleAssuranceContract({
+      ...base,
+      pairBoundary,
+      evidence,
+      evidenceSafety,
+      apAbsence,
+      findings,
+      controlBoundary
+    });
+  }
+
+  const lifecycleArtifact = await load<MaterializedSirLifecycleTargets>(
+    input.pairRunId,
+    'LIFECYCLE_ASSURANCE'
+  );
+  const lifecycleTargets = assertCompatibleArtifact(
+    lifecycleArtifact,
+    'LIFECYCLE_ASSURANCE',
+    input.authoringPlan
+  );
+  if (!lifecycleArtifact) {
+    throw new Error(`Missing completed dependency LIFECYCLE_ASSURANCE for ${input.authoringPlan.identity.pairId}.`);
+  }
+  verifyPersistedLifecycleArtifact({
+    output: lifecycleTargets,
+    lifecycleTaskContract: lifecycleArtifact.taskContract,
+    authoringPlan: input.authoringPlan,
+    verifiedPairBoundary: pairBoundary,
+    verifiedEvidence: evidence,
+    verifiedEvidenceSafety: evidenceSafety,
+    verifiedApAbsence: apAbsence,
+    verifiedFindings: findings,
+    verifiedControl: controlBoundary,
+    categoryBaseline: input.categoryBaseline,
+    goldenReference: input.goldenReference
+  });
+
+  return buildSirReferenceMappingContract({
     ...base,
     pairBoundary,
-    evidence,
-    evidenceSafety,
-    apAbsence,
-    findings,
-    controlBoundary
+    findings
   });
 }
