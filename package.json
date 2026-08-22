@@ -15,7 +15,8 @@
     "sir:atomic-check": "node dist/sir/run-atomic-sir-check.js",
     "sir:evidence-check": "node dist/sir/run-evidence-sir-check.js",
     "golden:regression": "node dist/golden/run-regression.js",
-    "verify:build": "npm run build && npm run architecture:check && npm run authoring-plan:check && npm run sir:foundation-check && npm run sir:initial-check && npm run sir:atomic-check && npm run sir:evidence-check && npm run golden:regression"
+    "predeploy:verify": "npm run architecture:check && npm run authoring-plan:check && npm run sir:foundation-check && npm run sir:initial-check && npm run sir:atomic-check && npm run sir:evidence-check && npm run golden:regression",
+    "verify:build": "npm run build && npm run predeploy:verify"
   },
   "engines": {
     "node": ">=20"
