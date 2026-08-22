@@ -8,6 +8,7 @@ import type {
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { materializeSirAtomics } from '../sir/atomic-materializer.js';
+import { canonicalArtifactHash } from './artifact-hash.js';
 import type { CompletedTaskArtifact } from './store.js';
 import { resolveSirTaskContract } from './sir-contract-resolver.js';
 
@@ -50,7 +51,7 @@ function put<T>(taskType: CognitiveTaskType, taskContract: TaskContract, output:
     output,
     taskContract,
     inputHash: `input-${taskType}`,
-    outputHash: `output-${taskType}`
+    outputHash: canonicalArtifactHash(output)
   });
 }
 
@@ -165,11 +166,24 @@ try {
 }
 if (!rejectedLegacy) throw new Error('Legacy dependency was not rejected.');
 
+artifacts.set('PAIR_BOUNDARY', {
+  ...originalBoundary,
+  output: { ...boundaryOutput, boundaryRationale: 'Tampered after persistence.' }
+});
+let rejectedHashMismatch = false;
+try {
+  await resolveSirTaskContract({ ...base, taskType: 'AP_FAILURE_MODEL' });
+} catch (error) {
+  rejectedHashMismatch = String(error).includes('output hash mismatch');
+}
+if (!rejectedHashMismatch) throw new Error('Persisted output hash mismatch was not rejected.');
+
 artifacts.set('PAIR_BOUNDARY', originalBoundary);
 console.log(JSON.stringify({
   sirDependencyResolver: 'PASS',
   persistedArtifactProvenance: 'PASS',
   authoringPlanBinding: 'PASS',
   legacyDependencyRejection: 'PASS',
+  persistedOutputHashIntegrity: 'PASS',
   materializedAtomicDependency: 'PASS'
 }, null, 2));
