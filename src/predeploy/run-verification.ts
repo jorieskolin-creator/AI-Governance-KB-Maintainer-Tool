@@ -35,6 +35,7 @@ const gates: Gate[] = [
   { id: 'SIR_REFERENCE_MAPPING_RESOLVER', script: 'dist/orchestration/run-reference-mapping-resolver-check.js' },
   { id: 'SIR_REFERENCE_MAPPING_ARTIFACT', script: 'dist/orchestration/run-reference-mapping-artifact-verifier-check.js' },
   { id: 'PAIR_COHERENCE_PACKET', script: 'dist/orchestration/run-pair-coherence-packet-check.js' },
+  { id: 'SIR_PAIR_COHERENCE', script: 'dist/sir/run-pair-coherence-sir-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
