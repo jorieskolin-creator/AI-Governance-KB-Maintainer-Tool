@@ -1,4 +1,5 @@
 import { buildAuthoringPlan } from '../authoring/authoring-plan.js';
+import type { SirFindingArchitectureOutput } from '../cognitive/sir-finding-contract.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { materializeSirFindings } from '../sir/finding-materializer.js';
 import { verifyMaterializedFindingArtifact } from './finding-artifact-verifier.js';
@@ -34,18 +35,18 @@ const findingContract:TaskContract={
   validationProfile:[],dependencyPaths:[],failureMode:'FAIL_CLOSED'
 };
 
-const semanticOutput={
+const semanticOutput:SirFindingArchitectureOutput={
   capabilityFindings:[{
     title:'Capability suitability evidence is insufficient for the governed claim.',
-    eligibleConclusionStates:['NOT_SATISFIED','UNKNOWN'] as const,
-    atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH' as const,
+    eligibleConclusionStates:['NOT_SATISFIED','UNKNOWN'],
+    atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH',
     lifecycleConsequence:'Progression should remain constrained until the required evidence gap is resolved.',
     humanLockRequired:true
   }],
   antipatternFindings:[{
     title:'Solution-first decision logic is present or cannot be ruled out.',
-    eligibleConclusionStates:['CONFIRMED_PRESENT','UNKNOWN','TESTED_ABSENT'] as const,
-    atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH' as const,
+    eligibleConclusionStates:['CONFIRMED_PRESENT','UNKNOWN','TESTED_ABSENT'],
+    atomicHandles:['atomic_001'],evidenceHandles:['evidence_001'],defaultSeverity:'HIGH',
     lifecycleConsequence:'Progression requires human review of the failure mechanism and absence-test evidence.',
     humanLockRequired:true
   }],
