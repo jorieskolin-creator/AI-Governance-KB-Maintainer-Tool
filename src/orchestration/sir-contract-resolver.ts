@@ -26,6 +26,7 @@ import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
 import type { MaterializedSirSourceMappings } from '../sir/source-mapping-materializer.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
+import { canonicalArtifactHash } from './artifact-hash.js';
 import type { SourceContextPacket } from './source-context-packet.js';
 import { verifySourceContextPacket } from './source-context-verifier.js';
 import { verifyMaterializedSourceMappingArtifact } from './source-mapping-artifact-verifier.js';
@@ -93,6 +94,12 @@ function assertCompatibleArtifact<T>(
   }
   if (!artifact.outputHash) {
     throw new Error(`Dependency ${expectedTaskType} has no persisted output hash.`);
+  }
+  const computedOutputHash = canonicalArtifactHash(artifact.output);
+  if (artifact.outputHash !== computedOutputHash) {
+    throw new Error(
+      `Dependency ${expectedTaskType} output hash mismatch: persisted ${artifact.outputHash}, computed ${computedOutputHash}.`
+    );
   }
 
   return artifact.output;
