@@ -4,6 +4,7 @@ import { canPersistTaskAsCompleted, type CompletionContext } from './cognitive-c
 import { validateLifecycleAssuranceCompletion } from './lifecycle-assurance.js';
 import { validateSirApAbsenceCompletion } from './sir-ap-absence-completion.js';
 import { validateSirAtomicCompletion } from './sir-atomic-completion.js';
+import { validateSirControlCompletion } from './sir-control-completion.js';
 import { validateSirEvidenceCompletion } from './sir-evidence-completion.js';
 import { validateSirEvidenceSafetyCompletion } from './sir-evidence-safety-completion.js';
 import { validateSirFindingCompletion } from './sir-finding-completion.js';
@@ -18,6 +19,7 @@ export type CompletionValidatorRoute =
   | 'SIR_AP_ABSENCE'
   | 'SIR_SOURCE_MAPPING'
   | 'SIR_FINDING'
+  | 'SIR_CONTROL'
   | 'LIFECYCLE_ASSURANCE'
   | 'LEGACY_COMPLETION';
 
@@ -37,16 +39,14 @@ export function completionValidatorRoute(contract: TaskContract): CompletionVali
     if (contract.taskType === 'AP_ABSENCE_CONTRACT') return 'SIR_AP_ABSENCE';
     if (contract.taskType === 'SOURCE_MAPPING') return 'SIR_SOURCE_MAPPING';
     if (contract.taskType === 'FINDING_ARCHITECTURE') return 'SIR_FINDING';
-  }
+    if (contract.taskType === 'CONTROL_BOUNDARY') return 'SIR_CONTROL';
 
-  if (contract.taskType === 'LIFECYCLE_ASSURANCE') return 'LIFECYCLE_ASSURANCE';
-
-  if (contract.contractVersion === '2.0.0') {
     throw new Error(
       `Unsupported SIR v2 completion route for task ${contract.taskType}. Register an explicit deterministic validator before enabling this task.`
     );
   }
 
+  if (contract.taskType === 'LIFECYCLE_ASSURANCE') return 'LIFECYCLE_ASSURANCE';
   return 'LEGACY_COMPLETION';
 }
 
@@ -76,6 +76,8 @@ export function validateTaskCompletion(input: {
       return validateSirSourceMappingCompletion(input.contract, input.completed, input.output, shortContext);
     case 'SIR_FINDING':
       return validateSirFindingCompletion(input.contract, input.completed, input.output, shortContext);
+    case 'SIR_CONTROL':
+      return validateSirControlCompletion(input.contract, input.completed, input.output, shortContext);
     case 'LIFECYCLE_ASSURANCE':
       return validateLifecycleAssuranceCompletion(
         input.contract,
