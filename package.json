@@ -11,8 +11,9 @@
     "architecture:check": "node dist/architecture/run-responsibility-check.js",
     "authoring-plan:check": "node dist/authoring/run-authoring-plan-check.js",
     "sir:foundation-check": "node dist/sir/run-sir-foundation-check.js",
+    "sir:initial-check": "node dist/sir/run-initial-sir-check.js",
     "golden:regression": "node dist/golden/run-regression.js",
-    "verify:build": "npm run build && npm run architecture:check && npm run authoring-plan:check && npm run sir:foundation-check && npm run golden:regression"
+    "verify:build": "npm run build && npm run architecture:check && npm run authoring-plan:check && npm run sir:foundation-check && npm run sir:initial-check && npm run golden:regression"
   },
   "engines": {
     "node": ">=20"
