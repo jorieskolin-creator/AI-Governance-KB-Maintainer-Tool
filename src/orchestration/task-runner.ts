@@ -5,14 +5,8 @@ import { buildPromptPacket } from '../cognitive/prompt-builder.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { materializeValidatedSirTaskOutput } from '../sir/task-artifact.js';
-import {
-  canPersistTaskAsCompleted,
-  type CompletionContext
-} from '../validation/cognitive-completion.js';
-import { validateLifecycleAssuranceCompletion } from '../validation/lifecycle-assurance.js';
-import { validateSirInitialCompletion } from '../validation/sir-initial-completion.js';
-import { validateSirAtomicCompletion } from '../validation/sir-atomic-completion.js';
-import { validateSirEvidenceCompletion } from '../validation/sir-evidence-completion.js';
+import type { CompletionContext } from '../validation/cognitive-completion.js';
+import { validateTaskCompletion } from '../validation/task-completion-router.js';
 import type { ValidationFinding } from '../validation/contracts.js';
 import {
   completeTaskRun,
@@ -22,13 +16,6 @@ import {
   persistModelCall,
   persistValidationFindings
 } from './store.js';
-
-const INITIAL_SIR_TASKS = new Set<CognitiveTaskType>([
-  'PAIR_BOUNDARY',
-  'AP_FAILURE_MODEL',
-  'APPLICABILITY',
-  'PRIMARY_QUESTIONS'
-]);
 
 function canonical(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -100,64 +87,6 @@ async function executeTarget(input: {
   throw lastError instanceof Error ? lastError : new Error('Model execution failed.');
 }
 
-function runDeterministicCompletionGate(input: {
-  contract: TaskContract;
-  completed: ReadonlySet<CognitiveTaskType>;
-  output: unknown;
-  completionContext: CompletionContext;
-}) {
-  if (input.contract.contractVersion === '2.0.0' && INITIAL_SIR_TASKS.has(input.contract.taskType)) {
-    return validateSirInitialCompletion(
-      input.contract,
-      input.completed,
-      input.output,
-      {
-        runId: input.completionContext.runId,
-        expectedPairId: input.completionContext.expectedPairId
-      }
-    );
-  }
-
-  if (input.contract.contractVersion === '2.0.0' && input.contract.taskType === 'ATOMIC_DECOMPOSITION') {
-    return validateSirAtomicCompletion(
-      input.contract,
-      input.completed,
-      input.output,
-      {
-        runId: input.completionContext.runId,
-        expectedPairId: input.completionContext.expectedPairId
-      }
-    );
-  }
-
-  if (input.contract.contractVersion === '2.0.0' && input.contract.taskType === 'EVIDENCE_ARCHITECTURE') {
-    return validateSirEvidenceCompletion(
-      input.contract,
-      input.completed,
-      input.output,
-      {
-        runId: input.completionContext.runId,
-        expectedPairId: input.completionContext.expectedPairId
-      }
-    );
-  }
-
-  if (input.contract.taskType === 'LIFECYCLE_ASSURANCE') {
-    return validateLifecycleAssuranceCompletion(
-      input.contract,
-      input.completed,
-      input.output,
-      input.completionContext
-    );
-  }
-  return canPersistTaskAsCompleted(
-    input.contract,
-    input.completed,
-    input.output,
-    input.completionContext
-  );
-}
-
 async function tryRoute(input: {
   taskRunId: string;
   pairRunId: string;
@@ -176,7 +105,7 @@ async function tryRoute(input: {
       isFallback: input.isFallback,
       packet: input.packet
     });
-    const gate = runDeterministicCompletionGate({
+    const gate = validateTaskCompletion({
       contract: input.contract,
       completed: input.completed,
       output,
