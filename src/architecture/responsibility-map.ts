@@ -56,6 +56,26 @@ function resolveRef(ref: string, shared: JsonSchema): JsonSchema {
   return resolved as JsonSchema;
 }
 
+function isPrimitiveLeafSchema(
+  schema: JsonSchema,
+  shared: JsonSchema,
+  seenRefs: Set<string> = new Set()
+): boolean {
+  if (schema.$ref) {
+    const ref = String(schema.$ref);
+    if (seenRefs.has(ref)) return false;
+    const next = new Set(seenRefs);
+    next.add(ref);
+    return isPrimitiveLeafSchema(resolveRef(ref, shared), shared, next);
+  }
+  if (Array.isArray(schema.allOf)) {
+    return schema.allOf.every((child: JsonSchema) => isPrimitiveLeafSchema(child, shared, new Set(seenRefs)));
+  }
+  if (schema.properties && typeof schema.properties === 'object') return false;
+  if (schema.type === 'array' || schema.items !== undefined || schema.prefixItems !== undefined) return false;
+  return true;
+}
+
 function collectLeafPaths(
   schema: JsonSchema,
   path: string,
@@ -79,22 +99,29 @@ function collectLeafPaths(
 
   if (schema.type === 'array' || schema.items !== undefined || schema.prefixItems !== undefined) {
     const itemPath = `${path}/*`;
-    let traversedObjectItem = false;
+    let structuredItemTraversed = false;
 
     if (Array.isArray(schema.prefixItems)) {
-      traversedObjectItem = true;
       for (const child of schema.prefixItems) {
-        collectLeafPaths(child, itemPath, shared, output, new Set(seenRefs));
+        if (isPrimitiveLeafSchema(child, shared, new Set(seenRefs))) {
+          output.add(path);
+        } else {
+          collectLeafPaths(child, itemPath, shared, output, new Set(seenRefs));
+          structuredItemTraversed = true;
+        }
       }
     }
 
     if (schema.items && schema.items !== true && schema.items !== false) {
-      const before = output.size;
-      collectLeafPaths(schema.items, itemPath, shared, output, new Set(seenRefs));
-      traversedObjectItem = traversedObjectItem || output.size > before;
+      if (isPrimitiveLeafSchema(schema.items, shared, new Set(seenRefs))) {
+        output.add(path);
+      } else {
+        collectLeafPaths(schema.items, itemPath, shared, output, new Set(seenRefs));
+        structuredItemTraversed = true;
+      }
     }
 
-    if (!traversedObjectItem) output.add(path);
+    if (!structuredItemTraversed && !output.has(path)) output.add(path);
     return;
   }
 
