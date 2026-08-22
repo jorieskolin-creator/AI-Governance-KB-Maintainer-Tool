@@ -26,6 +26,7 @@ const gates: Gate[] = [
   { id: 'SIR_FINDING_RESOLVER', script: 'dist/orchestration/run-finding-resolver-check.js' },
   { id: 'SIR_FINDING_ARTIFACT', script: 'dist/orchestration/run-finding-artifact-verifier-check.js' },
   { id: 'SIR_CONTROL', script: 'dist/sir/run-control-sir-check.js' },
+  { id: 'SIR_CONTROL_RESOLVER', script: 'dist/orchestration/run-control-resolver-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
