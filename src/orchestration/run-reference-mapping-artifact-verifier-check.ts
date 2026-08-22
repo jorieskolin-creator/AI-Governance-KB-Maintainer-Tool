@@ -181,10 +181,10 @@ const badBoundary = structuredClone(persisted);
 badBoundary.capabilityRelatedCriteria[0]!.boundarySummary = 'Tampered boundary.';
 expectReject(() => verify(badBoundary), 'materialized content drifted');
 
-const tacticInjection = structuredClone(persisted) as MaterializedSirReferenceMappings & {
-  capabilityTacticRefs: unknown[];
+const tacticInjection = {
+  ...structuredClone(persisted),
+  capabilityTacticRefs: [{ tacticId: 'TAC-UNAPPROVED' }]
 };
-tacticInjection.capabilityTacticRefs = [{ tacticId: 'TAC-UNAPPROVED' }];
 expectReject(() => verify(tacticInjection), 'capability tactic refs must be empty');
 
 const driftedContract = structuredClone(contract);
