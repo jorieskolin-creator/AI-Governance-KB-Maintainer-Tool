@@ -86,6 +86,17 @@ function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
 }
 
+function expectReject(candidate: AuthoringPlanInput, expected: string): void {
+  try {
+    buildAuthoringPlan(candidate);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes(expected)) throw error;
+    return;
+  }
+  throw new Error(`Expected Authoring Plan rejection containing ${expected}.`);
+}
+
 function main(): void {
   const first = buildAuthoringPlan(input);
   const second = buildAuthoringPlan(input);
@@ -106,7 +117,39 @@ function main(): void {
   }
   assert(tamperDetected, 'Authoring Plan hash tampering must fail closed.');
 
-  console.log(JSON.stringify({ status: 'PASS', planId: first.planId, planSha256: first.planSha256 }, null, 2));
+  expectReject(
+    {
+      ...input,
+      baseline: { ...input.baseline, tacticCatalogVersion: '1.2.0', tacticCatalogSha256: null }
+    },
+    'version and SHA-256 must either both be present or both be null'
+  );
+
+  expectReject(
+    {
+      ...input,
+      allowedTactics: [{ tacticHandle: 'tactic_001', tacticId: 'GOV-PUR-001', tacticVersion: '1.0.0', catalogVersion: '1.2.0' }]
+    },
+    'Allowed tactic universe must be empty when no sealed Tactic Catalog identity is present'
+  );
+
+  expectReject(
+    {
+      ...input,
+      baseline: { ...input.baseline, tacticCatalogVersion: '1.2.0', tacticCatalogSha256: hash },
+      allowedTactics: [{ tacticHandle: 'tactic_001', tacticId: 'GOV-PUR-001', tacticVersion: '1.0.0', catalogVersion: '1.1.0' }]
+    },
+    'belongs to catalog 1.1.0; expected 1.2.0'
+  );
+
+  console.log(JSON.stringify({
+    status: 'PASS',
+    planId: first.planId,
+    planSha256: first.planSha256,
+    tacticCatalogIdentityPairing: 'PASS',
+    tacticUniverseWithoutCatalog: 'REJECTED',
+    tacticCatalogVersionDrift: 'REJECTED'
+  }, null, 2));
 }
 
 main();
