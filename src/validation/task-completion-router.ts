@@ -5,6 +5,7 @@ import { validateLifecycleAssuranceCompletion } from './lifecycle-assurance.js';
 import { validateSirApAbsenceCompletion } from './sir-ap-absence-completion.js';
 import { validateSirAtomicCompletion } from './sir-atomic-completion.js';
 import { validateSirControlCompletion } from './sir-control-completion.js';
+import { validateSirDomainCoherenceCompletion } from './sir-domain-coherence-completion.js';
 import { validateSirEvidenceCompletion } from './sir-evidence-completion.js';
 import { validateSirEvidenceSafetyCompletion } from './sir-evidence-safety-completion.js';
 import { validateSirFindingCompletion } from './sir-finding-completion.js';
@@ -26,6 +27,7 @@ export type CompletionValidatorRoute =
   | 'SIR_LIFECYCLE'
   | 'SIR_REFERENCE_MAPPING'
   | 'SIR_PAIR_COHERENCE'
+  | 'SIR_DOMAIN_COHERENCE'
   | 'LIFECYCLE_ASSURANCE'
   | 'LEGACY_COMPLETION';
 
@@ -49,6 +51,7 @@ export function completionValidatorRoute(contract: TaskContract): CompletionVali
     if (contract.taskType === 'LIFECYCLE_ASSURANCE') return 'SIR_LIFECYCLE';
     if (contract.taskType === 'REFERENCE_MAPPING') return 'SIR_REFERENCE_MAPPING';
     if (contract.taskType === 'PAIR_COHERENCE_REVIEW') return 'SIR_PAIR_COHERENCE';
+    if (contract.taskType === 'DOMAIN_COHERENCE_REVIEW') return 'SIR_DOMAIN_COHERENCE';
 
     throw new Error(
       `Unsupported SIR v2 completion route for task ${contract.taskType}. Register an explicit deterministic validator before enabling this task.`
@@ -93,6 +96,16 @@ export function validateTaskCompletion(input: {
       return validateSirReferenceMappingCompletion(input.contract, input.completed, input.output, shortContext);
     case 'SIR_PAIR_COHERENCE':
       return validateSirPairCoherenceCompletion(input.contract, input.completed, input.output, shortContext);
+    case 'SIR_DOMAIN_COHERENCE':
+      return validateSirDomainCoherenceCompletion(
+        input.contract,
+        input.completed,
+        input.output,
+        {
+          runId: input.completionContext.runId,
+          expectedDomain: String(input.contract.lockedInputs.domain ?? '')
+        }
+      );
     case 'LIFECYCLE_ASSURANCE':
       return validateLifecycleAssuranceCompletion(
         input.contract,

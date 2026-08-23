@@ -33,7 +33,8 @@ const expected: Array<[CognitiveTaskType,CompletionValidatorRoute]> = [
   ['CONTROL_BOUNDARY','SIR_CONTROL'],
   ['LIFECYCLE_ASSURANCE','SIR_LIFECYCLE'],
   ['REFERENCE_MAPPING','SIR_REFERENCE_MAPPING'],
-  ['PAIR_COHERENCE_REVIEW','SIR_PAIR_COHERENCE']
+  ['PAIR_COHERENCE_REVIEW','SIR_PAIR_COHERENCE'],
+  ['DOMAIN_COHERENCE_REVIEW','SIR_DOMAIN_COHERENCE']
 ];
 
 for (const [taskType,route] of expected) {
@@ -52,6 +53,9 @@ if (completionValidatorRoute(contract('FINDING_ARCHITECTURE','1.0.0')) !== 'LEGA
 if (completionValidatorRoute(contract('PAIR_COHERENCE_REVIEW','1.0.0')) !== 'LEGACY_COMPLETION') {
   throw new Error('Legacy Pair Coherence Review no longer routes to the legacy validator.');
 }
+if (completionValidatorRoute(contract('DOMAIN_COHERENCE_REVIEW','1.0.0')) !== 'LEGACY_COMPLETION') {
+  throw new Error('Legacy Domain Coherence Review no longer routes to the legacy validator.');
+}
 
 function expectUnsupported(taskType:CognitiveTaskType):void {
   try {
@@ -63,7 +67,7 @@ function expectUnsupported(taskType:CognitiveTaskType):void {
   }
 }
 
-expectUnsupported('DOMAIN_COHERENCE_REVIEW');
+expectUnsupported('LOCAL_REPAIR');
 
 console.log(JSON.stringify({
   explicitSirV2Routes:'PASS',
@@ -75,8 +79,9 @@ console.log(JSON.stringify({
   lifecycleSirV2Route:'PASS',
   referenceMappingSirV2Route:'PASS',
   pairCoherenceSirV2Route:'PASS',
+  domainCoherenceSirV2Route:'PASS',
   legacyLifecycleDedicatedRoute:'PASS',
   legacyV1Fallback:'PASS',
-  nextUnregisteredSirV2Task:'DOMAIN_COHERENCE_REVIEW',
+  nextUnregisteredSirV2Task:'LOCAL_REPAIR',
   unregisteredSirV2Fallback:'REJECTED'
 }, null, 2));
