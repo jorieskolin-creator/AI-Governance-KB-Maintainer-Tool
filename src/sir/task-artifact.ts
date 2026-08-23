@@ -4,13 +4,16 @@ import type { SirAtomicDecompositionOutput } from '../cognitive/sir-atomic-contr
 import type { SirEvidenceArchitectureOutput } from '../cognitive/sir-evidence-contract.js';
 import type { SirFindingArchitectureOutput } from '../cognitive/sir-finding-contract.js';
 import type { SirLifecycleAssuranceOutput } from '../cognitive/sir-lifecycle-contract.js';
+import type { SirPairCoherenceOutput } from '../cognitive/sir-pair-coherence-contract.js';
 import type { SirReferenceMappingOutput } from '../cognitive/sir-reference-mapping-contract.js';
 import type { SirSourceMappingOutput } from '../cognitive/sir-source-mapping-contract.js';
+import type { PairCoherencePacket } from '../orchestration/pair-coherence-packet.js';
 import type { SourceContextPacket } from '../orchestration/source-context-packet.js';
 import { materializeSirAtomics } from './atomic-materializer.js';
 import { materializeSirEvidence } from './evidence-materializer.js';
 import { materializeSirFindings } from './finding-materializer.js';
 import { materializeSirLifecycleTargets } from './lifecycle-materializer.js';
+import { materializePairCoherenceReview } from './pair-coherence-materializer.js';
 import { materializeSirReferenceMappings } from './reference-mapping-materializer.js';
 import { materializeSirSourceMappings } from './source-mapping-materializer.js';
 
@@ -70,6 +73,19 @@ export function materializeValidatedSirTaskOutput(
         adjacentCriteria: adjacentCriteria as AdjacentCriterionRef[],
         tacticResolutionMode
       }
+    );
+  }
+
+  if (contract.taskType === 'PAIR_COHERENCE_REVIEW') {
+    const packet = contract.lockedInputs.pair_coherence_packet;
+    if (!packet || typeof packet !== 'object' || Array.isArray(packet)) {
+      throw new Error(
+        'Validated PAIR_COHERENCE_REVIEW output cannot be materialized without its locked Pair Coherence Packet.'
+      );
+    }
+    return materializePairCoherenceReview(
+      output as SirPairCoherenceOutput,
+      packet as PairCoherencePacket
     );
   }
 
