@@ -37,6 +37,10 @@ const gates: Gate[] = [
   { id: 'PAIR_COHERENCE_PACKET', script: 'dist/orchestration/run-pair-coherence-packet-check.js' },
   { id: 'SIR_PAIR_COHERENCE', script: 'dist/sir/run-pair-coherence-sir-check.js' },
   { id: 'SIR_PAIR_COHERENCE_ARTIFACT', script: 'dist/orchestration/run-pair-coherence-artifact-verifier-check.js' },
+  { id: 'DOMAIN_COHERENCE_PACKET', script: 'dist/orchestration/run-domain-coherence-packet-check.js' },
+  { id: 'SIR_DOMAIN_COHERENCE', script: 'dist/sir/run-domain-coherence-sir-check.js' },
+  { id: 'SIR_DOMAIN_COHERENCE_RESOLVER', script: 'dist/orchestration/run-domain-coherence-resolver-check.js' },
+  { id: 'SIR_DOMAIN_COHERENCE_ARTIFACT', script: 'dist/orchestration/run-domain-coherence-artifact-verifier-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
