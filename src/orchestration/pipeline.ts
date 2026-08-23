@@ -1,3 +1,4 @@
+import type { DomainId } from '../authoring/authoring-plan.js';
 import type { CognitiveTaskType, DomainState, PairState } from '../domain/states.js';
 
 export const PAIR_TASK_SEQUENCE: readonly CognitiveTaskType[] = [
@@ -17,6 +18,8 @@ export const PAIR_TASK_SEQUENCE: readonly CognitiveTaskType[] = [
   'PAIR_COHERENCE_REVIEW'
 ] as const;
 
+export const DOMAIN_PAIR_SLOTS = [1, 2, 3, 4, 5] as const;
+
 export const pairTransitions: Record<PairState, readonly PairState[]> = {
   DRAFT: ['AUTHORING'],
   AUTHORING: ['VALIDATING', 'REPAIR_REQUIRED'],
@@ -33,6 +36,14 @@ export const domainTransitions: Record<DomainState, readonly DomainState[]> = {
   APPROVED: ['PUBLISHED'],
   PUBLISHED: []
 };
+
+export function expectedDomainPairIds(domain: DomainId): readonly string[] {
+  return DOMAIN_PAIR_SLOTS.map((slot) => `${domain}${slot}_AP-${domain}${slot}`);
+}
+
+export function expectedDomainCapabilityIds(domain: DomainId): readonly string[] {
+  return DOMAIN_PAIR_SLOTS.map((slot) => `${domain}${slot}`);
+}
 
 export function canTransition<T extends string>(
   transitions: Record<T, readonly T[]>,
