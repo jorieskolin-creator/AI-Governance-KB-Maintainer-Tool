@@ -10,6 +10,7 @@ import { validateSirEvidenceSafetyCompletion } from './sir-evidence-safety-compl
 import { validateSirFindingCompletion } from './sir-finding-completion.js';
 import { validateSirInitialCompletion } from './sir-initial-completion.js';
 import { validateSirLifecycleCompletion } from './sir-lifecycle-completion.js';
+import { validateSirPairCoherenceCompletion } from './sir-pair-coherence-completion.js';
 import { validateSirReferenceMappingCompletion } from './sir-reference-mapping-completion.js';
 import { validateSirSourceMappingCompletion } from './sir-source-mapping-completion.js';
 
@@ -24,6 +25,7 @@ export type CompletionValidatorRoute =
   | 'SIR_CONTROL'
   | 'SIR_LIFECYCLE'
   | 'SIR_REFERENCE_MAPPING'
+  | 'SIR_PAIR_COHERENCE'
   | 'LIFECYCLE_ASSURANCE'
   | 'LEGACY_COMPLETION';
 
@@ -46,6 +48,7 @@ export function completionValidatorRoute(contract: TaskContract): CompletionVali
     if (contract.taskType === 'CONTROL_BOUNDARY') return 'SIR_CONTROL';
     if (contract.taskType === 'LIFECYCLE_ASSURANCE') return 'SIR_LIFECYCLE';
     if (contract.taskType === 'REFERENCE_MAPPING') return 'SIR_REFERENCE_MAPPING';
+    if (contract.taskType === 'PAIR_COHERENCE_REVIEW') return 'SIR_PAIR_COHERENCE';
 
     throw new Error(
       `Unsupported SIR v2 completion route for task ${contract.taskType}. Register an explicit deterministic validator before enabling this task.`
@@ -88,6 +91,8 @@ export function validateTaskCompletion(input: {
       return validateSirLifecycleCompletion(input.contract, input.completed, input.output, shortContext);
     case 'SIR_REFERENCE_MAPPING':
       return validateSirReferenceMappingCompletion(input.contract, input.completed, input.output, shortContext);
+    case 'SIR_PAIR_COHERENCE':
+      return validateSirPairCoherenceCompletion(input.contract, input.completed, input.output, shortContext);
     case 'LIFECYCLE_ASSURANCE':
       return validateLifecycleAssuranceCompletion(
         input.contract,
