@@ -4,6 +4,8 @@ import { requestBody, supportsCustomTemperature } from '../ai/provider-client.js
 import { loadCategoriesBaseline } from '../baseline/categories.js';
 import { previewRepoBaselineManifest } from '../baseline/repo-artifacts.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
+import { buildPromptPacket } from '../cognitive/prompt-builder.js';
+import { buildSirPairBoundaryContract } from '../cognitive/sir-initial-contracts.js';
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
@@ -166,6 +168,18 @@ assert(!('fixtures' in goldenLock), 'golden lock must not embed canonical fixtur
 assert(!JSON.stringify(goldenLock).includes('A1-Q1'), 'golden lock must not leak canonical question ids');
 assert(!JSON.stringify(goldenLock).includes('EVD-A1-001'), 'golden lock must not leak canonical evidence ids');
 
+const boundaryContract = buildSirPairBoundaryContract({
+  authoringPlan: plan,
+  categoryBaseline: { title: 'domain A' },
+  goldenReference: goldenLock
+});
+const packet = buildPromptPacket(boundaryContract);
+assert(!packet.user.includes('"pair_identity"'), 'PAIR_BOUNDARY prompt must omit pair_identity');
+assert(!packet.user.includes('"pair_id"'), 'PAIR_BOUNDARY prompt must omit pair_id');
+assert(!packet.user.includes('"criterionId"'), 'PAIR_BOUNDARY prompt must omit criterionId');
+assert(packet.user.includes('criterionHandle'), 'PAIR_BOUNDARY prompt must keep adjacent handles');
+assert(packet.user.includes('output_shape'), 'PAIR_BOUNDARY prompt must include the identity-free output shape');
+
 console.log(
   JSON.stringify(
     {
@@ -177,6 +191,7 @@ console.log(
       failedTaskRetriesInPlace: 'PASS',
       completedTaskIdentityHeld: 'PASS',
       goldenLockOmitsFixtureBodies: 'PASS',
+      pairBoundaryPromptOmitsCanonicalIds: 'PASS',
       gpt56OmitsTemperature: 'PASS',
       modelRoutingFailClosed: 'PASS',
       authoringPlanPairId: plan.planId

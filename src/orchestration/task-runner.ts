@@ -112,7 +112,8 @@ async function tryRoute(input: {
       isFallback: input.isFallback,
       passed: gate.passed,
       findings: gate.findings.length,
-      outputType: typeof output
+      outputType: typeof output,
+      issues: gate.findings.slice(0, 8).map((item) => `${item.checkId}: ${item.issue}`)
     });
     return { passed: gate.passed, output, findings: gate.findings };
   } catch (error) {
@@ -213,7 +214,12 @@ export async function runCognitiveTask(input: {
     return { output, usedFallback: true };
   }
 
-  const terminalFindings = fallback.findings.length ? fallback.findings : primary.findings;
+  const terminalFindings = [...primary.findings, ...fallback.findings].filter(
+    (item, index, all) =>
+      all.findIndex(
+        (other) => other.checkId === item.checkId && other.objectPath === item.objectPath && other.issue === item.issue
+      ) === index
+  );
   if (terminalFindings.length) {
     await persistValidationFindings(input.pairRunId, terminalFindings);
   }

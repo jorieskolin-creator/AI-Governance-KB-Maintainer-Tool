@@ -1,5 +1,5 @@
 import type { OperatorDomainCard, OperatorStatus } from './board.js';
-import { flowLabel, OPERATOR_DOMAINS, taskLabel } from './board.js';
+import { flowLabel, OPERATOR_DOMAINS, taskDisplayStatus, taskLabel, workOrderLabel } from './board.js';
 
 function escapeHtml(value: string): string {
   return value
@@ -52,7 +52,7 @@ function pairGrid(card: OperatorDomainCard): string {
         .map((pair) => {
           const cell = pair.tasks[taskIndex];
           if (!cell) throw new Error(`Missing ${task.taskType} for ${pair.pairId}.`);
-          return `<td><span class="cell ${escapeHtml(cell.status.toLowerCase())}" title="${escapeHtml(cell.taskType)}">${escapeHtml(cell.status)}</span></td>`;
+          return `<td><span class="cell ${escapeHtml(cell.status.toLowerCase())}" title="${escapeHtml(cell.taskType)}">${escapeHtml(taskDisplayStatus(cell.status))}</span></td>`;
         })
         .join('');
       return `<tr>
@@ -103,16 +103,33 @@ function failedTasks(card: OperatorDomainCard): Array<{ pairId: string; taskType
 function runActivity(card: OperatorDomainCard): string {
   const started = startedTasks(card)[0];
   if (started) {
-    return `<p class="activity running">Running <code>${escapeHtml(started.pairId)}</code> ${escapeHtml(started.taskType)}. This page refreshes until that task finishes. Do not click again.</p>`;
+    return `<p class="activity running">Pipeline IN_PROGRESS: <code>${escapeHtml(started.pairId)}</code> ${escapeHtml(started.taskType)}. Work order stays OPEN. Do not click again.</p>`;
   }
   const failed = failedTasks(card)[0];
   if (failed && card.commands.runNextTask.enabled) {
-    return `<p class="activity failed">Last attempt of <code>${escapeHtml(failed.pairId)}</code> ${escapeHtml(failed.taskType)} failed. Retry is the same task on this run. Start stays closed so a new empty run is not mixed in.</p>`;
+    return `<p class="activity failed">Pipeline BLOCKED. Current task ${escapeHtml(failed.taskType)} FAILED. No document was produced. Work order stays OPEN so the same task can be retried.</p>`;
   }
   if (!card.runId) {
-    return `<p class="activity">No run yet. Start freezes a new baseline and opens an empty PENDING grid.</p>`;
+    return `<p class="activity">Work order NONE. Start opens a new empty PENDING grid.</p>`;
   }
-  return `<p class="activity">This board is the current open run only. A later Start creates a new run id and does not carry these cells forward.</p>`;
+  return `<p class="activity">Work order OPEN. Pipeline WAITING. Nothing is IN_PROGRESS.</p>`;
+}
+
+function machineStrip(card: OperatorDomainCard): string {
+  const started = startedTasks(card)[0];
+  const failed = failedTasks(card)[0];
+  const workOrder = workOrderLabel(card.state, card.runId);
+  const currentTask = started
+    ? `${started.taskType} IN_PROGRESS`
+    : failed
+      ? `${failed.taskType} FAILED`
+      : 'NONE';
+  const pipeline = started ? 'IN_PROGRESS' : failed ? 'BLOCKED' : card.runId ? 'WAITING' : 'IDLE';
+  return `<dl class="machines">
+      <div><dt>Work order</dt><dd>${escapeHtml(workOrder)}</dd></div>
+      <div><dt>Current task</dt><dd>${escapeHtml(currentTask)}</dd></div>
+      <div><dt>Pipeline</dt><dd>${escapeHtml(pipeline)}</dd></div>
+    </dl>`;
 }
 
 function commandButton(action: string, domain: string, command: { enabled: boolean; reason: string }, label: string): string {
@@ -129,10 +146,11 @@ function domainPanel(card: OperatorDomainCard): string {
     <header class="domain-head">
       <p class="kicker">Domain ${escapeHtml(card.domain)}</p>
       <h2>${escapeHtml(card.title)}</h2>
-      <p class="meta">${escapeHtml(card.state.replaceAll('_', ' '))} · ${String(card.pairs.length)} pairs · ${String(card.pairs[0]?.tasks.length ?? 0)} SIR tasks each</p>
+      <p class="meta">${escapeHtml(workOrderLabel(card.state, card.runId))} work order · ${String(card.pairs.length)} pairs · ${String(card.pairs[0]?.tasks.length ?? 0)} SIR tasks each</p>
       ${card.runId ? `<p class="meta">Run <code>${escapeHtml(card.runId)}</code></p>` : ''}
       ${card.baselineSha256 ? `<p class="meta">Baseline <code>${escapeHtml(card.baselineSha256.slice(0, 12))}…</code></p>` : ''}
     </header>
+    ${machineStrip(card)}
     <div class="commands">
       ${commandButton('start-domain-run', card.domain, card.commands.startDomainRun, 'Start domain run')}
       ${commandButton('run-next-task', card.domain, card.commands.runNextTask, card.commands.runNextTask.next ? `Run ${card.commands.runNextTask.next.pairId} ${card.commands.runNextTask.next.taskType}` : 'Run next eligible task')}
@@ -325,6 +343,24 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
     }
     .commands button:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--line); }
     .command-reason { margin: 0; color: var(--subtle); font-size: 0.8rem; flex: 1 1 16rem; }
+    .machines {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem;
+      margin: 0 0 1rem;
+    }
+    .machines div {
+      padding: 0.7rem 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .machines dt {
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .machines dd { margin: 0.25rem 0 0; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
     .activity { margin: 0 0 1rem; color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
     .activity.running { color: var(--warn); }
     .activity.failed { color: #d9896f; }
@@ -346,11 +382,11 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
     .note { margin-top: 1.25rem; padding: 1rem 1.1rem; color: var(--muted); line-height: 1.55; }
     .note code { color: var(--brass); }
     @media (max-width: 900px) {
-      .status, .flow ol, .tabs, .domain-unit { grid-template-columns: 1fr 1fr; }
+      .status, .flow ol, .tabs, .domain-unit, .machines { grid-template-columns: 1fr 1fr; }
       .pair-grid { display: block; overflow-x: auto; }
     }
     @media (max-width: 640px) {
-      .status, .flow ol, .tabs, .domain-unit { grid-template-columns: 1fr; }
+      .status, .flow ol, .tabs, .domain-unit, .machines { grid-template-columns: 1fr; }
       h1 { max-width: none; }
     }
   </style>
@@ -366,7 +402,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>
         <article><p class="kicker">Ready</p><strong class="${healthTone(status.health.ready === 'ready')}">${escapeHtml(status.health.ready)}</strong></article>
         <article><p class="kicker">Database</p><strong class="${healthTone(dbReady)}">${dbReady ? 'connected · schema ready' : 'not ready'}</strong></article>
-        <article><p class="kicker">Pipeline</p><strong class="${activityTone(status.pipelineActivity.state)}">${escapeHtml(status.pipelineActivity.state)}</strong><p class="meta">${escapeHtml(status.pipelineActivity.detail)}</p></article>
+        <article><p class="kicker">Pipeline</p><strong class="${activityTone(status.pipelineActivity.state)}">${escapeHtml(status.pipelineActivity.state === 'RUNNING' ? 'IN_PROGRESS' : status.pipelineActivity.state)}</strong><p class="meta">${escapeHtml(status.pipelineActivity.detail)}</p></article>
       </section>
     </header>
     <section class="flow">

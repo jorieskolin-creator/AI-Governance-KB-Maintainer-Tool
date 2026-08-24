@@ -77,6 +77,8 @@ assert(html.includes('Start domain run'), 'home page must expose the start-run c
 assert(html.includes('empty PENDING grid'), 'home page must say a new run starts empty');
 assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
 assert(html.includes('Pipeline'), 'home page must show pipeline activity');
+assert(html.includes('Work order'), 'home page must show the work-order machine');
+assert(html.includes('Current task'), 'home page must show the current-task machine');
 assert(html.includes('name="action" value="run-next-task"'), 'run command must post a hidden action field');
 assert(!html.includes('Command accepted. Refresh'), 'home page must not claim a command was accepted in the browser');
 for (const taskType of PAIR_TASK_SEQUENCE) {

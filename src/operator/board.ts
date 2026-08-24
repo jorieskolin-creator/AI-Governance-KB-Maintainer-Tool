@@ -67,7 +67,7 @@ export interface OperatorDomainCard {
 }
 
 export interface PipelineActivity {
-  state: 'NOT_READY' | 'IDLE' | 'RUNNING' | 'BLOCKED';
+  state: 'NOT_READY' | 'IDLE' | 'WAITING' | 'RUNNING' | 'BLOCKED';
   detail: string;
   domain?: DomainId;
   pairId?: string;
@@ -144,6 +144,16 @@ export function flowLabel(step: DomainFlowStep): string {
     .join(' ');
 }
 
+export function workOrderLabel(state: string, runId?: string): string {
+  if (!runId) return 'NONE';
+  if (state === 'IN_PROGRESS' || state === 'DOMAIN_VALIDATING' || state === 'REPAIR_REQUIRED') return 'OPEN';
+  return state.replaceAll('_', ' ');
+}
+
+export function taskDisplayStatus(status: string): string {
+  return status === 'STARTED' ? 'IN_PROGRESS' : status;
+}
+
 export function derivePipelineActivity(domains: OperatorDomainCard[]): PipelineActivity {
   for (const card of domains) {
     for (const pair of card.pairs) {
@@ -151,7 +161,7 @@ export function derivePipelineActivity(domains: OperatorDomainCard[]): PipelineA
       if (started) {
         return {
           state: 'RUNNING',
-          detail: `Running ${pair.pairId} ${started.taskType}`,
+          detail: `IN_PROGRESS ${pair.pairId} ${started.taskType}`,
           domain: card.domain,
           pairId: pair.pairId,
           taskType: started.taskType
@@ -165,7 +175,7 @@ export function derivePipelineActivity(domains: OperatorDomainCard[]): PipelineA
       if (failed) {
         return {
           state: 'BLOCKED',
-          detail: `${pair.pairId} ${failed.taskType} failed · retry same task`,
+          detail: `${pair.pairId} ${failed.taskType} FAILED · retry same task · no document produced`,
           domain: card.domain,
           pairId: pair.pairId,
           taskType: failed.taskType
@@ -175,9 +185,13 @@ export function derivePipelineActivity(domains: OperatorDomainCard[]): PipelineA
   }
   const open = domains.find((card) => card.runId);
   if (open) {
-    return { state: 'IDLE', detail: `Domain ${open.domain} run is open and waiting for the next eligible task`, domain: open.domain };
+    return {
+      state: 'WAITING',
+      detail: `Work order OPEN for domain ${open.domain}; nothing is IN_PROGRESS`,
+      domain: open.domain
+    };
   }
-  return { state: 'IDLE', detail: 'No domain run is open' };
+  return { state: 'IDLE', detail: 'No work order is open' };
 }
 
 const CLOSED: CommandFlag = {
