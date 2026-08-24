@@ -210,6 +210,24 @@ assert(!failurePacket.user.includes('"pair_id"'), 'AP_FAILURE_MODEL prompt must 
 assert(failurePacket.user.includes('output_shape'), 'AP_FAILURE_MODEL prompt must include the identity-free output shape');
 assert(failurePacket.user.includes('failureMechanism'), 'AP_FAILURE_MODEL prompt must name failureMechanism');
 
+const atomicPacketUser = JSON.stringify(
+  JSON.parse(
+    buildPromptPacket({
+      ...failureContract,
+      taskType: 'ATOMIC_DECOMPOSITION',
+      outputContract: {
+        format: 'JSON',
+        schemaName: 'SirAtomicDecompositionOutput',
+        requiredFields: ['capabilitySubcriteria', 'antipatternTests', 'coverageNotes'],
+        additionalProperties: false
+      }
+    }).user
+  )
+);
+assert(atomicPacketUser.includes('output_shape'), 'ATOMIC_DECOMPOSITION prompt must include output_shape');
+assert(atomicPacketUser.includes('capabilitySubcriteria'), 'ATOMIC_DECOMPOSITION prompt must name capabilitySubcriteria');
+assert(atomicPacketUser.includes('questionSlot'), 'ATOMIC_DECOMPOSITION prompt must name questionSlot');
+
 const unwrapped = parseModelJson('"{\\"failureMechanism\\":\\"Semantic failure mechanism text.\\"}"');
 assert(
   typeof unwrapped === 'object' && unwrapped !== null && 'failureMechanism' in unwrapped,
@@ -234,6 +252,7 @@ console.log(
       goldenLockOmitsFixtureBodies: 'PASS',
       pairBoundaryPromptOmitsCanonicalIds: 'PASS',
       apFailurePromptIncludesOutputShape: 'PASS',
+      atomicPromptIncludesOutputShape: 'PASS',
       modelJsonUnwrapsStringPayload: 'PASS',
       gpt56OmitsTemperature: 'PASS',
       modelRoutingFailClosed: 'PASS',

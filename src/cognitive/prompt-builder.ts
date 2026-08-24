@@ -70,11 +70,207 @@ const PRIMARY_QUESTIONS_SHAPE = {
   coverageRationale: 'string, min 10 characters'
 };
 
+const ATOMIC_DECOMPOSITION_SHAPE = {
+  capabilitySubcriteria: [
+    { questionSlot: 1, criterion: 'string, min 10 characters', evidenceNeed: 'string, min 10 characters' },
+    { questionSlot: 2, criterion: 'string, min 10 characters', evidenceNeed: 'string, min 10 characters' },
+    { questionSlot: 3, criterion: 'string, min 10 characters', evidenceNeed: 'string, min 10 characters' }
+  ],
+  antipatternTests: [
+    { questionSlot: 1, test: 'string, min 10 characters', evidenceNeed: 'string, min 10 characters' },
+    { questionSlot: 2, test: 'string, min 10 characters', evidenceNeed: 'string, min 10 characters' },
+    { questionSlot: 3, test: 'string, min 10 characters', evidenceNeed: 'string, min 10 characters' }
+  ],
+  coverageNotes: ['string']
+};
+
+const EVIDENCE_ARCHITECTURE_SHAPE = {
+  capabilityEvidence: [
+    {
+      title: 'string, min 3 characters',
+      claimSupported: 'string, min 10 characters',
+      evidenceClass: 'string from locked evidence class vocabulary',
+      minimumTechnicalAssurance: 'string from locked technical assurance vocabulary',
+      requiredHumanAssurance: 'string from locked human assurance vocabulary',
+      acceptanceConditions: ['string'],
+      limitations: ['string'],
+      supportsAtomicHandles: ['atomic_001']
+    }
+  ],
+  antipatternEvidence: [
+    {
+      title: 'string, min 3 characters',
+      claimSupported: 'string, min 10 characters',
+      evidenceClass: 'string from locked evidence class vocabulary',
+      minimumTechnicalAssurance: 'string from locked technical assurance vocabulary',
+      requiredHumanAssurance: 'string from locked human assurance vocabulary',
+      acceptanceConditions: ['string'],
+      limitations: ['string'],
+      supportsAtomicHandles: ['atomic_001']
+    }
+  ],
+  sufficiencyNotes: ['string']
+};
+
+const EVIDENCE_SAFETY_SHAPE = {
+  capabilityRules: {
+    evidenceCeilings: ['string'],
+    falsePositiveGuards: ['string'],
+    prohibitedInferences: ['string'],
+    contradictionHandling: ['string'],
+    freshnessRules: ['string']
+  },
+  antipatternRules: {
+    evidenceCeilings: ['string'],
+    falsePositiveGuards: ['string'],
+    prohibitedInferences: ['string'],
+    contradictionHandling: ['string'],
+    freshnessRules: ['string']
+  },
+  crossPairSafetyNotes: ['string']
+};
+
+const AP_ABSENCE_CONTRACT_SHAPE = {
+  requiredArtifacts: ['string'],
+  interpretationBoundary: 'string, min 10 characters'
+};
+
+const SOURCE_MAPPING_SHAPE = {
+  capabilityMappings: [
+    {
+      sourceHandle: 'source_001 from locked inputs',
+      locatorHandle: 'locator_001 from locked inputs',
+      relationship: 'string',
+      supportedClaim: 'string, min 10 characters',
+      categoryRationale: 'string, min 10 characters',
+      applicabilityConditions: ['string'],
+      exclusions: ['string']
+    }
+  ],
+  antipatternMappings: [
+    {
+      sourceHandle: 'source_001 from locked inputs',
+      locatorHandle: 'locator_001 from locked inputs',
+      relationship: 'string',
+      supportedClaim: 'string, min 10 characters',
+      categoryRationale: 'string, min 10 characters',
+      applicabilityConditions: ['string'],
+      exclusions: ['string']
+    }
+  ],
+  unmappedClaims: [
+    {
+      objectKind: 'CAPABILITY or ANTIPATTERN',
+      claim: 'string, min 10 characters',
+      reason: 'INSUFFICIENT_SOURCE_CONTEXT | NO_ALLOWED_SOURCE_SUPPORT | APPLICABILITY_AMBIGUOUS | RIGHTS_RESTRICTED_SOURCE_CONTEXT',
+      consideredSourceHandles: ['source_001']
+    }
+  ],
+  mappingNotes: ['string']
+};
+
+const FINDING_ARCHITECTURE_SHAPE = {
+  capabilityFindings: [
+    {
+      title: 'string, min 10 characters',
+      eligibleConclusionStates: ['SATISFIED', 'PARTIALLY_SATISFIED', 'NOT_SATISFIED', 'UNKNOWN', 'NOT_APPLICABLE'],
+      atomicHandles: ['atomic_001'],
+      evidenceHandles: ['evidence_001'],
+      defaultSeverity: 'LOW | MEDIUM | HIGH | BLOCKING',
+      lifecycleConsequence: 'string, min 10 characters',
+      humanLockRequired: true
+    }
+  ],
+  antipatternFindings: [
+    {
+      title: 'string, min 10 characters',
+      eligibleConclusionStates: ['CONFIRMED_PRESENT', 'PARTIALLY_PRESENT', 'TESTED_ABSENT', 'UNKNOWN', 'NOT_APPLICABLE'],
+      atomicHandles: ['atomic_001'],
+      evidenceHandles: ['evidence_001'],
+      defaultSeverity: 'LOW | MEDIUM | HIGH | BLOCKING',
+      lifecycleConsequence: 'string, min 10 characters',
+      humanLockRequired: true
+    }
+  ],
+  findingLogicNotes: ['string']
+};
+
+const CONTROL_BOUNDARY_SHAPE = {
+  capabilityHardGate: {
+    effect: 'NONE | WARN | BLOCK | CONSTRAIN',
+    conditions: ['string, min 3 characters'],
+    overrideAuthority: 'string or null'
+  },
+  antipatternHardGate: {
+    effect: 'NONE | WARN | BLOCK | CONSTRAIN',
+    conditions: ['string, min 3 characters'],
+    overrideAuthority: 'string or null'
+  },
+  capabilityRuntimeBoundary: {
+    machineMay: ['string, min 3 characters'],
+    machineMustNot: ['string, min 3 characters'],
+    humanAuthorityRequiredFor: ['string, min 3 characters']
+  },
+  antipatternRuntimeBoundary: {
+    machineMay: ['string, min 3 characters'],
+    machineMustNot: ['string, min 3 characters'],
+    humanAuthorityRequiredFor: ['string, min 3 characters']
+  },
+  controlNotes: ['string']
+};
+
+const LIFECYCLE_ASSURANCE_SHAPE = {
+  capabilityTargets: [
+    {
+      minimumTechnicalAssurance: 'UNKNOWN | DECLARED | IMPLEMENTED | TESTED | OPERATIONALLY_OBSERVED',
+      requiredHumanAssurance: 'PENDING | HUMAN_VALIDATED | FORMALLY_APPROVED'
+    }
+  ],
+  antipatternTargets: [
+    {
+      minimumTechnicalAssurance: 'UNKNOWN | DECLARED | IMPLEMENTED | TESTED | OPERATIONALLY_OBSERVED',
+      requiredHumanAssurance: 'PENDING | HUMAN_VALIDATED | FORMALLY_APPROVED'
+    }
+  ],
+  rationaleNotes: ['string']
+};
+
+const REFERENCE_MAPPING_SHAPE = {
+  capabilityRelatedCriterionHandles: ['criterion_001 from locked adjacent criteria'],
+  antipatternRelatedCriterionHandles: ['criterion_001 from locked adjacent criteria'],
+  referenceNotes: ['string']
+};
+
+const PAIR_COHERENCE_REVIEW_SHAPE = {
+  defects: [
+    {
+      severity: 'LOW | MEDIUM | HIGH | BLOCKING',
+      coherenceDimension:
+        'SEMANTIC_BOUNDARY | CAPABILITY_ANTIPATTERN_RELATIONSHIP | APPLICABILITY | QUESTION_ATOMIC_ALIGNMENT | EVIDENCE_INTERPRETATION | SOURCE_INTERPRETATION | FINDING_LOGIC | CONTROL_AUTHORITY | LIFECYCLE_ASSURANCE | REFERENCE_OWNERSHIP | CROSS_ARTIFACT_CONTRADICTION',
+      affectedPathHandles: ['path_001 from locked pair coherence packet'],
+      issue: 'string, min 10 characters',
+      coherenceExpectation: 'string, min 10 characters',
+      recommendedRepairPathHandles: ['path_001 from locked pair coherence packet']
+    }
+  ],
+  coherenceSummary: 'string, min 10 characters. An empty defects array is a valid pass-shaped completion.'
+};
+
 const OUTPUT_SHAPES: Partial<Record<CognitiveTaskType, unknown>> = {
   PAIR_BOUNDARY: PAIR_BOUNDARY_SHAPE,
   AP_FAILURE_MODEL: AP_FAILURE_MODEL_SHAPE,
   APPLICABILITY: APPLICABILITY_SHAPE,
-  PRIMARY_QUESTIONS: PRIMARY_QUESTIONS_SHAPE
+  PRIMARY_QUESTIONS: PRIMARY_QUESTIONS_SHAPE,
+  ATOMIC_DECOMPOSITION: ATOMIC_DECOMPOSITION_SHAPE,
+  EVIDENCE_ARCHITECTURE: EVIDENCE_ARCHITECTURE_SHAPE,
+  EVIDENCE_SAFETY: EVIDENCE_SAFETY_SHAPE,
+  AP_ABSENCE_CONTRACT: AP_ABSENCE_CONTRACT_SHAPE,
+  SOURCE_MAPPING: SOURCE_MAPPING_SHAPE,
+  FINDING_ARCHITECTURE: FINDING_ARCHITECTURE_SHAPE,
+  CONTROL_BOUNDARY: CONTROL_BOUNDARY_SHAPE,
+  LIFECYCLE_ASSURANCE: LIFECYCLE_ASSURANCE_SHAPE,
+  REFERENCE_MAPPING: REFERENCE_MAPPING_SHAPE,
+  PAIR_COHERENCE_REVIEW: PAIR_COHERENCE_REVIEW_SHAPE
 };
 
 function stripIdentity(value: unknown): unknown {
