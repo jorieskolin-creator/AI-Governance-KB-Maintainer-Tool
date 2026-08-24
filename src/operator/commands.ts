@@ -40,6 +40,7 @@ import {
   type NextEligibleTask
 } from './eligibility.js';
 import type { OperatorTaskStatus } from './eligibility.js';
+import { operatorLog } from './log.js';
 
 const TARGET_VERSION = '1.0.0';
 
@@ -246,6 +247,7 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     sourceContextPacket
   });
 
+  operatorLog('operator.task.admitted', { domain, pairId: next.pairId, taskType: next.taskType, domainRunId: run.id });
   const pairState = await reopenForRetry(pairRun.id, pairRun.state);
 
   try {

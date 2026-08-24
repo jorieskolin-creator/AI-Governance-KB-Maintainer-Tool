@@ -76,6 +76,9 @@ assert(!html.toLowerCase().includes('force continue'), 'home page must not offer
 assert(html.includes('Start domain run'), 'home page must expose the start-run command');
 assert(html.includes('empty PENDING grid'), 'home page must say a new run starts empty');
 assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
+assert(html.includes('Pipeline'), 'home page must show pipeline activity');
+assert(html.includes('name="action" value="run-next-task"'), 'run command must post a hidden action field');
+assert(!html.includes('Command accepted. Refresh'), 'home page must not claim a command was accepted in the browser');
 for (const taskType of PAIR_TASK_SEQUENCE) {
   assert(html.includes(taskType), `home page is missing ${taskType}`);
 }
@@ -89,8 +92,13 @@ assert((home.headers['content-type'] ?? '').includes('text/html'), 'GET / must b
 
 const api = await app.inject({ method: 'GET', url: '/api/operator/status' });
 assert(api.statusCode === 200, `GET /api/operator/status returned ${String(api.statusCode)}`);
-const payload = api.json() as { mode?: unknown; pipeline?: { pairTaskSequence?: unknown } };
+const payload = api.json() as {
+  mode?: unknown;
+  pipeline?: { pairTaskSequence?: unknown };
+  pipelineActivity?: { state?: unknown };
+};
 assert(payload.mode === 'READ_ONLY', 'status API must stay read-only without a database');
+assert(payload.pipelineActivity?.state === 'NOT_READY', 'status API must expose pipeline activity');
 assert(
   JSON.stringify(payload.pipeline?.pairTaskSequence) === JSON.stringify(PAIR_TASK_SEQUENCE),
   'status API sequence drifted from pipeline.ts'
@@ -120,6 +128,32 @@ const skip = await withCommandFlag(true, () =>
   })
 );
 assert(skip.statusCode === 400, 'unknown operator actions must be rejected even when commands are enabled');
+
+const missingAction = await app.inject({
+  method: 'POST',
+  url: '/api/operator/commands',
+  headers: {
+    accept: 'text/html',
+    'content-type': 'application/x-www-form-urlencoded'
+  },
+  payload: 'domain=A'
+});
+assert(missingAction.statusCode === 302, 'HTML commands without action must redirect, not return JSON 400');
+assert(String(missingAction.headers.location).includes('notice='), 'HTML unknown action must surface a notice');
+
+const formRun = await withCommandFlag(true, () =>
+  app.inject({
+    method: 'POST',
+    url: '/api/operator/commands',
+    headers: {
+      accept: 'text/html',
+      'content-type': 'application/x-www-form-urlencoded'
+    },
+    payload: 'domain=A&action=run-next-task'
+  })
+);
+assert(formRun.statusCode === 302, 'HTML run-next-task must accept hidden action and redirect');
+assert(String(formRun.headers.location).includes('Queued'), 'HTML run-next-task must confirm the task was queued');
 
 await app.close();
 

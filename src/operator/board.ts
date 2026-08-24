@@ -66,11 +66,20 @@ export interface OperatorDomainCard {
   };
 }
 
+export interface PipelineActivity {
+  state: 'NOT_READY' | 'IDLE' | 'RUNNING' | 'BLOCKED';
+  detail: string;
+  domain?: DomainId;
+  pairId?: string;
+  taskType?: CognitiveTaskType;
+}
+
 export interface OperatorStatus {
   service: typeof OPERATOR_SERVICE;
   slice: typeof OPERATOR_SLICE;
   mode: 'READ_ONLY' | 'OPERATOR';
   health: OperatorHealth;
+  pipelineActivity: PipelineActivity;
   pipeline: {
     pairTaskSequence: readonly CognitiveTaskType[];
     domainPairSlots: readonly number[];
@@ -133,6 +142,42 @@ export function flowLabel(step: DomainFlowStep): string {
     .split('_')
     .map((part) => `${part.charAt(0)}${part.slice(1).toLowerCase()}`)
     .join(' ');
+}
+
+export function derivePipelineActivity(domains: OperatorDomainCard[]): PipelineActivity {
+  for (const card of domains) {
+    for (const pair of card.pairs) {
+      const started = pair.tasks.find((task) => task.status === 'STARTED');
+      if (started) {
+        return {
+          state: 'RUNNING',
+          detail: `Running ${pair.pairId} ${started.taskType}`,
+          domain: card.domain,
+          pairId: pair.pairId,
+          taskType: started.taskType
+        };
+      }
+    }
+  }
+  for (const card of domains) {
+    for (const pair of card.pairs) {
+      const failed = pair.tasks.find((task) => task.status === 'FAILED');
+      if (failed) {
+        return {
+          state: 'BLOCKED',
+          detail: `${pair.pairId} ${failed.taskType} failed · retry same task`,
+          domain: card.domain,
+          pairId: pair.pairId,
+          taskType: failed.taskType
+        };
+      }
+    }
+  }
+  const open = domains.find((card) => card.runId);
+  if (open) {
+    return { state: 'IDLE', detail: `Domain ${open.domain} run is open and waiting for the next eligible task`, domain: open.domain };
+  }
+  return { state: 'IDLE', detail: 'No domain run is open' };
 }
 
 const CLOSED: CommandFlag = {
@@ -219,6 +264,7 @@ export function buildOperatorStatus(input: {
       ready: dbReady ? 'ready' : 'not_ready',
       database: input.database
     },
+    pipelineActivity: dbReady ? derivePipelineActivity(domains) : { state: 'NOT_READY', detail: 'Database is not ready' },
     pipeline: {
       pairTaskSequence: PAIR_TASK_SEQUENCE,
       domainPairSlots: DOMAIN_PAIR_SLOTS,

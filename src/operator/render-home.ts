@@ -10,6 +10,12 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
+function activityTone(state: OperatorStatus['pipelineActivity']['state']): string {
+  if (state === 'RUNNING') return 'warn';
+  if (state === 'BLOCKED' || state === 'NOT_READY') return 'fail';
+  return 'pass';
+}
+
 function healthTone(ready: boolean): string {
   return ready ? 'pass' : 'warn';
 }
@@ -111,7 +117,11 @@ function runActivity(card: OperatorDomainCard): string {
 
 function commandButton(action: string, domain: string, command: { enabled: boolean; reason: string }, label: string): string {
   const disabled = command.enabled ? '' : ' disabled';
-  return `<button type="submit" name="action" value="${escapeHtml(action)}" data-domain="${escapeHtml(domain)}"${disabled} title="${escapeHtml(command.reason)}">${escapeHtml(label)}</button>`;
+  return `<form class="command-form" method="post" action="/api/operator/commands">
+      <input type="hidden" name="domain" value="${escapeHtml(domain)}">
+      <input type="hidden" name="action" value="${escapeHtml(action)}">
+      <button type="submit"${disabled} title="${escapeHtml(command.reason)}">${escapeHtml(label)}</button>
+    </form>`;
 }
 
 function domainPanel(card: OperatorDomainCard): string {
@@ -123,12 +133,11 @@ function domainPanel(card: OperatorDomainCard): string {
       ${card.runId ? `<p class="meta">Run <code>${escapeHtml(card.runId)}</code></p>` : ''}
       ${card.baselineSha256 ? `<p class="meta">Baseline <code>${escapeHtml(card.baselineSha256.slice(0, 12))}…</code></p>` : ''}
     </header>
-    <form class="commands" method="post" action="/api/operator/commands">
-      <input type="hidden" name="domain" value="${card.domain}">
+    <div class="commands">
       ${commandButton('start-domain-run', card.domain, card.commands.startDomainRun, 'Start domain run')}
       ${commandButton('run-next-task', card.domain, card.commands.runNextTask, card.commands.runNextTask.next ? `Run ${card.commands.runNextTask.next.pairId} ${card.commands.runNextTask.next.taskType}` : 'Run next eligible task')}
       <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.runNextTask.reason)}</p>
-    </form>
+    </div>
     ${runActivity(card)}
     ${pairGrid(card)}
     <ol class="domain-unit">
@@ -140,13 +149,14 @@ function domainPanel(card: OperatorDomainCard): string {
   </article>`;
 }
 
-export function renderOperatorHome(status: OperatorStatus): string {
+export function renderOperatorHome(status: OperatorStatus, notice = ''): string {
   const dbReady = status.health.database.connected && status.health.database.schemaReady;
   const flow = status.pipeline.domainFlow
     .map((step) => `<li><span>${escapeHtml(flowLabel(step))}</span></li>`)
     .join('');
   const panels = status.domains.map((card) => domainPanel(card)).join('');
-  const refresh = status.domains.some((card) => startedTasks(card).length > 0);
+  const refresh =
+    status.domains.some((card) => startedTasks(card).length > 0) || notice.toLowerCase().includes('queued');
   const findings = uniqueFindings(status.findings);
   const lastCall = status.modelCalls[0];
 
@@ -210,6 +220,15 @@ export function renderOperatorHome(status: OperatorStatus): string {
     .status strong { display: block; margin-top: 0.35rem; font-size: 0.95rem; }
     .pass { color: var(--pass); }
     .warn { color: var(--warn); }
+    .fail { color: #d9896f; }
+    .status { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .notice {
+      margin: 1rem 0 0;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--brass);
+      border-radius: 10px;
+      color: var(--brass);
+    }
     .flow { margin: 1.25rem 0; padding: 1rem 1.1rem 0.4rem; }
     .flow ol {
       display: grid;
@@ -342,10 +361,12 @@ export function renderOperatorHome(status: OperatorStatus): string {
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
       <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Slice 2 can freeze a baseline, start a domain run and advance only the next eligible SIR task. Approval and compile stay closed.</p>
+      ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>
         <article><p class="kicker">Ready</p><strong class="${healthTone(status.health.ready === 'ready')}">${escapeHtml(status.health.ready)}</strong></article>
         <article><p class="kicker">Database</p><strong class="${healthTone(dbReady)}">${dbReady ? 'connected · schema ready' : 'not ready'}</strong></article>
+        <article><p class="kicker">Pipeline</p><strong class="${activityTone(status.pipelineActivity.state)}">${escapeHtml(status.pipelineActivity.state)}</strong><p class="meta">${escapeHtml(status.pipelineActivity.detail)}</p></article>
       </section>
     </header>
     <section class="flow">
@@ -377,15 +398,6 @@ export function renderOperatorHome(status: OperatorStatus): string {
       }
     </section>
   </main>
-  <script>
-    document.querySelectorAll('form.commands').forEach((form) => {
-      form.addEventListener('submit', () => {
-        form.querySelectorAll('button').forEach((button) => { button.disabled = true; });
-        const reason = form.querySelector('.command-reason');
-        if (reason) reason.textContent = 'Command accepted. Refresh to watch STARTED become COMPLETED or FAILED.';
-      });
-    });
-  </script>
 </body>
 </html>`;
 }

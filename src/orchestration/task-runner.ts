@@ -8,6 +8,7 @@ import { materializeValidatedSirTaskOutput } from '../sir/task-artifact.js';
 import type { CompletionContext } from '../validation/cognitive-completion.js';
 import { validateTaskCompletion } from '../validation/task-completion-router.js';
 import type { ValidationFinding } from '../validation/contracts.js';
+import { operatorLog } from '../operator/log.js';
 import { canonicalArtifactHash } from './artifact-hash.js';
 import {
   completeTaskRun,
@@ -84,6 +85,12 @@ async function tryRoute(input: {
   completed: ReadonlySet<CognitiveTaskType>;
   completionContext: CompletionContext;
 }): Promise<{ passed: boolean; output?: unknown; findings: ValidationFinding[]; executionError?: Error }> {
+  operatorLog('operator.model.attempt', {
+    taskType: input.contract.taskType,
+    provider: input.target.provider,
+    model: input.target.model,
+    isFallback: input.isFallback
+  });
   try {
     const output = await executeTarget({
       taskRunId: input.taskRunId,
@@ -98,8 +105,25 @@ async function tryRoute(input: {
       output,
       completionContext: input.completionContext
     });
+    operatorLog('operator.model.completed', {
+      taskType: input.contract.taskType,
+      provider: input.target.provider,
+      model: input.target.model,
+      isFallback: input.isFallback,
+      passed: gate.passed,
+      findings: gate.findings.length,
+      outputType: typeof output
+    });
     return { passed: gate.passed, output, findings: gate.findings };
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Model execution failed.';
+    operatorLog('operator.model.failed', {
+      taskType: input.contract.taskType,
+      provider: input.target.provider,
+      model: input.target.model,
+      isFallback: input.isFallback,
+      error: message
+    });
     return {
       passed: false,
       findings: [],
@@ -134,8 +158,20 @@ export async function runCognitiveTask(input: {
     contract: input.contract,
     inputHash
   });
+  operatorLog('operator.task.started', {
+    pairRunId: input.pairRunId,
+    taskType: input.contract.taskType,
+    taskRunId,
+    inputHash
+  });
   const packet = buildPromptPacket(input.contract);
   const route = getModelRoute(input.contract.modelRole);
+  operatorLog('operator.model.route', {
+    taskType: input.contract.taskType,
+    role: input.contract.modelRole,
+    primary: `${route.primary.provider}/${route.primary.model}`,
+    fallback: `${route.fallback.provider}/${route.fallback.model}`
+  });
 
   const primary = await tryRoute({
     taskRunId,
