@@ -19,14 +19,15 @@ The branch now includes:
 - path-scoped local repair contracts;
 - A1/AP-A1 Golden Standard regression and mutation harness;
 - repository-held capability, anti-pattern and shared-definition schemas;
-- Railway deployment and `/health/ready` database-backed health gate.
+- Railway deployment, `/health/ready` database-backed health gate, and a read-only operator home at `/`.
 
 ## Still deliberately pending
 
+- operator commands to start a domain run, advance SIR tasks, or record external approval;
 - exact model/provider assignments in Railway role variables;
 - exact approved canonical A1/AP-A1 JSON files in `golden/fixtures/`;
 - complete canonical JSON compiler and publication compiler;
 - final Vercel Blob artifact adapter and release manifest writer;
-- authoring UI and external-approval intake UI/API.
+- field-level authoring inspection and external-approval intake.
 
 The application is a Knowledge Base production tool. It does not grant governance approval, legal applicability, residual-risk acceptance or AI-system lifecycle authorization.
