@@ -74,7 +74,8 @@ assert(!html.includes('<textarea'), 'home page must not include a chat or prompt
 assert(!html.includes('contenteditable'), 'home page must not be an editor');
 assert(!html.toLowerCase().includes('force continue'), 'home page must not offer a force-continue action');
 assert(html.includes('Start domain run'), 'home page must expose the start-run command');
-assert(html.includes('empty PENDING grid'), 'home page must say a new run starts empty');
+assert(html.includes('Continue domain'), 'home page must continue a domain until it is ready');
+assert(html.includes('until five pairs are VALIDATED'), 'home page must stop the pair pipeline at domain ready');
 assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
 assert(html.includes('Pipeline'), 'home page must show pipeline activity');
 assert(html.includes('Work order'), 'home page must show the work-order machine');
@@ -155,7 +156,8 @@ const formRun = await withCommandFlag(true, () =>
   })
 );
 assert(formRun.statusCode === 302, 'HTML run-next-task must accept hidden action and redirect');
-assert(String(formRun.headers.location).includes('Queued'), 'HTML run-next-task must confirm the task was queued');
+assert(String(formRun.headers.location).includes('running'), 'HTML run-next-task must start the domain pipeline');
+assert(!String(formRun.headers.location).includes('Queued next eligible'), 'HTML must not queue a single SIR step');
 
 await app.close();
 

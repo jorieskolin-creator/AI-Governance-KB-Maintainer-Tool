@@ -23,6 +23,23 @@ export interface NextEligibleTask {
   taskType: CognitiveTaskType;
 }
 
+export function classifyDomainPipelineStop(
+  errorMessage: string
+): 'DOMAIN_READY' | 'BLOCKED' | 'FAILED' {
+  if (errorMessage.includes('Five pairs are VALIDATED') || errorMessage.includes('DOMAIN_COHERENCE_REVIEW')) {
+    return 'DOMAIN_READY';
+  }
+  if (
+    errorMessage.includes('already running') ||
+    errorMessage.includes('No eligible SIR task') ||
+    errorMessage.includes('requires local repair') ||
+    errorMessage.includes('not an operator-admitted')
+  ) {
+    return 'BLOCKED';
+  }
+  return 'FAILED';
+}
+
 export function isOpenDomainState(state: DomainState): boolean {
   return OPEN_DOMAIN_STATES.includes(state);
 }
@@ -169,7 +186,7 @@ export function commandAvailability(input: {
       },
       runNextTask: {
         enabled: true,
-        reason: `Next eligible task is ${next.pairId} ${next.taskType}.`,
+        reason: `Continue domain ${input.domain} from ${next.pairId} ${next.taskType} until five pairs are VALIDATED. Per-task approval is not requested.`,
         next
       },
       recordApproval
@@ -179,7 +196,7 @@ export function commandAvailability(input: {
   return {
     startDomainRun: {
       enabled: true,
-      reason: `Start a domain ${input.domain} run from the sealed baseline.`
+      reason: `Start a domain ${input.domain} run from the sealed baseline. Pair SIR tasks then run until the domain is ready.`
     },
     runNextTask: { enabled: false, reason: `No open domain ${input.domain} run.` },
     recordApproval

@@ -19,7 +19,7 @@ The branch now includes:
 - path-scoped local repair contracts;
 - A1/AP-A1 Golden Standard regression and mutation harness;
 - repository-held capability, anti-pattern and shared-definition schemas;
-- Railway deployment, `/health/ready` database-backed health gate, a read-only operator home at `/`, and Slice 2 run commands (`start domain run`, `run next eligible task`) gated by `OPERATOR_COMMANDS_ENABLED`;
+- Railway deployment, `/health/ready` database-backed health gate, a read-only operator home at `/`, and Slice 2 run commands (`start domain run`, `continue domain until ready`) gated by `OPERATOR_COMMANDS_ENABLED`. Start or continue runs remaining pair SIR tasks without per-step approval and stops when the domain is ready or a task fails;
 
 ## Still deliberately pending
 

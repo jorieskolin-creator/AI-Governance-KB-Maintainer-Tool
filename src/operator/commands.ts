@@ -36,6 +36,7 @@ import {
 import {
   isOpenDomainState,
   nextEligiblePairTask,
+  classifyDomainPipelineStop,
   type EligiblePairSnapshot,
   type NextEligibleTask
 } from './eligibility.js';
@@ -270,3 +271,50 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     throw error;
   }
 }
+
+const domainPipelinesInFlight = new Set<DomainId>();
+
+export interface DomainPipelineStop {
+  domain: DomainId;
+  status: 'DOMAIN_READY' | 'BLOCKED' | 'FAILED' | 'ALREADY_RUNNING';
+  completed: NextEligibleTask[];
+  reason?: string;
+}
+
+export async function runDomainPipeline(domain: DomainId): Promise<DomainPipelineStop> {
+  if (domainPipelinesInFlight.has(domain)) {
+    operatorLog('operator.pipeline.already_running', { domain });
+    return { domain, status: 'ALREADY_RUNNING', completed: [] };
+  }
+  domainPipelinesInFlight.add(domain);
+  const completed: NextEligibleTask[] = [];
+  operatorLog('operator.pipeline.started', { domain });
+  try {
+    while (true) {
+      try {
+        const result = await runNextEligibleTask(domain);
+        completed.push(result.next);
+        operatorLog('operator.pipeline.advanced', {
+          domain,
+          pairId: result.next.pairId,
+          taskType: result.next.taskType,
+          usedFallback: result.usedFallback,
+          completedCount: completed.length
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const status = classifyDomainPipelineStop(message);
+        operatorLog('operator.pipeline.stopped', {
+          domain,
+          status,
+          reason: message,
+          completedCount: completed.length
+        });
+        return { domain, status, completed, reason: message };
+      }
+    }
+  } finally {
+    domainPipelinesInFlight.delete(domain);
+  }
+}
+

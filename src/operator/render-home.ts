@@ -103,16 +103,16 @@ function failedTasks(card: OperatorDomainCard): Array<{ pairId: string; taskType
 function runActivity(card: OperatorDomainCard): string {
   const started = startedTasks(card)[0];
   if (started) {
-    return `<p class="activity running">Pipeline IN_PROGRESS: <code>${escapeHtml(started.pairId)}</code> ${escapeHtml(started.taskType)}. Work order stays OPEN. Do not click again.</p>`;
+    return `<p class="activity running">Pipeline IN_PROGRESS: <code>${escapeHtml(started.pairId)}</code> ${escapeHtml(started.taskType)}. Remaining pair SIR tasks continue automatically. Work order stays OPEN. Domain B stays closed.</p>`;
   }
   const failed = failedTasks(card)[0];
   if (failed && card.commands.runNextTask.enabled) {
-    return `<p class="activity failed">Pipeline BLOCKED. Current task ${escapeHtml(failed.taskType)} FAILED. No document was produced. Work order stays OPEN so the same task can be retried.</p>`;
+    return `<p class="activity failed">Pipeline BLOCKED. Current task ${escapeHtml(failed.taskType)} FAILED. No document was produced. Retry the same task; the domain pipeline then continues. Approval is not requested per step.</p>`;
   }
   if (!card.runId) {
-    return `<p class="activity">Work order NONE. Start opens a new empty PENDING grid.</p>`;
+    return `<p class="activity">Work order NONE. Start freezes the baseline and runs pair SIR tasks until the domain is ready.</p>`;
   }
-  return `<p class="activity">Work order OPEN. Pipeline WAITING. Nothing is IN_PROGRESS.</p>`;
+  return `<p class="activity">Work order OPEN. Pipeline WAITING. Continue runs remaining pair SIR tasks without asking approval after each step. Stops when the domain is ready or a task fails.</p>`;
 }
 
 function machineStrip(card: OperatorDomainCard): string {
@@ -141,6 +141,13 @@ function commandButton(action: string, domain: string, command: { enabled: boole
     </form>`;
 }
 
+function continueLabel(card: OperatorDomainCard): string {
+  const failed = failedTasks(card)[0];
+  if (failed) return `Retry ${failed.pairId} ${failed.taskType} and continue domain`;
+  if (card.commands.runNextTask.next) return `Continue domain ${card.domain} until ready`;
+  return 'Continue domain until ready';
+}
+
 function domainPanel(card: OperatorDomainCard): string {
   return `<article class="domain-panel" data-domain="${card.domain}">
     <header class="domain-head">
@@ -153,7 +160,7 @@ function domainPanel(card: OperatorDomainCard): string {
     ${machineStrip(card)}
     <div class="commands">
       ${commandButton('start-domain-run', card.domain, card.commands.startDomainRun, 'Start domain run')}
-      ${commandButton('run-next-task', card.domain, card.commands.runNextTask, card.commands.runNextTask.next ? `Run ${card.commands.runNextTask.next.pairId} ${card.commands.runNextTask.next.taskType}` : 'Run next eligible task')}
+      ${commandButton('run-next-task', card.domain, card.commands.runNextTask, continueLabel(card))}
       <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.runNextTask.reason)}</p>
     </div>
     ${runActivity(card)}
@@ -173,8 +180,9 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
     .map((step) => `<li><span>${escapeHtml(flowLabel(step))}</span></li>`)
     .join('');
   const panels = status.domains.map((card) => domainPanel(card)).join('');
-  const refresh =
-    status.domains.some((card) => startedTasks(card).length > 0) || notice.toLowerCase().includes('queued');
+  const running = status.domains.some((card) => startedTasks(card).length > 0);
+  const waitingForStart = !running && notice.toLowerCase().includes('running');
+  const refresh = running || waitingForStart;
   const findings = uniqueFindings(status.findings);
   const lastCall = status.modelCalls[0];
 
@@ -183,7 +191,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  ${refresh ? '<meta http-equiv="refresh" content="8">' : ''}
+  ${refresh ? `<meta http-equiv="refresh" content="${waitingForStart ? '2' : '8'};url=/">` : ''}
   <title>AI Governance KB Maintainer</title>
   <style>
     :root {
@@ -396,7 +404,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Slice 2 can freeze a baseline, start a domain run and advance only the next eligible SIR task. Approval and compile stay closed.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Slice 2 freezes a baseline, starts a domain run, and runs remaining pair SIR tasks until the domain is ready. Per-task approval is not requested. External approval and compile stay closed.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>
@@ -415,7 +423,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
       ${panels}
     </section>
     <section class="note">
-      <p>This board shows only the latest run for the selected domain. Start is a new baseline freeze and an empty PENDING grid. While a run is open, retry the next eligible SIR task — do not start a second run. Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
+      <p>This board shows only the latest run for the selected domain. Start freezes a baseline and runs pair SIR tasks until five pairs are VALIDATED. Continue retries a FAILED task in place, then keeps going. Do not start a second run or another domain while one is open. Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
       ${
         lastCall
           ? `<p>Last model call: <code>${escapeHtml(lastCall.role)}</code> ${escapeHtml(lastCall.provider)}/${escapeHtml(lastCall.model)}${lastCall.isFallback ? ' fallback' : ''} · ${escapeHtml(lastCall.status)}</p>`

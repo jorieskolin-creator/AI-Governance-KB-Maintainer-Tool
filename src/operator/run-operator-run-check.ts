@@ -13,7 +13,7 @@ import {
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
-import { commandAvailability, nextEligiblePairTask } from './eligibility.js';
+import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop } from './eligibility.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -107,6 +107,25 @@ assert(!('blocked' in retryLater) && retryLater.taskType === 'AP_FAILURE_MODEL',
 assert(canReopenTaskRun('FAILED') === true, 'failed task runs must be reopenable');
 assert(canReopenTaskRun('STARTED') === false, 'in-flight task runs must not be reopened');
 assert(canReopenTaskRun('COMPLETED') === false, 'completed task runs must keep persistence identity');
+
+assert(
+  classifyDomainPipelineStop(
+    'Five pairs are VALIDATED. DOMAIN_COHERENCE_REVIEW is the next unit and stays closed in Slice 2.'
+  ) === 'DOMAIN_READY',
+  'validated domain must stop the pair pipeline without asking approval'
+);
+assert(
+  classifyDomainPipelineStop('A1_AP-A1 PAIR_BOUNDARY is already running.') === 'BLOCKED',
+  'an in-flight task must not start a second pipeline'
+);
+assert(
+  classifyDomainPipelineStop('A1_AP-A1 requires local repair before another SIR task can run.') === 'BLOCKED',
+  'repair-required pairs must stop auto-advance'
+);
+assert(
+  classifyDomainPipelineStop('Task PAIR_BOUNDARY failed primary and fallback routes') === 'FAILED',
+  'model or SIR failure must stop the pipeline for in-place retry'
+);
 
 const availability = commandAvailability({
   databaseReady: true,
@@ -248,6 +267,7 @@ console.log(
       sequentialAdmission: 'PASS',
       repairBlocksAdvance: 'PASS',
       failedTaskRetriesInPlace: 'PASS',
+      domainPipelineStopsAtReady: 'PASS',
       completedTaskIdentityHeld: 'PASS',
       goldenLockOmitsFixtureBodies: 'PASS',
       pairBoundaryPromptOmitsCanonicalIds: 'PASS',

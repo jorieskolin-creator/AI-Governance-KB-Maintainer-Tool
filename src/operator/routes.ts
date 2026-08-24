@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { OperatorStatus } from './board.js';
-import { parseDomainId, runNextEligibleTask, startDomainRun } from './commands.js';
+import { parseDomainId, runDomainPipeline, startDomainRun, runNextEligibleTask } from './commands.js';
 import { operatorLog } from './log.js';
 import { renderOperatorHome } from './render-home.js';
 
@@ -11,6 +11,27 @@ function wantsHtml(request: FastifyRequest): boolean {
 
 function noticeRedirect(reply: FastifyReply, notice: string) {
   return reply.redirect(`/?notice=${encodeURIComponent(notice)}`);
+}
+
+function queueDomainPipeline(domain: ReturnType<typeof parseDomainId>, request: FastifyRequest): void {
+  operatorLog('operator.pipeline.queued', { domain });
+  setImmediate(() => {
+    runDomainPipeline(domain)
+      .then((result) => {
+        operatorLog('operator.pipeline.finished', {
+          domain,
+          status: result.status,
+          completedCount: result.completed.length,
+          last: result.completed.at(-1),
+          reason: result.reason
+        });
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        operatorLog('operator.pipeline.failed', { domain, error: message });
+        request.log.error(error);
+      });
+  });
 }
 
 export function registerOperatorRoutes(
@@ -51,29 +72,22 @@ export function registerOperatorRoutes(
       if (action === 'start-domain-run') {
         const result = await startDomainRun(domain);
         operatorLog('operator.run.started', { domain, domainRunId: result.domainRunId });
-        if (wantsHtml(request)) return noticeRedirect(reply, `Started domain ${domain} run`);
+        if (wantsHtml(request)) {
+          queueDomainPipeline(domain, request);
+          return noticeRedirect(
+            reply,
+            `Started domain ${domain}. Pipeline is running pair SIR tasks until the domain is ready.`
+          );
+        }
         return result;
       }
       if (action === 'run-next-task') {
         if (wantsHtml(request)) {
-          operatorLog('operator.task.queued', { domain });
-          setImmediate(() => {
-            runNextEligibleTask(domain)
-              .then((result) => {
-                operatorLog('operator.task.finished', {
-                  domain,
-                  pairId: result.next.pairId,
-                  taskType: result.next.taskType,
-                  usedFallback: result.usedFallback
-                });
-              })
-              .catch((error) => {
-                const message = error instanceof Error ? error.message : String(error);
-                operatorLog('operator.task.failed', { domain, error: message });
-                request.log.error(error);
-              });
-          });
-          return noticeRedirect(reply, `Queued next eligible task for domain ${domain}`);
+          queueDomainPipeline(domain, request);
+          return noticeRedirect(
+            reply,
+            `Domain ${domain} pipeline is running. It stops when the domain is ready or a task fails.`
+          );
         }
         const result = await runNextEligibleTask(domain);
         operatorLog('operator.task.finished', {
