@@ -16,6 +16,17 @@ function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
+async function withCommandFlag<T>(enabled: boolean, run: () => Promise<T>): Promise<T> {
+  const previous = process.env.OPERATOR_COMMANDS_ENABLED;
+  process.env.OPERATOR_COMMANDS_ENABLED = enabled ? 'true' : 'false';
+  try {
+    return await run();
+  } finally {
+    if (previous === undefined) delete process.env.OPERATOR_COMMANDS_ENABLED;
+    else process.env.OPERATOR_COMMANDS_ENABLED = previous;
+  }
+}
+
 const titles = loadDomainCoverageTitles();
 const status = buildOperatorStatus({
   database: { connected: false, schemaReady: false },
@@ -83,21 +94,30 @@ assert(
   'status API sequence drifted from pipeline.ts'
 );
 
-const denied = await app.inject({
-  method: 'POST',
-  url: '/api/operator/commands',
-  headers: { 'content-type': 'application/json' },
-  payload: { domain: 'A', action: 'start-domain-run' }
-});
-assert(denied.statusCode === 403 || denied.statusCode === 409, 'start-domain-run must fail closed when commands are disabled');
+const denied = await withCommandFlag(false, () =>
+  app.inject({
+    method: 'POST',
+    url: '/api/operator/commands',
+    headers: { 'content-type': 'application/json' },
+    payload: { domain: 'A', action: 'start-domain-run' }
+  })
+);
+assert(denied.statusCode === 403, 'start-domain-run must fail closed when commands are disabled');
+const deniedBody = denied.json() as { error?: unknown };
+assert(
+  String(deniedBody.error).includes('disabled'),
+  'fail-closed start-domain-run must report that commands are disabled'
+);
 
-const skip = await app.inject({
-  method: 'POST',
-  url: '/api/operator/commands',
-  headers: { 'content-type': 'application/json' },
-  payload: { domain: 'A', action: 'skip-to-source-mapping' }
-});
-assert(skip.statusCode === 400, 'unknown operator actions must be rejected');
+const skip = await withCommandFlag(true, () =>
+  app.inject({
+    method: 'POST',
+    url: '/api/operator/commands',
+    headers: { 'content-type': 'application/json' },
+    payload: { domain: 'A', action: 'skip-to-source-mapping' }
+  })
+);
+assert(skip.statusCode === 400, 'unknown operator actions must be rejected even when commands are enabled');
 
 await app.close();
 
@@ -108,7 +128,8 @@ console.log(
       slice: OPERATOR_SLICE,
       domains: status.domains.map((card) => card.domain),
       pairTasks: PAIR_TASK_SEQUENCE.length,
-      mode: status.mode
+      mode: status.mode,
+      commandGateIndependentOfProcessEnv: 'PASS'
     },
     null,
     2
