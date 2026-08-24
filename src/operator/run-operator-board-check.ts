@@ -74,6 +74,8 @@ assert(!html.includes('<textarea'), 'home page must not include a chat or prompt
 assert(!html.includes('contenteditable'), 'home page must not be an editor');
 assert(!html.toLowerCase().includes('force continue'), 'home page must not offer a force-continue action');
 assert(html.includes('Start domain run'), 'home page must expose the start-run command');
+assert(html.includes('empty PENDING grid'), 'home page must say a new run starts empty');
+assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
 for (const taskType of PAIR_TASK_SEQUENCE) {
   assert(html.includes(taskType), `home page is missing ${taskType}`);
 }

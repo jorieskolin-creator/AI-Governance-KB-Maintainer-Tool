@@ -41,9 +41,15 @@ export function registerOperatorRoutes(
         return result;
       }
       if (action === 'run-next-task') {
-        const result = await runNextEligibleTask(domain);
-        if (wantsHtml(request)) return reply.redirect('/');
-        return result;
+        if (wantsHtml(request)) {
+          setImmediate(() => {
+            runNextEligibleTask(domain).catch((error) => {
+              request.log.error(error);
+            });
+          });
+          return reply.redirect('/');
+        }
+        return await runNextEligibleTask(domain);
       }
       return reply.code(400).send({ error: 'Unknown operator action.' });
     } catch (error) {

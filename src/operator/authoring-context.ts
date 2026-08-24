@@ -128,13 +128,42 @@ export function buildPairAuthoringPlan(input: {
   });
 }
 
-export function categoryBaselineRecord(): Record<string, unknown> {
-  return loadCategoriesBaseline() as unknown as Record<string, unknown>;
+export function categoryBaselineRecord(domain?: DomainId): Record<string, unknown> {
+  const all = loadCategoriesBaseline();
+  if (!domain) return all as unknown as Record<string, unknown>;
+  const selected = all.domains.find((entry) => entry.domain === domain);
+  if (!selected) throw new Error(`Categories baseline is missing domain ${domain}.`);
+  return { ...all, domains: [selected] } as unknown as Record<string, unknown>;
 }
 
 export function goldenReferenceRecord(): Record<string, unknown> {
   const artifacts = loadRepoBaselineArtifacts();
   const golden = artifacts.find((item) => item.artifactType === 'GOLDEN_REFERENCE');
   if (!golden) throw new Error('Golden reference is missing from the repo baseline.');
-  return golden.content as Record<string, unknown>;
+  const content = golden.content as {
+    manifest?: {
+      reference_id?: unknown;
+      reference_version?: unknown;
+      classification?: unknown;
+      normative?: unknown;
+      authority_boundary?: unknown;
+      integrity_model?: unknown;
+      fixtures?: Array<{ object_id?: unknown; semantic_sha256?: unknown }>;
+    };
+  };
+  const manifest = content.manifest ?? {};
+  return {
+    reference_id: manifest.reference_id ?? golden.id,
+    reference_version: manifest.reference_version ?? golden.version,
+    classification: manifest.classification,
+    normative: manifest.normative === true,
+    authority_boundary: manifest.authority_boundary,
+    integrity_model: manifest.integrity_model,
+    fixture_ids: Array.isArray(manifest.fixtures)
+      ? manifest.fixtures.map((item) => ({
+          object_id: item.object_id,
+          semantic_sha256: item.semantic_sha256
+        }))
+      : []
+  };
 }

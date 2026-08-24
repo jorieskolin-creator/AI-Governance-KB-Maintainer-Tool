@@ -241,7 +241,7 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     pairRunId: pairRun.id,
     taskType: next.taskType,
     authoringPlan: plan,
-    categoryBaseline: categoryBaselineRecord(),
+    categoryBaseline: categoryBaselineRecord(domain),
     goldenReference: goldenReferenceRecord(),
     sourceContextPacket
   });

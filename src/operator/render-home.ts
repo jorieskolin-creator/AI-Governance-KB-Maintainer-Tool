@@ -70,6 +70,45 @@ function pairGrid(card: OperatorDomainCard): string {
   </table>`;
 }
 
+function uniqueFindings(
+  findings: OperatorStatus['findings']
+): OperatorStatus['findings'] {
+  const seen = new Set<string>();
+  return findings.filter((item) => {
+    const key = `${item.objectId}|${item.checkId}|${item.issue}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function startedTasks(card: OperatorDomainCard): Array<{ pairId: string; taskType: string }> {
+  return card.pairs.flatMap((pair) =>
+    pair.tasks.filter((task) => task.status === 'STARTED').map((task) => ({ pairId: pair.pairId, taskType: task.taskType }))
+  );
+}
+
+function failedTasks(card: OperatorDomainCard): Array<{ pairId: string; taskType: string }> {
+  return card.pairs.flatMap((pair) =>
+    pair.tasks.filter((task) => task.status === 'FAILED').map((task) => ({ pairId: pair.pairId, taskType: task.taskType }))
+  );
+}
+
+function runActivity(card: OperatorDomainCard): string {
+  const started = startedTasks(card)[0];
+  if (started) {
+    return `<p class="activity running">Running <code>${escapeHtml(started.pairId)}</code> ${escapeHtml(started.taskType)}. This page refreshes until that task finishes. Do not click again.</p>`;
+  }
+  const failed = failedTasks(card)[0];
+  if (failed && card.commands.runNextTask.enabled) {
+    return `<p class="activity failed">Last attempt of <code>${escapeHtml(failed.pairId)}</code> ${escapeHtml(failed.taskType)} failed. Retry is the same task on this run. Start stays closed so a new empty run is not mixed in.</p>`;
+  }
+  if (!card.runId) {
+    return `<p class="activity">No run yet. Start freezes a new baseline and opens an empty PENDING grid.</p>`;
+  }
+  return `<p class="activity">This board is the current open run only. A later Start creates a new run id and does not carry these cells forward.</p>`;
+}
+
 function commandButton(action: string, domain: string, command: { enabled: boolean; reason: string }, label: string): string {
   const disabled = command.enabled ? '' : ' disabled';
   return `<button type="submit" name="action" value="${escapeHtml(action)}" data-domain="${escapeHtml(domain)}"${disabled} title="${escapeHtml(command.reason)}">${escapeHtml(label)}</button>`;
@@ -90,6 +129,7 @@ function domainPanel(card: OperatorDomainCard): string {
       ${commandButton('run-next-task', card.domain, card.commands.runNextTask, card.commands.runNextTask.next ? `Run ${card.commands.runNextTask.next.pairId} ${card.commands.runNextTask.next.taskType}` : 'Run next eligible task')}
       <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.runNextTask.reason)}</p>
     </form>
+    ${runActivity(card)}
     ${pairGrid(card)}
     <ol class="domain-unit">
       <li><span>Domain coherence</span><strong>locked until five pairs are VALIDATED</strong></li>
@@ -106,12 +146,16 @@ export function renderOperatorHome(status: OperatorStatus): string {
     .map((step) => `<li><span>${escapeHtml(flowLabel(step))}</span></li>`)
     .join('');
   const panels = status.domains.map((card) => domainPanel(card)).join('');
+  const refresh = status.domains.some((card) => startedTasks(card).length > 0);
+  const findings = uniqueFindings(status.findings);
+  const lastCall = status.modelCalls[0];
 
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  ${refresh ? '<meta http-equiv="refresh" content="8">' : ''}
   <title>AI Governance KB Maintainer</title>
   <style>
     :root {
@@ -262,6 +306,9 @@ export function renderOperatorHome(status: OperatorStatus): string {
     }
     .commands button:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--line); }
     .command-reason { margin: 0; color: var(--subtle); font-size: 0.8rem; flex: 1 1 16rem; }
+    .activity { margin: 0 0 1rem; color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
+    .activity.running { color: var(--warn); }
+    .activity.failed { color: #d9896f; }
     .domain-unit {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -311,10 +358,15 @@ export function renderOperatorHome(status: OperatorStatus): string {
       ${panels}
     </section>
     <section class="note">
-      <p>${status.findings.length ? 'Latest findings are listed below. ' : ''}Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
+      <p>This board shows only the latest run for the selected domain. Start is a new baseline freeze and an empty PENDING grid. While a run is open, retry the next eligible SIR task — do not start a second run. Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
       ${
-        status.findings.length
-          ? `<ul>${status.findings
+        lastCall
+          ? `<p>Last model call: <code>${escapeHtml(lastCall.role)}</code> ${escapeHtml(lastCall.provider)}/${escapeHtml(lastCall.model)}${lastCall.isFallback ? ' fallback' : ''} · ${escapeHtml(lastCall.status)}</p>`
+          : ''
+      }
+      ${
+        findings.length
+          ? `<ul>${findings
               .slice(0, 8)
               .map(
                 (item) =>
@@ -325,6 +377,15 @@ export function renderOperatorHome(status: OperatorStatus): string {
       }
     </section>
   </main>
+  <script>
+    document.querySelectorAll('form.commands').forEach((form) => {
+      form.addEventListener('submit', () => {
+        form.querySelectorAll('button').forEach((button) => { button.disabled = true; });
+        const reason = form.querySelector('.command-reason');
+        if (reason) reason.textContent = 'Command accepted. Refresh to watch STARTED become COMPLETED or FAILED.';
+      });
+    });
+  </script>
 </body>
 </html>`;
 }

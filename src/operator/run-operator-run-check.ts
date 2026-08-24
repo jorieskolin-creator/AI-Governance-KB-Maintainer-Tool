@@ -6,7 +6,7 @@ import { previewRepoBaselineManifest } from '../baseline/repo-artifacts.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
-import { buildPairAuthoringPlan } from './authoring-context.js';
+import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
 import { commandAvailability, nextEligiblePairTask } from './eligibility.js';
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -99,7 +99,7 @@ const retryLater = nextEligiblePairTask('A', [
 ]);
 assert(!('blocked' in retryLater) && retryLater.taskType === 'AP_FAILURE_MODEL', 'failed later tasks retry in place');
 assert(canReopenTaskRun('FAILED') === true, 'failed task runs must be reopenable');
-assert(canReopenTaskRun('STARTED') === true, 'interrupted task runs must be reopenable');
+assert(canReopenTaskRun('STARTED') === false, 'in-flight task runs must not be reopened');
 assert(canReopenTaskRun('COMPLETED') === false, 'completed task runs must keep persistence identity');
 
 const availability = commandAvailability({
@@ -161,6 +161,11 @@ assert(
 );
 assert(plan.compilerPolicies.canonicalIdsFromModelOutputAllowed === false, 'canonical ids remain code-owned');
 
+const goldenLock = goldenReferenceRecord();
+assert(!('fixtures' in goldenLock), 'golden lock must not embed canonical fixture bodies');
+assert(!JSON.stringify(goldenLock).includes('A1-Q1'), 'golden lock must not leak canonical question ids');
+assert(!JSON.stringify(goldenLock).includes('EVD-A1-001'), 'golden lock must not leak canonical evidence ids');
+
 console.log(
   JSON.stringify(
     {
@@ -171,6 +176,7 @@ console.log(
       repairBlocksAdvance: 'PASS',
       failedTaskRetriesInPlace: 'PASS',
       completedTaskIdentityHeld: 'PASS',
+      goldenLockOmitsFixtureBodies: 'PASS',
       gpt56OmitsTemperature: 'PASS',
       modelRoutingFailClosed: 'PASS',
       authoringPlanPairId: plan.planId

@@ -66,7 +66,7 @@ export async function createTaskRun(input: {
        output = null,
        output_hash = null,
        completed_at = null
-     where task_runs.status is distinct from 'COMPLETED'
+     where task_runs.status = 'FAILED'
      returning id`,
     [
       input.pairRunId,
@@ -79,14 +79,14 @@ export async function createTaskRun(input: {
   const row = result.rows[0];
   if (!row) {
     throw new Error(
-      `Refusing to reopen COMPLETED ${input.contract.taskType} for the same input hash.`
+      `Refusing to reopen ${input.contract.taskType} unless the stored row is FAILED.`
     );
   }
   return row.id;
 }
 
 export function canReopenTaskRun(status: 'STARTED' | 'COMPLETED' | 'FAILED'): boolean {
-  return status !== 'COMPLETED';
+  return status === 'FAILED';
 }
 
 export async function completeTaskRun(input: {
