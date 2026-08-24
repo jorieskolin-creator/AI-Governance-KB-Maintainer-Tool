@@ -16,7 +16,7 @@
     "sir:evidence-check": "node dist/sir/run-evidence-sir-check.js",
     "golden:regression": "node dist/golden/run-regression.js",
     "predeploy:verify": "node dist/predeploy/run-verification.js",
-    "operator:check": "node dist/operator/run-operator-board-check.js",
+    "operator:check": "node dist/operator/run-operator-board-check.js && node dist/operator/run-operator-run-check.js",
     "verify:build": "npm run build && npm run predeploy:verify"
   },
   "engines": {

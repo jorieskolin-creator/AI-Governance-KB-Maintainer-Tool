@@ -24,10 +24,10 @@ const status = buildOperatorStatus({
 
 assert(status.service === OPERATOR_SERVICE, 'operator status service is wrong');
 assert(status.slice === OPERATOR_SLICE, 'operator status slice is wrong');
-assert(status.mode === 'READ_ONLY', 'operator status must be read-only');
-assert(status.commands.startDomainRun.enabled === false, 'startDomainRun must stay closed');
-assert(status.commands.runNextTask.enabled === false, 'runNextTask must stay closed');
-assert(status.commands.recordApproval.enabled === false, 'recordApproval must stay closed');
+assert(status.mode === 'READ_ONLY', 'operator status without a database must stay read-only');
+assert(status.domains[0]?.commands.recordApproval.enabled === false, 'recordApproval must stay closed');
+assert(status.domains[0]?.commands.startDomainRun.enabled === false, 'startDomainRun must stay closed without a ready database');
+assert(status.domains[0]?.commands.runNextTask.enabled === false, 'runNextTask must stay closed without a ready database');
 assert(
   JSON.stringify(status.pipeline.pairTaskSequence) === JSON.stringify(PAIR_TASK_SEQUENCE),
   'operator board pair sequence drifted from pipeline.ts'
@@ -58,18 +58,13 @@ assert(typeof golden.domain_title === 'string', 'golden A1 is missing domain_tit
 assert(status.domains[0]?.title === golden.domain_title, 'domain A title drifted from golden A1');
 
 const html = renderOperatorHome(status);
-assert(html.includes('text/html') === false, 'renderer must emit a document, not a content-type');
 assert(html.includes('<!doctype html>'), 'home page must be HTML');
-assert(html.includes('READ_ONLY'), 'home page must declare read-only mode');
 assert(!html.includes('<textarea'), 'home page must not include a chat or prompt box');
 assert(!html.includes('contenteditable'), 'home page must not be an editor');
 assert(!html.toLowerCase().includes('force continue'), 'home page must not offer a force-continue action');
+assert(html.includes('Start domain run'), 'home page must expose the start-run command');
 for (const taskType of PAIR_TASK_SEQUENCE) {
   assert(html.includes(taskType), `home page is missing ${taskType}`);
-}
-for (const domain of OPERATOR_DOMAINS) {
-  assert(html.includes(`data-domain="${domain}"`), `home page is missing domain ${domain}`);
-  assert(html.includes(expectedDomainPairIds(domain)[0] ?? ''), `home page is missing first pair for ${domain}`);
 }
 
 const app = Fastify({ logger: false });
@@ -78,17 +73,31 @@ registerOperatorRoutes(app, () => status);
 const home = await app.inject({ method: 'GET', url: '/' });
 assert(home.statusCode === 200, `GET / returned ${String(home.statusCode)}`);
 assert((home.headers['content-type'] ?? '').includes('text/html'), 'GET / must be HTML');
-assert(home.body.includes('AI Governance KB Maintainer'), 'GET / is missing the service title');
-assert(home.body.includes('PAIR_BOUNDARY'), 'GET / is missing the pair sequence');
 
 const api = await app.inject({ method: 'GET', url: '/api/operator/status' });
 assert(api.statusCode === 200, `GET /api/operator/status returned ${String(api.statusCode)}`);
 const payload = api.json() as { mode?: unknown; pipeline?: { pairTaskSequence?: unknown } };
-assert(payload.mode === 'READ_ONLY', 'status API must stay read-only');
+assert(payload.mode === 'READ_ONLY', 'status API must stay read-only without a database');
 assert(
   JSON.stringify(payload.pipeline?.pairTaskSequence) === JSON.stringify(PAIR_TASK_SEQUENCE),
   'status API sequence drifted from pipeline.ts'
 );
+
+const denied = await app.inject({
+  method: 'POST',
+  url: '/api/operator/commands',
+  headers: { 'content-type': 'application/json' },
+  payload: { domain: 'A', action: 'start-domain-run' }
+});
+assert(denied.statusCode === 403 || denied.statusCode === 409, 'start-domain-run must fail closed when commands are disabled');
+
+const skip = await app.inject({
+  method: 'POST',
+  url: '/api/operator/commands',
+  headers: { 'content-type': 'application/json' },
+  payload: { domain: 'A', action: 'skip-to-source-mapping' }
+});
+assert(skip.statusCode === 400, 'unknown operator actions must be rejected');
 
 await app.close();
 

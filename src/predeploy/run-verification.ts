@@ -42,6 +42,7 @@ const gates: Gate[] = [
   { id: 'SIR_DOMAIN_COHERENCE_RESOLVER', script: 'dist/orchestration/run-domain-coherence-resolver-check.js' },
   { id: 'SIR_DOMAIN_COHERENCE_ARTIFACT', script: 'dist/orchestration/run-domain-coherence-artifact-verifier-check.js' },
   { id: 'OPERATOR_BOARD', script: 'dist/operator/run-operator-board-check.js' },
+  { id: 'OPERATOR_RUNS', script: 'dist/operator/run-operator-run-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 
