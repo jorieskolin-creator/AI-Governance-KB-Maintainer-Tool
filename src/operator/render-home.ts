@@ -46,7 +46,7 @@ function pairGrid(card: OperatorDomainCard): string {
         .map((pair) => {
           const cell = pair.tasks[taskIndex];
           if (!cell) throw new Error(`Missing ${task.taskType} for ${pair.pairId}.`);
-          return `<td><span class="cell pending" title="${escapeHtml(cell.taskType)}">${escapeHtml(cell.status)}</span></td>`;
+          return `<td><span class="cell ${escapeHtml(cell.status.toLowerCase())}" title="${escapeHtml(cell.taskType)}">${escapeHtml(cell.status)}</span></td>`;
         })
         .join('');
       return `<tr>
@@ -70,13 +70,26 @@ function pairGrid(card: OperatorDomainCard): string {
   </table>`;
 }
 
+function commandButton(action: string, domain: string, command: { enabled: boolean; reason: string }, label: string): string {
+  const disabled = command.enabled ? '' : ' disabled';
+  return `<button type="submit" name="action" value="${escapeHtml(action)}" data-domain="${escapeHtml(domain)}"${disabled} title="${escapeHtml(command.reason)}">${escapeHtml(label)}</button>`;
+}
+
 function domainPanel(card: OperatorDomainCard): string {
   return `<article class="domain-panel" data-domain="${card.domain}">
     <header class="domain-head">
       <p class="kicker">Domain ${escapeHtml(card.domain)}</p>
       <h2>${escapeHtml(card.title)}</h2>
       <p class="meta">${escapeHtml(card.state.replaceAll('_', ' '))} · ${String(card.pairs.length)} pairs · ${String(card.pairs[0]?.tasks.length ?? 0)} SIR tasks each</p>
+      ${card.runId ? `<p class="meta">Run <code>${escapeHtml(card.runId)}</code></p>` : ''}
+      ${card.baselineSha256 ? `<p class="meta">Baseline <code>${escapeHtml(card.baselineSha256.slice(0, 12))}…</code></p>` : ''}
     </header>
+    <form class="commands" method="post" action="/api/operator/commands">
+      <input type="hidden" name="domain" value="${card.domain}">
+      ${commandButton('start-domain-run', card.domain, card.commands.startDomainRun, 'Start domain run')}
+      ${commandButton('run-next-task', card.domain, card.commands.runNextTask, card.commands.runNextTask.next ? `Run ${card.commands.runNextTask.next.pairId} ${card.commands.runNextTask.next.taskType}` : 'Run next eligible task')}
+      <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.runNextTask.reason)}</p>
+    </form>
     ${pairGrid(card)}
     <ol class="domain-unit">
       <li><span>Domain coherence</span><strong>locked until five pairs are VALIDATED</strong></li>
@@ -233,6 +246,22 @@ export function renderOperatorHome(status: OperatorStatus): string {
       letter-spacing: 0.08em;
     }
     .pending { color: var(--pending); background: rgba(111, 103, 92, 0.16); }
+    .completed { color: var(--pass); background: rgba(143, 179, 122, 0.16); }
+    .failed { color: #d9896f; background: rgba(217, 137, 111, 0.16); }
+    .started { color: var(--warn); background: rgba(212, 160, 23, 0.16); }
+    .commands { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin: 0 0 1rem; }
+    .commands button {
+      appearance: none;
+      border: 1px solid var(--brass);
+      background: #2a241c;
+      color: var(--paper);
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+      font: inherit;
+    }
+    .commands button:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--line); }
+    .command-reason { margin: 0; color: var(--subtle); font-size: 0.8rem; flex: 1 1 16rem; }
     .domain-unit {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -265,7 +294,7 @@ export function renderOperatorHome(status: OperatorStatus): string {
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. This page visualizes the production flow. It does not chat, approve, compile or start a run.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Slice 2 can freeze a baseline, start a domain run and advance only the next eligible SIR task. Approval and compile stay closed.</p>
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>
         <article><p class="kicker">Ready</p><strong class="${healthTone(status.health.ready === 'ready')}">${escapeHtml(status.health.ready)}</strong></article>
@@ -282,7 +311,18 @@ export function renderOperatorHome(status: OperatorStatus): string {
       ${panels}
     </section>
     <section class="note">
-      <p>No domain run is active. Pair IDs are derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Start-run, repair and approval commands remain closed. Machine-readable status: <a href="/api/operator/status"><code>/api/operator/status</code></a>. Health: <a href="/health/live"><code>/health/live</code></a> · <a href="/health/ready"><code>/health/ready</code></a>.</p>
+      <p>${status.findings.length ? 'Latest findings are listed below. ' : ''}Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
+      ${
+        status.findings.length
+          ? `<ul>${status.findings
+              .slice(0, 8)
+              .map(
+                (item) =>
+                  `<li><code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)} · ${escapeHtml(item.severity)} — ${escapeHtml(item.issue)}</li>`
+              )
+              .join('')}</ul>`
+          : ''
+      }
     </section>
   </main>
 </body>

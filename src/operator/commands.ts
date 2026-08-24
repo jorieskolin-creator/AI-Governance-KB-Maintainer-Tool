@@ -1,0 +1,254 @@
+import type { DomainId } from '../authoring/authoring-plan.js';
+import { getModelRoute } from '../ai/model-router.js';
+import { loadRepoBaselineArtifacts } from '../baseline/repo-artifacts.js';
+import { sealBaselineSnapshot, type BaselineSnapshot } from '../baseline/snapshot.js';
+import type { CognitiveTaskType, PairState } from '../domain/states.js';
+import {
+  canTransition,
+  expectedDomainPairIds,
+  PAIR_TASK_SEQUENCE,
+  pairTransitions
+} from '../orchestration/pipeline.js';
+import { resolveSirTaskContract, type ResolvableSirTaskType } from '../orchestration/sir-contract-resolver.js';
+import {
+  buildSourceContextPacket,
+  type AuthoringSourceRegisterRecord
+} from '../orchestration/source-context-packet.js';
+import {
+  createDomainRun,
+  createPairRun,
+  getBaselineSnapshotById,
+  getCompletedTaskTypes,
+  getLatestCompletedTaskArtifact,
+  getLatestDomainRun,
+  getPairRuns,
+  getTaskRunsForPairs,
+  updatePairState,
+  type PairRunRecord
+} from '../orchestration/store.js';
+import { runCognitiveTask } from '../orchestration/task-runner.js';
+import { loadCategoriesBaseline } from '../baseline/categories.js';
+import {
+  buildPairAuthoringPlan,
+  categoryBaselineRecord,
+  goldenReferenceRecord
+} from './authoring-context.js';
+import {
+  isOpenDomainState,
+  nextEligiblePairTask,
+  type EligiblePairSnapshot,
+  type NextEligibleTask
+} from './eligibility.js';
+import type { OperatorTaskStatus } from './eligibility.js';
+
+const TARGET_VERSION = '1.0.0';
+
+export function operatorCommandsEnabled(): boolean {
+  return process.env.OPERATOR_COMMANDS_ENABLED === 'true';
+}
+
+export function modelRoutesConfigured(): boolean {
+  try {
+    getModelRoute('WORKHORSE');
+    getModelRoute('REASONER');
+    getModelRoute('QUALITY_CHECKER');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function parseDomainId(value: unknown): DomainId {
+  if (value === 'A' || value === 'B' || value === 'C' || value === 'D' || value === 'E' || value === 'F') {
+    return value;
+  }
+  throw new Error('Domain must be one of A–F.');
+}
+
+function isResolvable(taskType: CognitiveTaskType): taskType is ResolvableSirTaskType {
+  return taskType !== 'DOMAIN_COHERENCE_REVIEW' && taskType !== 'LOCAL_REPAIR';
+}
+
+export function pairSnapshots(
+  expectedPairIds: readonly string[],
+  pairRuns: PairRunRecord[],
+  taskRuns: Array<{ pairRunId: string; taskType: CognitiveTaskType; status: 'STARTED' | 'COMPLETED' | 'FAILED' }>
+): EligiblePairSnapshot[] {
+  return expectedPairIds.map((pairId) => {
+    const run = pairRuns.find((item) => item.pairId === pairId);
+    const tasks = PAIR_TASK_SEQUENCE.map((taskType) => {
+      const latest = taskRuns.find((item) => item.pairRunId === run?.id && item.taskType === taskType);
+      return { taskType, status: (latest?.status ?? 'PENDING') as OperatorTaskStatus };
+    });
+    return {
+      pairId,
+      state: run?.state ?? 'NOT_STARTED',
+      tasks
+    };
+  });
+}
+
+export async function freezeRepoBaseline(): Promise<BaselineSnapshot> {
+  return sealBaselineSnapshot(loadRepoBaselineArtifacts());
+}
+
+export async function startDomainRun(domain: DomainId): Promise<{ domainRunId: string; baselineSha256: string }> {
+  if (!operatorCommandsEnabled()) {
+    throw new Error('Operator commands are disabled on this deployment.');
+  }
+  const existing = await getLatestDomainRun(domain);
+  if (existing && isOpenDomainState(existing.state)) {
+    throw new Error(`Domain ${domain} already has an open run.`);
+  }
+  const snapshot = await freezeRepoBaseline();
+  loadCategoriesBaseline();
+  const domainRunId = await createDomainRun({ domain, baselineSnapshotId: snapshot.id });
+  for (const pairId of expectedDomainPairIds(domain)) {
+    const pairRunId = await createPairRun({ domainRunId, pairId, targetVersion: TARGET_VERSION });
+    if (!canTransition(pairTransitions, 'DRAFT', 'AUTHORING')) {
+      throw new Error('Illegal pair transition DRAFT → AUTHORING.');
+    }
+    await updatePairState(pairRunId, 'AUTHORING');
+  }
+  return { domainRunId, baselineSha256: snapshot.sha256 };
+}
+
+function sourceRecordsForPlan(plan: ReturnType<typeof buildPairAuthoringPlan>): AuthoringSourceRegisterRecord[] {
+  const artifacts = loadRepoBaselineArtifacts();
+  const register = artifacts.find((item) => item.artifactType === 'SOURCE_REGISTER')?.content as {
+    sources: Array<{
+      id: string;
+      version_or_date: string;
+      verification_status: string;
+      last_verified_date: string;
+      effective_status: string;
+      authority_tier: string;
+      authority_type: string;
+      official_location: string;
+      roles_or_applicability_conditions?: string[];
+      licensing_storage_boundary: string;
+      domain_coverage: string[];
+    }>;
+  };
+  return plan.sourceUniverse.map((allowed) => {
+    const source = register.sources.find((item) => item.id === allowed.sourceId);
+    if (!source) throw new Error(`Source ${allowed.sourceId} is missing from the sealed register.`);
+    return {
+      sourceId: source.id,
+      versionOrDate: source.version_or_date,
+      verificationStatus: 'VERIFIED' as const,
+      lastVerifiedDate: source.last_verified_date,
+      effectiveStatus: source.effective_status === 'IN_FORCE' ? 'IN_FORCE' : 'PUBLISHED',
+      authorityTier: source.authority_tier,
+      authorityType: source.authority_type,
+      officialLocation: source.official_location,
+      applicabilityBoundary: (source.roles_or_applicability_conditions ?? ['Registered applicability boundary.']).join(' '),
+      licensingBoundary: source.licensing_storage_boundary,
+      domainCoverage: source.domain_coverage,
+      modelContextPolicy: 'METADATA_LOCATOR_ONLY' as const,
+      usageRightsReference: null
+    };
+  });
+}
+
+async function transitionAfterTask(pairRunId: string, pairState: PairState, taskType: CognitiveTaskType): Promise<void> {
+  if (taskType !== 'PAIR_COHERENCE_REVIEW') return;
+  const completed = await getCompletedTaskTypes(pairRunId);
+  if (!completed.has('PAIR_COHERENCE_REVIEW')) return;
+  const artifact = await getLatestCompletedTaskArtifact<{ passed?: boolean }>(pairRunId, 'PAIR_COHERENCE_REVIEW');
+  const next: PairState = artifact?.output.passed === true ? 'VALIDATED' : 'REPAIR_REQUIRED';
+  let current = pairState;
+  if (current !== 'VALIDATING') {
+    if (!canTransition(pairTransitions, current, 'VALIDATING')) {
+      throw new Error(`Illegal pair transition ${current} → VALIDATING.`);
+    }
+    await updatePairState(pairRunId, 'VALIDATING');
+    current = 'VALIDATING';
+  }
+  if (!canTransition(pairTransitions, current, next)) {
+    throw new Error(`Illegal pair transition ${current} → ${next}.`);
+  }
+  await updatePairState(pairRunId, next);
+}
+
+async function markRepairRequired(pairRunId: string, pairState: PairState): Promise<void> {
+  if (pairState === 'REPAIR_REQUIRED') return;
+  if (!canTransition(pairTransitions, pairState, 'REPAIR_REQUIRED')) {
+    throw new Error(`Illegal pair transition ${pairState} → REPAIR_REQUIRED.`);
+  }
+  await updatePairState(pairRunId, 'REPAIR_REQUIRED');
+}
+
+export async function runNextEligibleTask(domain: DomainId): Promise<{
+  domainRunId: string;
+  next: NextEligibleTask;
+  usedFallback: boolean;
+}> {
+  if (!operatorCommandsEnabled()) {
+    throw new Error('Operator commands are disabled on this deployment.');
+  }
+  if (!modelRoutesConfigured()) {
+    throw new Error('Model role routing is not configured.');
+  }
+  const run = await getLatestDomainRun(domain);
+  if (!run || !isOpenDomainState(run.state)) {
+    throw new Error(`No open domain ${domain} run.`);
+  }
+  const pairRuns = await getPairRuns(run.id);
+  const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
+  const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
+  const next = nextEligiblePairTask(domain, snapshots);
+  if ('blocked' in next) throw new Error(next.blocked);
+  if (!isResolvable(next.taskType)) {
+    throw new Error(`${next.taskType} is not an operator-admitted pair task.`);
+  }
+
+  const pairRun = pairRuns.find((item) => item.pairId === next.pairId);
+  if (!pairRun) throw new Error(`Pair run ${next.pairId} is missing.`);
+  const sealed = await getBaselineSnapshotById(run.baselineSnapshotId);
+  if (!sealed) throw new Error('Sealed baseline snapshot is missing.');
+  const snapshot: BaselineSnapshot = {
+    id: sealed.id,
+    sha256: sealed.sha256,
+    manifest: sealed.manifest as BaselineSnapshot['manifest']
+  };
+  const plan = buildPairAuthoringPlan({ domain, pairId: next.pairId, snapshot });
+  const sourceContextPacket =
+    next.taskType === 'SOURCE_MAPPING'
+      ? buildSourceContextPacket({
+          authoringPlan: plan,
+          sealedSourceRegisterVersion: plan.baseline.sourceRegisterVersion,
+          sealedSourceRegisterSha256: plan.baseline.sourceRegisterSha256,
+          registerRecords: sourceRecordsForPlan(plan),
+          locatorContexts: []
+        })
+      : undefined;
+
+  const contract = await resolveSirTaskContract({
+    pairRunId: pairRun.id,
+    taskType: next.taskType,
+    authoringPlan: plan,
+    categoryBaseline: categoryBaselineRecord(),
+    goldenReference: goldenReferenceRecord(),
+    sourceContextPacket
+  });
+
+  try {
+    const result = await runCognitiveTask({
+      pairRunId: pairRun.id,
+      contract,
+      completionContext: {
+        runId: run.id,
+        expectedPairId: plan.identity.pairId,
+        expectedCapabilityId: plan.identity.capabilityId,
+        expectedAntipatternId: plan.identity.antipatternId
+      }
+    });
+    await transitionAfterTask(pairRun.id, pairRun.state, next.taskType);
+    return { domainRunId: run.id, next, usedFallback: result.usedFallback };
+  } catch (error) {
+    await markRepairRequired(pairRun.id, pairRun.state);
+    throw error;
+  }
+}
+

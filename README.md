@@ -19,11 +19,11 @@ The branch now includes:
 - path-scoped local repair contracts;
 - A1/AP-A1 Golden Standard regression and mutation harness;
 - repository-held capability, anti-pattern and shared-definition schemas;
-- Railway deployment, `/health/ready` database-backed health gate, and a read-only operator home at `/`.
+- Railway deployment, `/health/ready` database-backed health gate, a read-only operator home at `/`, and Slice 2 run commands (`start domain run`, `run next eligible task`) gated by `OPERATOR_COMMANDS_ENABLED`;
 
 ## Still deliberately pending
 
-- operator commands to start a domain run, advance SIR tasks, or record external approval;
+- local repair, domain-coherence execution from the operator UI, and external-approval intake;
 - exact model/provider assignments in Railway role variables;
 - exact approved canonical A1/AP-A1 JSON files in `golden/fixtures/`;
 - complete canonical JSON compiler and publication compiler;

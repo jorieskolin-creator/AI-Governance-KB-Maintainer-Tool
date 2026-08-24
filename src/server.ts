@@ -2,7 +2,9 @@ import Fastify from 'fastify';
 import { checkDatabaseReady, closeDatabase } from './db/client.js';
 import { runMigrations } from './db/migrate.js';
 import { buildOperatorStatus } from './operator/board.js';
+import { loadDomainOverlay } from './operator/overlay.js';
 import { registerOperatorRoutes } from './operator/routes.js';
+import { OPERATOR_DOMAINS } from './operator/board.js';
 
 export async function buildApp() {
   const app = Fastify({ logger: true });
@@ -46,7 +48,14 @@ export async function buildApp() {
     } catch {
       database = { connected: false, schemaReady: false };
     }
-    return buildOperatorStatus({ database });
+    const dbReady = database.connected && database.schemaReady;
+    const overlays = dbReady
+      ? await Promise.all(OPERATOR_DOMAINS.map((domain) => loadDomainOverlay(domain, true)))
+      : [];
+    return buildOperatorStatus({
+      database,
+      overlays: overlays.filter((item): item is NonNullable<typeof item> => Boolean(item))
+    });
   });
 
   app.addHook('onClose', async () => {

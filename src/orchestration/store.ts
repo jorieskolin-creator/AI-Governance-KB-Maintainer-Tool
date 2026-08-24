@@ -197,3 +197,218 @@ export async function persistModelCall(input: {
     ]
   );
 }
+
+export interface DomainRunRecord {
+  id: string;
+  domain: string;
+  state: DomainState;
+  baselineSnapshotId: string;
+  baselineSha256: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PairRunRecord {
+  id: string;
+  domainRunId: string;
+  pairId: string;
+  state: PairState;
+  targetVersion: string;
+}
+
+export interface TaskRunRecord {
+  id: string;
+  pairRunId: string;
+  taskType: CognitiveTaskType;
+  status: 'STARTED' | 'COMPLETED' | 'FAILED';
+  inputHash: string;
+  outputHash: string | null;
+  createdAt: Date;
+  completedAt: Date | null;
+}
+
+export interface FindingRecord {
+  id: string;
+  pairRunId: string | null;
+  checkId: string;
+  severity: string;
+  objectId: string;
+  objectPath: string;
+  issue: string;
+  resolved: boolean;
+  createdAt: Date;
+}
+
+export interface ModelCallRecord {
+  id: string;
+  taskRunId: string | null;
+  role: string;
+  provider: string;
+  model: string;
+  isFallback: boolean;
+  status: string;
+  latencyMs: number | null;
+  createdAt: Date;
+}
+
+export async function getBaselineSnapshotById(id: string): Promise<{
+  id: string;
+  sha256: string;
+  manifest: unknown;
+} | undefined> {
+  const result = await getDbPool().query<{ id: string; sha256: string; manifest: unknown }>(
+    'select id, sha256, manifest from baseline_snapshots where id = $1',
+    [id]
+  );
+  return result.rows[0];
+}
+
+export async function getLatestDomainRun(domain: string): Promise<DomainRunRecord | undefined> {
+  const result = await getDbPool().query<{
+    id: string;
+    domain: string;
+    state: DomainState;
+    baseline_snapshot_id: string;
+    sha256: string;
+    created_at: Date;
+    updated_at: Date;
+  }>(
+    `select d.id, d.domain, d.state, d.baseline_snapshot_id, b.sha256, d.created_at, d.updated_at
+     from domain_runs d
+     join baseline_snapshots b on b.id = d.baseline_snapshot_id
+     where d.domain = $1
+     order by d.created_at desc
+     limit 1`,
+    [domain]
+  );
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    id: row.id,
+    domain: row.domain,
+    state: row.state,
+    baselineSnapshotId: row.baseline_snapshot_id,
+    baselineSha256: row.sha256,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+export async function getPairRuns(domainRunId: string): Promise<PairRunRecord[]> {
+  const result = await getDbPool().query<{
+    id: string;
+    domain_run_id: string;
+    pair_id: string;
+    state: PairState;
+    target_version: string;
+  }>(
+    `select id, domain_run_id, pair_id, state, target_version
+     from pair_runs where domain_run_id = $1`,
+    [domainRunId]
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    domainRunId: row.domain_run_id,
+    pairId: row.pair_id,
+    state: row.state,
+    targetVersion: row.target_version
+  }));
+}
+
+export async function getTaskRunsForPairs(pairRunIds: string[]): Promise<TaskRunRecord[]> {
+  if (pairRunIds.length === 0) return [];
+  const result = await getDbPool().query<{
+    id: string;
+    pair_run_id: string;
+    task_type: CognitiveTaskType;
+    status: 'STARTED' | 'COMPLETED' | 'FAILED';
+    input_hash: string;
+    output_hash: string | null;
+    created_at: Date;
+    completed_at: Date | null;
+  }>(
+    `select id, pair_run_id, task_type, status, input_hash, output_hash, created_at, completed_at
+     from task_runs
+     where pair_run_id = any($1::uuid[])
+     order by created_at desc`,
+    [pairRunIds]
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    pairRunId: row.pair_run_id,
+    taskType: row.task_type,
+    status: row.status,
+    inputHash: row.input_hash,
+    outputHash: row.output_hash,
+    createdAt: row.created_at,
+    completedAt: row.completed_at
+  }));
+}
+
+export async function getOpenFindings(domainRunId: string): Promise<FindingRecord[]> {
+  const result = await getDbPool().query<{
+    id: string;
+    pair_run_id: string | null;
+    check_id: string;
+    severity: string;
+    object_id: string;
+    object_path: string;
+    issue: string;
+    resolved: boolean;
+    created_at: Date;
+  }>(
+    `select v.id, v.pair_run_id, v.check_id, v.severity, v.object_id, v.object_path, v.issue, v.resolved, v.created_at
+     from validation_findings v
+     left join pair_runs p on p.id = v.pair_run_id
+     where v.domain_run_id = $1 or p.domain_run_id = $1
+     order by v.created_at desc
+     limit 20`,
+    [domainRunId]
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    pairRunId: row.pair_run_id,
+    checkId: row.check_id,
+    severity: row.severity,
+    objectId: row.object_id,
+    objectPath: row.object_path,
+    issue: row.issue,
+    resolved: row.resolved,
+    createdAt: row.created_at
+  }));
+}
+
+export async function getRecentModelCalls(pairRunIds: string[]): Promise<ModelCallRecord[]> {
+  if (pairRunIds.length === 0) return [];
+  const result = await getDbPool().query<{
+    id: string;
+    task_run_id: string | null;
+    role: string;
+    provider: string;
+    model: string;
+    is_fallback: boolean;
+    status: string;
+    latency_ms: number | null;
+    created_at: Date;
+  }>(
+    `select m.id, m.task_run_id, m.role, m.provider, m.model, m.is_fallback, m.status, m.latency_ms, m.created_at
+     from model_calls m
+     left join task_runs t on t.id = m.task_run_id
+     where t.pair_run_id = any($1::uuid[])
+     order by m.created_at desc
+     limit 20`,
+    [pairRunIds]
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    taskRunId: row.task_run_id,
+    role: row.role,
+    provider: row.provider,
+    model: row.model,
+    isFallback: row.is_fallback,
+    status: row.status,
+    latencyMs: row.latency_ms,
+    createdAt: row.created_at
+  }));
+}
+

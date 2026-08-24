@@ -8,8 +8,11 @@ import {
   expectedDomainPairIds,
   PAIR_TASK_SEQUENCE
 } from '../orchestration/pipeline.js';
+import type { CommandFlag } from './eligibility.js';
+import type { OperatorTaskStatus } from './eligibility.js';
+import type { DomainRunOverlay } from './overlay.js';
 
-export const OPERATOR_SLICE = 'operator-home-v1' as const;
+export const OPERATOR_SLICE = 'operator-run-v2' as const;
 export const OPERATOR_SERVICE = 'ai-governance-kb-maintainer-tool' as const;
 
 export const OPERATOR_DOMAINS: readonly DomainId[] = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -35,34 +38,38 @@ export interface OperatorHealth {
 
 export interface OperatorTaskCell {
   taskType: CognitiveTaskType;
-  status: 'PENDING';
+  status: OperatorTaskStatus;
+  inputHash?: string;
+  outputHash?: string;
 }
 
 export interface OperatorPairColumn {
   pairId: string;
   capabilityId: string;
   antipatternId: string;
-  state: 'NOT_STARTED';
+  state: string;
   tasks: OperatorTaskCell[];
 }
 
 export interface OperatorDomainCard {
   domain: DomainId;
   title: string;
-  state: 'NOT_STARTED';
+  state: string;
+  runId?: string;
+  baselineSha256?: string;
   pairIds: readonly string[];
   pairs: OperatorPairColumn[];
-}
-
-export interface OperatorCommand {
-  enabled: false;
-  reason: string;
+  commands: {
+    startDomainRun: CommandFlag;
+    runNextTask: CommandFlag;
+    recordApproval: CommandFlag;
+  };
 }
 
 export interface OperatorStatus {
   service: typeof OPERATOR_SERVICE;
   slice: typeof OPERATOR_SLICE;
-  mode: 'READ_ONLY';
+  mode: 'READ_ONLY' | 'OPERATOR';
   health: OperatorHealth;
   pipeline: {
     pairTaskSequence: readonly CognitiveTaskType[];
@@ -70,11 +77,8 @@ export interface OperatorStatus {
     domainFlow: readonly DomainFlowStep[];
   };
   domains: OperatorDomainCard[];
-  commands: {
-    startDomainRun: OperatorCommand;
-    runNextTask: OperatorCommand;
-    recordApproval: OperatorCommand;
-  };
+  findings: Array<{ objectId: string; checkId: string; severity: string; issue: string }>;
+  modelCalls: Array<{ role: string; provider: string; model: string; status: string; isFallback: boolean }>;
 }
 
 export interface DomainCoverageTitle {
@@ -131,42 +135,88 @@ export function flowLabel(step: DomainFlowStep): string {
     .join(' ');
 }
 
-const SLICE_REASON = 'Slice 1 is a read-only operator board. Commands stay closed until Slice 2.';
+const CLOSED: CommandFlag = {
+  enabled: false,
+  reason: 'Database is not ready.'
+};
+
+const APPROVAL_CLOSED: CommandFlag = {
+  enabled: false,
+  reason: 'External approval intake stays closed. APPROVED is not granted in this UI.'
+};
 
 export function buildOperatorStatus(input: {
   database: { connected: boolean; schemaReady: boolean };
   domainTitles?: readonly DomainCoverageTitle[];
+  overlays?: readonly DomainRunOverlay[];
 }): OperatorStatus {
   const titles = input.domainTitles ?? loadDomainCoverageTitles();
+  const dbReady = input.database.connected && input.database.schemaReady;
+  const findings: OperatorStatus['findings'] = [];
+  const modelCalls: OperatorStatus['modelCalls'] = [];
+
   const domains = titles.map((entry) => {
+    const overlay = input.overlays?.find((item) => item.domain === entry.domain);
     const pairIds = expectedDomainPairIds(entry.domain);
     const capabilityIds = expectedDomainCapabilityIds(entry.domain);
+    if (overlay?.findings.length) {
+      findings.push(
+        ...overlay.findings.map((item) => ({
+          objectId: item.objectId,
+          checkId: item.checkId,
+          severity: item.severity,
+          issue: item.issue
+        }))
+      );
+    }
+    if (overlay?.modelCalls.length) {
+      modelCalls.push(
+        ...overlay.modelCalls.map((item) => ({
+          role: item.role,
+          provider: item.provider,
+          model: item.model,
+          status: item.status,
+          isFallback: item.isFallback
+        }))
+      );
+    }
     return {
       domain: entry.domain,
       title: entry.title,
-      state: 'NOT_STARTED' as const,
+      state: overlay?.state ?? 'NOT_STARTED',
+      runId: overlay?.runId || undefined,
+      baselineSha256: overlay?.baselineSha256 || undefined,
       pairIds,
       pairs: pairIds.map((pairId, index) => {
         const capabilityId = capabilityIds[index];
         if (!capabilityId) throw new Error(`Missing capability id for ${pairId}.`);
+        const live = overlay?.pairs.find((pair) => pair.pairId === pairId);
         return {
           pairId,
           capabilityId,
           antipatternId: `AP-${capabilityId}`,
-          state: 'NOT_STARTED' as const,
-          tasks: PAIR_TASK_SEQUENCE.map((taskType) => ({ taskType, status: 'PENDING' as const }))
+          state: live?.state ?? 'NOT_STARTED',
+          tasks: PAIR_TASK_SEQUENCE.map((taskType) => {
+            const cell = live?.tasks.find((task) => task.taskType === taskType);
+            return { taskType, status: cell?.status ?? 'PENDING' };
+          })
         };
-      })
+      }),
+      commands: overlay?.commands ?? {
+        startDomainRun: CLOSED,
+        runNextTask: CLOSED,
+        recordApproval: APPROVAL_CLOSED
+      }
     };
   });
 
   return {
     service: OPERATOR_SERVICE,
     slice: OPERATOR_SLICE,
-    mode: 'READ_ONLY',
+    mode: dbReady ? 'OPERATOR' : 'READ_ONLY',
     health: {
       live: 'ok',
-      ready: input.database.connected && input.database.schemaReady ? 'ready' : 'not_ready',
+      ready: dbReady ? 'ready' : 'not_ready',
       database: input.database
     },
     pipeline: {
@@ -175,10 +225,7 @@ export function buildOperatorStatus(input: {
       domainFlow: DOMAIN_FLOW
     },
     domains,
-    commands: {
-      startDomainRun: { enabled: false, reason: SLICE_REASON },
-      runNextTask: { enabled: false, reason: SLICE_REASON },
-      recordApproval: { enabled: false, reason: SLICE_REASON }
-    }
+    findings,
+    modelCalls
   };
 }

@@ -1,0 +1,325 @@
+{
+  "id": "AI-GOV-CATEGORIES-BASELINE",
+  "version": "1.1.0",
+  "status": "APPROVED_AUTHORING_REFERENCE",
+  "source_document": "AI_Governance_Categories_and_Anti-Patterns_v1.1.0",
+  "authority": {
+    "normative_for": [
+      "DOMAIN_ALLOCATION",
+      "PAIR_IDENTITY",
+      "PAIR_TITLE"
+    ],
+    "does_not": [
+      "APPROVE_A_CATEGORY_PACKAGE",
+      "AUTHOR_SEMANTIC_CONTENT"
+    ]
+  },
+  "domains": [
+    {
+      "domain": "A",
+      "title": "Purpose, value, context, roles and classification",
+      "pairs": [
+        {
+          "capabilityId": "A1",
+          "antipatternId": "AP-A1",
+          "pairId": "A1_AP-A1",
+          "capabilityTitle": "Intended purpose and use boundaries",
+          "antipatternTitle": "Undefined or elastic intended purpose",
+          "capabilityBoundarySummary": "Intended purpose and use boundaries",
+          "antipatternBoundarySummary": "Undefined or elastic intended purpose"
+        },
+        {
+          "capabilityId": "A2",
+          "antipatternId": "AP-A2",
+          "pairId": "A2_AP-A2",
+          "capabilityTitle": "AI suitability, proportionality and value hypothesis",
+          "antipatternTitle": "AI-first solutionism or value theatre",
+          "capabilityBoundarySummary": "AI suitability, proportionality and value hypothesis",
+          "antipatternBoundarySummary": "AI-first solutionism or value theatre"
+        },
+        {
+          "capabilityId": "A3",
+          "antipatternId": "AP-A3",
+          "pairId": "A3_AP-A3",
+          "capabilityTitle": "Value-chain roles and responsibility boundaries",
+          "antipatternTitle": "Role ambiguity and responsibility displacement",
+          "capabilityBoundarySummary": "Value-chain roles and responsibility boundaries",
+          "antipatternBoundarySummary": "Role ambiguity and responsibility displacement"
+        },
+        {
+          "capabilityId": "A4",
+          "antipatternId": "AP-A4",
+          "pairId": "A4_AP-A4",
+          "capabilityTitle": "Risk, legal and regulatory classification",
+          "antipatternTitle": "Superficial or static classification",
+          "capabilityBoundarySummary": "Risk, legal and regulatory classification",
+          "antipatternBoundarySummary": "Superficial or static classification"
+        },
+        {
+          "capabilityId": "A5",
+          "antipatternId": "AP-A5",
+          "pairId": "A5_AP-A5",
+          "capabilityTitle": "Lifecycle stage and transition boundary",
+          "antipatternTitle": "Prototype-to-production drift",
+          "capabilityBoundarySummary": "Lifecycle stage and transition boundary",
+          "antipatternBoundarySummary": "Prototype-to-production drift"
+        }
+      ]
+    },
+    {
+      "domain": "B",
+      "title": "Data, privacy, confidentiality and intellectual property",
+      "pairs": [
+        {
+          "capabilityId": "B1",
+          "antipatternId": "AP-B1",
+          "pairId": "B1_AP-B1",
+          "capabilityTitle": "Data inventory, provenance and lineage",
+          "antipatternTitle": "Invisible or untraceable data flows",
+          "capabilityBoundarySummary": "Data inventory, provenance and lineage",
+          "antipatternBoundarySummary": "Invisible or untraceable data flows"
+        },
+        {
+          "capabilityId": "B2",
+          "antipatternId": "AP-B2",
+          "pairId": "B2_AP-B2",
+          "capabilityTitle": "Purpose limitation and data minimization",
+          "antipatternTitle": "Convenience-driven data accumulation",
+          "capabilityBoundarySummary": "Purpose limitation and data minimization",
+          "antipatternBoundarySummary": "Convenience-driven data accumulation"
+        },
+        {
+          "capabilityId": "B3",
+          "antipatternId": "AP-B3",
+          "pairId": "B3_AP-B3",
+          "capabilityTitle": "Privacy and data-subject governance",
+          "antipatternTitle": "Privacy-by-documentation only",
+          "capabilityBoundarySummary": "Privacy and data-subject governance",
+          "antipatternBoundarySummary": "Privacy-by-documentation only"
+        },
+        {
+          "capabilityId": "B4",
+          "antipatternId": "AP-B4",
+          "pairId": "B4_AP-B4",
+          "capabilityTitle": "Confidentiality and information-boundary control",
+          "antipatternTitle": "Confidentiality leakage through AI channels",
+          "capabilityBoundarySummary": "Confidentiality and information-boundary control",
+          "antipatternBoundarySummary": "Confidentiality leakage through AI channels"
+        },
+        {
+          "capabilityId": "B5",
+          "antipatternId": "AP-B5",
+          "pairId": "B5_AP-B5",
+          "capabilityTitle": "Intellectual property, licensing and content rights",
+          "antipatternTitle": "Unverified rights and output ownership",
+          "capabilityBoundarySummary": "Intellectual property, licensing and content rights",
+          "antipatternBoundarySummary": "Unverified rights and output ownership"
+        }
+      ]
+    },
+    {
+      "domain": "C",
+      "title": "Models, agents, providers, tools and supply chain",
+      "pairs": [
+        {
+          "capabilityId": "C1",
+          "antipatternId": "AP-C1",
+          "pairId": "C1_AP-C1",
+          "capabilityTitle": "Model, agent and component inventory",
+          "antipatternTitle": "Shadow AI component usage",
+          "capabilityBoundarySummary": "Model, agent and component inventory",
+          "antipatternBoundarySummary": "Shadow AI component usage"
+        },
+        {
+          "capabilityId": "C2",
+          "antipatternId": "AP-C2",
+          "pairId": "C2_AP-C2",
+          "capabilityTitle": "Model and provider suitability",
+          "antipatternTitle": "Convenience- or brand-driven model selection",
+          "capabilityBoundarySummary": "Model and provider suitability",
+          "antipatternBoundarySummary": "Convenience- or brand-driven model selection"
+        },
+        {
+          "capabilityId": "C3",
+          "antipatternId": "AP-C3",
+          "pairId": "C3_AP-C3",
+          "capabilityTitle": "Agent autonomy and tool permissioning",
+          "antipatternTitle": "Unbounded or implicit agent authority",
+          "capabilityBoundarySummary": "Agent autonomy and tool permissioning",
+          "antipatternBoundarySummary": "Unbounded or implicit agent authority"
+        },
+        {
+          "capabilityId": "C4",
+          "antipatternId": "AP-C4",
+          "pairId": "C4_AP-C4",
+          "capabilityTitle": "Provider, vendor and contractual governance",
+          "antipatternTitle": "Vendor assurance substitution",
+          "capabilityBoundarySummary": "Provider, vendor and contractual governance",
+          "antipatternBoundarySummary": "Vendor assurance substitution"
+        },
+        {
+          "capabilityId": "C5",
+          "antipatternId": "AP-C5",
+          "pairId": "C5_AP-C5",
+          "capabilityTitle": "AI supply-chain integrity and change control",
+          "antipatternTitle": "Silent supply-chain drift",
+          "capabilityBoundarySummary": "AI supply-chain integrity and change control",
+          "antipatternBoundarySummary": "Silent supply-chain drift"
+        }
+      ]
+    },
+    {
+      "domain": "D",
+      "title": "Architecture, security, robustness, safety and evaluation",
+      "pairs": [
+        {
+          "capabilityId": "D1",
+          "antipatternId": "AP-D1",
+          "pairId": "D1_AP-D1",
+          "capabilityTitle": "Secure and isolated AI architecture",
+          "antipatternTitle": "Implicit-trust AI architecture",
+          "capabilityBoundarySummary": "Secure and isolated AI architecture",
+          "antipatternBoundarySummary": "Implicit-trust AI architecture"
+        },
+        {
+          "capabilityId": "D2",
+          "antipatternId": "AP-D2",
+          "pairId": "D2_AP-D2",
+          "capabilityTitle": "Functional quality, accuracy and reliability",
+          "antipatternTitle": "Demo-based quality assurance",
+          "capabilityBoundarySummary": "Functional quality, accuracy and reliability",
+          "antipatternBoundarySummary": "Demo-based quality assurance"
+        },
+        {
+          "capabilityId": "D3",
+          "antipatternId": "AP-D3",
+          "pairId": "D3_AP-D3",
+          "capabilityTitle": "AI-specific security and adversarial resilience",
+          "antipatternTitle": "Prompt-only or model-mediated security boundary",
+          "capabilityBoundarySummary": "AI-specific security and adversarial resilience",
+          "antipatternBoundarySummary": "Prompt-only or model-mediated security boundary"
+        },
+        {
+          "capabilityId": "D4",
+          "antipatternId": "AP-D4",
+          "pairId": "D4_AP-D4",
+          "capabilityTitle": "Traceability, reproducibility and observability",
+          "antipatternTitle": "Opaque and non-reproducible execution",
+          "capabilityBoundarySummary": "Traceability, reproducibility and observability",
+          "antipatternBoundarySummary": "Opaque and non-reproducible execution"
+        },
+        {
+          "capabilityId": "D5",
+          "antipatternId": "AP-D5",
+          "pairId": "D5_AP-D5",
+          "capabilityTitle": "Safety, failure handling and recovery",
+          "antipatternTitle": "Fail-open AI operation",
+          "capabilityBoundarySummary": "Safety, failure handling and recovery",
+          "antipatternBoundarySummary": "Fail-open AI operation"
+        }
+      ]
+    },
+    {
+      "domain": "E",
+      "title": "Human impact, rights, fairness, transparency, oversight and recourse",
+      "pairs": [
+        {
+          "capabilityId": "E1",
+          "antipatternId": "AP-E1",
+          "pairId": "E1_AP-E1",
+          "capabilityTitle": "Human and fundamental-rights impact",
+          "antipatternTitle": "User-only impact framing",
+          "capabilityBoundarySummary": "Human and fundamental-rights impact",
+          "antipatternBoundarySummary": "User-only impact framing"
+        },
+        {
+          "capabilityId": "E2",
+          "antipatternId": "AP-E2",
+          "pairId": "E2_AP-E2",
+          "capabilityTitle": "Fairness and non-discrimination",
+          "antipatternTitle": "Aggregate-performance fairness",
+          "capabilityBoundarySummary": "Fairness and non-discrimination",
+          "antipatternBoundarySummary": "Aggregate-performance fairness"
+        },
+        {
+          "capabilityId": "E3",
+          "antipatternId": "AP-E3",
+          "pairId": "E3_AP-E3",
+          "capabilityTitle": "Transparency and communication",
+          "antipatternTitle": "Decorative or incomplete transparency",
+          "capabilityBoundarySummary": "Transparency and communication",
+          "antipatternBoundarySummary": "Decorative or incomplete transparency"
+        },
+        {
+          "capabilityId": "E4",
+          "antipatternId": "AP-E4",
+          "pairId": "E4_AP-E4",
+          "capabilityTitle": "Meaningful human oversight",
+          "antipatternTitle": "Rubber-stamp oversight",
+          "capabilityBoundarySummary": "Meaningful human oversight",
+          "antipatternBoundarySummary": "Rubber-stamp oversight"
+        },
+        {
+          "capabilityId": "E5",
+          "antipatternId": "AP-E5",
+          "pairId": "E5_AP-E5",
+          "capabilityTitle": "Contestability, correction, accessibility and AI literacy",
+          "antipatternTitle": "No practical recourse or competence",
+          "capabilityBoundarySummary": "Contestability, correction, accessibility and AI literacy",
+          "antipatternBoundarySummary": "No practical recourse or competence"
+        }
+      ]
+    },
+    {
+      "domain": "F",
+      "title": "Accountability, evidence, risk decisions and lifecycle governance",
+      "pairs": [
+        {
+          "capabilityId": "F1",
+          "antipatternId": "AP-F1",
+          "pairId": "F1_AP-F1",
+          "capabilityTitle": "Ownership and accountable operating model",
+          "antipatternTitle": "Committee accountability without individual ownership",
+          "capabilityBoundarySummary": "Ownership and accountable operating model",
+          "antipatternBoundarySummary": "Committee accountability without individual ownership"
+        },
+        {
+          "capabilityId": "F2",
+          "antipatternId": "AP-F2",
+          "pairId": "F2_AP-F2",
+          "capabilityTitle": "Compliance evidence and documentation integrity",
+          "antipatternTitle": "Compliance by assertion or document volume",
+          "capabilityBoundarySummary": "Compliance evidence and documentation integrity",
+          "antipatternBoundarySummary": "Compliance by assertion or document volume"
+        },
+        {
+          "capabilityId": "F3",
+          "antipatternId": "AP-F3",
+          "pairId": "F3_AP-F3",
+          "capabilityTitle": "Risk, control and residual-risk management",
+          "antipatternTitle": "Risk inventory without risk control",
+          "capabilityBoundarySummary": "Risk, control and residual-risk management",
+          "antipatternBoundarySummary": "Risk inventory without risk control"
+        },
+        {
+          "capabilityId": "F4",
+          "antipatternId": "AP-F4",
+          "pairId": "F4_AP-F4",
+          "capabilityTitle": "Decision rights, authorization and escalation",
+          "antipatternTitle": "Calendar-driven or ambiguous governance decisions",
+          "capabilityBoundarySummary": "Decision rights, authorization and escalation",
+          "antipatternBoundarySummary": "Calendar-driven or ambiguous governance decisions"
+        },
+        {
+          "capabilityId": "F5",
+          "antipatternId": "AP-F5",
+          "pairId": "F5_AP-F5",
+          "capabilityTitle": "Monitoring, incidents, change, re-evaluation and retirement",
+          "antipatternTitle": "Approval-as-end-state governance",
+          "capabilityBoundarySummary": "Monitoring, incidents, change, re-evaluation and retirement",
+          "antipatternBoundarySummary": "Approval-as-end-state governance"
+        }
+      ]
+    }
+  ]
+}
