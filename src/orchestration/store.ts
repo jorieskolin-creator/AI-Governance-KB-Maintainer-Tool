@@ -58,6 +58,15 @@ export async function createTaskRun(input: {
   const result = await getDbPool().query<{ id: string }>(
     `insert into task_runs(pair_run_id, task_type, target_object_id, status, input_hash, task_contract)
      values ($1, $2, $3, 'STARTED', $4, $5::jsonb)
+     on conflict (pair_run_id, task_type, input_hash)
+     do update set
+       status = 'STARTED',
+       retry_count = task_runs.retry_count + 1,
+       task_contract = excluded.task_contract,
+       output = null,
+       output_hash = null,
+       completed_at = null
+     where task_runs.status is distinct from 'COMPLETED'
      returning id`,
     [
       input.pairRunId,
@@ -68,8 +77,16 @@ export async function createTaskRun(input: {
     ]
   );
   const row = result.rows[0];
-  if (!row) throw new Error('Failed to create task run.');
+  if (!row) {
+    throw new Error(
+      `Refusing to reopen COMPLETED ${input.contract.taskType} for the same input hash.`
+    );
+  }
   return row.id;
+}
+
+export function canReopenTaskRun(status: 'STARTED' | 'COMPLETED' | 'FAILED'): boolean {
+  return status !== 'COMPLETED';
 }
 
 export async function completeTaskRun(input: {

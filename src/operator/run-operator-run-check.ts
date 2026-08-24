@@ -4,6 +4,7 @@ import { requestBody, supportsCustomTemperature } from '../ai/provider-client.js
 import { loadCategoriesBaseline } from '../baseline/categories.js';
 import { previewRepoBaselineManifest } from '../baseline/repo-artifacts.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
+import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan } from './authoring-context.js';
 import { commandAvailability, nextEligiblePairTask } from './eligibility.js';
@@ -97,6 +98,9 @@ const retryLater = nextEligiblePairTask('A', [
   { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
 ]);
 assert(!('blocked' in retryLater) && retryLater.taskType === 'AP_FAILURE_MODEL', 'failed later tasks retry in place');
+assert(canReopenTaskRun('FAILED') === true, 'failed task runs must be reopenable');
+assert(canReopenTaskRun('STARTED') === true, 'interrupted task runs must be reopenable');
+assert(canReopenTaskRun('COMPLETED') === false, 'completed task runs must keep persistence identity');
 
 const availability = commandAvailability({
   databaseReady: true,
@@ -166,6 +170,7 @@ console.log(
       sequentialAdmission: 'PASS',
       repairBlocksAdvance: 'PASS',
       failedTaskRetriesInPlace: 'PASS',
+      completedTaskIdentityHeld: 'PASS',
       gpt56OmitsTemperature: 'PASS',
       modelRoutingFailClosed: 'PASS',
       authoringPlanPairId: plan.planId
