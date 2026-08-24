@@ -179,6 +179,19 @@ async function markRepairRequired(pairRunId: string, pairState: PairState): Prom
   await updatePairState(pairRunId, 'REPAIR_REQUIRED');
 }
 
+function isProviderRouteFailure(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('failed primary and fallback routes');
+}
+
+async function reopenForRetry(pairRunId: string, pairState: PairState): Promise<PairState> {
+  if (pairState !== 'REPAIR_REQUIRED') return pairState;
+  if (!canTransition(pairTransitions, 'REPAIR_REQUIRED', 'AUTHORING')) {
+    throw new Error('Illegal pair transition REPAIR_REQUIRED → AUTHORING.');
+  }
+  await updatePairState(pairRunId, 'AUTHORING');
+  return 'AUTHORING';
+}
+
 export async function runNextEligibleTask(domain: DomainId): Promise<{
   domainRunId: string;
   next: NextEligibleTask;
@@ -233,6 +246,8 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     sourceContextPacket
   });
 
+  const pairState = await reopenForRetry(pairRun.id, pairRun.state);
+
   try {
     const result = await runCognitiveTask({
       pairRunId: pairRun.id,
@@ -244,11 +259,12 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
         expectedAntipatternId: plan.identity.antipatternId
       }
     });
-    await transitionAfterTask(pairRun.id, pairRun.state, next.taskType);
+    await transitionAfterTask(pairRun.id, pairState, next.taskType);
     return { domainRunId: run.id, next, usedFallback: result.usedFallback };
   } catch (error) {
-    await markRepairRequired(pairRun.id, pairRun.state);
+    if (!isProviderRouteFailure(error)) {
+      await markRepairRequired(pairRun.id, pairState);
+    }
     throw error;
   }
 }
-

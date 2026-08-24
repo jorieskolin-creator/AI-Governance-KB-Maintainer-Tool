@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { requestBody, supportsCustomTemperature } from '../ai/provider-client.js';
 import { loadCategoriesBaseline } from '../baseline/categories.js';
 import { previewRepoBaselineManifest } from '../baseline/repo-artifacts.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
@@ -49,7 +50,22 @@ const blockedRepair = nextEligiblePairTask('A', [
   { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
   { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
 ]);
-assert('blocked' in blockedRepair, 'repair-required pairs must block the next task');
+assert('blocked' in blockedRepair, 'repair-required pairs with no failed task must block advance');
+
+const failedBoundary = PAIR_TASK_SEQUENCE.map((taskType) => ({
+  taskType,
+  status: taskType === 'PAIR_BOUNDARY' ? ('FAILED' as const) : ('PENDING' as const)
+}));
+const retryFailed = nextEligiblePairTask('A', [
+  { pairId: 'A1_AP-A1', state: 'REPAIR_REQUIRED', tasks: failedBoundary },
+  { pairId: 'A2_AP-A2', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A3_AP-A3', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
+]);
+assert(!('blocked' in retryFailed), 'a failed PAIR_BOUNDARY must be retryable');
+assert(!('blocked' in retryFailed) && retryFailed.taskType === 'PAIR_BOUNDARY', 'retry must not skip PAIR_BOUNDARY');
+assert(!('blocked' in retryFailed) && retryFailed.pairId === 'A1_AP-A1', 'retry must not skip to another pair');
 
 const completedBoundary = PAIR_TASK_SEQUENCE.map((taskType) => ({
   taskType,
@@ -63,6 +79,24 @@ const second = nextEligiblePairTask('A', [
   { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
 ]);
 assert(!('blocked' in second) && second.taskType === 'AP_FAILURE_MODEL', 'second task must stay sequential');
+
+const failedLater = PAIR_TASK_SEQUENCE.map((taskType) => ({
+  taskType,
+  status:
+    taskType === 'PAIR_BOUNDARY'
+      ? ('COMPLETED' as const)
+      : taskType === 'AP_FAILURE_MODEL'
+        ? ('FAILED' as const)
+        : ('PENDING' as const)
+}));
+const retryLater = nextEligiblePairTask('A', [
+  { pairId: 'A1_AP-A1', state: 'AUTHORING', tasks: failedLater },
+  { pairId: 'A2_AP-A2', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A3_AP-A3', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
+]);
+assert(!('blocked' in retryLater) && retryLater.taskType === 'AP_FAILURE_MODEL', 'failed later tasks retry in place');
 
 const availability = commandAvailability({
   databaseReady: true,
@@ -78,6 +112,31 @@ assert(availability.startDomainRun.enabled === false, 'open runs cannot be start
 assert(availability.runNextTask.enabled === false, 'next-task must fail closed without model routing');
 assert(availability.recordApproval.enabled === false, 'approval must stay closed');
 assert(availability.runNextTask.next?.taskType === 'PAIR_BOUNDARY', 'eligibility is visible even when routing is missing');
+
+assert(supportsCustomTemperature({ provider: 'OPENAI', model: 'gpt-4o' }) === true, 'gpt-4o keeps temperature 0');
+assert(
+  supportsCustomTemperature({ provider: 'OPENAI', model: 'gpt-5.6-terra' }) === false,
+  'gpt-5.6-terra must omit temperature'
+);
+assert(supportsCustomTemperature({ provider: 'OPENAI', model: 'o3-mini' }) === false, 'o-series must omit temperature');
+assert(supportsCustomTemperature({ provider: 'KIMI', model: 'kimi-k3' }) === false, 'Kimi must omit temperature');
+assert(supportsCustomTemperature({ provider: 'GROK', model: 'grok-4.6' }) === true, 'Grok keeps temperature 0');
+assert(
+  !('temperature' in requestBody({
+    target: { provider: 'OPENAI', model: 'gpt-5.6-terra' },
+    systemPrompt: 'sys',
+    userPrompt: 'user'
+  })),
+  'reasoner body must not send temperature for gpt-5.6-terra'
+);
+assert(
+  requestBody({
+    target: { provider: 'GROK', model: 'grok-4.6' },
+    systemPrompt: 'sys',
+    userPrompt: 'user'
+  }).temperature === 0,
+  'quality-checker Grok body still uses temperature 0'
+);
 
 const manifest = previewRepoBaselineManifest();
 assert(
@@ -106,6 +165,8 @@ console.log(
       firstEligibleTask: 'PAIR_BOUNDARY',
       sequentialAdmission: 'PASS',
       repairBlocksAdvance: 'PASS',
+      failedTaskRetriesInPlace: 'PASS',
+      gpt56OmitsTemperature: 'PASS',
       modelRoutingFailClosed: 'PASS',
       authoringPlanPairId: plan.planId
     },

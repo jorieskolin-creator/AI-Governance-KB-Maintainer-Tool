@@ -38,7 +38,17 @@ function parseJsonText(text: string): unknown {
   return JSON.parse(fenced ?? trimmed);
 }
 
-function requestBody(request: ModelExecutionRequest): Record<string, unknown> {
+export function supportsCustomTemperature(target: ModelTarget): boolean {
+  if (target.provider === 'KIMI') return false;
+  if (target.provider === 'OPENAI') {
+    const model = target.model.trim().toLowerCase();
+    // GPT-5 / o-series only accept the model default (1). Sending 0 is a 400.
+    if (/^o[1-9]/.test(model) || model.startsWith('gpt-5')) return false;
+  }
+  return true;
+}
+
+export function requestBody(request: ModelExecutionRequest): Record<string, unknown> {
   const common: Record<string, unknown> = {
     model: request.target.model,
     messages: [
@@ -48,10 +58,7 @@ function requestBody(request: ModelExecutionRequest): Record<string, unknown> {
     response_format: { type: 'json_object' }
   };
 
-  // Kimi K2.5/K2.6 use model-fixed sampling parameters and reject arbitrary
-  // temperature values. Omit temperature for Kimi and let the provider apply
-  // its documented model defaults. OpenAI/Grok keep deterministic sampling.
-  if (request.target.provider !== 'KIMI') {
+  if (supportsCustomTemperature(request.target)) {
     common.temperature = 0;
   }
 
