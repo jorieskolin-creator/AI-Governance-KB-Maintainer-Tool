@@ -16,7 +16,8 @@ import {
   failTaskRun,
   getCompletedTaskTypes,
   persistModelCall,
-  persistValidationFindings
+  persistValidationFindings,
+  resolveFindingsForPair
 } from './store.js';
 
 function retries(): number {
@@ -159,6 +160,7 @@ export async function runCognitiveTask(input: {
     contract: input.contract,
     inputHash
   });
+  await resolveFindingsForPair(input.pairRunId);
   operatorLog('operator.task.started', {
     pairRunId: input.pairRunId,
     taskType: input.contract.taskType,

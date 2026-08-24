@@ -1,11 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { requestBody, supportsCustomTemperature } from '../ai/provider-client.js';
+import { parseModelJson, requestBody, supportsCustomTemperature } from '../ai/provider-client.js';
 import { loadCategoriesBaseline } from '../baseline/categories.js';
 import { previewRepoBaselineManifest } from '../baseline/repo-artifacts.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
 import { buildPromptPacket } from '../cognitive/prompt-builder.js';
-import { buildSirPairBoundaryContract } from '../cognitive/sir-initial-contracts.js';
+import {
+  buildSirApFailureModelContract,
+  buildSirPairBoundaryContract,
+  type SirPairBoundaryOutput
+} from '../cognitive/sir-initial-contracts.js';
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
@@ -180,6 +184,43 @@ assert(!packet.user.includes('"criterionId"'), 'PAIR_BOUNDARY prompt must omit c
 assert(packet.user.includes('criterionHandle'), 'PAIR_BOUNDARY prompt must keep adjacent handles');
 assert(packet.user.includes('output_shape'), 'PAIR_BOUNDARY prompt must include the identity-free output shape');
 
+const pairBoundary: SirPairBoundaryOutput = {
+  capability: {
+    canonicalDefinition: 'Capability definition for prompt regression.',
+    governancePurpose: 'Governance purpose for prompt regression.',
+    distinctClaim: 'Distinct claim versus adjacent handles.',
+    ownedTopics: ['owned topic'],
+    excludedTopics: [{ criterionHandle: 'criterion_001', ownershipBoundary: 'Neighbor owns this topic.' }]
+  },
+  antipattern: {
+    canonicalDefinition: 'Anti-pattern definition for prompt regression.',
+    pairedRelationship: 'Paired relationship for prompt regression.'
+  },
+  boundaryRationale: 'Boundary rationale for prompt regression.'
+};
+const failureContract = buildSirApFailureModelContract({
+  authoringPlan: plan,
+  categoryBaseline: { title: 'domain A' },
+  goldenReference: goldenLock,
+  pairBoundary
+});
+const failurePacket = buildPromptPacket(failureContract);
+assert(!failurePacket.user.includes('"pair_identity"'), 'AP_FAILURE_MODEL prompt must omit pair_identity');
+assert(!failurePacket.user.includes('"pair_id"'), 'AP_FAILURE_MODEL prompt must omit pair_id');
+assert(failurePacket.user.includes('output_shape'), 'AP_FAILURE_MODEL prompt must include the identity-free output shape');
+assert(failurePacket.user.includes('failureMechanism'), 'AP_FAILURE_MODEL prompt must name failureMechanism');
+
+const unwrapped = parseModelJson('"{\\"failureMechanism\\":\\"Semantic failure mechanism text.\\"}"');
+assert(
+  typeof unwrapped === 'object' && unwrapped !== null && 'failureMechanism' in unwrapped,
+  'double-encoded JSON strings must unwrap to objects'
+);
+const fenced = parseModelJson('```json\n{"failureMechanism":"Semantic failure mechanism text."}\n```');
+assert(
+  typeof fenced === 'object' && fenced !== null && 'failureMechanism' in fenced,
+  'fenced JSON must parse to objects'
+);
+
 console.log(
   JSON.stringify(
     {
@@ -192,6 +233,8 @@ console.log(
       completedTaskIdentityHeld: 'PASS',
       goldenLockOmitsFixtureBodies: 'PASS',
       pairBoundaryPromptOmitsCanonicalIds: 'PASS',
+      apFailurePromptIncludesOutputShape: 'PASS',
+      modelJsonUnwrapsStringPayload: 'PASS',
       gpt56OmitsTemperature: 'PASS',
       modelRoutingFailClosed: 'PASS',
       authoringPlanPairId: plan.planId

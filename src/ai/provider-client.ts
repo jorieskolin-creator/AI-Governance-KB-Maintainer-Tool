@@ -32,10 +32,27 @@ function promptHash(systemPrompt: string, userPrompt: string): string {
   return createHash('sha256').update(systemPrompt).update('\n---\n').update(userPrompt).digest('hex');
 }
 
-function parseJsonText(text: string): unknown {
+function unwrapJsonValue(value: unknown, depth = 0): unknown {
+  if (depth > 2) return value;
+  if (typeof value !== 'string') return value;
+  const inner = value.trim();
+  if (
+    !(inner.startsWith('{') && inner.endsWith('}')) &&
+    !(inner.startsWith('[') && inner.endsWith(']'))
+  ) {
+    return value;
+  }
+  try {
+    return unwrapJsonValue(JSON.parse(inner), depth + 1);
+  } catch {
+    return value;
+  }
+}
+
+export function parseModelJson(text: string): unknown {
   const trimmed = text.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)?.[1];
-  return JSON.parse(fenced ?? trimmed);
+  return unwrapJsonValue(JSON.parse(fenced ?? trimmed));
 }
 
 export function supportsCustomTemperature(target: ModelTarget): boolean {
@@ -98,7 +115,7 @@ export async function executeModel(request: ModelExecutionRequest): Promise<Mode
       provider: request.target.provider,
       model: request.target.model,
       rawText,
-      parsedJson: parseJsonText(rawText),
+      parsedJson: parseModelJson(rawText),
       inputTokens: payload?.usage?.prompt_tokens,
       outputTokens: payload?.usage?.completion_tokens,
       latencyMs: Date.now() - started,

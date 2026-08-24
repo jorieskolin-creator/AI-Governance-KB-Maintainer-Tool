@@ -1,3 +1,4 @@
+import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 
 export interface CognitivePromptPacket {
@@ -29,6 +30,51 @@ const PAIR_BOUNDARY_SHAPE = {
     pairedRelationship: 'string, min 10 characters'
   },
   boundaryRationale: 'string, min 10 characters'
+};
+
+const AP_FAILURE_MODEL_SHAPE = {
+  failureMechanism: 'string, min 10 characters, semantic failure mechanism only',
+  triggeringConditions: ['string'],
+  observableFailureSurfaces: ['string'],
+  nonExamples: ['string'],
+  distinctionFromCapabilityGap: 'string, min 10 characters, how this failure differs from a mere capability gap'
+};
+
+const APPLICABILITY_SHAPE = {
+  capability: {
+    statement: 'string, min 10 characters',
+    conditions: ['string'],
+    exclusions: ['string'],
+    reassessmentTriggers: ['string']
+  },
+  antipattern: {
+    statement: 'string, min 10 characters',
+    conditions: ['string'],
+    exclusions: ['string'],
+    reassessmentTriggers: ['string']
+  },
+  consistencyNotes: ['string']
+};
+
+const PRIMARY_QUESTIONS_SHAPE = {
+  capabilityQuestions: [
+    { slot: 1, question: 'string, min 10 characters, slot 1 wording only' },
+    { slot: 2, question: 'string, min 10 characters, slot 2 wording only' },
+    { slot: 3, question: 'string, min 10 characters, slot 3 wording only' }
+  ],
+  antipatternQuestions: [
+    { slot: 1, question: 'string, min 10 characters, slot 1 wording only' },
+    { slot: 2, question: 'string, min 10 characters, slot 2 wording only' },
+    { slot: 3, question: 'string, min 10 characters, slot 3 wording only' }
+  ],
+  coverageRationale: 'string, min 10 characters'
+};
+
+const OUTPUT_SHAPES: Partial<Record<CognitiveTaskType, unknown>> = {
+  PAIR_BOUNDARY: PAIR_BOUNDARY_SHAPE,
+  AP_FAILURE_MODEL: AP_FAILURE_MODEL_SHAPE,
+  APPLICABILITY: APPLICABILITY_SHAPE,
+  PRIMARY_QUESTIONS: PRIMARY_QUESTIONS_SHAPE
 };
 
 function stripIdentity(value: unknown): unknown {
@@ -78,7 +124,7 @@ export function buildPromptPacket(contract: TaskContract): CognitivePromptPacket
     allowed_references: contract.allowedReferences,
     do_not: contract.doNot,
     output_contract: contract.outputContract,
-    output_shape: contract.taskType === 'PAIR_BOUNDARY' ? PAIR_BOUNDARY_SHAPE : undefined,
+    output_shape: OUTPUT_SHAPES[contract.taskType],
     validation_profile: contract.validationProfile,
     failure_mode: contract.failureMode
   };

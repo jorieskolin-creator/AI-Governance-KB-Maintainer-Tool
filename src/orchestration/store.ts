@@ -182,6 +182,15 @@ export async function persistValidationFindings(
   }
 }
 
+export async function resolveFindingsForPair(pairRunId: string): Promise<void> {
+  await getDbPool().query(
+    `update validation_findings
+     set resolved = true
+     where pair_run_id = $1 and resolved = false`,
+    [pairRunId]
+  );
+}
+
 export async function persistModelCall(input: {
   taskRunId: string;
   role: ModelRole;
@@ -377,7 +386,8 @@ export async function getOpenFindings(domainRunId: string): Promise<FindingRecor
     `select v.id, v.pair_run_id, v.check_id, v.severity, v.object_id, v.object_path, v.issue, v.resolved, v.created_at
      from validation_findings v
      left join pair_runs p on p.id = v.pair_run_id
-     where v.domain_run_id = $1 or p.domain_run_id = $1
+     where (v.domain_run_id = $1 or p.domain_run_id = $1)
+       and v.resolved = false
      order by v.created_at desc
      limit 20`,
     [domainRunId]
