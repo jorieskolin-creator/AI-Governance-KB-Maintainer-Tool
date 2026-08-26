@@ -92,6 +92,16 @@ assert(repairAvailability.runNextTask.enabled === true, 'QC repair continue is e
 assert(repairAvailability.runNextTask.next?.taskType === 'LOCAL_REPAIR', 'continue next is LOCAL_REPAIR');
 assert(repairAvailability.recordApproval.enabled === false, 'approval stays closed during repair');
 
+const recheckQc = nextEligiblePairTask('A', [
+  { pairId: 'A1_AP-A1', state: 'VALIDATED', tasks: allCompleted },
+  { pairId: 'A2_AP-A2', state: 'AUTHORING', tasks: allCompleted },
+  { pairId: 'A3_AP-A3', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
+]);
+assert(!('blocked' in recheckQc) && recheckQc.taskType === 'PAIR_COHERENCE_REVIEW', 'authoring pairs with all tasks completed re-check pair coherence');
+assert(!('blocked' in recheckQc) && recheckQc.pairId === 'A2_AP-A2', 'pair coherence re-check stays on A2');
+
 const failedBoundary = PAIR_TASK_SEQUENCE.map((taskType) => ({
   taskType,
   status: taskType === 'PAIR_BOUNDARY' ? ('FAILED' as const) : ('PENDING' as const)
@@ -308,6 +318,7 @@ console.log(
       sequentialAdmission: 'PASS',
       repairBlocksAdvance: 'PASS',
       qcRepairEligibility: 'PASS',
+      pairCoherenceRecheckAfterRepair: 'PASS',
       failedTaskRetriesInPlace: 'PASS',
       domainPipelineStopsAtReady: 'PASS',
       orphanedStartedReclaim: 'PASS',

@@ -283,6 +283,14 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
       }
     });
     await transitionAfterTask(pairRun.id, pairState, next.taskType);
+    if (next.taskType === 'PAIR_COHERENCE_REVIEW') {
+      const review = await getLatestCompletedTaskArtifact<{ passed?: boolean }>(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+      if (review?.output.passed !== true) {
+        throw new Error(
+          `${next.pairId} REPAIR_REQUIRED. QC defects are listed. Continue repairs recommended paths then re-checks pair coherence.`
+        );
+      }
+    }
     return { domainRunId: run.id, next, usedFallback: result.usedFallback };
   } catch (error) {
     if (!isProviderRouteFailure(error)) {

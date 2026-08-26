@@ -59,6 +59,7 @@ export interface OperatorDomainCard {
   baselineSha256?: string;
   pairIds: readonly string[];
   pairs: OperatorPairColumn[];
+  findings: Array<{ objectId: string; checkId: string; severity: string; issue: string; objectPath?: string }>;
   commands: {
     startDomainRun: CommandFlag;
     runNextTask: CommandFlag;
@@ -259,6 +260,13 @@ export function buildOperatorStatus(input: {
       runId: overlay?.runId || undefined,
       baselineSha256: overlay?.baselineSha256 || undefined,
       pairIds,
+      findings: (overlay?.findings ?? []).map((item) => ({
+        objectId: item.objectId,
+        checkId: item.checkId,
+        severity: item.severity,
+        issue: item.issue,
+        objectPath: item.objectPath
+      })),
       pairs: pairIds.map((pairId, index) => {
         const capabilityId = capabilityIds[index];
         if (!capabilityId) throw new Error(`Missing capability id for ${pairId}.`);

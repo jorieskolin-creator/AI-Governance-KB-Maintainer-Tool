@@ -2,19 +2,19 @@ import type { CognitiveTaskType } from '../domain/states.js';
 import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
 import {
-  failLatestCompletedTask,
   getLatestCompletedTaskArtifact,
+  getLatestTaskArtifactWithOutput,
   replaceCompletedTaskOutput
 } from '../orchestration/store.js';
 import { runCognitiveTask } from '../orchestration/task-runner.js';
-import type { MaterializedPairCoherenceReview } from '../sir/pair-coherence-materializer.js';
 import {
   applySnapshotPatches,
+  blockingQcDefects,
   buildQcLocalRepairContract,
   patchedSnapshotRoots,
   repairPathsFromDefects,
-  snapshotSlice,
-  blockingQcDefects
+  reviewFromUnknown,
+  snapshotSlice
 } from '../repair/qc-repair.js';
 import { validateLocalRepairOutput } from '../repair/local-repair.js';
 import { operatorLog } from './log.js';
@@ -77,21 +77,25 @@ export async function runPairQcRepair(input: {
   pairId: string;
   domainRunId: string;
 }): Promise<{ usedFallback: boolean; repairedTaskTypes: CognitiveTaskType[] }> {
-  const reviewArtifact = await getLatestCompletedTaskArtifact<MaterializedPairCoherenceReview>(
+  const reviewArtifact = await getLatestTaskArtifactWithOutput(
     input.pairRunId,
     'PAIR_COHERENCE_REVIEW'
   );
   if (!reviewArtifact) {
     throw new Error(`${input.pairId} has no completed PAIR_COHERENCE_REVIEW to repair from.`);
   }
+  const review = reviewFromUnknown(input.pairId, reviewArtifact.output);
+  if (!review) {
+    throw new Error(`${input.pairId} PAIR_COHERENCE_REVIEW output has no defects to repair.`);
+  }
   const snapshot = await loadPairCoherenceSnapshot(input.pairRunId);
   const contract = buildQcLocalRepairContract({
     pairId: input.pairId,
-    review: reviewArtifact.output,
+    review,
     snapshot
   });
   const allowed = contract.lockedInputs.allowed_target_paths as string[];
-  const defects = blockingQcDefects(reviewArtifact.output);
+  const defects = blockingQcDefects(review);
 
   operatorLog('operator.repair.started', {
     pairId: input.pairId,
@@ -122,7 +126,6 @@ export async function runPairQcRepair(input: {
       outputHash: canonicalArtifactHash(nextOutput)
     });
   }
-  await failLatestCompletedTask(input.pairRunId, 'PAIR_COHERENCE_REVIEW');
   operatorLog('operator.repair.applied', {
     pairId: input.pairId,
     repairedTaskTypes: touched,

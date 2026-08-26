@@ -1,8 +1,8 @@
 import type { DomainId } from '../authoring/authoring-plan.js';
 import { expectedDomainPairIds } from '../orchestration/pipeline.js';
 import {
-  getLatestCompletedTaskArtifact,
   getLatestDomainRun,
+  getLatestTaskArtifactWithOutput,
   getOpenFindings,
   getPairRuns,
   getRecentModelCalls,
@@ -10,8 +10,7 @@ import {
   type FindingRecord,
   type ModelCallRecord
 } from '../orchestration/store.js';
-import type { MaterializedPairCoherenceReview } from '../sir/pair-coherence-materializer.js';
-import { qcDefectsToFindings } from '../repair/qc-repair.js';
+import { qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
 import { pairSnapshots } from './commands.js';
 import { commandAvailability, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
@@ -61,12 +60,10 @@ export async function loadDomainOverlay(
   const openFindings = await getOpenFindings(run.id);
   const qcFindings: FindingRecord[] = [];
   for (const pairRun of pairRuns) {
-    const review = await getLatestCompletedTaskArtifact<MaterializedPairCoherenceReview>(
-      pairRun.id,
-      'PAIR_COHERENCE_REVIEW'
-    );
-    if (!review || review.output.passed === true || !Array.isArray(review.output.defects)) continue;
-    for (const item of qcDefectsToFindings(pairRun.pairId, review.output)) {
+    const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+    const review = reviewFromUnknown(pairRun.pairId, artifact?.output);
+    if (!review || review.passed === true || review.defects.length === 0) continue;
+    for (const item of qcDefectsToFindings(pairRun.pairId, review)) {
       qcFindings.push({
         id: `${pairRun.id}:${item.checkId}`,
         pairRunId: pairRun.id,

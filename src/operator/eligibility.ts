@@ -33,6 +33,7 @@ export function classifyDomainPipelineStop(
     errorMessage.includes('already running') ||
     errorMessage.includes('No eligible SIR task') ||
     errorMessage.includes('requires local repair') ||
+    errorMessage.includes('QC defects are listed') ||
     errorMessage.includes('not an operator-admitted')
   ) {
     return 'BLOCKED';
@@ -100,6 +101,8 @@ export function nextEligiblePairTask(
         return { blocked: `${pair.pairId} ${taskType} is ${cell.status}.` };
       }
     }
+
+    return { domain, pairId: pair.pairId, taskType: 'PAIR_COHERENCE_REVIEW' };
   }
 
   const validated = pairs.filter((pair) => pair.state === 'VALIDATED').length;

@@ -155,6 +155,20 @@ function continueLabel(card: OperatorDomainCard): string {
   return 'Continue domain until ready';
 }
 
+function defectList(card: OperatorDomainCard): string {
+  const items = uniqueFindings(card.findings ?? []);
+  if (!items.length) return '';
+  return `<section class="defects">
+      <p class="kicker">QC defects</p>
+      <ul>${items
+        .map(
+          (item) =>
+            `<li><strong>${escapeHtml(item.severity)}</strong> <code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''}<br>${escapeHtml(item.issue)}</li>`
+        )
+        .join('')}</ul>
+    </section>`;
+}
+
 function domainPanel(card: OperatorDomainCard): string {
   return `<article class="domain-panel" data-domain="${card.domain}">
     <header class="domain-head">
@@ -171,6 +185,7 @@ function domainPanel(card: OperatorDomainCard): string {
       <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.runNextTask.reason)}</p>
     </div>
     ${runActivity(card)}
+    ${defectList(card)}
     ${pairGrid(card)}
     <ol class="domain-unit">
       <li><span>Domain coherence</span><strong>locked until five pairs are VALIDATED</strong></li>
@@ -317,6 +332,16 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
     .domain-head { margin-bottom: 0.9rem; }
     .domain-head h2 { font-size: 1.65rem; margin-top: 0.2rem; }
     .meta { color: var(--subtle); font-size: 0.85rem; }
+    .defects {
+      margin: 0.8rem 0 1rem;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #241e18;
+    }
+    .defects ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+    .defects li { margin: 0.45rem 0; color: var(--muted); line-height: 1.4; }
+    .defects strong { color: #d9896f; margin-right: 0.35rem; }
     .pair-grid { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
     .pair-grid th, .pair-grid td {
       border-bottom: 1px solid var(--line);

@@ -57,6 +57,54 @@ export function repairPathsFromDefects(defects: MaterializedPairCoherenceDefect[
   return paths;
 }
 
+export function reviewFromUnknown(
+  pairId: string,
+  output: unknown
+): MaterializedPairCoherenceReview | undefined {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) return undefined;
+  const record = output as Record<string, unknown>;
+  if (!Array.isArray(record.defects)) return undefined;
+  const defects: MaterializedPairCoherenceDefect[] = record.defects.map((item, index) => {
+    const defect = item && typeof item === 'object' && !Array.isArray(item) ? (item as Record<string, unknown>) : {};
+    const recommended = Array.isArray(defect.recommendedRepairPaths)
+      ? defect.recommendedRepairPaths.filter((path): path is string => typeof path === 'string')
+      : [];
+    const affected = Array.isArray(defect.affectedPaths)
+      ? defect.affectedPaths.filter((path): path is string => typeof path === 'string')
+      : [];
+    const severity = defect.severity === 'BLOCKING' || defect.severity === 'HIGH' || defect.severity === 'MEDIUM' || defect.severity === 'LOW'
+      ? defect.severity
+      : 'HIGH';
+    return {
+      defectId: typeof defect.defectId === 'string' ? (defect.defectId as `defect_${string}`) : `defect_${String(index + 1).padStart(3, '0')}`,
+      severity,
+      coherenceDimension:
+        typeof defect.coherenceDimension === 'string'
+          ? (defect.coherenceDimension as MaterializedPairCoherenceDefect['coherenceDimension'])
+          : 'CROSS_ARTIFACT_CONTRADICTION',
+      affectedPathHandles: Array.isArray(defect.affectedPathHandles)
+        ? (defect.affectedPathHandles.filter((handle) => typeof handle === 'string') as MaterializedPairCoherenceDefect['affectedPathHandles'])
+        : [],
+      affectedPaths: affected,
+      issue: typeof defect.issue === 'string' ? defect.issue : 'Pair coherence defect.',
+      coherenceExpectation:
+        typeof defect.coherenceExpectation === 'string' ? defect.coherenceExpectation : 'Pair artifacts must remain coherent.',
+      recommendedRepairPathHandles: Array.isArray(defect.recommendedRepairPathHandles)
+        ? (defect.recommendedRepairPathHandles.filter((handle) => typeof handle === 'string') as MaterializedPairCoherenceDefect['recommendedRepairPathHandles'])
+        : [],
+      recommendedRepairPaths: recommended
+    };
+  });
+  return {
+    pairId: typeof record.pairId === 'string' ? record.pairId : pairId,
+    pairCoherencePacketSha256:
+      typeof record.pairCoherencePacketSha256 === 'string' ? record.pairCoherencePacketSha256 : '',
+    passed: record.passed === true,
+    defects,
+    coherenceSummary: typeof record.coherenceSummary === 'string' ? record.coherenceSummary : ''
+  };
+}
+
 export function qcDefectsToFindings(
   pairId: string,
   review: MaterializedPairCoherenceReview

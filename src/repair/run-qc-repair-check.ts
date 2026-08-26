@@ -7,6 +7,7 @@ import {
   patchedSnapshotRoots,
   qcDefectsToFindings,
   repairPathsFromDefects,
+  reviewFromUnknown,
   tokenizeRepairPath
 } from './qc-repair.js';
 import type { MaterializedPairCoherenceReview } from '../sir/pair-coherence-materializer.js';
@@ -74,6 +75,7 @@ const review: MaterializedPairCoherenceReview = {
 assert(blockingQcDefects(review).length === 1, 'only HIGH/BLOCKING defects are repair targets');
 assert(repairPathsFromDefects(blockingQcDefects(review)).join(',') === 'evidence.capability[evidence_001]', 'repair paths come from QC recommendations');
 assert(qcDefectsToFindings('A2_AP-A2', review)[0]?.checkId === 'defect_001', 'board findings use defect ids');
+assert(reviewFromUnknown('A2_AP-A2', { passed: false, defects: [{ severity: 'HIGH', issue: 'Thin evidence title is not attributable.' }] })?.defects[0]?.defectId === 'defect_001', 'raw QC output still lists defects');
 assert(pathIsAllowed('evidence.capability[evidence_001].title', ['evidence.capability[evidence_001]']), 'child paths stay in scope');
 assert(!pathIsAllowed('findings.capability[finding_001]', ['evidence.capability[evidence_001]']), 'out-of-scope paths are rejected');
 assert(tokenizeRepairPath('sourceMappings.capability[source_001/locator_001].supportedClaim').length === 4, 'source/locator selectors tokenize');

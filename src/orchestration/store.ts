@@ -180,6 +180,32 @@ export async function getLatestCompletedTaskArtifact<T>(
   };
 }
 
+export async function getLatestTaskArtifactWithOutput<T>(
+  pairRunId: string,
+  taskType: CognitiveTaskType
+): Promise<CompletedTaskArtifact<T> | undefined> {
+  const result = await getDbPool().query<{
+    output: T;
+    task_contract: TaskContract;
+    input_hash: string;
+    output_hash: string | null;
+  }>(
+    `select output, task_contract, input_hash, output_hash from task_runs
+     where pair_run_id = $1 and task_type = $2 and output is not null
+     order by completed_at desc nulls last, created_at desc
+     limit 1`,
+    [pairRunId, taskType]
+  );
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    output: row.output,
+    taskContract: row.task_contract,
+    inputHash: row.input_hash,
+    outputHash: row.output_hash ?? ''
+  };
+}
+
 export async function replaceCompletedTaskOutput(input: {
   pairRunId: string;
   taskType: CognitiveTaskType;
