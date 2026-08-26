@@ -9,8 +9,11 @@ function wantsHtml(request: FastifyRequest): boolean {
   return accept.includes('text/html') && !accept.includes('application/json');
 }
 
-function noticeRedirect(reply: FastifyReply, notice: string) {
-  return reply.redirect(`/?notice=${encodeURIComponent(notice)}`);
+function noticeRedirect(reply: FastifyReply, notice: string, domain?: string) {
+  const params = new URLSearchParams();
+  params.set('notice', notice);
+  if (domain) params.set('domain', domain);
+  return reply.redirect(`/?${params.toString()}`);
 }
 
 function queueDomainPipeline(domain: ReturnType<typeof parseDomainId>, request: FastifyRequest): void {
@@ -45,12 +48,13 @@ export function registerOperatorRoutes(
 
   app.get('/', async (request, reply) => {
     const status = await loadStatus();
-    const query = request.query as { notice?: unknown };
+    const query = request.query as { notice?: unknown; domain?: unknown };
     const notice = typeof query.notice === 'string' ? query.notice : '';
+    const domain = typeof query.domain === 'string' ? query.domain : 'A';
     return reply
       .type('text/html; charset=utf-8')
       .header('cache-control', 'no-store')
-      .send(renderOperatorHome(status, notice));
+      .send(renderOperatorHome(status, notice, domain));
   });
 
   app.get('/api/operator/status', async (_request, reply) => {
@@ -76,7 +80,8 @@ export function registerOperatorRoutes(
           queueDomainPipeline(domain, request);
           return noticeRedirect(
             reply,
-            `Started domain ${domain}. Pipeline is running pair SIR tasks until the domain is ready.`
+            `Started domain ${domain}. Pipeline is running pair SIR tasks until the domain is ready.`,
+            domain
           );
         }
         return result;
@@ -86,7 +91,8 @@ export function registerOperatorRoutes(
           queueDomainPipeline(domain, request);
           return noticeRedirect(
             reply,
-            `Domain ${domain} pipeline is running. It stops when the domain is ready or a task fails.`
+            `Domain ${domain} pipeline is running. It stops when the domain is ready or a task fails.`,
+            domain
           );
         }
         const result = await runNextEligibleTask(domain);
@@ -99,14 +105,14 @@ export function registerOperatorRoutes(
         return result;
       }
       operatorLog('operator.command.rejected', { action, domain: body.domain, reason: 'unknown-action' });
-      if (wantsHtml(request)) return noticeRedirect(reply, 'Command was missing action. Retry from the board.');
+      if (wantsHtml(request)) return noticeRedirect(reply, 'Command was missing action. Retry from the board.', String(body.domain ?? ''));
       return reply.code(400).send({ error: 'Unknown operator action.' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Operator command failed.';
       operatorLog('operator.command.rejected', { action, error: message });
       const code = message.includes('not configured') || message.includes('disabled') ? 403 : 409;
-      if (wantsHtml(request)) return noticeRedirect(reply, message);
-      return reply.code(code).send({ error: message });
+      if (wantsHtml(request)) return noticeRedirect(reply, message, String(body.domain ?? ''));
+      return reply.code(code).send({ error: 'Unknown operator action.' });
     }
   });
 }
