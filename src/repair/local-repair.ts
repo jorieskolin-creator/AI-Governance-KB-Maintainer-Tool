@@ -77,9 +77,9 @@ export function validateLocalRepairOutput(
   if (parsed.objectId !== expectedObjectId) {
     throw new Error(`Repair object mismatch: expected ${expectedObjectId}, received ${parsed.objectId}.`);
   }
-  const allowed = new Set(allowedPaths);
+  const allowed = [...allowedPaths];
   for (const repair of parsed.repairs) {
-    if (!allowed.has(repair.path)) {
+    if (!pathIsAllowed(repair.path, allowed)) {
       throw new Error(`Repair attempted undeclared path ${repair.path}.`);
     }
   }
@@ -88,6 +88,12 @@ export function validateLocalRepairOutput(
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+export function pathIsAllowed(path: string, allowedPaths: readonly string[]): boolean {
+  return allowedPaths.some(
+    (entry) => path === entry || path.startsWith(`${entry}.`) || path.startsWith(`${entry}[`)
+  );
 }
 
 export function applyRepairPatches<T>(object: T, patches: RepairPatch[]): T {

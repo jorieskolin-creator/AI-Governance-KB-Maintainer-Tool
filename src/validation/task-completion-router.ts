@@ -14,6 +14,7 @@ import { validateSirLifecycleCompletion } from './sir-lifecycle-completion.js';
 import { validateSirPairCoherenceCompletion } from './sir-pair-coherence-completion.js';
 import { validateSirReferenceMappingCompletion } from './sir-reference-mapping-completion.js';
 import { validateSirSourceMappingCompletion } from './sir-source-mapping-completion.js';
+import { validateLocalRepairOutput } from '../repair/local-repair.js';
 
 export type CompletionValidatorRoute =
   | 'SIR_INITIAL'
@@ -29,7 +30,8 @@ export type CompletionValidatorRoute =
   | 'SIR_PAIR_COHERENCE'
   | 'SIR_DOMAIN_COHERENCE'
   | 'LIFECYCLE_ASSURANCE'
-  | 'LEGACY_COMPLETION';
+  | 'LEGACY_COMPLETION'
+  | 'LOCAL_REPAIR';
 
 const INITIAL_SIR_TASKS = new Set<CognitiveTaskType>([
   'PAIR_BOUNDARY',
@@ -39,6 +41,9 @@ const INITIAL_SIR_TASKS = new Set<CognitiveTaskType>([
 ]);
 
 export function completionValidatorRoute(contract: TaskContract): CompletionValidatorRoute {
+  if (contract.taskType === 'LOCAL_REPAIR' && contract.contractVersion !== '2.0.0') {
+    return 'LOCAL_REPAIR';
+  }
   if (contract.contractVersion === '2.0.0') {
     if (INITIAL_SIR_TASKS.has(contract.taskType)) return 'SIR_INITIAL';
     if (contract.taskType === 'ATOMIC_DECOMPOSITION') return 'SIR_ATOMIC';
@@ -113,6 +118,37 @@ export function validateTaskCompletion(input: {
         input.output,
         input.completionContext
       );
+    case 'LOCAL_REPAIR': {
+      const allowed = Array.isArray(input.contract.lockedInputs.allowed_target_paths)
+        ? (input.contract.lockedInputs.allowed_target_paths as string[])
+        : [];
+      try {
+        validateLocalRepairOutput(input.output, input.contract.targetObjectId, allowed);
+        return {
+          runId: input.completionContext.runId,
+          objectId: input.contract.targetObjectId,
+          passed: true,
+          findings: []
+        };
+      } catch (error) {
+        return {
+          runId: input.completionContext.runId,
+          objectId: input.contract.targetObjectId,
+          passed: false,
+          findings: [
+            {
+              checkId: 'LOCAL_REPAIR_OUTPUT',
+              kind: 'SEMANTIC' as const,
+              severity: 'HIGH' as const,
+              objectId: input.contract.targetObjectId,
+              objectPath: 'repairs',
+              issue: error instanceof Error ? error.message : 'LOCAL_REPAIR output is invalid.',
+              dependencyScope: allowed
+            }
+          ]
+        };
+      }
+    }
     case 'LEGACY_COMPLETION':
       return canPersistTaskAsCompleted(
         input.contract,

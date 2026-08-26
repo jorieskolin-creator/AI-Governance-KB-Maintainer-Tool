@@ -43,6 +43,7 @@ const gates: Gate[] = [
   { id: 'SIR_DOMAIN_COHERENCE_ARTIFACT', script: 'dist/orchestration/run-domain-coherence-artifact-verifier-check.js' },
   { id: 'OPERATOR_BOARD', script: 'dist/operator/run-operator-board-check.js' },
   { id: 'OPERATOR_RUNS', script: 'dist/operator/run-operator-run-check.js' },
+  { id: 'QC_LOCAL_REPAIR', script: 'dist/repair/run-qc-repair-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 

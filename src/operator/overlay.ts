@@ -1,6 +1,7 @@
 import type { DomainId } from '../authoring/authoring-plan.js';
 import { expectedDomainPairIds } from '../orchestration/pipeline.js';
 import {
+  getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getOpenFindings,
   getPairRuns,
@@ -9,6 +10,8 @@ import {
   type FindingRecord,
   type ModelCallRecord
 } from '../orchestration/store.js';
+import type { MaterializedPairCoherenceReview } from '../sir/pair-coherence-materializer.js';
+import { qcDefectsToFindings } from '../repair/qc-repair.js';
 import { pairSnapshots } from './commands.js';
 import { commandAvailability, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
@@ -55,7 +58,29 @@ export async function loadDomainOverlay(
   const pairRuns = await getPairRuns(run.id);
   const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
   const pairs = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
-  const findings = await getOpenFindings(run.id);
+  const openFindings = await getOpenFindings(run.id);
+  const qcFindings: FindingRecord[] = [];
+  for (const pairRun of pairRuns) {
+    const review = await getLatestCompletedTaskArtifact<MaterializedPairCoherenceReview>(
+      pairRun.id,
+      'PAIR_COHERENCE_REVIEW'
+    );
+    if (!review || review.output.passed === true || !Array.isArray(review.output.defects)) continue;
+    for (const item of qcDefectsToFindings(pairRun.pairId, review.output)) {
+      qcFindings.push({
+        id: `${pairRun.id}:${item.checkId}`,
+        pairRunId: pairRun.id,
+        checkId: item.checkId,
+        severity: item.severity,
+        objectId: item.objectId,
+        objectPath: item.objectPath,
+        issue: item.issue,
+        resolved: false,
+        createdAt: new Date()
+      });
+    }
+  }
+  const findings = [...qcFindings, ...openFindings];
   const modelCalls = await getRecentModelCalls(pairRuns.map((item) => item.id));
   return {
     domain,

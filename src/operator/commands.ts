@@ -43,6 +43,7 @@ import {
 } from './eligibility.js';
 import type { OperatorTaskStatus } from './eligibility.js';
 import { operatorLog } from './log.js';
+import { runPairQcRepair } from './qc-repair-command.js';
 
 const TARGET_VERSION = '1.0.0';
 
@@ -215,12 +216,30 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
   const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
   const next = nextEligiblePairTask(domain, snapshots);
   if ('blocked' in next) throw new Error(next.blocked);
+  const pairRun = pairRuns.find((item) => item.pairId === next.pairId);
+  if (!pairRun) throw new Error(`Pair run ${next.pairId} is missing.`);
+
+  if (next.taskType === 'LOCAL_REPAIR') {
+    operatorLog('operator.task.admitted', { domain, pairId: next.pairId, taskType: next.taskType, domainRunId: run.id });
+    const pairState = await reopenForRetry(pairRun.id, pairRun.state);
+    try {
+      const result = await runPairQcRepair({
+        pairRunId: pairRun.id,
+        pairId: next.pairId,
+        domainRunId: run.id
+      });
+      return { domainRunId: run.id, next, usedFallback: result.usedFallback };
+    } catch (error) {
+      if (!isProviderRouteFailure(error)) {
+        await markRepairRequired(pairRun.id, pairState);
+      }
+      throw error;
+    }
+  }
+
   if (!isResolvable(next.taskType)) {
     throw new Error(`${next.taskType} is not an operator-admitted pair task.`);
   }
-
-  const pairRun = pairRuns.find((item) => item.pairId === next.pairId);
-  if (!pairRun) throw new Error(`Pair run ${next.pairId} is missing.`);
   const sealed = await getBaselineSnapshotById(run.baselineSnapshotId);
   if (!sealed) throw new Error('Sealed baseline snapshot is missing.');
   const snapshot: BaselineSnapshot = {

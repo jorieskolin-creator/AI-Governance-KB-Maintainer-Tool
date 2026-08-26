@@ -256,6 +256,17 @@ const PAIR_COHERENCE_REVIEW_SHAPE = {
   coherenceSummary: 'string, min 10 characters. An empty defects array is a valid pass-shaped completion.'
 };
 
+const LOCAL_REPAIR_SHAPE = {
+  objectId: 'pairId from the locked validation finding',
+  repairs: [
+    {
+      path: 'one locked allowed_target_paths entry or a child of it',
+      value: 'replacement semantic value only'
+    }
+  ],
+  rationale: 'string, min 10 characters, why these paths repair the QC defects'
+};
+
 const OUTPUT_SHAPES: Partial<Record<CognitiveTaskType, unknown>> = {
   PAIR_BOUNDARY: PAIR_BOUNDARY_SHAPE,
   AP_FAILURE_MODEL: AP_FAILURE_MODEL_SHAPE,
@@ -270,7 +281,8 @@ const OUTPUT_SHAPES: Partial<Record<CognitiveTaskType, unknown>> = {
   CONTROL_BOUNDARY: CONTROL_BOUNDARY_SHAPE,
   LIFECYCLE_ASSURANCE: LIFECYCLE_ASSURANCE_SHAPE,
   REFERENCE_MAPPING: REFERENCE_MAPPING_SHAPE,
-  PAIR_COHERENCE_REVIEW: PAIR_COHERENCE_REVIEW_SHAPE
+  PAIR_COHERENCE_REVIEW: PAIR_COHERENCE_REVIEW_SHAPE,
+  LOCAL_REPAIR: LOCAL_REPAIR_SHAPE
 };
 
 function stripIdentity(value: unknown): unknown {

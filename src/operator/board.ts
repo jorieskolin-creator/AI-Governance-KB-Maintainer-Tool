@@ -86,7 +86,7 @@ export interface OperatorStatus {
     domainFlow: readonly DomainFlowStep[];
   };
   domains: OperatorDomainCard[];
-  findings: Array<{ objectId: string; checkId: string; severity: string; issue: string }>;
+  findings: Array<{ objectId: string; checkId: string; severity: string; issue: string; objectPath?: string }>;
   modelCalls: Array<{ role: string; provider: string; model: string; status: string; isFallback: boolean }>;
 }
 
@@ -184,6 +184,18 @@ export function derivePipelineActivity(domains: OperatorDomainCard[]): PipelineA
     }
   }
   const open = domains.find((card) => card.runId);
+  for (const card of domains) {
+    const repair = card.pairs.find((pair) => pair.state === 'REPAIR_REQUIRED');
+    if (repair) {
+      return {
+        state: 'WAITING',
+        detail: `${repair.pairId} REPAIR_REQUIRED · QC defects are listed below · Continue repairs recommended paths then re-checks pair coherence`,
+        domain: card.domain,
+        pairId: repair.pairId,
+        taskType: 'LOCAL_REPAIR'
+      };
+    }
+  }
   if (open) {
     return {
       state: 'WAITING',
@@ -224,7 +236,8 @@ export function buildOperatorStatus(input: {
           objectId: item.objectId,
           checkId: item.checkId,
           severity: item.severity,
-          issue: item.issue
+          issue: item.issue,
+          objectPath: item.objectPath
         }))
       );
     }

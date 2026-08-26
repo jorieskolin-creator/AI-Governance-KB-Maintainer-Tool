@@ -75,6 +75,10 @@ export function nextEligiblePairTask(
     if (retry) return retry;
 
     if (pair.state === 'REPAIR_REQUIRED') {
+      const pairCoherence = pair.tasks.find((task) => task.taskType === 'PAIR_COHERENCE_REVIEW');
+      if (pairCoherence?.status === 'COMPLETED') {
+        return { domain, pairId: pair.pairId, taskType: 'LOCAL_REPAIR' };
+      }
       return {
         blocked: `${pair.pairId} requires local repair before another SIR task can run.`
       };
@@ -190,7 +194,10 @@ export function commandAvailability(input: {
       },
       runNextTask: {
         enabled: true,
-        reason: `Continue domain ${input.domain} from ${next.pairId} ${next.taskType} until five pairs are VALIDATED. Per-task approval is not requested.`,
+        reason:
+          next.taskType === 'LOCAL_REPAIR'
+            ? `Repair recommended QC paths on ${next.pairId}, then re-check pair coherence. Per-task approval is not requested.`
+            : `Continue domain ${input.domain} from ${next.pairId} ${next.taskType} until five pairs are VALIDATED. Per-task approval is not requested.`,
         next
       },
       recordApproval

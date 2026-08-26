@@ -180,11 +180,46 @@ export async function getLatestCompletedTaskArtifact<T>(
   };
 }
 
-export async function getLatestCompletedTaskOutput<T>(
+export async function replaceCompletedTaskOutput(input: {
+  pairRunId: string;
+  taskType: CognitiveTaskType;
+  output: unknown;
+  outputHash: string;
+}): Promise<void> {
+  const result = await getDbPool().query(
+    `update task_runs
+     set output = $3::jsonb, output_hash = $4
+     where id = (
+       select id from task_runs
+       where pair_run_id = $1 and task_type = $2 and status = 'COMPLETED'
+       order by completed_at desc
+       limit 1
+     )`,
+    [input.pairRunId, input.taskType, JSON.stringify(input.output), input.outputHash]
+  );
+  if (result.rowCount !== 1) {
+    throw new Error(`No completed ${input.taskType} artifact to patch.`);
+  }
+}
+
+export async function failLatestCompletedTask(
   pairRunId: string,
   taskType: CognitiveTaskType
-): Promise<T | undefined> {
-  return (await getLatestCompletedTaskArtifact<T>(pairRunId, taskType))?.output;
+): Promise<void> {
+  const result = await getDbPool().query(
+    `update task_runs
+     set status = 'FAILED', completed_at = now()
+     where id = (
+       select id from task_runs
+       where pair_run_id = $1 and task_type = $2 and status = 'COMPLETED'
+       order by completed_at desc
+       limit 1
+     )`,
+    [pairRunId, taskType]
+  );
+  if (result.rowCount !== 1) {
+    throw new Error(`No completed ${taskType} task to reopen after repair.`);
+  }
 }
 
 export async function persistValidationFindings(

@@ -109,6 +109,10 @@ function runActivity(card: OperatorDomainCard): string {
   if (failed && card.commands.runNextTask.enabled) {
     return `<p class="activity failed">Pipeline BLOCKED. Current task ${escapeHtml(failed.taskType)} FAILED. No document was produced. Retry the same task; the domain pipeline then continues. Approval is not requested per step.</p>`;
   }
+  const repair = card.pairs.find((pair) => pair.state === 'REPAIR_REQUIRED');
+  if (repair) {
+    return `<p class="activity">Pipeline WAITING. <code>${escapeHtml(repair.pairId)}</code> is REPAIR_REQUIRED. QC defects are listed below. Continue repairs those recommended paths, then re-checks pair coherence. Approval is not requested.</p>`;
+  }
   if (!card.runId) {
     return `<p class="activity">Work order NONE. Start freezes the baseline and runs pair SIR tasks until the domain is ready.</p>`;
   }
@@ -144,6 +148,9 @@ function commandButton(action: string, domain: string, command: { enabled: boole
 function continueLabel(card: OperatorDomainCard): string {
   const failed = failedTasks(card)[0];
   if (failed) return `Retry ${failed.pairId} ${failed.taskType} and continue domain`;
+  if (card.commands.runNextTask.next?.taskType === 'LOCAL_REPAIR') {
+    return `Repair ${card.commands.runNextTask.next.pairId} QC defects and re-check pair coherence`;
+  }
   if (card.commands.runNextTask.next) return `Continue domain ${card.domain} until ready`;
   return 'Continue domain until ready';
 }
@@ -435,7 +442,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
               .slice(0, 8)
               .map(
                 (item) =>
-                  `<li><code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)} · ${escapeHtml(item.severity)} — ${escapeHtml(item.issue)}</li>`
+                  `<li><code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)} · ${escapeHtml(item.severity)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''} — ${escapeHtml(item.issue)}</li>`
               )
               .join('')}</ul>`
           : ''

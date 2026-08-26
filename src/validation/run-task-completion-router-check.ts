@@ -57,6 +57,10 @@ if (completionValidatorRoute(contract('DOMAIN_COHERENCE_REVIEW','1.0.0')) !== 'L
   throw new Error('Legacy Domain Coherence Review no longer routes to the legacy validator.');
 }
 
+if (completionValidatorRoute(contract('LOCAL_REPAIR','1.0.0')) !== 'LOCAL_REPAIR') {
+  throw new Error('LOCAL_REPAIR v1 lost its dedicated validator route.');
+}
+
 function expectUnsupported(taskType:CognitiveTaskType):void {
   try {
     completionValidatorRoute(contract(taskType,'2.0.0'));
@@ -83,5 +87,6 @@ console.log(JSON.stringify({
   legacyLifecycleDedicatedRoute:'PASS',
   legacyV1Fallback:'PASS',
   nextUnregisteredSirV2Task:'LOCAL_REPAIR',
+  localRepairV1Route:'PASS',
   unregisteredSirV2Fallback:'REJECTED'
 }, null, 2));

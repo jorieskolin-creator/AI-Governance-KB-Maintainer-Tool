@@ -57,7 +57,40 @@ const blockedRepair = nextEligiblePairTask('A', [
   { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
   { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
 ]);
-assert('blocked' in blockedRepair, 'repair-required pairs with no failed task must block advance');
+assert('blocked' in blockedRepair, 'repair-required pairs with no completed pair coherence must block advance');
+
+const allCompleted = PAIR_TASK_SEQUENCE.map((taskType) => ({ taskType, status: 'COMPLETED' as const }));
+const qcRepair = nextEligiblePairTask('A', [
+  { pairId: 'A1_AP-A1', state: 'VALIDATED', tasks: allCompleted },
+  { pairId: 'A2_AP-A2', state: 'REPAIR_REQUIRED', tasks: allCompleted },
+  { pairId: 'A3_AP-A3', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
+]);
+assert(!('blocked' in qcRepair), 'completed pair-coherence defects must be repairable');
+assert(!('blocked' in qcRepair) && qcRepair.taskType === 'LOCAL_REPAIR', 'QC repair is LOCAL_REPAIR');
+assert(!('blocked' in qcRepair) && qcRepair.pairId === 'A2_AP-A2', 'QC repair stays on the defective pair');
+
+const repairAvailability = commandAvailability({
+  databaseReady: true,
+  commandsEnabled: true,
+  modelRoutesConfigured: true,
+  domain: 'A',
+  activeRun: {
+    state: 'IN_PROGRESS',
+    pairs: [
+      { pairId: 'A1_AP-A1', state: 'VALIDATED', tasks: allCompleted },
+      { pairId: 'A2_AP-A2', state: 'REPAIR_REQUIRED', tasks: allCompleted },
+      { pairId: 'A3_AP-A3', state: 'AUTHORING', tasks: pending },
+      { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
+      { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
+    ]
+  }
+});
+assert(repairAvailability.startDomainRun.enabled === false, 'repair does not start a new run');
+assert(repairAvailability.runNextTask.enabled === true, 'QC repair continue is enabled');
+assert(repairAvailability.runNextTask.next?.taskType === 'LOCAL_REPAIR', 'continue next is LOCAL_REPAIR');
+assert(repairAvailability.recordApproval.enabled === false, 'approval stays closed during repair');
 
 const failedBoundary = PAIR_TASK_SEQUENCE.map((taskType) => ({
   taskType,
@@ -274,6 +307,7 @@ console.log(
       firstEligibleTask: 'PAIR_BOUNDARY',
       sequentialAdmission: 'PASS',
       repairBlocksAdvance: 'PASS',
+      qcRepairEligibility: 'PASS',
       failedTaskRetriesInPlace: 'PASS',
       domainPipelineStopsAtReady: 'PASS',
       orphanedStartedReclaim: 'PASS',
