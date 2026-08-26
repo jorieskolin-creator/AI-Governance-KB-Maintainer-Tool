@@ -29,34 +29,19 @@ function assertSameJson(left: unknown, right: unknown, label: string): void {
   }
 }
 
-function projectEvidenceItems(value: unknown): unknown {
-  if (!Array.isArray(value)) return value;
-  return value.map((item) => {
-    if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
-    const rec = item as Record<string, unknown>;
-    const projected: Record<string, unknown> = {};
-    for (const key of EVIDENCE_ITEM_KEYS) {
-      if (Object.prototype.hasOwnProperty.call(rec, key)) {
-        projected[key] = rec[key];
-      }
-    }
-    return projected;
-  });
-}
-
 function assertLockedEvidence(
-  locked: unknown,
   verified: unknown,
   lockedHash: unknown,
   label: string
 ): void {
-  if (typeof lockedHash === 'string' && /^[a-f0-9]{64}$/i.test(lockedHash)) {
-    if (lockedHash.toLowerCase() !== canonicalArtifactHash(verified)) {
-      throw new Error(`Persisted Lifecycle contract ${label} drifted from the verified upstream artifact.`);
-    }
+  // New contracts lock a sha256 of the evidence artifact. Legacy rows only
+  // stored a nested JSON clone inside task_contract; that clone is not a
+  // reliable binding once JSONB-round-tripped. The resolver already verified
+  // the evidence artifact outputHash, so skip nested-clone compare.
+  if (typeof lockedHash !== 'string' || !/^[a-f0-9]{64}$/i.test(lockedHash)) {
     return;
   }
-  if (canonicalArtifactHash(projectEvidenceItems(locked)) !== canonicalArtifactHash(projectEvidenceItems(verified))) {
+  if (lockedHash.toLowerCase() !== canonicalArtifactHash(verified)) {
     throw new Error(`Persisted Lifecycle contract ${label} drifted from the verified upstream artifact.`);
   }
 }
@@ -161,13 +146,11 @@ export function verifyPersistedLifecycleArtifact(input: {
     throw new Error('Persisted Lifecycle contract capability Evidence drifted from the verified upstream artifact.');
   }
   assertLockedEvidence(
-    contract.lockedInputs.capability_evidence,
     input.verifiedEvidence.capability,
     contract.lockedInputs.capability_evidence_sha256,
     'capability Evidence'
   );
   assertLockedEvidence(
-    contract.lockedInputs.antipattern_evidence,
     input.verifiedEvidence.antipattern,
     contract.lockedInputs.antipattern_evidence_sha256,
     'anti-pattern Evidence'

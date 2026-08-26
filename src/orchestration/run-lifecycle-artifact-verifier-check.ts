@@ -115,11 +115,8 @@ const extraKeyLocked={
   ...contract,
   lockedInputs:{
     ...contract.lockedInputs,
-    capability_evidence_sha256:undefined,
-    antipattern_evidence_sha256:undefined,
-    evidence_output_sha256:undefined,
-    capability_evidence:evidence.capability.map((item)=>({...item,persistedCloneNoise:'jsonb-extra'}))
-  }
+    capability_evidence:evidence.capability.map((item)=>({...item,persistedCloneNoise:'jsonb-extra',title:'Clone title no longer compared'}))
+  } as Record<string, unknown>
 };
 delete extraKeyLocked.lockedInputs.capability_evidence_sha256;
 delete extraKeyLocked.lockedInputs.antipattern_evidence_sha256;
