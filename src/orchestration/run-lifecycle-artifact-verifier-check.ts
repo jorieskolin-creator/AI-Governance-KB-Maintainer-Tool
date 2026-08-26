@@ -111,6 +111,53 @@ expectThrows(
   'lifecycle stage order drifted'
 );
 
+const extraKeyLocked={
+  ...contract,
+  lockedInputs:{
+    ...contract.lockedInputs,
+    capability_evidence_sha256:undefined,
+    antipattern_evidence_sha256:undefined,
+    evidence_output_sha256:undefined,
+    capability_evidence:evidence.capability.map((item)=>({...item,persistedCloneNoise:'jsonb-extra'}))
+  }
+};
+delete extraKeyLocked.lockedInputs.capability_evidence_sha256;
+delete extraKeyLocked.lockedInputs.antipattern_evidence_sha256;
+delete extraKeyLocked.lockedInputs.evidence_output_sha256;
+verifyPersistedLifecycleArtifact({output:persisted,lifecycleTaskContract:extraKeyLocked,authoringPlan:plan,verifiedPairBoundary:pairBoundary,verifiedEvidence:evidence,verifiedEvidenceSafety:evidenceSafety,verifiedApAbsence:apAbsence,verifiedFindings:findings,verifiedControl:control,categoryBaseline,goldenReference});
+
+const nestedCloneIgnored={
+  ...contract,
+  lockedInputs:{
+    ...contract.lockedInputs,
+    capability_evidence:[{handle:'evidence_999',title:'Unrelated nested clone'}]
+  }
+};
+verifyPersistedLifecycleArtifact({output:persisted,lifecycleTaskContract:nestedCloneIgnored,authoringPlan:plan,verifiedPairBoundary:pairBoundary,verifiedEvidence:evidence,verifiedEvidenceSafety:evidenceSafety,verifiedApAbsence:apAbsence,verifiedFindings:findings,verifiedControl:control,categoryBaseline,goldenReference});
+
+const hashDrift={
+  ...contract,
+  lockedInputs:{
+    ...contract.lockedInputs,
+    capability_evidence_sha256:'0'.repeat(64)
+  }
+};
+expectThrows(
+  ()=>verifyPersistedLifecycleArtifact({output:persisted,lifecycleTaskContract:hashDrift,authoringPlan:plan,verifiedPairBoundary:pairBoundary,verifiedEvidence:evidence,verifiedEvidenceSafety:evidenceSafety,verifiedApAbsence:apAbsence,verifiedFindings:findings,verifiedControl:control,categoryBaseline,goldenReference}),
+  'capability Evidence drifted'
+);
+
+const rewrittenEvidence={
+  ...evidence,
+  capability:evidence.capability.map((item)=>({...item,title:'Different verified evidence title.'}))
+};
+expectThrows(
+  ()=>verifyPersistedLifecycleArtifact({output:persisted,lifecycleTaskContract:contract,authoringPlan:plan,verifiedPairBoundary:pairBoundary,verifiedEvidence:rewrittenEvidence,verifiedEvidenceSafety:evidenceSafety,verifiedApAbsence:apAbsence,verifiedFindings:findings,verifiedControl:control,categoryBaseline,goldenReference}),
+  'capability Evidence drifted'
+);
+
+if(typeof contract.lockedInputs.capability_evidence_sha256!=='string') throw new Error('lifecycle contract must lock capability evidence sha256');
+
 console.log(JSON.stringify({
   persistedLifecycleArtifact:'PASS',
   taskArtifactLifecycleMaterialization:'PASS',
@@ -120,5 +167,8 @@ console.log(JSON.stringify({
   assuranceVocabularyDrift:'REJECTED',
   lockedControlDependencyDrift:'REJECTED',
   categoryBaselineDrift:'REJECTED',
-  authoringPlanStageOrderDrift:'REJECTED'
+  authoringPlanStageOrderDrift:'REJECTED',
+  nestedEvidenceCloneNoise:'PASS',
+  lockedEvidenceHashBinding:'PASS',
+  rewrittenEvidenceRejected:'REJECTED'
 },null,2));

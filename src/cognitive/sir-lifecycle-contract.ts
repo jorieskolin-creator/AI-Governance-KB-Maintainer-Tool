@@ -1,5 +1,6 @@
 import type { AuthoringPlan } from '../authoring/authoring-plan.js';
 import type { TaskContract } from '../domain/task-contract.js';
+import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { MaterializedSirEvidence } from '../sir/evidence-materializer.js';
 import type { MaterializedSirFindings } from '../sir/finding-materializer.js';
 import type { SirApAbsenceOutput } from './sir-ap-absence-contract.js';
@@ -75,6 +76,9 @@ export function buildSirLifecycleAssuranceContract(
       pair_boundary: seed.pairBoundary,
       capability_evidence: seed.evidence.capability,
       antipattern_evidence: seed.evidence.antipattern,
+      capability_evidence_sha256: canonicalArtifactHash(seed.evidence.capability),
+      antipattern_evidence_sha256: canonicalArtifactHash(seed.evidence.antipattern),
+      evidence_output_sha256: canonicalArtifactHash(seed.evidence),
       capability_evidence_safety: seed.evidenceSafety.capabilityRules,
       antipattern_evidence_safety: seed.evidenceSafety.antipatternRules,
       ap_absence_contract: seed.apAbsence,

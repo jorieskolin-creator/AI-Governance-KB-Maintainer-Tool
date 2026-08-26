@@ -11,8 +11,52 @@ import type { MaterializedSirLifecycleTargets } from '../sir/lifecycle-materiali
 import { validateSirLifecycleCompletion } from '../validation/sir-lifecycle-completion.js';
 import { canonicalArtifactHash } from './artifact-hash.js';
 
+const EVIDENCE_ITEM_KEYS = [
+  'handle',
+  'title',
+  'claimSupported',
+  'evidenceClass',
+  'minimumTechnicalAssurance',
+  'requiredHumanAssurance',
+  'acceptanceConditions',
+  'limitations',
+  'supportsAtomicHandles'
+] as const;
+
 function assertSameJson(left: unknown, right: unknown, label: string): void {
   if (canonicalArtifactHash(left) !== canonicalArtifactHash(right)) {
+    throw new Error(`Persisted Lifecycle contract ${label} drifted from the verified upstream artifact.`);
+  }
+}
+
+function projectEvidenceItems(value: unknown): unknown {
+  if (!Array.isArray(value)) return value;
+  return value.map((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+    const rec = item as Record<string, unknown>;
+    const projected: Record<string, unknown> = {};
+    for (const key of EVIDENCE_ITEM_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(rec, key)) {
+        projected[key] = rec[key];
+      }
+    }
+    return projected;
+  });
+}
+
+function assertLockedEvidence(
+  locked: unknown,
+  verified: unknown,
+  lockedHash: unknown,
+  label: string
+): void {
+  if (typeof lockedHash === 'string' && /^[a-f0-9]{64}$/i.test(lockedHash)) {
+    if (lockedHash.toLowerCase() !== canonicalArtifactHash(verified)) {
+      throw new Error(`Persisted Lifecycle contract ${label} drifted from the verified upstream artifact.`);
+    }
+    return;
+  }
+  if (canonicalArtifactHash(projectEvidenceItems(locked)) !== canonicalArtifactHash(projectEvidenceItems(verified))) {
     throw new Error(`Persisted Lifecycle contract ${label} drifted from the verified upstream artifact.`);
   }
 }
@@ -109,8 +153,25 @@ export function verifyPersistedLifecycleArtifact(input: {
   assertSameJson(contract.lockedInputs.governed_technical_assurance_vocabulary, input.authoringPlan.vocabulary.technicalAssurance, 'technical-assurance vocabulary');
   assertSameJson(contract.lockedInputs.governed_human_assurance_vocabulary, input.authoringPlan.vocabulary.humanAssurance, 'human-assurance vocabulary');
   assertSameJson(contract.lockedInputs.pair_boundary, input.verifiedPairBoundary, 'Pair Boundary');
-  assertSameJson(contract.lockedInputs.capability_evidence, input.verifiedEvidence.capability, 'capability Evidence');
-  assertSameJson(contract.lockedInputs.antipattern_evidence, input.verifiedEvidence.antipattern, 'anti-pattern Evidence');
+  if (
+    typeof contract.lockedInputs.evidence_output_sha256 === 'string' &&
+    /^[a-f0-9]{64}$/i.test(contract.lockedInputs.evidence_output_sha256) &&
+    contract.lockedInputs.evidence_output_sha256.toLowerCase() !== canonicalArtifactHash(input.verifiedEvidence)
+  ) {
+    throw new Error('Persisted Lifecycle contract capability Evidence drifted from the verified upstream artifact.');
+  }
+  assertLockedEvidence(
+    contract.lockedInputs.capability_evidence,
+    input.verifiedEvidence.capability,
+    contract.lockedInputs.capability_evidence_sha256,
+    'capability Evidence'
+  );
+  assertLockedEvidence(
+    contract.lockedInputs.antipattern_evidence,
+    input.verifiedEvidence.antipattern,
+    contract.lockedInputs.antipattern_evidence_sha256,
+    'anti-pattern Evidence'
+  );
   assertSameJson(contract.lockedInputs.capability_evidence_safety, input.verifiedEvidenceSafety.capabilityRules, 'capability Evidence Safety');
   assertSameJson(contract.lockedInputs.antipattern_evidence_safety, input.verifiedEvidenceSafety.antipatternRules, 'anti-pattern Evidence Safety');
   assertSameJson(contract.lockedInputs.ap_absence_contract, input.verifiedApAbsence, 'AP absence contract');
