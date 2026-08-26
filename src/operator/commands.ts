@@ -214,8 +214,9 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
   const pairRuns = await getPairRuns(run.id);
   const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
   const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
-  const next = nextEligiblePairTask(domain, snapshots);
-  if ('blocked' in next) throw new Error(next.blocked);
+  const eligible = nextEligiblePairTask(domain, snapshots);
+  if ('blocked' in eligible) throw new Error(eligible.blocked);
+  let next: NextEligibleTask = eligible;
   const pairRun = pairRuns.find((item) => item.pairId === next.pairId);
   if (!pairRun) throw new Error(`Pair run ${next.pairId} is missing.`);
 
@@ -223,12 +224,12 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     operatorLog('operator.task.admitted', { domain, pairId: next.pairId, taskType: next.taskType, domainRunId: run.id });
     const pairState = await reopenForRetry(pairRun.id, pairRun.state);
     try {
-      const result = await runPairQcRepair({
+      await runPairQcRepair({
         pairRunId: pairRun.id,
         pairId: next.pairId,
         domainRunId: run.id
       });
-      return { domainRunId: run.id, next, usedFallback: result.usedFallback };
+      next = { domain, pairId: next.pairId, taskType: 'PAIR_COHERENCE_REVIEW' };
     } catch (error) {
       if (!isProviderRouteFailure(error)) {
         await markRepairRequired(pairRun.id, pairState);

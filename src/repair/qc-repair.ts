@@ -161,15 +161,34 @@ function identityOf(value: unknown): string | undefined {
   return undefined;
 }
 
-function selectById(value: unknown, id: string, path: string): Record<string, unknown> {
+function isNumericIndex(id: string): boolean {
+  return /^\d+$/.test(id);
+}
+
+type SelectedNode =
+  | { kind: 'object'; node: Record<string, unknown> }
+  | { kind: 'primitive'; parent: unknown[]; index: number };
+
+function selectById(value: unknown, id: string, path: string): SelectedNode {
   if (!Array.isArray(value)) {
     throw new Error(`Repair path ${path} expected an array before [${id}].`);
   }
   const match = value.find((item) => identityOf(item) === id);
-  if (!match || typeof match !== 'object' || Array.isArray(match)) {
-    throw new Error(`Repair path ${path} does not resolve handle ${id}.`);
+  if (match && typeof match === 'object' && !Array.isArray(match)) {
+    return { kind: 'object', node: match as Record<string, unknown> };
   }
-  return match as Record<string, unknown>;
+  if (isNumericIndex(id)) {
+    const index = Number(id);
+    if (index < 0 || index >= value.length) {
+      throw new Error(`Repair path ${path} does not resolve index ${id}.`);
+    }
+    const item = value[index];
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      return { kind: 'object', node: item as Record<string, unknown> };
+    }
+    return { kind: 'primitive', parent: value, index };
+  }
+  throw new Error(`Repair path ${path} does not resolve handle ${id}.`);
 }
 
 function preserveIdentity(previous: unknown, next: unknown): unknown {
@@ -202,12 +221,21 @@ export function applySnapshotPatches<T>(object: T, patches: RepairPatch[]): T {
         }
         parent = (parent as Record<string, unknown>)[token.value];
       } else {
-        parent = selectById(parent, token.value, patch.path);
+        const selected = selectById(parent, token.value, patch.path);
+        if (selected.kind === 'primitive') {
+          throw new Error(`Repair path ${patch.path} cannot descend through a primitive array item.`);
+        }
+        parent = selected.node;
       }
     }
 
     if (last.kind === 'id') {
-      const node = selectById(parent, last.value, patch.path);
+      const selected = selectById(parent, last.value, patch.path);
+      if (selected.kind === 'primitive') {
+        selected.parent[selected.index] = patch.value;
+        continue;
+      }
+      const node = selected.node;
       const merged = preserveIdentity(node, patch.value);
       if (!merged || typeof merged !== 'object' || Array.isArray(merged)) {
         throw new Error(`Repair path ${patch.path} must replace the selected item with an object.`);

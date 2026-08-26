@@ -67,6 +67,7 @@ export async function createTaskRun(input: {
        output_hash = null,
        completed_at = null
      where task_runs.status = 'FAILED'
+        or (task_runs.task_type = 'LOCAL_REPAIR' and task_runs.status = 'COMPLETED')
      returning id`,
     [
       input.pairRunId,
@@ -79,7 +80,7 @@ export async function createTaskRun(input: {
   const row = result.rows[0];
   if (!row) {
     throw new Error(
-      `Refusing to reopen ${input.contract.taskType} unless the stored row is FAILED.`
+      `Refusing to reopen ${input.contract.taskType} unless the stored row is FAILED${input.contract.taskType === 'LOCAL_REPAIR' ? ' or a completed LOCAL_REPAIR retry.' : '.'}`
     );
   }
   return row.id;

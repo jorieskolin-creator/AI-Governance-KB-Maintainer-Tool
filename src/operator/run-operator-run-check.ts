@@ -102,6 +102,20 @@ const recheckQc = nextEligiblePairTask('A', [
 assert(!('blocked' in recheckQc) && recheckQc.taskType === 'PAIR_COHERENCE_REVIEW', 'authoring pairs with all tasks completed re-check pair coherence');
 assert(!('blocked' in recheckQc) && recheckQc.pairId === 'A2_AP-A2', 'pair coherence re-check stays on A2');
 
+const failedQc = PAIR_TASK_SEQUENCE.map((taskType) => ({
+  taskType,
+  status: taskType === 'PAIR_COHERENCE_REVIEW' ? ('FAILED' as const) : ('COMPLETED' as const)
+}));
+const failedQcRepair = nextEligiblePairTask('A', [
+  { pairId: 'A1_AP-A1', state: 'VALIDATED', tasks: allCompleted },
+  { pairId: 'A2_AP-A2', state: 'AUTHORING', tasks: failedQc },
+  { pairId: 'A3_AP-A3', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
+  { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
+]);
+assert(!('blocked' in failedQcRepair) && failedQcRepair.taskType === 'LOCAL_REPAIR', 'failed pair-coherence with defects repairs before another QC retry');
+assert(!('blocked' in failedQcRepair) && failedQcRepair.pairId === 'A2_AP-A2', 'failed QC repair stays on A2');
+
 const failedBoundary = PAIR_TASK_SEQUENCE.map((taskType) => ({
   taskType,
   status: taskType === 'PAIR_BOUNDARY' ? ('FAILED' as const) : ('PENDING' as const)

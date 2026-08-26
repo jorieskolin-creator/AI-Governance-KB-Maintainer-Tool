@@ -127,6 +127,30 @@ assert(output.repairs.length === 1, 'scoped child-path repairs are accepted');
 const dotted = applyRepairPatches({ a: { b: 1 } }, [{ path: 'a.b', value: 2 }]);
 assert(dotted.a.b === 2, 'legacy dotted patches still apply');
 
+const safetySnapshot = {
+  ...snapshot,
+  evidenceSafety: {
+    capabilityRules: {
+      evidenceCeilings: ['Intent does not prove effectiveness.', 'Old ceiling that needs a sharper bound.']
+    }
+  }
+} as unknown as PairCoherenceSnapshot;
+const indexed = applySnapshotPatches(safetySnapshot, [
+  {
+    path: 'evidenceSafety.capabilityRules.evidenceCeilings[1]',
+    value: 'Documented purpose statements do not prove that each activity has a specific intended purpose.'
+  }
+]);
+assert(
+  indexed.evidenceSafety.capabilityRules.evidenceCeilings[1] ===
+    'Documented purpose statements do not prove that each activity has a specific intended purpose.',
+  'numeric indices into primitive arrays must apply'
+);
+assert(
+  indexed.evidenceSafety.capabilityRules.evidenceCeilings[0] === 'Intent does not prove effectiveness.',
+  'untouched primitive array items stay in place'
+);
+
 console.log(
   JSON.stringify(
     {
@@ -138,6 +162,7 @@ console.log(
       identityFieldPatch: 'REJECTED',
       descendantRepairPath: 'PASS',
       snapshotRootBinding: 'PASS',
+      numericArrayIndexPatch: 'PASS',
       qcLocalRepairContract: 'PASS'
     },
     null,

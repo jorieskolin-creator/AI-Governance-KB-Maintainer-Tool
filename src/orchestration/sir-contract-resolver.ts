@@ -255,11 +255,13 @@ export async function resolveSirTaskContract(
   if (!findingArtifact) {
     throw new Error(`Missing completed dependency FINDING_ARCHITECTURE for ${input.authoringPlan.identity.pairId}.`);
   }
-  verifyMaterializedFindingArtifact({
-    output: findings,
-    findingTaskContract: findingArtifact.taskContract,
-    authoringPlan: input.authoringPlan
-  });
+  if (input.taskType !== 'PAIR_COHERENCE_REVIEW') {
+    verifyMaterializedFindingArtifact({
+      output: findings,
+      findingTaskContract: findingArtifact.taskContract,
+      authoringPlan: input.authoringPlan
+    });
+  }
 
   if (input.taskType === 'CONTROL_BOUNDARY') {
     return buildSirControlBoundaryContract({

@@ -49,12 +49,23 @@ export function isOpenDomainState(state: DomainState): boolean {
   return OPEN_DOMAIN_STATES.includes(state);
 }
 
+function authoringTasksCompleted(pair: EligiblePairSnapshot): boolean {
+  return PAIR_TASK_SEQUENCE.every((taskType) => {
+    if (taskType === 'PAIR_COHERENCE_REVIEW') return true;
+    const cell = pair.tasks.find((task) => task.taskType === taskType);
+    return cell?.status === 'COMPLETED';
+  });
+}
+
 function retryableFailedTask(
   domain: DomainId,
   pair: EligiblePairSnapshot
 ): NextEligibleTask | undefined {
   const failed = pair.tasks.find((task) => task.status === 'FAILED');
   if (!failed) return undefined;
+  if (failed.taskType === 'PAIR_COHERENCE_REVIEW' && authoringTasksCompleted(pair)) {
+    return undefined;
+  }
   const failedIndex = PAIR_TASK_SEQUENCE.indexOf(failed.taskType);
   if (failedIndex < 0) return undefined;
   const skipped = PAIR_TASK_SEQUENCE.slice(0, failedIndex).some((taskType) => {
@@ -75,11 +86,17 @@ export function nextEligiblePairTask(
     const retry = retryableFailedTask(domain, pair);
     if (retry) return retry;
 
-    if (pair.state === 'REPAIR_REQUIRED') {
-      const pairCoherence = pair.tasks.find((task) => task.taskType === 'PAIR_COHERENCE_REVIEW');
-      if (pairCoherence?.status === 'COMPLETED') {
+    const pairCoherence = pair.tasks.find((task) => task.taskType === 'PAIR_COHERENCE_REVIEW');
+    if (
+      authoringTasksCompleted(pair) &&
+      (pair.state === 'REPAIR_REQUIRED' || pairCoherence?.status === 'FAILED' || pairCoherence?.status === 'COMPLETED')
+    ) {
+      if (pair.state === 'REPAIR_REQUIRED' || pairCoherence?.status === 'FAILED') {
         return { domain, pairId: pair.pairId, taskType: 'LOCAL_REPAIR' };
       }
+    }
+
+    if (pair.state === 'REPAIR_REQUIRED') {
       return {
         blocked: `${pair.pairId} requires local repair before another SIR task can run.`
       };
