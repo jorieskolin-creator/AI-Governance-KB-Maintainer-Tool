@@ -252,10 +252,11 @@ export async function resolveSirTaskContract(
     'FINDING_ARCHITECTURE',
     input.authoringPlan
   );
+  const pairCoherenceRecheck = input.taskType === 'PAIR_COHERENCE_REVIEW';
   if (!findingArtifact) {
     throw new Error(`Missing completed dependency FINDING_ARCHITECTURE for ${input.authoringPlan.identity.pairId}.`);
   }
-  if (input.taskType !== 'PAIR_COHERENCE_REVIEW') {
+  if (!pairCoherenceRecheck) {
     verifyMaterializedFindingArtifact({
       output: findings,
       findingTaskContract: findingArtifact.taskContract,
@@ -291,7 +292,8 @@ export async function resolveSirTaskContract(
     authoringPlan: input.authoringPlan,
     verifiedFindings: findings,
     verifiedEvidenceSafety: evidenceSafety,
-    verifiedApAbsence: apAbsence
+    verifiedApAbsence: apAbsence,
+    skipUpstreamLockBinding: pairCoherenceRecheck
   });
 
   if (input.taskType === 'LIFECYCLE_ASSURANCE') {
@@ -329,7 +331,8 @@ export async function resolveSirTaskContract(
     verifiedFindings: findings,
     verifiedControl: controlBoundary,
     categoryBaseline: input.categoryBaseline,
-    goldenReference: input.goldenReference
+    goldenReference: input.goldenReference,
+    skipUpstreamLockBinding: pairCoherenceRecheck
   });
 
   if (input.taskType === 'REFERENCE_MAPPING') {

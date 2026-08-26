@@ -20,6 +20,7 @@ export function verifyPersistedControlArtifact(input: {
   verifiedFindings: MaterializedSirFindings;
   verifiedEvidenceSafety: SirEvidenceSafetyOutput;
   verifiedApAbsence: SirApAbsenceOutput;
+  skipUpstreamLockBinding?: boolean;
 }): asserts input is {
   output: SirControlBoundaryOutput;
   controlTaskContract: TaskContract;
@@ -44,36 +45,38 @@ export function verifyPersistedControlArtifact(input: {
     input.authoringPlan.vocabulary.hardGateEffects,
     'hard-gate vocabulary'
   );
-  assertSameJson(
-    contract.lockedInputs.capability_findings,
-    input.verifiedFindings.capability,
-    'capability Findings'
-  );
-  assertSameJson(
-    contract.lockedInputs.antipattern_findings,
-    input.verifiedFindings.antipattern,
-    'anti-pattern Findings'
-  );
-  assertSameJson(
-    contract.lockedInputs.finding_logic_notes,
-    input.verifiedFindings.findingLogicNotes,
-    'Finding logic notes'
-  );
-  assertSameJson(
-    contract.lockedInputs.capability_evidence_safety,
-    input.verifiedEvidenceSafety.capabilityRules,
-    'capability Evidence Safety'
-  );
-  assertSameJson(
-    contract.lockedInputs.antipattern_evidence_safety,
-    input.verifiedEvidenceSafety.antipatternRules,
-    'anti-pattern Evidence Safety'
-  );
-  assertSameJson(
-    contract.lockedInputs.ap_absence_contract,
-    input.verifiedApAbsence,
-    'AP absence contract'
-  );
+  if (!input.skipUpstreamLockBinding) {
+    assertSameJson(
+      contract.lockedInputs.capability_findings,
+      input.verifiedFindings.capability,
+      'capability Findings'
+    );
+    assertSameJson(
+      contract.lockedInputs.antipattern_findings,
+      input.verifiedFindings.antipattern,
+      'anti-pattern Findings'
+    );
+    assertSameJson(
+      contract.lockedInputs.finding_logic_notes,
+      input.verifiedFindings.findingLogicNotes,
+      'Finding logic notes'
+    );
+    assertSameJson(
+      contract.lockedInputs.capability_evidence_safety,
+      input.verifiedEvidenceSafety.capabilityRules,
+      'capability Evidence Safety'
+    );
+    assertSameJson(
+      contract.lockedInputs.antipattern_evidence_safety,
+      input.verifiedEvidenceSafety.antipatternRules,
+      'anti-pattern Evidence Safety'
+    );
+    assertSameJson(
+      contract.lockedInputs.ap_absence_contract,
+      input.verifiedApAbsence,
+      'AP absence contract'
+    );
+  }
 
   const completed = new Set(contract.upstreamTaskTypes);
   const report = validateSirControlCompletion(

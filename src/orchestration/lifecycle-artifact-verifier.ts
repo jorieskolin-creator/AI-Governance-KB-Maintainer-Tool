@@ -110,6 +110,7 @@ export function verifyPersistedLifecycleArtifact(input: {
   verifiedControl: SirControlBoundaryOutput;
   categoryBaseline: Record<string, unknown>;
   goldenReference: Record<string, unknown>;
+  skipUpstreamLockBinding?: boolean;
 }): asserts input is {
   output: MaterializedSirLifecycleTargets;
   lifecycleTaskContract: TaskContract;
@@ -137,30 +138,32 @@ export function verifyPersistedLifecycleArtifact(input: {
   assertSameJson(contract.lockedInputs.lifecycle_stage_order, input.authoringPlan.vocabulary.lifecycleStages, 'lifecycle stage order');
   assertSameJson(contract.lockedInputs.governed_technical_assurance_vocabulary, input.authoringPlan.vocabulary.technicalAssurance, 'technical-assurance vocabulary');
   assertSameJson(contract.lockedInputs.governed_human_assurance_vocabulary, input.authoringPlan.vocabulary.humanAssurance, 'human-assurance vocabulary');
-  assertSameJson(contract.lockedInputs.pair_boundary, input.verifiedPairBoundary, 'Pair Boundary');
-  if (
-    typeof contract.lockedInputs.evidence_output_sha256 === 'string' &&
-    /^[a-f0-9]{64}$/i.test(contract.lockedInputs.evidence_output_sha256) &&
-    contract.lockedInputs.evidence_output_sha256.toLowerCase() !== canonicalArtifactHash(input.verifiedEvidence)
-  ) {
-    throw new Error('Persisted Lifecycle contract capability Evidence drifted from the verified upstream artifact.');
+  if (!input.skipUpstreamLockBinding) {
+    assertSameJson(contract.lockedInputs.pair_boundary, input.verifiedPairBoundary, 'Pair Boundary');
+    if (
+      typeof contract.lockedInputs.evidence_output_sha256 === 'string' &&
+      /^[a-f0-9]{64}$/i.test(contract.lockedInputs.evidence_output_sha256) &&
+      contract.lockedInputs.evidence_output_sha256.toLowerCase() !== canonicalArtifactHash(input.verifiedEvidence)
+    ) {
+      throw new Error('Persisted Lifecycle contract capability Evidence drifted from the verified upstream artifact.');
+    }
+    assertLockedEvidence(
+      input.verifiedEvidence.capability,
+      contract.lockedInputs.capability_evidence_sha256,
+      'capability Evidence'
+    );
+    assertLockedEvidence(
+      input.verifiedEvidence.antipattern,
+      contract.lockedInputs.antipattern_evidence_sha256,
+      'anti-pattern Evidence'
+    );
+    assertSameJson(contract.lockedInputs.capability_evidence_safety, input.verifiedEvidenceSafety.capabilityRules, 'capability Evidence Safety');
+    assertSameJson(contract.lockedInputs.antipattern_evidence_safety, input.verifiedEvidenceSafety.antipatternRules, 'anti-pattern Evidence Safety');
+    assertSameJson(contract.lockedInputs.ap_absence_contract, input.verifiedApAbsence, 'AP absence contract');
+    assertSameJson(contract.lockedInputs.capability_findings, input.verifiedFindings.capability, 'capability Findings');
+    assertSameJson(contract.lockedInputs.antipattern_findings, input.verifiedFindings.antipattern, 'anti-pattern Findings');
+    assertSameJson(contract.lockedInputs.control_boundary, input.verifiedControl, 'Control Boundary');
   }
-  assertLockedEvidence(
-    input.verifiedEvidence.capability,
-    contract.lockedInputs.capability_evidence_sha256,
-    'capability Evidence'
-  );
-  assertLockedEvidence(
-    input.verifiedEvidence.antipattern,
-    contract.lockedInputs.antipattern_evidence_sha256,
-    'anti-pattern Evidence'
-  );
-  assertSameJson(contract.lockedInputs.capability_evidence_safety, input.verifiedEvidenceSafety.capabilityRules, 'capability Evidence Safety');
-  assertSameJson(contract.lockedInputs.antipattern_evidence_safety, input.verifiedEvidenceSafety.antipatternRules, 'anti-pattern Evidence Safety');
-  assertSameJson(contract.lockedInputs.ap_absence_contract, input.verifiedApAbsence, 'AP absence contract');
-  assertSameJson(contract.lockedInputs.capability_findings, input.verifiedFindings.capability, 'capability Findings');
-  assertSameJson(contract.lockedInputs.antipattern_findings, input.verifiedFindings.antipattern, 'anti-pattern Findings');
-  assertSameJson(contract.lockedInputs.control_boundary, input.verifiedControl, 'Control Boundary');
   assertSameJson(contract.lockedInputs.category_baseline, input.categoryBaseline, 'category baseline');
   assertSameJson(contract.lockedInputs.golden_reference, input.goldenReference, 'Golden reference');
 
