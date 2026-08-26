@@ -3,10 +3,10 @@ import { flowLabel, OPERATOR_DOMAINS, taskDisplayStatus, taskLabel, workOrderLab
 
 function escapeHtml(value: string): string {
   return value
-    .replaceAll('&', '&')
-    .replaceAll('<', '<')
-    .replaceAll('>', '>')
-    .replaceAll('"', '"')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 }
 
@@ -20,13 +20,13 @@ function healthTone(ready: boolean): string {
   return ready ? 'pass' : 'warn';
 }
 
-function domainSwitcher(status: OperatorStatus): string {
-  return OPERATOR_DOMAINS.map((domain, index) => {
+function domainSwitcher(status: OperatorStatus, selected: string): string {
+  return OPERATOR_DOMAINS.map((domain) => {
     const card = status.domains.find((entry) => entry.domain === domain);
     const title = card?.title ?? `Domain ${domain}`;
-    const checked = index === 0 ? ' checked' : '';
+    const checked = domain === selected ? ' checked' : '';
     return `<label class="domain-tab">
-      <input type="radio" name="domain" value="${domain}"${checked}>
+      <input type="radio" name="board-domain" value="${domain}"${checked}>
       <span class="domain-tab-id">${domain}</span>
       <span class="domain-tab-title">${escapeHtml(title)}</span>
     </label>`;
@@ -196,15 +196,16 @@ function domainPanel(card: OperatorDomainCard): string {
   </article>`;
 }
 
-export function renderOperatorHome(status: OperatorStatus, notice = ''): string {
+export function renderOperatorHome(status: OperatorStatus, notice = '', selectedDomain = 'A'): string {
   const dbReady = status.health.database.connected && status.health.database.schemaReady;
   const flow = status.pipeline.domainFlow
     .map((step) => `<li><span>${escapeHtml(flowLabel(step))}</span></li>`)
     .join('');
+  const selected = (OPERATOR_DOMAINS as readonly string[]).includes(selectedDomain) ? selectedDomain : 'A';
   const panels = status.domains.map((card) => domainPanel(card)).join('');
   const running = status.domains.some((card) => startedTasks(card).length > 0);
   const waitingForStart = !running && notice.toLowerCase().includes('running');
-  const refresh = running || waitingForStart;
+  const refreshMs = running ? 8000 : waitingForStart ? 2000 : 0;
   const findings = uniqueFindings(status.findings);
   const lastCall = status.modelCalls[0];
 
@@ -213,7 +214,6 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  ${refresh ? `<meta http-equiv="refresh" content="${waitingForStart ? '2' : '8'};url=/">` : ''}
   <title>AI Governance KB Maintainer</title>
   <style>
     :root {
@@ -321,12 +321,12 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
       border-color: var(--brass);
     }
     .domain-panel { display: none; }
-    body:has(input[name="domain"][value="A"]:checked) .domain-panel[data-domain="A"],
-    body:has(input[name="domain"][value="B"]:checked) .domain-panel[data-domain="B"],
-    body:has(input[name="domain"][value="C"]:checked) .domain-panel[data-domain="C"],
-    body:has(input[name="domain"][value="D"]:checked) .domain-panel[data-domain="D"],
-    body:has(input[name="domain"][value="E"]:checked) .domain-panel[data-domain="E"],
-    body:has(input[name="domain"][value="F"]:checked) .domain-panel[data-domain="F"] {
+    body:has(input[name="board-domain"][value="A"]:checked) .domain-panel[data-domain="A"],
+    body:has(input[name="board-domain"][value="B"]:checked) .domain-panel[data-domain="B"],
+    body:has(input[name="board-domain"][value="C"]:checked) .domain-panel[data-domain="C"],
+    body:has(input[name="board-domain"][value="D"]:checked) .domain-panel[data-domain="D"],
+    body:has(input[name="board-domain"][value="E"]:checked) .domain-panel[data-domain="E"],
+    body:has(input[name="board-domain"][value="F"]:checked) .domain-panel[data-domain="F"] {
       display: block;
     }
     .domain-head { margin-bottom: 0.9rem; }
@@ -451,7 +451,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
     </section>
     <section class="board">
       <p class="kicker">Domain board</p>
-      <div class="tabs" role="tablist">${domainSwitcher(status)}</div>
+      <div class="tabs" role="tablist">${domainSwitcher(status, selected)}</div>
       ${panels}
     </section>
     <section class="note">
@@ -474,6 +474,49 @@ export function renderOperatorHome(status: OperatorStatus, notice = ''): string 
       }
     </section>
   </main>
+  <script>
+  (function () {
+    var inflight = false;
+    var refreshMs = ${String(refreshMs)};
+    function selectedDomain() {
+      var checked = document.querySelector('input[name="board-domain"]:checked');
+      return checked ? checked.value : ${JSON.stringify(selected)};
+    }
+    function withDomain(path) {
+      return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'domain=' + encodeURIComponent(selectedDomain());
+    }
+    document.querySelectorAll('.command-form').forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (inflight) return;
+        var button = form.querySelector('button');
+        if (!button || button.disabled) return;
+        inflight = true;
+        button.disabled = true;
+        var body = new URLSearchParams(new FormData(form));
+        fetch('/api/operator/commands', {
+          method: 'POST',
+          headers: { 'content-type': 'application/x-www-form-urlencoded', 'accept': 'text/html' },
+          body: body,
+          redirect: 'manual'
+        }).then(function () {
+          var domain = body.get('domain') || selectedDomain();
+          var notice = 'Domain ' + domain + ' pipeline is running. It stops when the domain is ready or a task fails.';
+          window.location.assign(withDomain('/?notice=' + encodeURIComponent(notice)));
+        }).catch(function () {
+          inflight = false;
+          button.disabled = false;
+        });
+      });
+    });
+    if (refreshMs > 0) {
+      setTimeout(function () {
+        if (inflight) return;
+        window.location.replace(withDomain('/'));
+      }, refreshMs);
+    }
+  })();
+  </script>
 </body>
 </html>`;
 }
