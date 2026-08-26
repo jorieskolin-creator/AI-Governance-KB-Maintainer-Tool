@@ -14,6 +14,7 @@ import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
 import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask } from './eligibility.js';
+import { dismissAvailability } from './dismiss.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -191,6 +192,46 @@ assert(
   classifyDomainPipelineStop('Task PAIR_BOUNDARY failed primary and fallback routes') === 'FAILED',
   'model or SIR failure must stop the pipeline for in-place retry'
 );
+
+assert(
+  classifyDomainPipelineStop('1 pair(s) have HIGH blockers parked for later review. DOMAIN_COHERENCE stays closed.') ===
+    'DOMAIN_READY',
+  'parked blockers must stop the pair pipeline without looking like a crash'
+);
+
+const deferredPairs = nextEligiblePairTask('B', [
+  { pairId: 'B1_AP-B1', state: 'VALIDATED', tasks: allCompleted },
+  { pairId: 'B2_AP-B2', state: 'VALIDATED', tasks: allCompleted },
+  { pairId: 'B3_AP-B3', state: 'DEFERRED', tasks: allCompleted },
+  { pairId: 'B4_AP-B4', state: 'AUTHORING', tasks: pending },
+  { pairId: 'B5_AP-B5', state: 'AUTHORING', tasks: pending }
+]);
+assert(!('blocked' in deferredPairs) && deferredPairs.pairId === 'B4_AP-B4', 'deferred pairs must not block remaining pairs');
+assert(!('blocked' in deferredPairs) && deferredPairs.taskType === 'PAIR_BOUNDARY', 'next pair after deferral starts at PAIR_BOUNDARY');
+
+const parkBeforeRepair = dismissAvailability({
+  blockingDefectCount: 1,
+  localRepairCompleted: false,
+  pairState: 'REPAIR_REQUIRED',
+  taskInFlight: false
+});
+assert(parkBeforeRepair.enabled === false, 'park stays closed before one repair loop');
+
+const parkAfterRepair = dismissAvailability({
+  blockingDefectCount: 1,
+  localRepairCompleted: true,
+  pairState: 'REPAIR_REQUIRED',
+  taskInFlight: false
+});
+assert(parkAfterRepair.enabled === true, 'park opens after one repair loop');
+
+const parkWhileRunning = dismissAvailability({
+  blockingDefectCount: 1,
+  localRepairCompleted: true,
+  pairState: 'AUTHORING',
+  taskInFlight: true
+});
+assert(parkWhileRunning.enabled === false, 'park stays closed while a task is running');
 
 const availability = commandAvailability({
   databaseReady: true,

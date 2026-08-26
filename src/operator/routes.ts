@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { OperatorStatus } from './board.js';
-import { parseDomainId, runDomainPipeline, startDomainRun, runNextEligibleTask } from './commands.js';
+import { parseDomainId, runDomainPipeline, startDomainRun, runNextEligibleTask, dismissBlockingDefects, closeParkedDefect } from './commands.js';
 import { operatorLog } from './log.js';
 import { renderOperatorHome } from './render-home.js';
 
@@ -63,7 +63,7 @@ export function registerOperatorRoutes(
   });
 
   app.post('/api/operator/commands', async (request, reply) => {
-    const body = (request.body ?? {}) as { domain?: unknown; action?: unknown };
+    const body = (request.body ?? {}) as { domain?: unknown; action?: unknown; findingId?: unknown };
     const action = String(body.action ?? '').trim();
     operatorLog('operator.command.received', {
       action,
@@ -102,6 +102,40 @@ export function registerOperatorRoutes(
           taskType: result.next.taskType,
           usedFallback: result.usedFallback
         });
+        return result;
+      }
+      if (action === 'dismiss-blocking-defects') {
+        const result = await dismissBlockingDefects(domain);
+        operatorLog('operator.command.finished', {
+          action,
+          domain,
+          pairId: result.pairId,
+          parked: result.parked
+        });
+        if (wantsHtml(request)) {
+          return noticeRedirect(
+            reply,
+            `Parked ${String(result.parked)} HIGH blocker(s) on ${result.pairId} for later review. Remaining pairs can continue.`,
+            domain
+          );
+        }
+        return result;
+      }
+      if (action === 'close-parked-defect') {
+        const findingId = String(body.findingId ?? '').trim();
+        if (!findingId) {
+          throw new Error('Parked item id is missing.');
+        }
+        const result = await closeParkedDefect(domain, findingId);
+        if (wantsHtml(request)) {
+          return noticeRedirect(
+            reply,
+            result.pairValidated
+              ? 'Closed the parked item. That pair is now VALIDATED with known remaining debt.'
+              : 'Closed the parked item. It stays retrievable until the work order is finished only if other parked items remain.',
+            domain
+          );
+        }
         return result;
       }
       operatorLog('operator.command.rejected', { action, domain: body.domain, reason: 'unknown-action' });

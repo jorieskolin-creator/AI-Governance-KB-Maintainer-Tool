@@ -481,6 +481,7 @@ export async function getOpenFindings(domainRunId: string): Promise<FindingRecor
      left join pair_runs p on p.id = v.pair_run_id
      where (v.domain_run_id = $1 or p.domain_run_id = $1)
        and v.resolved = false
+       and coalesce(v.recommended_action, '') <> 'PARKED_FOR_LATER_REVIEW'
      order by v.created_at desc
      limit 20`,
     [domainRunId]
@@ -496,6 +497,92 @@ export async function getOpenFindings(domainRunId: string): Promise<FindingRecor
     resolved: row.resolved,
     createdAt: row.created_at
   }));
+}
+
+export async function persistParkedDefects(
+  pairRunId: string,
+  domainRunId: string,
+  defects: Array<{
+    checkId: string;
+    severity: string;
+    objectId: string;
+    objectPath: string;
+    issue: string;
+  }>
+): Promise<void> {
+  const db = getDbPool();
+  for (const item of defects) {
+    await db.query(
+      `insert into validation_findings(
+        pair_run_id, domain_run_id, check_id, kind, severity, object_id, object_path, issue,
+        dependency_scope, recommended_action, resolved
+      ) values ($1,$2,$3,'DEFERRED_QC',$4,$5,$6,$7,'[]'::jsonb,'PARKED_FOR_LATER_REVIEW', false)`,
+      [pairRunId, domainRunId, item.checkId, item.severity, item.objectId, item.objectPath, item.issue]
+    );
+  }
+}
+
+export async function getParkedFindings(domainRunId: string): Promise<FindingRecord[]> {
+  const result = await getDbPool().query<{
+    id: string;
+    pair_run_id: string | null;
+    check_id: string;
+    severity: string;
+    object_id: string;
+    object_path: string;
+    issue: string;
+    resolved: boolean;
+    created_at: Date;
+  }>(
+    `select v.id, v.pair_run_id, v.check_id, v.severity, v.object_id, v.object_path, v.issue, v.resolved, v.created_at
+     from validation_findings v
+     left join pair_runs p on p.id = v.pair_run_id
+     where (v.domain_run_id = $1 or p.domain_run_id = $1)
+       and v.resolved = false
+       and v.recommended_action = 'PARKED_FOR_LATER_REVIEW'
+     order by v.created_at desc`,
+    [domainRunId]
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    pairRunId: row.pair_run_id,
+    checkId: row.check_id,
+    severity: row.severity,
+    objectId: row.object_id,
+    objectPath: row.object_path,
+    issue: row.issue,
+    resolved: row.resolved,
+    createdAt: row.created_at
+  }));
+}
+
+export async function closeParkedFinding(findingId: string): Promise<{
+  pairRunId: string | null;
+  remaining: number;
+}> {
+  const db = getDbPool();
+  const closed = await db.query<{ pair_run_id: string | null }>(
+    `update validation_findings
+     set resolved = true
+     where id = $1
+       and resolved = false
+       and recommended_action = 'PARKED_FOR_LATER_REVIEW'
+     returning pair_run_id`,
+    [findingId]
+  );
+  const pairRunId = closed.rows[0]?.pair_run_id ?? null;
+  if (!pairRunId) {
+    return { pairRunId: null, remaining: 0 };
+  }
+  const remaining = await db.query<{ count: string }>(
+    `select count(*)::text as count
+     from validation_findings
+     where pair_run_id = $1
+       and resolved = false
+       and recommended_action = 'PARKED_FOR_LATER_REVIEW'`,
+    [pairRunId]
+  );
+  return { pairRunId, remaining: Number(remaining.rows[0]?.count ?? 0) };
 }
 
 export async function getRecentModelCalls(pairRunIds: string[]): Promise<ModelCallRecord[]> {

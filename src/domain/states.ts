@@ -3,6 +3,7 @@ export type PairState =
   | 'AUTHORING'
   | 'VALIDATING'
   | 'REPAIR_REQUIRED'
+  | 'DEFERRED'
   | 'VALIDATED';
 
 export type DomainState =

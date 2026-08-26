@@ -31,17 +31,26 @@ function exactKeys(value: Record<string, unknown>, expected: string[], label: st
   }
 }
 
-function extractHandles(value: unknown, label: string): string[] {
+function requireKeys(value: Record<string, unknown>, expected: string[], label: string): void {
+  for (const key of expected) {
+    if (!(key in value)) {
+      throw new Error(`${label} contains unexpected or missing fields.`);
+    }
+  }
+}
+
+function extractHandles(value: unknown, label: string, allowExtraKeys: boolean): string[] {
   if (!Array.isArray(value)) {
     throw new Error(`Persisted Reference Mapping ${label} must be an array.`);
   }
   return value.map((raw, index) => {
     const item = objectRecord(raw, `Persisted Reference Mapping ${label}[${index}]`);
-    exactKeys(
-      item,
-      ['criterionHandle', 'criterionId', 'boundarySummary'],
-      `Persisted Reference Mapping ${label}[${index}]`
-    );
+    const keys = ['criterionHandle', 'criterionId', 'boundarySummary'];
+    if (allowExtraKeys) {
+      requireKeys(item, keys, `Persisted Reference Mapping ${label}[${index}]`);
+    } else {
+      exactKeys(item, keys, `Persisted Reference Mapping ${label}[${index}]`);
+    }
     if (typeof item.criterionHandle !== 'string' || !/^criterion_.+/.test(item.criterionHandle)) {
       throw new Error(`Persisted Reference Mapping ${label}[${index}] has an invalid criterion handle.`);
     }
@@ -63,6 +72,7 @@ export function verifyPersistedReferenceMappingArtifact(input: {
   verifiedFindings: MaterializedSirFindings;
   categoryBaseline: Record<string, unknown>;
   goldenReference: Record<string, unknown>;
+  skipStrictMaterialization?: boolean;
 }): asserts input is {
   output: MaterializedSirReferenceMappings;
   referenceTaskContract: TaskContract;
@@ -83,9 +93,11 @@ export function verifyPersistedReferenceMappingArtifact(input: {
     throw new Error('Persisted Reference Mapping belongs to a different Authoring Plan.');
   }
 
-  assertSameJson(contract.lockedInputs.pair_boundary, input.verifiedPairBoundary, 'Pair Boundary');
-  assertSameJson(contract.lockedInputs.capability_findings, input.verifiedFindings.capability, 'capability Findings');
-  assertSameJson(contract.lockedInputs.antipattern_findings, input.verifiedFindings.antipattern, 'anti-pattern Findings');
+  if (!input.skipStrictMaterialization) {
+    assertSameJson(contract.lockedInputs.pair_boundary, input.verifiedPairBoundary, 'Pair Boundary');
+    assertSameJson(contract.lockedInputs.capability_findings, input.verifiedFindings.capability, 'capability Findings');
+    assertSameJson(contract.lockedInputs.antipattern_findings, input.verifiedFindings.antipattern, 'anti-pattern Findings');
+  }
   assertSameJson(contract.lockedInputs.adjacent_criteria, input.authoringPlan.adjacentCriteria, 'adjacent-criterion universe');
   assertSameJson(contract.lockedInputs.category_baseline, input.categoryBaseline, 'category baseline');
   assertSameJson(contract.lockedInputs.golden_reference, input.goldenReference, 'Golden reference');
@@ -127,11 +139,13 @@ export function verifyPersistedReferenceMappingArtifact(input: {
   const semanticOutput: SirReferenceMappingOutput = {
     capabilityRelatedCriterionHandles: extractHandles(
       output.capabilityRelatedCriteria,
-      'capabilityRelatedCriteria'
+      'capabilityRelatedCriteria',
+      Boolean(input.skipStrictMaterialization)
     ) as SirReferenceMappingOutput['capabilityRelatedCriterionHandles'],
     antipatternRelatedCriterionHandles: extractHandles(
       output.antipatternRelatedCriteria,
-      'antipatternRelatedCriteria'
+      'antipatternRelatedCriteria',
+      Boolean(input.skipStrictMaterialization)
     ) as SirReferenceMappingOutput['antipatternRelatedCriterionHandles'],
     referenceNotes: [...(output.referenceNotes as string[])]
   };
@@ -156,14 +170,16 @@ export function verifyPersistedReferenceMappingArtifact(input: {
   if (!Array.isArray(adjacentCriteria)) {
     throw new Error('Persisted Reference Mapping contract has no locked adjacent-criterion universe.');
   }
-  const expected = materializeSirReferenceMappings(
-    semanticOutput,
-    {
-      adjacentCriteria: adjacentCriteria as AdjacentCriterionRef[],
-      tacticResolutionMode: 'NO_APPROVED_TACTIC_AVAILABLE'
+  if (!input.skipStrictMaterialization) {
+    const expected = materializeSirReferenceMappings(
+      semanticOutput,
+      {
+        adjacentCriteria: adjacentCriteria as AdjacentCriterionRef[],
+        tacticResolutionMode: 'NO_APPROVED_TACTIC_AVAILABLE'
+      }
+    );
+    if (canonicalArtifactHash(expected) !== canonicalArtifactHash(input.output)) {
+      throw new Error('Persisted Reference Mapping materialized content drifted from deterministic reconstruction.');
     }
-  );
-  if (canonicalArtifactHash(expected) !== canonicalArtifactHash(input.output)) {
-    throw new Error('Persisted Reference Mapping materialized content drifted from deterministic reconstruction.');
   }
 }

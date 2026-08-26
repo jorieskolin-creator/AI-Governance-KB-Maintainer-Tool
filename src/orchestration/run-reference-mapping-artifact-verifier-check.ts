@@ -203,6 +203,25 @@ expectReject(
   'unsupported tactic resolution mode'
 );
 
+const extraKey = JSON.parse(JSON.stringify(persisted)) as unknown as {
+  capabilityRelatedCriteria: Array<Record<string, unknown>>;
+} & Record<string, unknown>;
+extraKey.capabilityRelatedCriteria[0] = {
+  ...extraKey.capabilityRelatedCriteria[0],
+  rationale: 'Repaired related-criterion rationale.'
+};
+expectReject(() => verify(extraKey), 'contains unexpected or missing fields');
+verifyPersistedReferenceMappingArtifact({
+  output: extraKey,
+  referenceTaskContract: contract,
+  authoringPlan: plan,
+  verifiedPairBoundary: pairBoundary,
+  verifiedFindings: findings,
+  categoryBaseline,
+  goldenReference,
+  skipStrictMaterialization: true
+});
+
 console.log(JSON.stringify({
   persistedReferenceMappingArtifact: 'PASS',
   taskRunnerMaterializationPath: 'PASS',
@@ -212,5 +231,6 @@ console.log(JSON.stringify({
   tamperedBoundarySummary: 'REJECTED',
   tacticReferenceInjection: 'REJECTED',
   lockedAdjacentUniverseDrift: 'REJECTED',
-  unsupportedTacticMode: 'REJECTED'
+  unsupportedTacticMode: 'REJECTED',
+  repairedExtraKeysOnQcRecheck: 'PASS'
 }, null, 2));

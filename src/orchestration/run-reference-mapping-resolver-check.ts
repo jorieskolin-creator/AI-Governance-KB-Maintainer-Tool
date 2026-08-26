@@ -446,10 +446,10 @@ artifacts.set('REFERENCE_MAPPING', {
   output: badReferenceId,
   outputHash: canonicalArtifactHash(badReferenceId)
 });
-await expectReject(
-  () => resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' }),
-  'materialized content drifted'
-);
+const repairedQc = await resolveSirTaskContract({ ...base, taskType: 'PAIR_COHERENCE_REVIEW' });
+if (repairedQc.taskType !== 'PAIR_COHERENCE_REVIEW') {
+  throw new Error('Pair Coherence re-check must read a repaired Reference Mapping snapshot.');
+}
 artifacts.set('REFERENCE_MAPPING', originalReference);
 
 const staleReference = structuredClone(referenceOutput);

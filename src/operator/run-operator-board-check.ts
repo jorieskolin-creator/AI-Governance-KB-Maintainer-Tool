@@ -75,6 +75,7 @@ assert(!html.includes('contenteditable'), 'home page must not be an editor');
 assert(!html.toLowerCase().includes('force continue'), 'home page must not offer a force-continue action');
 assert(html.includes('Start domain run'), 'home page must expose the start-run command');
 assert(html.includes('Continue domain'), 'home page must continue a domain until it is ready');
+assert(html.includes('Park HIGH blockers for later review'), 'home page must offer park-for-later after repair');
 assert(html.includes('command-form'), 'home page must post operator commands from domain-scoped forms');
 assert(html.includes("fetch('/api/operator/commands'"), 'Retry/Continue must not rely on meta-refresh form posts');
 assert(!html.includes('http-equiv="refresh"'), 'idle board must not auto-navigate away from a command click');

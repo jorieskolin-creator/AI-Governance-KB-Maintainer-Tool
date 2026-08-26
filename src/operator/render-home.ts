@@ -155,6 +155,27 @@ function continueLabel(card: OperatorDomainCard): string {
   return 'Continue domain until ready';
 }
 
+function parkedList(card: OperatorDomainCard): string {
+  const items = card.parkedFindings ?? [];
+  if (!items.length) return '';
+  return `<section class="defects parked">
+      <p class="kicker">Parked for later review</p>
+      <p class="meta">HIGH blockers parked after a repair loop. They do not stop remaining pairs. Close removes an item from this queue; schema and IDs stay code-owned.</p>
+      <ul>${items
+        .map(
+          (item) =>
+            `<li><strong>${escapeHtml(item.severity)}</strong> <code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''}<br>${escapeHtml(item.issue)}
+            <form class="command-form" method="post" action="/api/operator/commands">
+              <input type="hidden" name="domain" value="${escapeHtml(card.domain)}">
+              <input type="hidden" name="action" value="close-parked-defect">
+              <input type="hidden" name="findingId" value="${escapeHtml(item.id)}">
+              <button type="submit">Close this parked item</button>
+            </form></li>`
+        )
+        .join('')}</ul>
+    </section>`;
+}
+
 function defectList(card: OperatorDomainCard): string {
   const items = uniqueFindings(card.findings ?? []);
   if (!items.length) return '';
@@ -182,10 +203,12 @@ function domainPanel(card: OperatorDomainCard): string {
     <div class="commands">
       ${commandButton('start-domain-run', card.domain, card.commands.startDomainRun, 'Start domain run')}
       ${commandButton('run-next-task', card.domain, card.commands.runNextTask, continueLabel(card))}
-      <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.runNextTask.reason)}</p>
+      ${commandButton('dismiss-blocking-defects', card.domain, card.commands.dismissBlockers, 'Park HIGH blockers for later review')}
+      <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.dismissBlockers.enabled ? card.commands.dismissBlockers.reason : card.commands.runNextTask.reason)}</p>
     </div>
     ${runActivity(card)}
     ${defectList(card)}
+    ${parkedList(card)}
     ${pairGrid(card)}
     <ol class="domain-unit">
       <li><span>Domain coherence</span><strong>locked until five pairs are VALIDATED</strong></li>
@@ -342,6 +365,8 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     .defects ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
     .defects li { margin: 0.45rem 0; color: var(--muted); line-height: 1.4; }
     .defects strong { color: #d9896f; margin-right: 0.35rem; }
+    .defects.parked strong { color: var(--brass); }
+    .defects.parked button { margin-top: 0.4rem; }
     .pair-grid { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
     .pair-grid th, .pair-grid td {
       border-bottom: 1px solid var(--line);
@@ -501,7 +526,13 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
           redirect: 'manual'
         }).then(function () {
           var domain = body.get('domain') || selectedDomain();
+          var action = body.get('action') || '';
           var notice = 'Domain ' + domain + ' pipeline is running. It stops when the domain is ready or a task fails.';
+          if (action === 'dismiss-blocking-defects') {
+            notice = 'Parked HIGH blockers for later review. Remaining pairs can continue.';
+          } else if (action === 'close-parked-defect') {
+            notice = 'Closed a parked item.';
+          }
           window.location.assign(withDomain('/?notice=' + encodeURIComponent(notice)));
         }).catch(function () {
           inflight = false;

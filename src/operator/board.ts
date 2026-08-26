@@ -60,10 +60,19 @@ export interface OperatorDomainCard {
   pairIds: readonly string[];
   pairs: OperatorPairColumn[];
   findings: Array<{ objectId: string; checkId: string; severity: string; issue: string; objectPath?: string }>;
+  parkedFindings: Array<{
+    id: string;
+    objectId: string;
+    checkId: string;
+    severity: string;
+    issue: string;
+    objectPath?: string;
+  }>;
   commands: {
     startDomainRun: CommandFlag;
     runNextTask: CommandFlag;
     recordApproval: CommandFlag;
+    dismissBlockers: CommandFlag;
   };
 }
 
@@ -217,6 +226,11 @@ const APPROVAL_CLOSED: CommandFlag = {
   reason: 'External approval intake stays closed. APPROVED is not granted in this UI.'
 };
 
+const DISMISS_CLOSED: CommandFlag = {
+  enabled: false,
+  reason: 'Park is available after one repair loop, and only for HIGH blockers.'
+};
+
 export function buildOperatorStatus(input: {
   database: { connected: boolean; schemaReady: boolean };
   domainTitles?: readonly DomainCoverageTitle[];
@@ -267,6 +281,14 @@ export function buildOperatorStatus(input: {
         issue: item.issue,
         objectPath: item.objectPath
       })),
+      parkedFindings: (overlay?.parkedFindings ?? []).map((item) => ({
+        id: item.id,
+        objectId: item.objectId,
+        checkId: item.checkId,
+        severity: item.severity,
+        issue: item.issue,
+        objectPath: item.objectPath
+      })),
       pairs: pairIds.map((pairId, index) => {
         const capabilityId = capabilityIds[index];
         if (!capabilityId) throw new Error(`Missing capability id for ${pairId}.`);
@@ -285,7 +307,8 @@ export function buildOperatorStatus(input: {
       commands: overlay?.commands ?? {
         startDomainRun: CLOSED,
         runNextTask: CLOSED,
-        recordApproval: APPROVAL_CLOSED
+        recordApproval: APPROVAL_CLOSED,
+        dismissBlockers: DISMISS_CLOSED
       }
     };
   });

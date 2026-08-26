@@ -362,7 +362,8 @@ export async function resolveSirTaskContract(
     verifiedPairBoundary: pairBoundary,
     verifiedFindings: findings,
     categoryBaseline: input.categoryBaseline,
-    goldenReference: input.goldenReference
+    goldenReference: input.goldenReference,
+    skipStrictMaterialization: pairCoherenceRecheck
   });
 
   const pairCoherenceSeed = {

@@ -21,8 +21,11 @@ import {
   getCompletedTaskTypes,
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
+  getLatestTaskArtifactWithOutput,
   getPairRuns,
   getTaskRunsForPairs,
+  persistParkedDefects,
+  closeParkedFinding,
   updatePairState,
   failOrphanedStartedTasks,
   type PairRunRecord
@@ -44,6 +47,8 @@ import {
 import type { OperatorTaskStatus } from './eligibility.js';
 import { operatorLog } from './log.js';
 import { runPairQcRepair } from './qc-repair-command.js';
+import { dismissAvailability } from './dismiss.js';
+import { blockingQcDefects, qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
 
 const TARGET_VERSION = '1.0.0';
 
@@ -299,6 +304,94 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     }
     throw error;
   }
+}
+
+export async function dismissBlockingDefects(domain: DomainId): Promise<{
+  domain: DomainId;
+  pairId: string;
+  parked: number;
+}> {
+  if (!operatorCommandsEnabled()) {
+    throw new Error('Operator commands are disabled on this deployment.');
+  }
+  const run = await getLatestDomainRun(domain);
+  if (!run || !isOpenDomainState(run.state)) {
+    throw new Error(`No open domain ${domain} run.`);
+  }
+  const pairRuns = await getPairRuns(run.id);
+  const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
+  const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
+  const taskInFlight = taskRuns.some((task) => task.status === 'STARTED');
+  for (const pairRun of pairRuns) {
+    const pair = snapshots.find((item) => item.pairId === pairRun.pairId);
+    if (!pair) continue;
+    const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+    const review = reviewFromUnknown(pairRun.pairId, artifact?.output);
+    if (!review) continue;
+    const blocking = blockingQcDefects(review);
+    const localRepairCompleted = taskRuns.some(
+      (task) => task.pairRunId === pairRun.id && task.taskType === 'LOCAL_REPAIR' && task.status === 'COMPLETED'
+    );
+    const flag = dismissAvailability({
+      blockingDefectCount: blocking.length,
+      localRepairCompleted,
+      pairState: pair.state,
+      taskInFlight
+    });
+    if (!flag.enabled) continue;
+    await persistParkedDefects(
+      pairRun.id,
+      run.id,
+      qcDefectsToFindings(pairRun.pairId, { ...review, defects: blocking })
+    );
+    if (pairRun.state !== 'DEFERRED') {
+      if (!canTransition(pairTransitions, pairRun.state, 'DEFERRED')) {
+        throw new Error(`Illegal pair transition ${pairRun.state} → DEFERRED.`);
+      }
+      await updatePairState(pairRun.id, 'DEFERRED');
+    }
+    operatorLog('operator.defects.parked', {
+      domain,
+      pairId: pairRun.pairId,
+      parked: blocking.length
+    });
+    return { domain, pairId: pairRun.pairId, parked: blocking.length };
+  }
+  throw new Error('Park is available after one repair loop, and only for HIGH blockers.');
+}
+
+export async function closeParkedDefect(domain: DomainId, findingId: string): Promise<{
+  domain: DomainId;
+  remaining: number;
+  pairValidated: boolean;
+}> {
+  if (!operatorCommandsEnabled()) {
+    throw new Error('Operator commands are disabled on this deployment.');
+  }
+  const run = await getLatestDomainRun(domain);
+  if (!run || !isOpenDomainState(run.state)) {
+    throw new Error(`No open domain ${domain} run.`);
+  }
+  const closed = await closeParkedFinding(findingId);
+  if (!closed.pairRunId) {
+    throw new Error('Parked item was not found or is already closed.');
+  }
+  let pairValidated = false;
+  if (closed.remaining === 0) {
+    const pairRuns = await getPairRuns(run.id);
+    const pairRun = pairRuns.find((item) => item.id === closed.pairRunId);
+    if (pairRun?.state === 'DEFERRED' && canTransition(pairTransitions, 'DEFERRED', 'VALIDATED')) {
+      await updatePairState(pairRun.id, 'VALIDATED');
+      pairValidated = true;
+    }
+  }
+  operatorLog('operator.defects.closed', {
+    domain,
+    findingId,
+    remaining: closed.remaining,
+    pairValidated
+  });
+  return { domain, remaining: closed.remaining, pairValidated };
 }
 
 const domainPipelinesInFlight = new Set<DomainId>();

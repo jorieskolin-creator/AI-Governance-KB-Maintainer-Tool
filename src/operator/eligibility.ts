@@ -38,6 +38,9 @@ export function classifyDomainPipelineStop(
   ) {
     return 'BLOCKED';
   }
+  if (errorMessage.includes('parked for later')) {
+    return 'DOMAIN_READY';
+  }
   return 'FAILED';
 }
 
@@ -81,7 +84,7 @@ export function nextEligiblePairTask(
   pairs: readonly EligiblePairSnapshot[]
 ): NextEligibleTask | { blocked: string } {
   for (const pair of pairs) {
-    if (pair.state === 'NOT_STARTED' || pair.state === 'VALIDATED') continue;
+    if (pair.state === 'NOT_STARTED' || pair.state === 'VALIDATED' || pair.state === 'DEFERRED') continue;
 
     const retry = retryableFailedTask(domain, pair);
     if (retry) return retry;
@@ -123,7 +126,13 @@ export function nextEligiblePairTask(
   }
 
   const validated = pairs.filter((pair) => pair.state === 'VALIDATED').length;
-  if (validated === pairs.length && pairs.length === 5) {
+  const deferred = pairs.filter((pair) => pair.state === 'DEFERRED').length;
+  if (validated + deferred === pairs.length && pairs.length === 5) {
+    if (deferred > 0) {
+      return {
+        blocked: `${String(deferred)} pair(s) have HIGH blockers parked for later review. DOMAIN_COHERENCE stays closed.`
+      };
+    }
     return {
       blocked:
         'Five pairs are VALIDATED. DOMAIN_COHERENCE_REVIEW is the next unit and stays closed in Slice 2.'
