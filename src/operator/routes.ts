@@ -112,7 +112,7 @@ export function registerOperatorRoutes(
       operatorLog('operator.command.rejected', { action, error: message });
       const code = message.includes('not configured') || message.includes('disabled') ? 403 : 409;
       if (wantsHtml(request)) return noticeRedirect(reply, message, String(body.domain ?? ''));
-      return reply.code(code).send({ error: 'Unknown operator action.' });
+      return reply.code(code).send({ error: message });
     }
   });
 }
