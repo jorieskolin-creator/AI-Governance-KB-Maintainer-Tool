@@ -24,6 +24,7 @@ import {
   getPairRuns,
   getTaskRunsForPairs,
   updatePairState,
+  failOrphanedStartedTasks,
   type PairRunRecord
 } from '../orchestration/store.js';
 import { runCognitiveTask } from '../orchestration/task-runner.js';
@@ -286,6 +287,10 @@ export async function runDomainPipeline(domain: DomainId): Promise<DomainPipelin
     operatorLog('operator.pipeline.already_running', { domain });
     return { domain, status: 'ALREADY_RUNNING', completed: [] };
   }
+  const reclaimed = await failOrphanedStartedTasks(domain);
+  if (reclaimed.length) {
+    operatorLog('operator.pipeline.reclaimed_started', { domain, tasks: reclaimed });
+  }
   domainPipelinesInFlight.add(domain);
   const completed: NextEligibleTask[] = [];
   operatorLog('operator.pipeline.started', { domain });
@@ -316,5 +321,36 @@ export async function runDomainPipeline(domain: DomainId): Promise<DomainPipelin
   } finally {
     domainPipelinesInFlight.delete(domain);
   }
+}
+
+export async function resumeOpenDomainPipelines(): Promise<{ reclaimed: number; resumed: DomainId[] }> {
+  const reclaimed = await failOrphanedStartedTasks();
+  if (reclaimed.length) {
+    operatorLog('operator.pipeline.reclaimed_started', { tasks: reclaimed });
+  }
+  if (!operatorCommandsEnabled() || !modelRoutesConfigured()) {
+    return { reclaimed: reclaimed.length, resumed: [] };
+  }
+  const resumed: DomainId[] = [];
+  for (const domain of ['A', 'B', 'C', 'D', 'E', 'F'] as const) {
+    const run = await getLatestDomainRun(domain);
+    if (!run || !isOpenDomainState(run.state)) continue;
+    resumed.push(domain);
+    operatorLog('operator.pipeline.resume', { domain, domainRunId: run.id });
+    void runDomainPipeline(domain)
+      .then((result) => {
+        operatorLog('operator.pipeline.finished', {
+          domain,
+          status: result.status,
+          completedCount: result.completed.length,
+          reason: result.reason
+        });
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        operatorLog('operator.pipeline.failed', { domain, error: message });
+      });
+  }
+  return { reclaimed: reclaimed.length, resumed };
 }
 

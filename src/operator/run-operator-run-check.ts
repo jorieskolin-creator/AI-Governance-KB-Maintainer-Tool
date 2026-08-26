@@ -13,7 +13,7 @@ import {
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
-import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop } from './eligibility.js';
+import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask } from './eligibility.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -107,6 +107,14 @@ assert(!('blocked' in retryLater) && retryLater.taskType === 'AP_FAILURE_MODEL',
 assert(canReopenTaskRun('FAILED') === true, 'failed task runs must be reopenable');
 assert(canReopenTaskRun('STARTED') === false, 'in-flight task runs must not be reopened');
 assert(canReopenTaskRun('COMPLETED') === false, 'completed task runs must keep persistence identity');
+assert(
+  shouldReclaimStartedTask(false) === true,
+  'STARTED after a process restart is an orphan and must be reclaimed'
+);
+assert(
+  shouldReclaimStartedTask(true) === false,
+  'STARTED while this process owns the domain pipeline must stay a live lock'
+);
 
 assert(
   classifyDomainPipelineStop(
@@ -268,6 +276,7 @@ console.log(
       repairBlocksAdvance: 'PASS',
       failedTaskRetriesInPlace: 'PASS',
       domainPipelineStopsAtReady: 'PASS',
+      orphanedStartedReclaim: 'PASS',
       completedTaskIdentityHeld: 'PASS',
       goldenLockOmitsFixtureBodies: 'PASS',
       pairBoundaryPromptOmitsCanonicalIds: 'PASS',

@@ -89,6 +89,37 @@ export function canReopenTaskRun(status: 'STARTED' | 'COMPLETED' | 'FAILED'): bo
   return status === 'FAILED';
 }
 
+export interface OrphanedStartedTask {
+  id: string;
+  pairId: string;
+  taskType: CognitiveTaskType;
+}
+
+export async function failOrphanedStartedTasks(domain?: string): Promise<OrphanedStartedTask[]> {
+  const db = getDbPool();
+  const result = domain
+    ? await db.query<OrphanedStartedTask>(
+        `update task_runs tr
+         set status = 'FAILED', completed_at = now()
+         from pair_runs pr
+         join domain_runs dr on dr.id = pr.domain_run_id
+         where tr.pair_run_id = pr.id
+           and tr.status = 'STARTED'
+           and dr.domain = $1
+         returning tr.id, pr.pair_id as "pairId", tr.task_type as "taskType"`,
+        [domain]
+      )
+    : await db.query<OrphanedStartedTask>(
+        `update task_runs tr
+         set status = 'FAILED', completed_at = now()
+         from pair_runs pr
+         where tr.pair_run_id = pr.id
+           and tr.status = 'STARTED'
+         returning tr.id, pr.pair_id as "pairId", tr.task_type as "taskType"`
+      );
+  return result.rows;
+}
+
 export async function completeTaskRun(input: {
   taskRunId: string;
   output: unknown;

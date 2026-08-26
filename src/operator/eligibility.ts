@@ -40,6 +40,10 @@ export function classifyDomainPipelineStop(
   return 'FAILED';
 }
 
+export function shouldReclaimStartedTask(pipelineInFlight: boolean): boolean {
+  return !pipelineInFlight;
+}
+
 export function isOpenDomainState(state: DomainState): boolean {
   return OPEN_DOMAIN_STATES.includes(state);
 }

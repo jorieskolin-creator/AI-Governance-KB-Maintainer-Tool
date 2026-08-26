@@ -5,6 +5,9 @@ import { buildOperatorStatus } from './operator/board.js';
 import { loadDomainOverlay } from './operator/overlay.js';
 import { registerOperatorRoutes } from './operator/routes.js';
 import { OPERATOR_DOMAINS } from './operator/board.js';
+import { resumeOpenDomainPipelines } from './operator/commands.js';
+import { failOrphanedStartedTasks } from './orchestration/store.js';
+import { operatorLog } from './operator/log.js';
 
 export async function buildApp() {
   const app = Fastify({ logger: true });
@@ -59,6 +62,14 @@ export async function buildApp() {
   });
 
   app.addHook('onClose', async () => {
+    try {
+      const reclaimed = await failOrphanedStartedTasks();
+      if (reclaimed.length) {
+        operatorLog('operator.pipeline.reclaimed_started', { reason: 'shutdown', tasks: reclaimed });
+      }
+    } catch (error) {
+      app.log.error(error);
+    }
     await closeDatabase();
   });
 
@@ -68,3 +79,11 @@ export async function buildApp() {
 const app = await buildApp();
 const port = Number(process.env.PORT ?? 3000);
 await app.listen({ port, host: '0.0.0.0' });
+if (process.env.DATABASE_URL?.trim()) {
+  try {
+    const resumed = await resumeOpenDomainPipelines();
+    operatorLog('operator.pipeline.boot', resumed);
+  } catch (error) {
+    app.log.error(error);
+  }
+}
