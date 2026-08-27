@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-# Per-boot startup for the AI Governance KB Maintainer Tool development environment.
+# Per-boot startup: bring up the local PostgreSQL control-plane database.
 #
-# Brings up the local PostgreSQL control-plane database and then runs the Fastify
-# dev server (which applies migrations on boot). Idempotent and safe to re-run.
-#
-# The base environment snapshot provides the PostgreSQL binaries and Node.js.
+# The Fastify dev server runs separately in the `dev-server` terminal
+# (see .cursor/environment.json) and applies migrations on boot.
+# This script is idempotent and safe to re-run.
 set -euo pipefail
 
-# This branch may not contain the application (e.g. the default branch is a bare
-# skeleton). Only start services when the app is actually checked out here.
+# The default branch is a bare skeleton without the application; only bring up
+# the database when the app is actually checked out on this branch.
 if [ ! -f package.json ]; then
-  echo "No package.json in $(pwd); skipping database and dev server startup."
+  echo "No package.json in $(pwd); skipping database startup."
   exit 0
 fi
-
-export DATABASE_URL="${DATABASE_URL:-postgres://postgres@localhost:5432/kb_maintainer}"
-export PORT="${PORT:-3000}"
 
 PGDATA="${PGDATA:-$HOME/.pgdata}"
 PGBIN="$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)"
@@ -39,5 +35,4 @@ fi
 # Ensure the application database exists (migrations run from the app on boot).
 createdb -h localhost -p 5432 -U postgres kb_maintainer 2>/dev/null || true
 
-echo "PostgreSQL ready on localhost:5432 (database: kb_maintainer). Starting dev server on :${PORT}"
-exec npm run dev
+echo "PostgreSQL ready on localhost:5432 (database: kb_maintainer)"
