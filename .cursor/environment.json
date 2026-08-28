@@ -1,0 +1,17 @@
+{
+  "name": "AI Governance KB Maintainer Tool",
+  "user": "node",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "install": "npm ci",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "dev-server",
+      "command": "npm run dev"
+    }
+  ],
+  "ports": [3000]
+}
