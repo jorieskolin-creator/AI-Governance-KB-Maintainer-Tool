@@ -13,7 +13,7 @@ The branch now includes:
 - bounded cognitive contracts from pair boundary through pair/domain coherence review;
 - deterministic completion and cross-artifact validation;
 - explicit WORKHORSE / REASONER / QUALITY_CHECKER provider+model routing with primary/fallback targets;
-- OpenAI/Grok/Kimi provider-neutral execution boundary;
+- OpenAI/Grok/Kimi/Meta provider-neutral execution boundary;
 - PostgreSQL migrations, readiness, persisted domain/pair/task/model-call state;
 - immutable baseline snapshot hashing;
 - path-scoped local repair contracts;

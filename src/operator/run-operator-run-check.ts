@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseModelJson, requestBody, supportsCustomTemperature } from '../ai/provider-client.js';
+import { getProviderBaseUrl } from '../ai/model-router.js';
 import { loadCategoriesBaseline } from '../baseline/categories.js';
 import { previewRepoBaselineManifest } from '../baseline/repo-artifacts.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
@@ -255,6 +256,7 @@ assert(
 );
 assert(supportsCustomTemperature({ provider: 'OPENAI', model: 'o3-mini' }) === false, 'o-series must omit temperature');
 assert(supportsCustomTemperature({ provider: 'KIMI', model: 'kimi-k3' }) === false, 'Kimi must omit temperature');
+assert(supportsCustomTemperature({ provider: 'META', model: 'muse-spark-1.2' }) === false, 'Muse Spark must omit temperature');
 assert(supportsCustomTemperature({ provider: 'GROK', model: 'grok-4.6' }) === true, 'Grok keeps temperature 0');
 assert(
   !('temperature' in requestBody({
@@ -264,6 +266,23 @@ assert(
   })),
   'reasoner body must not send temperature for gpt-5.6-terra'
 );
+assert(
+  !('temperature' in requestBody({
+    target: { provider: 'META', model: 'muse-spark-1.2' },
+    systemPrompt: 'sys',
+    userPrompt: 'user'
+  })),
+  'Muse Spark body must not send temperature'
+);
+assert(
+  requestBody({
+    target: { provider: 'META', model: 'muse-spark-1.2' },
+    systemPrompt: 'sys',
+    userPrompt: 'user'
+  }).response_format,
+  'Muse Spark still requests json_object'
+);
+assert(getProviderBaseUrl('META') === 'https://api.meta.ai/v1', 'Meta default base URL is the Model API');
 assert(
   requestBody({
     target: { provider: 'GROK', model: 'grok-4.6' },

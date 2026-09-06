@@ -76,7 +76,7 @@ The application requests roles, not providers directly:
 - `WORKHORSE`: bounded structured authoring.
 - `QUALITY_CHECKER`: independent adversarial semantic/factual review.
 
-OpenAI, Grok and Kimi are configured behind provider adapters and can be changed without changing orchestration logic.
+OpenAI, Grok, Kimi and Meta (Muse Spark) are configured behind provider adapters and can be changed without changing orchestration logic.
 
 ## Validation layers
 

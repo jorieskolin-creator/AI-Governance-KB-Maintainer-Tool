@@ -56,7 +56,7 @@ export function parseModelJson(text: string): unknown {
 }
 
 export function supportsCustomTemperature(target: ModelTarget): boolean {
-  if (target.provider === 'KIMI') return false;
+  if (target.provider === 'KIMI' || target.provider === 'META') return false;
   if (target.provider === 'OPENAI') {
     const model = target.model.trim().toLowerCase();
     // GPT-5 / o-series only accept the model default (1). Sending 0 is a 400.
@@ -80,6 +80,24 @@ export function requestBody(request: ModelExecutionRequest): Record<string, unkn
   }
 
   return common;
+}
+
+function extractMessageContent(payload: Record<string, any>): string {
+  const message = payload?.choices?.[0]?.message;
+  const content = message?.content;
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === 'string') return part;
+        if (typeof part?.text === 'string') return part.text;
+        if (typeof part?.content === 'string') return part.content;
+        return '';
+      })
+      .join('');
+  }
+  if (typeof message?.refusal === 'string') return message.refusal;
+  return '';
 }
 
 export async function executeModel(request: ModelExecutionRequest): Promise<ModelExecutionResponse> {
@@ -106,8 +124,8 @@ export async function executeModel(request: ModelExecutionRequest): Promise<Mode
       throw new Error(`${request.target.provider}/${request.target.model}: ${message}`);
     }
 
-    const rawText = payload?.choices?.[0]?.message?.content;
-    if (typeof rawText !== 'string' || !rawText.trim()) {
+    const rawText = extractMessageContent(payload);
+    if (!rawText.trim()) {
       throw new Error(`${request.target.provider}/${request.target.model}: empty model response`);
     }
 
