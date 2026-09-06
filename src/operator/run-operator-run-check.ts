@@ -114,8 +114,8 @@ const failedQcRepair = nextEligiblePairTask('A', [
   { pairId: 'A4_AP-A4', state: 'AUTHORING', tasks: pending },
   { pairId: 'A5_AP-A5', state: 'AUTHORING', tasks: pending }
 ]);
-assert(!('blocked' in failedQcRepair) && failedQcRepair.taskType === 'LOCAL_REPAIR', 'failed pair-coherence with defects repairs before another QC retry');
-assert(!('blocked' in failedQcRepair) && failedQcRepair.pairId === 'A2_AP-A2', 'failed QC repair stays on A2');
+assert(!('blocked' in failedQcRepair) && failedQcRepair.taskType === 'PAIR_COHERENCE_REVIEW', 'failed pair-coherence with no completed QC retries pair coherence');
+assert(!('blocked' in failedQcRepair) && failedQcRepair.pairId === 'A2_AP-A2', 'failed QC retry stays on A2');
 
 const failedBoundary = PAIR_TASK_SEQUENCE.map((taskType) => ({
   taskType,

@@ -236,10 +236,15 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
       });
       next = { domain, pairId: next.pairId, taskType: 'PAIR_COHERENCE_REVIEW' };
     } catch (error) {
-      if (!isProviderRouteFailure(error)) {
-        await markRepairRequired(pairRun.id, pairState);
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes('no completed PAIR_COHERENCE_REVIEW to repair from')) {
+        next = { domain, pairId: next.pairId, taskType: 'PAIR_COHERENCE_REVIEW' };
+      } else {
+        if (!isProviderRouteFailure(error)) {
+          await markRepairRequired(pairRun.id, pairState);
+        }
+        throw error;
       }
-      throw error;
     }
   }
 

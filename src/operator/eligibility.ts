@@ -66,7 +66,12 @@ function retryableFailedTask(
 ): NextEligibleTask | undefined {
   const failed = pair.tasks.find((task) => task.status === 'FAILED');
   if (!failed) return undefined;
-  if (failed.taskType === 'PAIR_COHERENCE_REVIEW' && authoringTasksCompleted(pair)) {
+  const pairCoherence = pair.tasks.find((task) => task.taskType === 'PAIR_COHERENCE_REVIEW');
+  if (
+    failed.taskType === 'PAIR_COHERENCE_REVIEW' &&
+    authoringTasksCompleted(pair) &&
+    pairCoherence?.status === 'COMPLETED'
+  ) {
     return undefined;
   }
   const failedIndex = PAIR_TASK_SEQUENCE.indexOf(failed.taskType);
@@ -90,13 +95,8 @@ export function nextEligiblePairTask(
     if (retry) return retry;
 
     const pairCoherence = pair.tasks.find((task) => task.taskType === 'PAIR_COHERENCE_REVIEW');
-    if (
-      authoringTasksCompleted(pair) &&
-      (pair.state === 'REPAIR_REQUIRED' || pairCoherence?.status === 'FAILED' || pairCoherence?.status === 'COMPLETED')
-    ) {
-      if (pair.state === 'REPAIR_REQUIRED' || pairCoherence?.status === 'FAILED') {
-        return { domain, pairId: pair.pairId, taskType: 'LOCAL_REPAIR' };
-      }
+    if (authoringTasksCompleted(pair) && pairCoherence?.status === 'COMPLETED' && pair.state === 'REPAIR_REQUIRED') {
+      return { domain, pairId: pair.pairId, taskType: 'LOCAL_REPAIR' };
     }
 
     if (pair.state === 'REPAIR_REQUIRED') {
