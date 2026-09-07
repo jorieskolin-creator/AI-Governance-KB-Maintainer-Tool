@@ -185,19 +185,22 @@ function coercePathHandles(
   return unique(resolved) as DomainCoherencePathHandle[];
 }
 
+function rawDefectList(record: Record<string, unknown>): unknown[] | undefined {
+  if (Array.isArray(record.defects)) return record.defects;
+  if (Array.isArray(record.findings)) return record.findings;
+  if (Array.isArray(record.issues)) return record.issues;
+  return undefined;
+}
+
 export function coerceSirDomainCoherenceOutput(
   output: unknown,
   packet: DomainCoherencePacket
 ): SirDomainCoherenceOutput | undefined {
   const record = recordOf(output);
   if (!record) return undefined;
-  const rawDefects = Array.isArray(record.defects)
-    ? record.defects
-    : Array.isArray(record.findings)
-      ? record.findings
-      : Array.isArray(record.issues)
-        ? record.issues
-        : [];
+  const rawDefects = rawDefectList(record);
+  if (!rawDefects) return undefined;
+  if (record.passed === false && rawDefects.length === 0) return undefined;
   const defects: SirDomainCoherenceOutput['defects'] = [];
   for (const item of rawDefects) {
     const row = recordOf(item);
@@ -254,11 +257,10 @@ export function coerceSirDomainCoherenceOutput(
     if (defects.length >= 50) break;
   }
   if (rawDefects.length > 0 && defects.length === 0) return undefined;
-  const summary =
-    pickText(record, ['coherenceSummary', 'summary', 'notes', 'rationale']) ||
-    (defects.length
-      ? `Domain Coherence QUALITY_CHECKER returned ${String(defects.length)} defect(s).`
-      : 'No material cross-pair domain coherence defects were identified in this bounded five-pair review.');
+  const authoredSummary = pickText(record, ['coherenceSummary', 'summary', 'notes', 'rationale']);
+  if (defects.length === 0 && !authoredSummary) return undefined;
+  const summary = authoredSummary
+    || `Domain Coherence QUALITY_CHECKER returned ${String(defects.length)} defect(s).`;
   return { defects, coherenceSummary: summary };
 }
 
@@ -433,6 +435,18 @@ export function validateSirDomainCoherenceCompletion(
 
   const packet = lockedPacket(contract, context, findings);
   const coerced = packet ? coerceSirDomainCoherenceOutput(output, packet) : undefined;
+  if (packet && coerced === undefined) {
+    findings.push(
+      finding(
+        context,
+        'SIR_DOMAIN_COHERENCE_REVIEW_INCOMPLETE',
+        '/',
+        'Domain Coherence review is incomplete: empty, explanation-only, or uninterpretable output cannot be treated as a pass.',
+        'SCHEMA'
+      )
+    );
+    return report(context, findings);
+  }
   const parsed = outputSchema.safeParse(coerced ?? output);
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
