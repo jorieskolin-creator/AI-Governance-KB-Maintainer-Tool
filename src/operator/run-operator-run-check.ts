@@ -342,6 +342,7 @@ const reviewHtml = renderPairReviewHtml({
   ]
 });
 assert(reviewHtml.includes('Approve and save'), 'review page must human-approve through save');
+assert(reviewHtml.includes('expectedCandidateHash'), 'review save binds the current candidate revision');
 assert(reviewHtml.includes('data-defect-id="defect_001"'), 'review page must allow deleting a blocker');
 assert(reviewHtml.includes('data-path="evidence.capability[evidence_001]"'), 'review page must allow editing the semantic path');
 assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
@@ -417,6 +418,7 @@ const domainHtml = renderDomainReviewHtml({
   ]
 });
 assert(domainHtml.includes('Approve and save'), 'domain review page must human-approve through save');
+assert(domainHtml.includes('expectedCandidateHash'), 'domain save binds the current candidate revision');
 assert(domainHtml.includes('save-domain-review'), 'domain review posts save-domain-review');
 assert(domainHtml.includes('Human domain approval'), 'domain save is domain-level human approval');
 assert(domainHtml.includes('not domain APPROVED'), 'domain save must not grant domain APPROVED');
@@ -469,6 +471,14 @@ assert(
 assert(
   (parseReviewSaveBody({ deletedDefectIds: ['defect_001'], patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }] }).patches[0]?.value as { title?: string }).title === 'Fixed',
   'JSON save body parses human content edits'
+);
+assert(
+  parseReviewSaveBody({
+    deletedDefectIds: ['defect_001'],
+    expectedCandidateHash: 'a'.repeat(64),
+    patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }]
+  }).expectedCandidateHash === 'a'.repeat(64),
+  'JSON save body parses the bound candidate revision hash'
 );
 
 const availability = commandAvailability({

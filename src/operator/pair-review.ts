@@ -3,13 +3,16 @@ import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { PairCoherencePacket } from '../orchestration/pair-coherence-packet.js';
 import { canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import {
+  currentPairCandidateHash,
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getPairRuns,
+  persistPairCandidate,
   replaceCompletedTaskOutput,
   updatePairState,
   type PairRunRecord
 } from '../orchestration/store.js';
+import { pairMayValidate, staleRevisionIssues } from '../orchestration/named-gates.js';
 import {
   applySnapshotPatches,
   blockingQcDefects,
@@ -56,6 +59,7 @@ export interface PairReviewPage {
   blockingCount: number;
   notice?: string;
   gateIssues: string[];
+  candidateHash?: string;
 }
 
 export interface PairReviewSaveResult {
@@ -200,7 +204,15 @@ function lockedPacket(contract: { lockedInputs: Record<string, unknown> }, pairI
   return raw as PairCoherencePacket;
 }
 
-export function parseReviewSaveBody(body: Record<string, unknown>): { deletedIds: string[]; patches: RepairPatch[] } {
+export function parseReviewSaveBody(body: Record<string, unknown>): {
+  deletedIds: string[];
+  patches: RepairPatch[];
+  expectedCandidateHash?: string;
+} {
+  const expectedCandidateHash =
+    typeof body.expectedCandidateHash === 'string' && body.expectedCandidateHash.trim()
+      ? body.expectedCandidateHash.trim()
+      : undefined;
   const ids: string[] = [];
   for (const [key, value] of Object.entries(body)) {
     if (!key.startsWith('delete:') && key !== 'deleteDefect') continue;
@@ -240,7 +252,7 @@ export function parseReviewSaveBody(body: Record<string, unknown>): { deletedIds
       throw new Error(`Content at ${path} is not valid JSON. Human approval requires machine-readable form.`);
     }
   }
-  return { deletedIds: [...new Set(ids)], patches };
+  return { deletedIds: [...new Set(ids)], patches, expectedCandidateHash };
 }
 
 export async function loadPairReviewPage(domain: DomainId, pairId: string, notice?: string): Promise<PairReviewPage> {
@@ -285,7 +297,8 @@ export async function loadPairReviewPage(domain: DomainId, pairId: string, notic
     defects,
     blockingCount: blocking.length,
     notice,
-    gateIssues: []
+    gateIssues: [],
+    candidateHash: await currentPairCandidateHash(pairRun.id, pairId)
   };
 }
 
@@ -341,6 +354,20 @@ export async function savePairReview(input: {
   const packet = lockedPacket(artifact.taskContract, input.pairId);
   const snapshot = await loadPairCoherenceSnapshot(pairRun.id);
   const parsed = parseReviewSaveBody(input.body);
+  const currentHash = await currentPairCandidateHash(pairRun.id, input.pairId);
+  const stale = staleRevisionIssues(currentHash, parsed.expectedCandidateHash);
+  if (stale.length) {
+    return {
+      domain: input.domain,
+      pairId: input.pairId,
+      persisted: false,
+      humanApproved: false,
+      passed: false,
+      deleted: parsed.deletedIds,
+      patchCount: parsed.patches.length,
+      gateIssues: stale
+    };
+  }
   const allowedPaths = repairPathsFromDefects(review.defects);
   const knownPaths = allowedPaths.length ? allowedPaths : parsed.patches.map((item) => item.path);
   for (const patch of parsed.patches) {
@@ -389,7 +416,8 @@ export async function savePairReview(input: {
     output: rematerialized,
     outputHash: canonicalArtifactHash(rematerialized)
   });
-  if (rematerialized.passed === true) {
+  const outcomes = await persistPairCandidate(pairRun.id, rematerialized);
+  if (pairMayValidate(outcomes)) {
     await markValidated(pairRun.id, current);
   }
   operatorLog('operator.review.human_approved', {
@@ -456,6 +484,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
       <input type="hidden" name="domain" value="${escapeHtml(page.domain)}">
       <input type="hidden" name="pairId" value="${escapeHtml(page.pairId)}">
       <input type="hidden" name="action" value="save-pair-review">
+      <input type="hidden" name="expectedCandidateHash" value="${escapeHtml(page.candidateHash ?? '')}">
       ${
         page.defects.length
           ? page.defects
@@ -513,6 +542,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
         domain: form.querySelector('[name="domain"]').value,
         pairId: form.querySelector('[name="pairId"]').value,
         action: 'save-pair-review',
+        expectedCandidateHash: form.querySelector('[name="expectedCandidateHash"]').value,
         deletedDefectIds: deleted,
         patches: patches
       };

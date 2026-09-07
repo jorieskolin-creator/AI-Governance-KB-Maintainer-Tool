@@ -105,3 +105,38 @@ export const artifacts = pgTable('artifacts', {
   sha256: text('sha256').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
+
+export const artifactRevisions = pgTable('artifact_revisions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pairRunId: uuid('pair_run_id').notNull(),
+  taskType: text('task_type').notNull(),
+  revisionNo: integer('revision_no').notNull(),
+  inputHash: text('input_hash').notNull(),
+  outputHash: text('output_hash').notNull(),
+  output: jsonb('output').notNull(),
+  taskContract: jsonb('task_contract').notNull(),
+  taskRunId: uuid('task_run_id'),
+  supersededRevisionId: uuid('superseded_revision_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const candidateRevisions = pgTable('candidate_revisions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pairRunId: uuid('pair_run_id'),
+  domainRunId: uuid('domain_run_id'),
+  scope: text('scope').notNull(),
+  revisionHash: text('revision_hash').notNull(),
+  artifactOutputHashes: jsonb('artifact_output_hashes').notNull(),
+  supersededRevisionId: uuid('superseded_revision_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const gateResults = pgTable('gate_results', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  candidateRevisionId: uuid('candidate_revision_id').notNull(),
+  gateName: text('gate_name').notNull(),
+  outcome: text('outcome').notNull(),
+  validatorVersion: text('validator_version').notNull(),
+  findings: jsonb('findings').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
