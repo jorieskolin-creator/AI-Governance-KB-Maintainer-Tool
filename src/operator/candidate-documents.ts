@@ -1,10 +1,5 @@
 import type { DomainId } from '../authoring/authoring-plan.js';
-import type { CognitiveTaskType } from '../domain/states.js';
-import {
-  artifactsFromLoaded,
-  compileProductionCandidate,
-  type LoadedPairArtifactMap
-} from '../compiler/production-candidate.js';
+import { compileGateResult, compileSirPair } from '../compiler/sir-compiler.js';
 import { loadCategoriesBaseline, categoryDomain, categoryPair } from '../baseline/categories.js';
 import { expectedDomainPairIds } from '../orchestration/pipeline.js';
 import {
@@ -12,44 +7,34 @@ import {
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getLatestTaskArtifactWithOutput,
-  getPairRuns
+  getPairRuns,
+  recordPairNamedGates
 } from '../orchestration/store.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
-import { baselineIdentityFromSnapshot } from './authoring-context.js';
+import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
+import { buildPairAuthoringPlan } from './authoring-context.js';
 
-const PAIR_ARTIFACT_TASKS = [
-  'PAIR_BOUNDARY',
-  'AP_FAILURE_MODEL',
-  'APPLICABILITY',
-  'PRIMARY_QUESTIONS',
-  'ATOMIC_DECOMPOSITION',
-  'EVIDENCE_ARCHITECTURE',
-  'EVIDENCE_SAFETY',
-  'AP_ABSENCE_CONTRACT',
-  'SOURCE_MAPPING',
-  'FINDING_ARCHITECTURE',
-  'CONTROL_BOUNDARY',
-  'LIFECYCLE_ASSURANCE',
-  'REFERENCE_MAPPING',
-  'PAIR_COHERENCE_REVIEW'
-] as const satisfies readonly CognitiveTaskType[];
+async function loadPersistedSirSnapshot(pairRunId: string): Promise<Record<string, unknown>> {
+  const snapshot: Record<string, unknown> = {};
+  for (const [root, taskType] of Object.entries(SNAPSHOT_ROOT_TASK)) {
+    const artifact = await getLatestCompletedTaskArtifact(pairRunId, taskType);
+    if (artifact) snapshot[root] = artifact.output;
+  }
+  return snapshot;
+}
 
-const ARTIFACT_KEYS = {
-  PAIR_BOUNDARY: 'pairBoundary',
-  AP_FAILURE_MODEL: 'apFailureModel',
-  APPLICABILITY: 'applicability',
-  PRIMARY_QUESTIONS: 'primaryQuestions',
-  ATOMIC_DECOMPOSITION: 'atomicDecomposition',
-  EVIDENCE_ARCHITECTURE: 'evidenceArchitecture',
-  EVIDENCE_SAFETY: 'evidenceSafety',
-  AP_ABSENCE_CONTRACT: 'apAbsenceContract',
-  SOURCE_MAPPING: 'sourceMapping',
-  FINDING_ARCHITECTURE: 'findingArchitecture',
-  CONTROL_BOUNDARY: 'controlBoundary',
-  LIFECYCLE_ASSURANCE: 'lifecycleAssurance',
-  REFERENCE_MAPPING: 'referenceMapping',
-  PAIR_COHERENCE_REVIEW: 'pairCoherenceReview'
-} as const;
+function reviewNotes(output: unknown): string[] {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) return [];
+  const record = output as Record<string, unknown>;
+  const notes: string[] = [];
+  if (typeof record.coherenceSummary === 'string' && record.coherenceSummary.trim()) {
+    notes.push(record.coherenceSummary.trim());
+  }
+  if (Array.isArray(record.defects) && record.defects.length > 0) {
+    notes.push(`Pair coherence recorded ${String(record.defects.length)} remaining finding(s) in candidate metadata.`);
+  }
+  return notes;
+}
 
 export interface CandidateDocumentItem {
   pairId: string;
@@ -91,18 +76,6 @@ function domainReviewPassed(output: unknown): boolean | undefined {
   return typeof passed === 'boolean' ? passed : undefined;
 }
 
-async function loadPairArtifacts(pairRunId: string): Promise<LoadedPairArtifactMap> {
-  const loaded: Record<string, unknown> = {};
-  for (const taskType of PAIR_ARTIFACT_TASKS) {
-    const artifact = await getLatestCompletedTaskArtifact(pairRunId, taskType);
-    if (!artifact) {
-      throw new Error(`Missing completed ${taskType} artifact.`);
-    }
-    loaded[ARTIFACT_KEYS[taskType]] = artifact.output;
-  }
-  return loaded as LoadedPairArtifactMap;
-}
-
 export async function assembleDomainCandidateBundle(domain: DomainId): Promise<DomainCandidateBundle> {
   const run = await getLatestDomainRun(domain);
   if (!run) {
@@ -118,7 +91,6 @@ export async function assembleDomainCandidateBundle(domain: DomainId): Promise<D
     sha256: sealed.sha256,
     manifest: sealed.manifest as BaselineSnapshot['manifest']
   };
-  const schemaVersion = baselineIdentityFromSnapshot(snapshot).capabilitySchemaVersion;
   const hostPairId = expectedDomainPairIds(domain)[0];
   const host = pairRuns.find((item) => item.pairId === hostPairId);
   const domainArtifact = host
@@ -173,19 +145,53 @@ export async function assembleDomainCandidateBundle(domain: DomainId): Promise<D
       continue;
     }
     try {
-      const loaded = await loadPairArtifacts(pairRun.id);
-      const artifacts = artifactsFromLoaded(pairId, loaded);
-      const compiled = compileProductionCandidate({
-        metadata: {
-          schemaVersion,
-          domainTitle: domainRecord.title,
-          capabilityTitle: identity.capabilityTitle,
-          antipatternTitle: identity.antipatternTitle,
-          capabilityVersion: pairRun.targetVersion,
-          antipatternVersion: pairRun.targetVersion
-        },
-        artifacts
+      const persisted = await loadPersistedSirSnapshot(pairRun.id);
+      const review = await getLatestCompletedTaskArtifact(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+      const compiled = await compileSirPair({
+        authoringPlan: buildPairAuthoringPlan({
+          domain,
+          pairId,
+          snapshot,
+          categories,
+          targetVersion: pairRun.targetVersion
+        }),
+        snapshot: persisted,
+        mode: 'DRAFT',
+        reviewNotes: reviewNotes(review?.output)
       });
+      await recordPairNamedGates(pairRun.id, [compileGateResult(compiled)]);
+      if (!compiled.ok || !compiled.capability || !compiled.antipattern) {
+        const error =
+          compiled.defects.map((item) => item.issue).join(' ') || `${pairId} compiled with missing identities.`;
+        pairs.push({ pairId, status: 'FAILED', error, notes: compiled.notes });
+        documents.push(
+          {
+            pairId,
+            objectId: identity.capabilityId,
+            objectType: 'CAPABILITY',
+            title: identity.capabilityTitle,
+            status: 'FAILED',
+            href: htmlCap,
+            htmlHref: htmlCap,
+            jsonHref: jsonCap,
+            error,
+            notes: compiled.notes
+          },
+          {
+            pairId,
+            objectId: identity.antipatternId,
+            objectType: 'ANTIPATTERN',
+            title: identity.antipatternTitle,
+            status: 'FAILED',
+            href: htmlAp,
+            htmlHref: htmlAp,
+            jsonHref: jsonAp,
+            error,
+            notes: compiled.notes
+          }
+        );
+        continue;
+      }
       pairs.push({
         pairId,
         status: 'COMPILED',
@@ -322,6 +328,26 @@ function evidence(value: unknown): string {
     .join('');
 }
 
+function atomics(value: unknown, statementKey: 'criterion' | 'test'): string {
+  if (!Array.isArray(value)) return '<p class="empty">None.</p>';
+  return `<ul>${value
+    .map((item) => {
+      const rec = asRecord(item);
+      return `<li><span class="mono">${escapeHtml(String(rec.id ?? ''))}</span> ${escapeHtml(String(rec[statementKey] ?? ''))}</li>`;
+    })
+    .join('')}</ul>`;
+}
+
+function mappings(value: unknown): string {
+  if (!Array.isArray(value) || value.length === 0) return '<p class="empty">None.</p>';
+  return `<ul>${value
+    .map((item) => {
+      const rec = asRecord(item);
+      return `<li><span class="mono">${escapeHtml(String(rec.mapping_id ?? ''))}</span> ${escapeHtml(String(rec.source_id ?? ''))} · ${escapeHtml(String(rec.exact_locator ?? ''))}</li>`;
+    })
+    .join('')}</ul>`;
+}
+
 export function renderCandidateObjectHtml(input: {
   domain: DomainId;
   bundle: DomainCandidateBundle;
@@ -374,6 +400,11 @@ export function renderCandidateObjectHtml(input: {
         ? escapeHtml(pair?.error ?? document?.error ?? 'This pair could not be compiled into a DRAFT document.')
         : 'Assembled deterministically from persisted pair SIR artifacts. External approval and versioned release stay closed.'
     }</p>
+    ${
+      !failed && pair?.notes.length
+        ? `<p class="banner">${pair.notes.map((note) => escapeHtml(note)).join('<br>')}</p>`
+        : ''
+    }
     <p class="meta"><a href="/documents/${escapeHtml(input.domain)}">Domain ${escapeHtml(input.domain)} documents</a>
       · <a href="/api/operator/documents/${escapeHtml(input.domain)}/${escapeHtml(input.objectId)}.json">JSON</a>
       · <a href="/?domain=${escapeHtml(input.domain)}">Operator board</a></p>
@@ -388,8 +419,13 @@ export function renderCandidateObjectHtml(input: {
       <h3>Conditions</h3>${renderList(list(applicability.conditions))}
       <h3>Exclusions</h3>${renderList(list(applicability.exclusions))}
       <h2>Primary questions</h2>${questions(object?.primary_questions)}
+      <h2>${object?.object_type === 'ANTIPATTERN' ? 'Atomic tests' : 'Atomic subcriteria'}</h2>${atomics(
+        object?.object_type === 'ANTIPATTERN' ? object?.atomic_tests : object?.atomic_subcriteria,
+        object?.object_type === 'ANTIPATTERN' ? 'test' : 'criterion'
+      )}
       <h2>Required evidence</h2>${evidence(object?.required_evidence)}
       <h2>Finding definitions</h2>${findings(object?.finding_definitions)}
+      <h2>Source mappings</h2>${mappings(object?.normative_source_mappings)}
       <h2>Related criteria</h2>${renderList(list(object?.related_criteria))}
     </section>`
     }
