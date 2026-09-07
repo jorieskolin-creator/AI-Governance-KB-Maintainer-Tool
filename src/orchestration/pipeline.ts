@@ -18,6 +18,14 @@ export const PAIR_TASK_SEQUENCE: readonly CognitiveTaskType[] = [
   'PAIR_COHERENCE_REVIEW'
 ] as const;
 
+export const PAIR_CANDIDATE_HASH_TASKS: readonly CognitiveTaskType[] = [
+  'SOURCE_CONTEXT',
+  ...PAIR_TASK_SEQUENCE
+];
+
+export const PAIR_TASKS_BEFORE_SOURCE_MAPPING: readonly CognitiveTaskType[] =
+  PAIR_TASK_SEQUENCE.slice(0, PAIR_TASK_SEQUENCE.indexOf('SOURCE_MAPPING'));
+
 export const DOMAIN_PAIR_SLOTS = [1, 2, 3, 4, 5] as const;
 
 export const pairTransitions: Record<PairState, readonly PairState[]> = {

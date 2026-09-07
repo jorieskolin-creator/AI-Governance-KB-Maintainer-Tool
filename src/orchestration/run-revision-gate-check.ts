@@ -135,6 +135,19 @@ assert(
   'mapped claims with no unmapped gaps record SOURCE_COVERAGE_COMPLETE'
 );
 
+const earlyAcquisition = evaluatePairGates({
+  snapshotComplete: false,
+  schemaIssues: ['snapshot incomplete'],
+  sourceMappings: undefined,
+  sourceContextPacket: { packetVersion: '1.0.0', pairId: 'A2_AP-A2', sources: [], missingContextSourceHandles: [], mappingContextAvailable: false, packetSha256: 'x', authoringPlanSha256: 'y', sourceRegisterVersion: '1.5.0', sourceRegisterSha256: 'z' },
+  review: undefined
+});
+assert(
+  earlyAcquisition.some((item) => item.outcome === 'SOURCE_GAPS_PRESENT') &&
+    !earlyAcquisition.some((item) => item.outcome === 'SIR_VALID'),
+  'a source-context packet records SOURCE_GAPS_PRESENT before claim-bearing SIR tasks exist'
+);
+
 const domainClean = evaluateDomainGates({ review: { ...cleanReview, domain: 'A' } });
 assert(
   domainMayReadyForApproval(domainClean.map((item) => item.outcome)),
