@@ -17,6 +17,8 @@ import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-conte
 import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
+import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml } from './pair-review.js';
+import { canTransition, pairTransitions } from '../orchestration/pipeline.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -208,11 +210,11 @@ assert(
 );
 
 const fiveValidated = [
-  { pairId: 'A1_AP-A1', state: 'VALIDATED' as const, tasks: allCompleted },
-  { pairId: 'A2_AP-A2', state: 'VALIDATED' as const, tasks: allCompleted },
-  { pairId: 'A3_AP-A3', state: 'VALIDATED' as const, tasks: allCompleted },
-  { pairId: 'A4_AP-A4', state: 'VALIDATED' as const, tasks: allCompleted },
-  { pairId: 'A5_AP-A5', state: 'VALIDATED' as const, tasks: allCompleted }
+  { pairId: 'A1_AP-A1', state: 'VALIDATED' as const, tasks: allCompleted, pairCoherencePassed: true },
+  { pairId: 'A2_AP-A2', state: 'VALIDATED' as const, tasks: allCompleted, pairCoherencePassed: true },
+  { pairId: 'A3_AP-A3', state: 'VALIDATED' as const, tasks: allCompleted, pairCoherencePassed: true },
+  { pairId: 'A4_AP-A4', state: 'VALIDATED' as const, tasks: allCompleted, pairCoherencePassed: true },
+  { pairId: 'A5_AP-A5', state: 'VALIDATED' as const, tasks: allCompleted, pairCoherencePassed: true }
 ];
 const domainQc = nextEligiblePairTask('A', fiveValidated);
 assert(!('blocked' in domainQc) && domainQc.taskType === 'DOMAIN_COHERENCE_REVIEW', 'five validated pairs admit domain coherence');
@@ -284,6 +286,101 @@ const parkWhileRunning = dismissAvailability({
   taskInFlight: true
 });
 assert(parkWhileRunning.enabled === false, 'park stays closed while a task is running');
+
+assert(
+  classifyDomainPipelineStop(
+    'Domain Coherence cannot admit A2_AP-A2 because Pair Coherence did not pass.'
+  ) === 'BLOCKED',
+  'pair-coherence admission failure is blocked, not a crash'
+);
+assert(
+  classifyDomainPipelineStop(
+    'A2_AP-A2 Pair Coherence did not pass. Review remaining HIGH blockers, edit or delete, then Save. DOMAIN_COHERENCE stays closed.'
+  ) === 'BLOCKED',
+  'unpaid pair coherence must keep domain coherence closed'
+);
+
+const unpaidValidated = nextEligiblePairTask('A', [
+  { pairId: 'A1_AP-A1', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+  { pairId: 'A2_AP-A2', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: false },
+  { pairId: 'A3_AP-A3', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+  { pairId: 'A4_AP-A4', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+  { pairId: 'A5_AP-A5', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true }
+]);
+assert('blocked' in unpaidValidated, 'VALIDATED-with-debt must not admit domain coherence');
+assert(
+  'blocked' in unpaidValidated && unpaidValidated.blocked.includes('A2_AP-A2'),
+  'blocked reason names the pair that did not pass pair coherence'
+);
+assert(canTransition(pairTransitions, 'VALIDATED', 'REPAIR_REQUIRED'), 'false VALIDATED can reopen for human review');
+
+const reviewHtml = renderPairReviewHtml({
+  domain: 'A',
+  pairId: 'A2_AP-A2',
+  pairState: 'VALIDATED',
+  passed: false,
+  coherenceSummary: 'HIGH evidence defect remains.',
+  blockingCount: 1,
+  gateIssues: [],
+  defects: [
+    {
+      defectId: 'defect_001',
+      severity: 'HIGH',
+      coherenceDimension: 'EVIDENCE_INTERPRETATION',
+      issue: 'Capability evidence title is too thin to support the governed claim.',
+      coherenceExpectation: 'Evidence titles must state a testable, attributable claim.',
+      path: 'evidence.capability[evidence_001]',
+      currentValue: { handle: 'evidence_001', title: 'Thin evidence title' },
+      valueJson: '{\n  "handle": "evidence_001",\n  "title": "Thin evidence title"\n}'
+    }
+  ]
+});
+assert(reviewHtml.includes('Save and run quality gate'), 'review page must save through a quality gate');
+assert(reviewHtml.includes('delete:defect_001'), 'review page must allow deleting a blocker');
+assert(reviewHtml.includes('patch:evidence.capability[evidence_001]'), 'review page must allow editing the semantic path');
+assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
+
+const highDefect = {
+  defectId: 'defect_001' as const,
+  severity: 'HIGH' as const,
+  coherenceDimension: 'EVIDENCE_INTERPRETATION' as const,
+  affectedPathHandles: ['path_001' as const],
+  affectedPaths: ['evidence.capability[evidence_001]'],
+  issue: 'Capability evidence title is too thin to support the governed claim.',
+  coherenceExpectation: 'Evidence titles must state a testable, attributable claim.',
+  recommendedRepairPathHandles: ['path_001' as const],
+  recommendedRepairPaths: ['evidence.capability[evidence_001]']
+};
+assert(remainingDefects({
+  pairId: 'A2_AP-A2',
+  pairCoherencePacketSha256: 'a'.repeat(64),
+  passed: false,
+  coherenceSummary: 'HIGH evidence defect remains.',
+  defects: [highDefect]
+}, ['defect_001']).length === 0, 'deleting the only HIGH defect leaves no remaining defects');
+
+const rematerialized = rematerializeHumanReview({
+  review: {
+    pairId: 'A2_AP-A2',
+    pairCoherencePacketSha256: 'a'.repeat(64),
+    passed: false,
+    coherenceSummary: 'HIGH evidence defect remains.',
+    defects: [highDefect]
+  },
+  packet: {
+    packetVersion: '1.0.0',
+    pairId: 'A2_AP-A2',
+    authoringPlanSha256: 'b'.repeat(64),
+    snapshot: {} as never,
+    pathRegistry: [{ pathHandle: 'path_001', objectPath: 'evidence.capability[evidence_001]', label: 'Capability evidence' }],
+    packetSha256: 'a'.repeat(64)
+  },
+  deletedIds: ['defect_001'],
+  savedAt: '2026-09-07T04:20:00.000Z'
+});
+assert(rematerialized.passed === true, 'deleting remaining HIGH defects derives passed=true');
+assert(rematerialized.defects.length === 0, 'deleted blockers are not kept in the rematerialized review');
+assert(rematerialized.coherenceSummary.includes('Human review'), 'human save is recorded in the coherence summary');
 
 const availability = commandAvailability({
   databaseReady: true,

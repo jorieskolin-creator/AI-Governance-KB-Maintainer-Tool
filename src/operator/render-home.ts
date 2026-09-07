@@ -117,6 +117,9 @@ function runActivity(card: OperatorDomainCard): string {
     return `<p class="activity">Work order NONE. Start freezes the baseline and runs pair SIR tasks until the domain is ready.</p>`;
   }
   if (card.documents.available) {
+    if (card.review.available) {
+      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers, edit or delete, then Save. Domain Coherence stays closed until every pair actually passed.</p>`;
+    }
     return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. External approval and published release stay closed.</p>`;
   }
   return `<p class="activity">Work order OPEN. Pipeline WAITING. Continue runs remaining pair SIR tasks without asking approval after each step. Stops when the domain is ready or a task fails.</p>`;
@@ -146,6 +149,11 @@ function commandButton(action: string, domain: string, command: { enabled: boole
       <input type="hidden" name="action" value="${escapeHtml(action)}">
       <button type="submit"${disabled} title="${escapeHtml(command.reason)}">${escapeHtml(label)}</button>
     </form>`;
+}
+
+function reviewButton(card: OperatorDomainCard): string {
+  if (!card.review.available) return '';
+  return `<a class="review-link" href="${escapeHtml(card.review.href)}" title="${escapeHtml(card.review.reason)}">Review remaining HIGH blockers</a>`;
 }
 
 function continueLabel(card: OperatorDomainCard): string {
@@ -195,14 +203,17 @@ function documentList(card: OperatorDomainCard): string {
 function defectList(card: OperatorDomainCard): string {
   const items = uniqueFindings(card.findings ?? []);
   if (!items.length) return '';
+  const reviewHref = card.review.available ? card.review.href : `/review/${card.domain}/${items[0]?.objectId ?? ''}`;
   return `<section class="defects">
       <p class="kicker">QC defects</p>
+      <p class="meta">Edit or delete remaining blockers on the review page, then Save. Save always re-checks IDs and metadata for machine readability.</p>
       <ul>${items
         .map(
           (item) =>
             `<li><strong>${escapeHtml(item.severity)}</strong> <code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''}<br>${escapeHtml(item.issue)}</li>`
         )
         .join('')}</ul>
+      <p><a href="${escapeHtml(reviewHref)}">Open blocker review</a></p>
     </section>`;
 }
 
@@ -225,7 +236,8 @@ function domainPanel(card: OperatorDomainCard): string {
       ${commandButton('start-domain-run', card.domain, card.commands.startDomainRun, 'Start domain run')}
       ${commandButton('run-next-task', card.domain, card.commands.runNextTask, continueLabel(card))}
       ${commandButton('dismiss-blocking-defects', card.domain, card.commands.dismissBlockers, 'Park HIGH blockers for later review')}
-      <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.dismissBlockers.enabled ? card.commands.dismissBlockers.reason : card.commands.runNextTask.reason)}</p>
+      ${reviewButton(card)}
+      <p class="command-reason">${escapeHtml(card.review.available ? card.review.reason : card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.dismissBlockers.enabled ? card.commands.dismissBlockers.reason : card.commands.runNextTask.reason)}</p>
     </div>
     ${runActivity(card)}
     ${documentList(card)}
@@ -439,6 +451,16 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
       font: inherit;
     }
     .commands button:disabled { opacity: 0.45; cursor: not-allowed; border-color: var(--line); }
+    .review-link {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--brass);
+      background: #2a241c;
+      color: var(--paper);
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      text-decoration: none;
+    }
     .command-reason { margin: 0; color: var(--subtle); font-size: 0.8rem; flex: 1 1 16rem; }
     .machines {
       display: grid;
@@ -493,7 +515,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. After five pairs are VALIDATED, DRAFT documents are assembled and Continue runs DOMAIN_COHERENCE_REVIEW. External approval and published release stay closed.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. After five pairs actually pass Pair Coherence, DRAFT documents are assembled and Continue runs DOMAIN_COHERENCE_REVIEW. Remaining HIGH blockers are reviewed by a human Save that re-checks IDs and metadata. External approval and published release stay closed.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>

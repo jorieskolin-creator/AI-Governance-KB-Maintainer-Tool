@@ -102,6 +102,21 @@ export function pairSnapshots(
   });
 }
 
+export async function enrichPairSnapshots(
+  snapshots: EligiblePairSnapshot[],
+  pairRuns: PairRunRecord[]
+): Promise<EligiblePairSnapshot[]> {
+  return Promise.all(
+    snapshots.map(async (pair) => {
+      const run = pairRuns.find((item) => item.pairId === pair.pairId);
+      if (!run) return { ...pair, pairCoherencePassed: false };
+      const artifact = await getLatestTaskArtifactWithOutput(run.id, 'PAIR_COHERENCE_REVIEW');
+      const review = reviewFromUnknown(pair.pairId, artifact?.output);
+      return { ...pair, pairCoherencePassed: review?.passed === true };
+    })
+  );
+}
+
 export function readDomainCoherenceSnapshot(
   domain: DomainId,
   pairRuns: readonly PairRunRecord[],
@@ -310,7 +325,10 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
   }
   const pairRuns = await getPairRuns(run.id);
   const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
-  const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
+  const snapshots = await enrichPairSnapshots(
+    pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns),
+    pairRuns
+  );
   const hostPairId = expectedDomainPairIds(domain)[0];
   const hostPair = pairRuns.find((item) => item.pairId === hostPairId);
   const domainArtifact = hostPair
@@ -532,9 +550,15 @@ export async function closeParkedDefect(domain: DomainId, findingId: string): Pr
   if (closed.remaining === 0) {
     const pairRuns = await getPairRuns(run.id);
     const pairRun = pairRuns.find((item) => item.id === closed.pairRunId);
-    if (pairRun?.state === 'DEFERRED' && canTransition(pairTransitions, 'DEFERRED', 'VALIDATED')) {
-      await updatePairState(pairRun.id, 'VALIDATED');
-      pairValidated = true;
+    if (pairRun?.state === 'DEFERRED') {
+      const artifact = await getLatestCompletedTaskArtifact<{ passed?: boolean }>(
+        pairRun.id,
+        'PAIR_COHERENCE_REVIEW'
+      );
+      if (artifact?.output.passed === true && canTransition(pairTransitions, 'DEFERRED', 'VALIDATED')) {
+        await updatePairState(pairRun.id, 'VALIDATED');
+        pairValidated = true;
+      }
     }
   }
   operatorLog('operator.defects.closed', {
@@ -610,7 +634,10 @@ export async function resumeOpenDomainPipelines(): Promise<{ reclaimed: number; 
     if (!run || !isOpenDomainState(run.state)) continue;
     const pairRuns = await getPairRuns(run.id);
     const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
-    const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
+    const snapshots = await enrichPairSnapshots(
+      pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns),
+      pairRuns
+    );
     const hostPairId = expectedDomainPairIds(domain)[0];
     const hostPair = pairRuns.find((item) => item.pairId === hostPairId);
     const domainArtifact = hostPair

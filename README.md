@@ -19,15 +19,16 @@ The branch now includes:
 - path-scoped local repair contracts;
 - A1/AP-A1 Golden Standard regression and mutation harness;
 - repository-held capability, anti-pattern and shared-definition schemas;
-- Railway deployment, `/health/ready` database-backed health gate, a read-only operator home at `/`, and Slice 2 run commands (`start domain run`, `continue domain until ready`) gated by `OPERATOR_COMMANDS_ENABLED`. Start or continue runs remaining pair SIR tasks without per-step approval; after five pairs are VALIDATED, DRAFT documents are assembled from persisted pair artifacts and Continue runs `DOMAIN_COHERENCE_REVIEW` and stops. External approval and published release stay closed;
+- Railway deployment, `/health/ready` database-backed health gate, a read-only operator home at `/`, and Slice 2 run commands (`start domain run`, `continue domain until ready`) gated by `OPERATOR_COMMANDS_ENABLED`. Start or continue runs remaining pair SIR tasks without per-step approval; after five pairs actually pass Pair Coherence, DRAFT documents are assembled from persisted pair artifacts and Continue runs `DOMAIN_COHERENCE_REVIEW` and stops. Remaining HIGH blockers are reviewed at `/review/:domain/:pairId`: a human may edit semantic values or delete a blocker, then Save. Save always re-checks IDs and metadata and does not grant `APPROVED`. External approval and published release stay closed;
 
 ## Still deliberately pending
 
 - local repair from the operator UI, and closed external-approval intake;
 - exact model/provider assignments in Railway role variables;
+- field-level authoring of content that is not a remaining HIGH blocker;
 - exact approved canonical A1/AP-A1 JSON files in `golden/fixtures/`;
 - production canonical compile and publication after external APPROVED;
 - final Vercel Blob artifact adapter and release manifest writer;
-- field-level authoring inspection and external-approval intake.
+- external-approval intake.
 
 The application is a Knowledge Base production tool. It does not grant governance approval, legal applicability, residual-risk acceptance or AI-system lifecycle authorization.

@@ -79,6 +79,12 @@ export interface OperatorDomainCard {
     indexHref: string;
     bundleHref: string;
   };
+  review: {
+    available: boolean;
+    href: string;
+    pairId: string;
+    reason: string;
+  };
   lastModelCall?: {
     role: string;
     provider: string;
@@ -326,6 +332,12 @@ export function buildOperatorStatus(input: {
         available: false,
         indexHref: `/documents/${entry.domain}`,
         bundleHref: `/api/operator/documents/${entry.domain}`
+      },
+      review: overlay?.review ?? {
+        available: false,
+        href: '',
+        pairId: '',
+        reason: 'No remaining HIGH blockers to review.'
       },
       lastModelCall: overlay?.modelCalls[0]
         ? {

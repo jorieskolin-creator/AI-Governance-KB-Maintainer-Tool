@@ -8,6 +8,7 @@ import {
   qcDefectsToFindings,
   repairPathsFromDefects,
   reviewFromUnknown,
+  readSnapshotPath,
   tokenizeRepairPath
 } from './qc-repair.js';
 import type { MaterializedPairCoherenceReview } from '../sir/pair-coherence-materializer.js';
@@ -78,6 +79,10 @@ assert(qcDefectsToFindings('A2_AP-A2', review)[0]?.checkId === 'defect_001', 'bo
 assert(reviewFromUnknown('A2_AP-A2', { passed: false, defects: [{ severity: 'HIGH', issue: 'Thin evidence title is not attributable.' }] })?.defects[0]?.defectId === 'defect_001', 'raw QC output still lists defects');
 assert(pathIsAllowed('evidence.capability[evidence_001].title', ['evidence.capability[evidence_001]']), 'child paths stay in scope');
 assert(!pathIsAllowed('findings.capability[finding_001]', ['evidence.capability[evidence_001]']), 'out-of-scope paths are rejected');
+assert(
+  (readSnapshotPath(snapshot, 'evidence.capability[evidence_001]') as { title?: string }).title === 'Thin evidence title',
+  'review page reads the current semantic value at a QC path'
+);
 assert(tokenizeRepairPath('sourceMappings.capability[source_001/locator_001].supportedClaim').length === 4, 'source/locator selectors tokenize');
 
 const patched = applySnapshotPatches(snapshot, [

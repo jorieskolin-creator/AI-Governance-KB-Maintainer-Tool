@@ -256,6 +256,30 @@ export function applySnapshotPatches<T>(object: T, patches: RepairPatch[]): T {
   return result;
 }
 
+export function readSnapshotPath(object: unknown, path: string): unknown {
+  const tokens = tokenizeRepairPath(path);
+  let current: unknown = object;
+  for (const token of tokens) {
+    if (token.kind === 'key') {
+      if (!current || typeof current !== 'object' || Array.isArray(current)) return undefined;
+      current = (current as Record<string, unknown>)[token.value];
+      continue;
+    }
+    if (!Array.isArray(current)) return undefined;
+    const match = current.find((item) => identityOf(item) === token.value);
+    if (match !== undefined) {
+      current = match;
+      continue;
+    }
+    if (isNumericIndex(token.value)) {
+      current = current[Number(token.value)];
+      continue;
+    }
+    return undefined;
+  }
+  return current;
+}
+
 export function patchedSnapshotRoots(paths: readonly string[]): CognitiveTaskType[] {
   const types = new Set<CognitiveTaskType>();
   for (const path of paths) {

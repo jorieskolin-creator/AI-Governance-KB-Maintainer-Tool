@@ -12,7 +12,7 @@ import {
   type ModelCallRecord
 } from '../orchestration/store.js';
 import { blockingQcDefects, qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
-import { pairSnapshots, readDomainCoherenceSnapshot } from './commands.js';
+import { pairSnapshots, readDomainCoherenceSnapshot, enrichPairSnapshots } from './commands.js';
 import { commandAvailability, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
 import type { EligiblePairSnapshot } from './eligibility.js';
@@ -43,6 +43,12 @@ export interface DomainRunOverlay {
     available: boolean;
     indexHref: string;
     bundleHref: string;
+  };
+  review: {
+    available: boolean;
+    href: string;
+    pairId: string;
+    reason: string;
   };
 }
 
@@ -76,12 +82,21 @@ export async function loadDomainOverlay(
         available: false,
         indexHref: `/documents/${domain}`,
         bundleHref: `/api/operator/documents/${domain}`
+      },
+      review: {
+        available: false,
+        href: '',
+        pairId: '',
+        reason: 'No remaining HIGH blockers to review.'
       }
     };
   }
   const pairRuns = await getPairRuns(run.id);
   const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
-  const pairs = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
+  const pairs = await enrichPairSnapshots(
+    pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns),
+    pairRuns
+  );
   const openFindings = await getOpenFindings(run.id);
   const parkedFindings = await getParkedFindings(run.id);
   const parkedKeys = new Set(parkedFindings.map((item) => `${item.objectId}|${item.checkId}`));
@@ -200,6 +215,23 @@ export async function loadDomainOverlay(
       available: pairs.filter((pair) => pair.state === 'VALIDATED').length === 5,
       indexHref: `/documents/${domain}`,
       bundleHref: `/api/operator/documents/${domain}`
-    }
+    },
+    review: (() => {
+      const unpaid = pairs.find((pair) => pair.pairCoherencePassed !== true && pair.tasks.some((task) => task.taskType === 'PAIR_COHERENCE_REVIEW' && task.status === 'COMPLETED'));
+      if (!unpaid) {
+        return {
+          available: false,
+          href: '',
+          pairId: '',
+          reason: 'No remaining HIGH blockers to review.'
+        };
+      }
+      return {
+        available: true,
+        href: `/review/${domain}/${unpaid.pairId}`,
+        pairId: unpaid.pairId,
+        reason: `${unpaid.pairId} Pair Coherence did not pass. Edit or delete remaining blockers, then Save. Save re-checks IDs and metadata.`
+      };
+    })()
   };
 }

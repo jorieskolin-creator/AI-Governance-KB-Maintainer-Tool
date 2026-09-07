@@ -15,6 +15,7 @@ export interface EligiblePairSnapshot {
   pairId: string;
   state: PairState | 'NOT_STARTED';
   tasks: Array<{ taskType: CognitiveTaskType; status: OperatorTaskStatus }>;
+  pairCoherencePassed?: boolean;
 }
 
 export interface DomainCoherenceSnapshot {
@@ -53,7 +54,9 @@ export function classifyDomainPipelineStop(
     errorMessage.includes('QC defects are listed') ||
     errorMessage.includes('HIGH defects listed') ||
     errorMessage.includes('not an operator-admitted') ||
-    errorMessage.includes('requires completed PAIR_COHERENCE_REVIEW')
+    errorMessage.includes('requires completed PAIR_COHERENCE_REVIEW') ||
+    errorMessage.includes('Pair Coherence did not pass') ||
+    errorMessage.includes('Review remaining HIGH blockers')
   ) {
     return 'BLOCKED';
   }
@@ -148,6 +151,13 @@ export function nextEligiblePairTask(
     if (deferred > 0) {
       return {
         blocked: `${String(deferred)} pair(s) have HIGH blockers parked for later review. DOMAIN_COHERENCE stays closed.`
+      };
+    }
+    const unpaid = pairs.filter((pair) => pair.pairCoherencePassed !== true);
+    if (unpaid.length > 0) {
+      const pairId = unpaid[0]?.pairId ?? `domain ${domain}`;
+      return {
+        blocked: `${pairId} Pair Coherence did not pass. Review remaining HIGH blockers, edit or delete, then Save. DOMAIN_COHERENCE stays closed.`
       };
     }
     const hostPairId = pairs[0]?.pairId;

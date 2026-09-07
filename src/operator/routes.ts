@@ -9,6 +9,7 @@ import {
   renderCandidateIndexHtml,
   renderCandidateObjectHtml
 } from './candidate-documents.js';
+import { loadPairReviewPage, renderPairReviewHtml, savePairReview } from './pair-review.js';
 
 function wantsHtml(request: FastifyRequest): boolean {
   const accept = request.headers.accept ?? '';
@@ -26,6 +27,14 @@ function parseObjectId(value: unknown): string {
   const raw = String(value ?? '').trim().replace(/\.json$/i, '');
   if (!/^(AP-)?[A-F][1-5]$/.test(raw)) {
     throw new Error('Object id must be a capability or anti-pattern id such as A1 or AP-A1.');
+  }
+  return raw;
+}
+
+function parsePairId(domain: ReturnType<typeof parseDomainId>, value: unknown): string {
+  const raw = String(value ?? '').trim();
+  if (!new RegExp(`^${domain}[1-5]_AP-${domain}[1-5]$`).test(raw)) {
+    throw new Error(`Pair id must belong to domain ${domain}, such as ${domain}2_AP-${domain}2.`);
   }
   return raw;
 }
@@ -135,8 +144,26 @@ export function registerOperatorRoutes(
     }
   });
 
+  app.get('/review/:domain/:pairId', async (request, reply) => {
+    try {
+      const params = request.params as { domain?: unknown; pairId?: unknown };
+      const query = request.query as { notice?: unknown };
+      const domain = parseDomainId(params.domain);
+      const pairId = parsePairId(domain, params.pairId);
+      const notice = typeof query.notice === 'string' ? query.notice : '';
+      const page = await loadPairReviewPage(domain, pairId, notice);
+      return reply
+        .type('text/html; charset=utf-8')
+        .header('cache-control', 'no-store')
+        .send(renderPairReviewHtml(page));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Pair review failed.';
+      return noticeRedirect(reply, message, String((request.params as { domain?: unknown }).domain ?? ''));
+    }
+  });
+
   app.post('/api/operator/commands', async (request, reply) => {
-    const body = (request.body ?? {}) as { domain?: unknown; action?: unknown; findingId?: unknown };
+    const body = (request.body ?? {}) as { domain?: unknown; action?: unknown; findingId?: unknown; pairId?: unknown };
     const action = String(body.action ?? '').trim();
     operatorLog('operator.command.received', {
       action,
@@ -204,9 +231,32 @@ export function registerOperatorRoutes(
           return noticeRedirect(
             reply,
             result.pairValidated
-              ? 'Closed the parked item. That pair is now VALIDATED with known remaining debt.'
-              : 'Closed the parked item. It stays retrievable until the work order is finished only if other parked items remain.',
+              ? 'Closed the parked item. That pair is VALIDATED only because Pair Coherence actually passed.'
+              : 'Closed the parked item. The pair stays deferred until Pair Coherence passes or remaining blockers are reviewed and Saved.',
             domain
+          );
+        }
+        return result;
+      }
+      if (action === 'save-pair-review') {
+        const pairId = parsePairId(domain, body.pairId);
+        const result = await savePairReview({
+          domain,
+          pairId,
+          body: body as Record<string, unknown>
+        });
+        operatorLog('operator.command.finished', {
+          action,
+          domain,
+          pairId: result.pairId,
+          passed: result.passed
+        });
+        const notice = result.passed
+          ? `Saved ${pairId}. Quality gate passed. Pair Coherence now passes. Domain Coherence stays closed until all five pairs pass.`
+          : `Saved ${pairId}. Quality gate kept IDs and metadata valid. HIGH blockers still remain, so Pair Coherence has not passed.`;
+        if (wantsHtml(request)) {
+          return reply.redirect(
+            `/review/${domain}/${pairId}?notice=${encodeURIComponent(notice)}`
           );
         }
         return result;

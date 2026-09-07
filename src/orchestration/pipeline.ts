@@ -25,8 +25,8 @@ export const pairTransitions: Record<PairState, readonly PairState[]> = {
   AUTHORING: ['VALIDATING', 'REPAIR_REQUIRED', 'DEFERRED'],
   VALIDATING: ['VALIDATED', 'REPAIR_REQUIRED', 'DEFERRED'],
   REPAIR_REQUIRED: ['AUTHORING', 'VALIDATING', 'DEFERRED'],
-  DEFERRED: ['VALIDATED'],
-  VALIDATED: []
+  DEFERRED: ['VALIDATED', 'REPAIR_REQUIRED'],
+  VALIDATED: ['REPAIR_REQUIRED']
 };
 
 export const domainTransitions: Record<DomainState, readonly DomainState[]> = {
