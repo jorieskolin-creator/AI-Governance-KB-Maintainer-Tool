@@ -1,0 +1,548 @@
+{
+  "schema_version": "2.0.0",
+  "id": "AP-A1",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "AP-A1_ANTIPATTERN_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Legal interpretation, evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "ANTIPATTERN",
+  "title": "Undefined or elastic intended purpose",
+  "canonical_definition": "The system purpose is vague, technically framed, inconsistent or capable of expanding through features, users, data, workflows or decisions without explicit requalification and authorization.",
+  "applicability": {
+    "statement": "Applicable wherever an AI system or AI-enabled function has a declared or implied purpose, including experiments, internal tools, externally supplied systems and general-purpose components used in a specific context.",
+    "conditions": [
+      "Assess both written purpose and reachable use.",
+      "Test scope expansion across lifecycle changes and operational practice.",
+      "Include indirect affected persons and downstream decision uses."
+    ],
+    "exclusions": [
+      "Not applicable only when the component has no independent use context and its boundaries are fully assessed within a parent system."
+    ],
+    "reassessment_triggers": [
+      "New purpose statement or product positioning",
+      "New audience, feature, data source, integration or decision role",
+      "Pilot-to-production or internal-to-external transition",
+      "Observed off-label or prohibited use",
+      "Organizational transfer or provider change"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "AP-A1-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Is the purpose vague, technically framed, conflicting or missing material users, affected persons, uses or decision boundaries?"
+    },
+    {
+      "id": "AP-A1-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Can workflows, access, data, features, tools or product behavior enable broader or different use than the approved purpose?"
+    },
+    {
+      "id": "AP-A1-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does evidence show unauthorized scope expansion, or does a current scoped test establish the anti-pattern is absent?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-A1-001",
+      "title": "Purpose statement corpus and inconsistency analysis",
+      "claim_supported": "The system purpose is vague, technically framed, conflicting or materially incomplete.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Collects current authoritative purpose statements across registration, product, contract, design and operational records.",
+        "Identifies contradictions, undefined terms and missing decision context."
+      ],
+      "limitations": [
+        "A wording difference is not a finding unless it changes material scope or authority."
+      ]
+    },
+    {
+      "id": "EVD-AP-A1-002",
+      "title": "Reachable-use and audience comparison",
+      "claim_supported": "Reachable users, functions or effects exceed the declared purpose or omit affected-person boundaries.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "PENDING",
+      "acceptance_conditions": [
+        "Compares interfaces, access, features, integrations and workflows with declared users and uses.",
+        "Includes administrative, fallback and indirect-use paths."
+      ],
+      "limitations": [
+        "A technically possible but inaccessible function is not automatically reachable use."
+      ]
+    },
+    {
+      "id": "EVD-AP-A1-003",
+      "title": "Permitted/prohibited-use enforceability test",
+      "claim_supported": "Declared boundaries are too generic or unenforced to distinguish allowed, disallowed and misuse conditions.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Executes representative boundary and misuse cases.",
+        "Records expected and actual control behavior for the current system version."
+      ],
+      "limitations": [
+        "A policy review without executed tests cannot establish tested absence."
+      ]
+    },
+    {
+      "id": "EVD-AP-A1-004",
+      "title": "Purpose-change and scope-expansion history",
+      "claim_supported": "Prototype, feature, audience, data or decision scope expanded without requalification.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Traces material changes to impact analysis, reassessment and authorization records.",
+        "Identifies continued use before or without the required decision."
+      ],
+      "limitations": [
+        "Normal maintenance inside an already approved boundary is not scope expansion."
+      ]
+    },
+    {
+      "id": "EVD-AP-A1-005",
+      "title": "Affected-person and downstream-impact review",
+      "claim_supported": "Material affected persons or downstream uses are absent from the purpose boundary.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Uses accountable domain, legal, risk and affected-person expertise.",
+        "Records exclusions and uncertainties explicitly."
+      ],
+      "limitations": [
+        "A generic impact assessment not tied to the assessed system cannot resolve this claim."
+      ]
+    },
+    {
+      "id": "EVD-AP-A1-006",
+      "title": "Scoped absence-test package",
+      "claim_supported": "A current, executed and independently reviewed test covers all material AP-A1 failure mechanisms.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers vague purpose, conflicting statements, missing users/affected persons, unenforced use boundaries and unauthorized scope expansion.",
+        "Identifies system version, scope, test cases, results, residual limitations and independent reviewer."
+      ],
+      "limitations": [
+        "Silence, missing incidents, document presence or unsuccessful discovery is never TESTED_ABSENT."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "Document inconsistency can establish a declaration gap but not the complete reachable-use surface.",
+      "Implementation comparison can establish reachable divergence but not frequency or operational consequence.",
+      "Operational history can establish observed scope expansion only for covered periods and change records.",
+      "TESTED_ABSENT requires the complete absence-test contract; no lower assurance state can be interpreted as absence."
+    ],
+    "false_positive_guards": [
+      "Do not treat concise wording as vague when the controlled definitions and linked boundaries are precise.",
+      "Do not treat a general-purpose model as an undefined-purpose system when the deployed use is system-specifically bounded.",
+      "Do not treat every feature change as scope expansion; test whether users, decisions, data, effects or risk materially changed.",
+      "Do not infer a missing affected-person boundary solely from absence of direct end users."
+    ],
+    "prohibited_inferences": [
+      "Do not infer absence from no reported misuse, no complaint, no incident or no detected contradiction.",
+      "Do not infer an approved scope change from release, backlog, technical enablement or stakeholder demand.",
+      "Do not infer legal non-compliance solely from AP-A1 presence.",
+      "Do not infer a broad purpose is acceptable because the underlying model is marketed as general-purpose."
+    ],
+    "contradiction_handling": [
+      "Conflicting authoritative statements establish at least UNKNOWN and may support presence when the conflict changes material scope.",
+      "Where declared and reachable use conflict, preserve both evidence paths and assess the broader reachable boundary.",
+      "Human adjudication is required where business, legal and technical authorities disagree about the operative purpose."
+    ],
+    "freshness_rules": [
+      "Use the current production, pilot or evaluation version and current authoritative statements.",
+      "Repeat absence testing after any material change.",
+      "Operational and change records must cover the period in which the alleged expansion could have occurred."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block consequential deployment when the anti-pattern is confirmed or materially present.",
+      "Constrain operation to an evidenced narrow scope when purpose or reachable-use boundaries remain UNKNOWN.",
+      "Block material expansion when requalification or authorization is missing."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_BUSINESS_AND_RISK_OWNER"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-AP-A1-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 3(12) intended purpose; Article 3(13) reasonably foreseeable misuse; Article 11 and Annex IV; Article 13",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Supports assessment of inconsistent, incomplete or elastic purpose and mismatch between supplied information, technical documentation and actual reachable use when the Regulation applies.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-A1-NIST-AI-RMF-002",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1 (2023); Playbook current 2026-08-02",
+      "exact_locator": "AI RMF Core MAP 1.1, MAP 1.3, MAP 2.2, MAP 3.3 and MANAGE 1.1; Playbook MAP 1.1",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Supports testing whether context, users, limitations, acceptable use and changing operational conditions are explicit and continually reassessed.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-A1-001",
+      "title": "Purpose is vague, general-purpose or technically framed without a testable decision context",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A1-AT-001",
+        "AP-A1-AT-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A1-001"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Prevent consequential progression until a system-specific purpose and decision context are approved.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A1-002",
+      "title": "Purpose statements conflict or omit material users, affected persons, permitted or prohibited uses",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A1-AT-003",
+        "AP-A1-AT-004",
+        "AP-A1-AT-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A1-001",
+        "EVD-AP-A1-005"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain the system to the narrowest evidenced boundary and require authoritative reconciliation.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A1-003",
+      "title": "Reachable implementation or operations exceed the approved purpose boundary",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A1-AT-006",
+        "AP-A1-AT-007"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A1-002",
+        "EVD-AP-A1-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Stop or disable the divergent path until controls and authorization restore alignment.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A1-004",
+      "title": "Purpose or use scope expanded without requalification and authorization",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A1-AT-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A1-004"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Suspend the expanded use and require material-change reassessment and formal decision.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A1-005",
+      "title": "Absence of undefined or elastic purpose is not established by a scoped current test",
+      "eligible_conclusion_states": [
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A1-AT-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A1-006"
+      ],
+      "default_severity": "MEDIUM",
+      "lifecycle_consequence": "Do not report TESTED_ABSENT; retain UNKNOWN until the complete absence-test contract is satisfied.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-AP-A1-GOV-PUR-001-FND-AP-A1-001-003",
+      "tactic_id": "GOV-PUR-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A1-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A1-GOV-PUR-001-FND-AP-A1-002-004",
+      "tactic_id": "GOV-PUR-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A1-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A1-GOV-PUR-002-FND-AP-A1-003-002",
+      "tactic_id": "GOV-PUR-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A1-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A1-GOV-PUR-003-FND-AP-A1-003-002",
+      "tactic_id": "GOV-PUR-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A1-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A1-GOV-PUR-003-FND-AP-A1-005-003",
+      "tactic_id": "GOV-PUR-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A1-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A1-GOV-PUR-004-FND-AP-A1-004-002",
+      "tactic_id": "GOV-PUR-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A1-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract and compare purpose statements, system behavior, use records and change evidence.",
+      "Identify missing, conflicting, stale or scope-mismatched evidence.",
+      "Apply deterministic evidence ceilings and propose eligible conclusion states for human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Define the organization's purpose or risk appetite.",
+      "Treat legal vocabulary as a legal-applicability conclusion.",
+      "Raise assurance beyond the evidence ceiling.",
+      "Clear the hard gate, accept residual risk, authorize a new use or lifecycle transition.",
+      "Change or close a locked finding because a tactic was selected or completed."
+    ],
+    "human_authority_required_for": [
+      "Approve intended purpose and use boundaries.",
+      "Determine legal and regulatory applicability.",
+      "Adjudicate material evidence conflicts.",
+      "Lock findings and accept residual risk.",
+      "Authorize constrained operation, deployment, expansion, requalification or retirement."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "AP-A2",
+    "AP-A3",
+    "AP-A4",
+    "AP-A5",
+    "B2",
+    "C3",
+    "D2",
+    "E1",
+    "E3",
+    "F4",
+    "F5"
+  ],
+  "failure_mechanism": "Ambiguous or inconsistent intent allows technical capability, stakeholder demand, prototypes and incremental features to redefine accepted use without corresponding control design, evaluation, affected-person analysis, risk review or accountable authorization.",
+  "atomic_tests": [
+    {
+      "id": "AP-A1-AT-001",
+      "question_id": "AP-A1-Q1",
+      "test": "Compare authoritative purpose statements and determine whether the problem, intended task or decision and operating context are materially specific and mutually consistent.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A1-AT-002",
+      "question_id": "AP-A1-Q1",
+      "test": "Test whether purpose wording is merely a technical capability, product category or generic business aspiration rather than a bounded socio-technical use.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A1-AT-003",
+      "question_id": "AP-A1-Q1",
+      "test": "Determine whether intended users, operators and affected persons, including indirect groups, are explicit and complete for the reachable use.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-005"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A1-AT-004",
+      "question_id": "AP-A1-Q1",
+      "test": "Determine whether permitted uses, prohibited uses and foreseeable misuse are concrete enough to distinguish compliant and non-compliant behavior.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-001",
+        "EVD-AP-A1-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A1-AT-005",
+      "question_id": "AP-A1-Q1",
+      "test": "Determine whether expected outputs, downstream decision use and non-authorized effects are absent, conflicting or materially open-ended.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A1-AT-006",
+      "question_id": "AP-A1-Q2",
+      "test": "Compare reachable access, features, data, tools, integrations, administrative paths and fallback behavior with the approved purpose boundary.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "PENDING"
+    },
+    {
+      "id": "AP-A1-AT-007",
+      "question_id": "AP-A1-Q2",
+      "test": "Execute representative permitted-use, prohibited-use and misuse cases to determine whether the system prevents, constrains or observes boundary violations.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A1-AT-008",
+      "question_id": "AP-A1-Q3",
+      "test": "Trace material changes and actual use to determine whether prototype, feature, audience, data or decision scope expanded before requalification and authorization.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A1-AT-009",
+      "question_id": "AP-A1-Q3",
+      "test": "Execute and independently review a complete scoped absence test covering every material AP-A1 mechanism for the current system version and operating boundary.",
+      "required_evidence_ids": [
+        "EVD-AP-A1-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Authoritative purpose-statement corpus and reconciliation",
+      "Reachable-use and audience comparison",
+      "Executed permitted/prohibited/misuse boundary test results",
+      "Material-change and scope-expansion trace",
+      "Independent review record and residual limitation statement"
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

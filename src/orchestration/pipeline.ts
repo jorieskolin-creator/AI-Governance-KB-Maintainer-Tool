@@ -1,0 +1,55 @@
+import type { DomainId } from '../authoring/authoring-plan.js';
+import type { CognitiveTaskType, DomainState, PairState } from '../domain/states.js';
+
+export const PAIR_TASK_SEQUENCE: readonly CognitiveTaskType[] = [
+  'PAIR_BOUNDARY',
+  'AP_FAILURE_MODEL',
+  'APPLICABILITY',
+  'PRIMARY_QUESTIONS',
+  'ATOMIC_DECOMPOSITION',
+  'EVIDENCE_ARCHITECTURE',
+  'EVIDENCE_SAFETY',
+  'AP_ABSENCE_CONTRACT',
+  'SOURCE_MAPPING',
+  'FINDING_ARCHITECTURE',
+  'CONTROL_BOUNDARY',
+  'LIFECYCLE_ASSURANCE',
+  'REFERENCE_MAPPING',
+  'PAIR_COHERENCE_REVIEW'
+] as const;
+
+export const DOMAIN_PAIR_SLOTS = [1, 2, 3, 4, 5] as const;
+
+export const pairTransitions: Record<PairState, readonly PairState[]> = {
+  DRAFT: ['AUTHORING'],
+  AUTHORING: ['VALIDATING', 'REPAIR_REQUIRED', 'DEFERRED'],
+  VALIDATING: ['VALIDATED', 'REPAIR_REQUIRED', 'DEFERRED'],
+  REPAIR_REQUIRED: ['AUTHORING', 'VALIDATING', 'DEFERRED'],
+  DEFERRED: ['VALIDATED', 'REPAIR_REQUIRED'],
+  VALIDATED: ['REPAIR_REQUIRED']
+};
+
+export const domainTransitions: Record<DomainState, readonly DomainState[]> = {
+  IN_PROGRESS: ['DOMAIN_VALIDATING'],
+  DOMAIN_VALIDATING: ['READY_FOR_APPROVAL', 'REPAIR_REQUIRED'],
+  REPAIR_REQUIRED: ['DOMAIN_VALIDATING'],
+  READY_FOR_APPROVAL: ['APPROVED'],
+  APPROVED: ['PUBLISHED'],
+  PUBLISHED: []
+};
+
+export function expectedDomainPairIds(domain: DomainId): readonly string[] {
+  return DOMAIN_PAIR_SLOTS.map((slot) => `${domain}${slot}_AP-${domain}${slot}`);
+}
+
+export function expectedDomainCapabilityIds(domain: DomainId): readonly string[] {
+  return DOMAIN_PAIR_SLOTS.map((slot) => `${domain}${slot}`);
+}
+
+export function canTransition<T extends string>(
+  transitions: Record<T, readonly T[]>,
+  from: T,
+  to: T
+): boolean {
+  return transitions[from].includes(to);
+}

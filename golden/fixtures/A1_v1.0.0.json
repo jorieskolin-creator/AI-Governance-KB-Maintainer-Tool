@@ -1,0 +1,557 @@
+{
+  "schema_version": "2.0.0",
+  "id": "A1",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "A1_CAPABILITY_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Legal interpretation, evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "CAPABILITY",
+  "title": "Intended purpose and use boundaries",
+  "canonical_definition": "The intended purpose, users, affected persons, operating context, expected outputs, permitted uses, prohibited uses and foreseeable misuse are precise enough to govern design, implementation, evaluation, operation and change.",
+  "applicability": {
+    "statement": "Applicable to every AI system or AI-enabled function; assessment depth increases with autonomy, exposure, scale, affected-person impact and consequence.",
+    "conditions": [
+      "Assess the complete socio-technical system, not only the model.",
+      "Apply to proposed use, deployed use and materially changed use.",
+      "Resolve provider, deployer and internal-use perspectives where they differ."
+    ],
+    "exclusions": [
+      "No blanket exclusion is permitted solely because the model is general-purpose, externally supplied, low-code or experimental.",
+      "A component may be out of scope only when the assessed system boundary and responsibility allocation are evidenced."
+    ],
+    "reassessment_triggers": [
+      "New user or affected-person group",
+      "New decision, task or business process",
+      "New data category, model, tool, integration or external effect",
+      "Expansion from pilot to production or from internal to external use",
+      "Material performance, risk, legal or organizational change",
+      "Observed use outside the declared boundary"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "A1-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Is the intended purpose and decision context specific, bounded and testable?"
+    },
+    {
+      "id": "A1-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are purpose and use boundaries implemented consistently in workflows, data use, access, tools and product behavior?"
+    },
+    {
+      "id": "A1-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence show that actual and foreseeable use remains within the declared boundary?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-A1-001",
+      "title": "Approved purpose and use-boundary statement",
+      "claim_supported": "The system has a specific, bounded and testable intended purpose, decision context and operating scope.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Identifies the business problem, intended decision or task, system boundary, operating context and target lifecycle stage.",
+        "Uses the same system/version identity as the assessed implementation."
+      ],
+      "limitations": [
+        "A statement alone does not prove implementation or effectiveness."
+      ]
+    },
+    {
+      "id": "EVD-A1-002",
+      "title": "User, operator and affected-person boundary",
+      "claim_supported": "Intended users, operators, affected persons and excluded audiences are explicitly identified.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Names user/operator roles and affected-person groups, including indirect or downstream exposure.",
+        "Records exclusions and review triggers for new audiences."
+      ],
+      "limitations": [
+        "Generic stakeholder lists do not establish exposure or affected-person analysis."
+      ]
+    },
+    {
+      "id": "EVD-A1-003",
+      "title": "Permitted, prohibited and foreseeable-use specification",
+      "claim_supported": "Permitted uses, prohibited uses and reasonably foreseeable misuse are concrete enough to guide controls and testing.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Includes examples or decision rules that distinguish permitted from prohibited use.",
+        "Connects misuse scenarios to control and evaluation obligations."
+      ],
+      "limitations": [
+        "Policy wording without system-specific conditions cannot exceed DECLARED assurance."
+      ]
+    },
+    {
+      "id": "EVD-A1-004",
+      "title": "Output, outcome and decision-authority specification",
+      "claim_supported": "Expected outputs, outcome expectations, decision role and non-authorized effects are measurable and bounded.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Defines output types, quality thresholds, intended downstream use and decision authority.",
+        "Identifies effects that require human authorization or are prohibited."
+      ],
+      "limitations": [
+        "Performance metrics alone do not establish appropriate decision use."
+      ]
+    },
+    {
+      "id": "EVD-A1-005",
+      "title": "Implemented boundary controls",
+      "claim_supported": "Workflows, interfaces, access, data routing, tools and product behavior enforce the declared purpose and use boundaries.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "PENDING",
+      "acceptance_conditions": [
+        "Traceable controls exist at each material boundary, including access, data, functionality, tool/action and output use.",
+        "Bypass, fallback and administrative paths are included."
+      ],
+      "limitations": [
+        "Design diagrams or code fragments do not prove deployed enforcement."
+      ]
+    },
+    {
+      "id": "EVD-A1-006",
+      "title": "Purpose-aligned evaluation results",
+      "claim_supported": "Evaluation demonstrates performance, misuse resistance and boundary behavior in representative intended and foreseeable-use conditions.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Test scope traces to the declared purpose, prohibited uses, affected persons and operating conditions.",
+        "Results identify system version, data, thresholds, failures and unresolved limitations."
+      ],
+      "limitations": [
+        "A test plan or synthetic demo without executed results cannot establish TESTED assurance."
+      ]
+    },
+    {
+      "id": "EVD-A1-007",
+      "title": "Operational use and drift records",
+      "claim_supported": "Current operating evidence shows actual use remains within the declared boundary and material drift is detected.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Telemetry, review records or case samples cover actual users, use cases, outputs, escalations and prohibited-use signals.",
+        "The observation period and coverage are representative for the assessed operation."
+      ],
+      "limitations": [
+        "Absence of reported incidents does not prove boundary conformance."
+      ]
+    },
+    {
+      "id": "EVD-A1-008",
+      "title": "Material-change and requalification record",
+      "claim_supported": "Scope expansion, new users, functions, data, integrations or effects trigger documented requalification before continued use.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Decision record identifies the change, impact on intended purpose, required reassessment and authorization outcome.",
+        "Unapproved expansion is prevented or constrained pending decision."
+      ],
+      "limitations": [
+        "A backlog item or informal acknowledgement is not authorization."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "Purpose documentation can establish DECLARED intent but not implemented control or operational conformance.",
+      "Implementation or configuration evidence can establish boundary controls but not their effectiveness in representative use.",
+      "Executed evaluation can establish TESTED assurance only for the assessed version, scope and conditions.",
+      "Operational records can establish OPERATIONALLY_OBSERVED assurance only for covered users, functions, time periods and environments."
+    ],
+    "false_positive_guards": [
+      "Do not treat a product name, model card or marketing description as a system-specific purpose statement.",
+      "Do not treat access restriction alone as evidence that permitted and prohibited uses are defined.",
+      "Do not treat high model accuracy as evidence that downstream use and decision authority are appropriate.",
+      "Do not treat a generic acceptable-use policy as proof of system-specific enforcement."
+    ],
+    "prohibited_inferences": [
+      "Do not infer affected-person coverage from a list of direct users.",
+      "Do not infer implementation from policy approval.",
+      "Do not infer operational conformance from missing complaints, incidents or prohibited-use detections.",
+      "Do not infer authorization for a new use from technical capability or prototype availability.",
+      "Do not infer legal compliance from satisfaction of this capability."
+    ],
+    "contradiction_handling": [
+      "Conflicting purpose statements, interfaces, contracts, telemetry or stakeholder accounts keep the affected conclusion UNKNOWN until resolved.",
+      "Where implementation enables a broader use than the approved statement, assess the broader reachable use and record the divergence.",
+      "A more recent approved record supersedes older intent only when system identity, scope and change authority are explicit."
+    ],
+    "freshness_rules": [
+      "Purpose and boundary evidence must match the assessed system and release version.",
+      "Operational evidence must be recent enough to represent the current model, workflow, user population and integrations.",
+      "Material changes invalidate prior boundary assurance until impact review and targeted reassessment are complete."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block deployment or material expansion when intended purpose, prohibited uses, affected persons or decision authority are materially undefined.",
+      "Block when reachable implementation materially exceeds the approved boundary and no authorized constrained operating envelope exists.",
+      "Constrain operation when current evidence cannot establish boundary conformance for a consequential use."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_BUSINESS_AND_RISK_OWNER"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-A1-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 3(12) intended purpose; Article 3(13) reasonably foreseeable misuse; Article 9(2) risk-management scope; Article 11 and Annex IV technical documentation; Article 13 instructions for use",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Grounds the legal vocabulary of intended purpose, context and conditions of use, foreseeable misuse and documented operating boundaries when the Regulation applies.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-A1-NIST-AI-RMF-002",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1 (2023); Playbook current 2026-08-02",
+      "exact_locator": "AI RMF Core MAP 1.1, MAP 1.3, MAP 2.2, MAP 3.3 and MANAGE 1.1; NIST AI RMF Playbook MAP 1.1",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Grounds context establishment, intended and actual use, users, impacts, limitations, operational setting, go/no-go decisions and continued reassessment as context changes.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-A1-001",
+      "title": "Intended purpose or decision context is not specific, bounded and testable",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A1-SC-001",
+        "A1-SC-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-A1-001",
+        "EVD-A1-004"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Do not progress to consequential verification, deployment or expansion until the purpose and decision role are bounded and human-validated.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A1-002",
+      "title": "User, affected-person or permitted/prohibited-use boundary is incomplete",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A1-SC-003",
+        "A1-SC-004"
+      ],
+      "required_evidence_ids": [
+        "EVD-A1-002",
+        "EVD-A1-003"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain scope to evidenced users and uses; require boundary completion before deployment to unassessed groups or contexts.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A1-003",
+      "title": "Implemented system behavior diverges from the approved purpose boundary",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "mapped_atomic_item_ids": [
+        "A1-SC-005",
+        "A1-SC-006"
+      ],
+      "required_evidence_ids": [
+        "EVD-A1-005"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Stop or constrain the divergent path until deterministic controls and accountable authorization align implementation with the approved boundary.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A1-004",
+      "title": "Evaluation or operating evidence does not establish boundary effectiveness",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A1-SC-007",
+        "A1-SC-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-A1-006",
+        "EVD-A1-007"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Do not claim effective boundary control; require representative testing and current operating evidence before the target transition.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A1-005",
+      "title": "Material scope change has not been requalified and authorized",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A1-SC-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-A1-008"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Prevent or suspend the expanded use pending impact analysis, reassessment and formal authorization.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-A1-GOV-PUR-001-FND-A1-001-001",
+      "tactic_id": "GOV-PUR-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A1-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-A1-GOV-PUR-001-FND-A1-002-002",
+      "tactic_id": "GOV-PUR-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A1-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-A1-GOV-PUR-002-FND-A1-003-001",
+      "tactic_id": "GOV-PUR-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A1-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-A1-GOV-PUR-003-FND-A1-004-001",
+      "tactic_id": "GOV-PUR-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A1-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    },
+    {
+      "mapping_id": "MAP-A1-GOV-PUR-004-FND-A1-005-001",
+      "tactic_id": "GOV-PUR-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A1-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.2.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract and compare purpose statements, system behavior, use records and change evidence.",
+      "Identify missing, conflicting, stale or scope-mismatched evidence.",
+      "Apply deterministic evidence ceilings and propose eligible conclusion states for human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Define the organization's purpose or risk appetite.",
+      "Treat legal vocabulary as a legal-applicability conclusion.",
+      "Raise assurance beyond the evidence ceiling.",
+      "Clear the hard gate, accept residual risk, authorize a new use or lifecycle transition.",
+      "Change or close a locked finding because a tactic was selected or completed."
+    ],
+    "human_authority_required_for": [
+      "Approve intended purpose and use boundaries.",
+      "Determine legal and regulatory applicability.",
+      "Adjudicate material evidence conflicts.",
+      "Lock findings and accept residual risk.",
+      "Authorize constrained operation, deployment, expansion, requalification or retirement."
+    ]
+  },
+  "related_criteria": [
+    "AP-A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "B2",
+    "C3",
+    "D2",
+    "E1",
+    "E3",
+    "E4",
+    "F4",
+    "F5"
+  ],
+  "governance_purpose": "Ensure the system is designed, evaluated, operated and changed against one explicit socio-technical purpose and enforceable use boundary rather than against unconstrained technical capability.",
+  "distinct_claim": "A1 owns the definition and maintained alignment of the system-specific purpose, users, affected persons, operating context, permitted and prohibited uses, expected outputs and foreseeable misuse. A2 owns whether AI is proportionate and valuable; A3 owns role allocation; A4 owns classification; A5 owns lifecycle transition control.",
+  "atomic_subcriteria": [
+    {
+      "id": "A1-SC-001",
+      "question_id": "A1-Q1",
+      "criterion": "The business problem, intended task or decision and operating context are defined independently of model capability or product branding.",
+      "required_evidence_ids": [
+        "EVD-A1-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A1-SC-002",
+      "question_id": "A1-Q1",
+      "criterion": "Expected outputs, outcomes, downstream use and decision authority are measurable, including effects the system must not authorize.",
+      "required_evidence_ids": [
+        "EVD-A1-004"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A1-SC-003",
+      "question_id": "A1-Q1",
+      "criterion": "Intended users, operators and directly or indirectly affected persons are identified with explicit inclusions, exclusions and review triggers.",
+      "required_evidence_ids": [
+        "EVD-A1-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A1-SC-004",
+      "question_id": "A1-Q1",
+      "criterion": "Permitted uses, prohibited uses and reasonably foreseeable misuse are expressed as system-specific conditions that can drive controls and tests.",
+      "required_evidence_ids": [
+        "EVD-A1-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A1-SC-005",
+      "question_id": "A1-Q2",
+      "criterion": "Access, data routing, functionality, interfaces and workflow placement restrict the system to the approved users, contexts and purposes.",
+      "required_evidence_ids": [
+        "EVD-A1-005"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "PENDING"
+    },
+    {
+      "id": "A1-SC-006",
+      "question_id": "A1-Q2",
+      "criterion": "Tools, integrations, output consumers, administrative paths and fallback behavior cannot create unapproved effects or silently expand use.",
+      "required_evidence_ids": [
+        "EVD-A1-005"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "PENDING"
+    },
+    {
+      "id": "A1-SC-007",
+      "question_id": "A1-Q3",
+      "criterion": "Representative evaluation covers intended use, prohibited use and foreseeable misuse for the current system version and operating conditions.",
+      "required_evidence_ids": [
+        "EVD-A1-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A1-SC-008",
+      "question_id": "A1-Q3",
+      "criterion": "Operational records provide current, scoped evidence of actual users, use cases, outputs, escalations and boundary drift.",
+      "required_evidence_ids": [
+        "EVD-A1-007"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A1-SC-009",
+      "question_id": "A1-Q3",
+      "criterion": "A material-change mechanism detects scope expansion and requires impact review, reassessment and authorization before continued use.",
+      "required_evidence_ids": [
+        "EVD-A1-008"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}
