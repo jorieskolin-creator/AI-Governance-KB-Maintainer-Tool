@@ -48,6 +48,7 @@ export interface DomainRunOverlay {
     available: boolean;
     href: string;
     pairId: string;
+    kind: 'PAIR' | 'DOMAIN' | '';
     reason: string;
   };
 }
@@ -87,6 +88,7 @@ export async function loadDomainOverlay(
         available: false,
         href: '',
         pairId: '',
+        kind: '',
         reason: 'No remaining HIGH blockers to review.'
       }
     };
@@ -218,19 +220,35 @@ export async function loadDomainOverlay(
     },
     review: (() => {
       const unpaid = pairs.find((pair) => pair.pairCoherencePassed !== true && pair.tasks.some((task) => task.taskType === 'PAIR_COHERENCE_REVIEW' && task.status === 'COMPLETED'));
-      if (!unpaid) {
+      if (unpaid) {
         return {
-          available: false,
-          href: '',
-          pairId: '',
-          reason: 'No remaining HIGH blockers to review.'
+          available: true,
+          href: `/review/${domain}/${unpaid.pairId}`,
+          pairId: unpaid.pairId,
+          kind: 'PAIR' as const,
+          reason: `${unpaid.pairId} Pair Coherence did not pass. Deleting a blocker or editing content and clicking Approve and save is human approval. After that only IDs and required sections are checked.`
+        };
+      }
+      const domainDefects =
+        domainArtifact?.output && Array.isArray(domainArtifact.output.defects) ? domainArtifact.output.defects : [];
+      const domainBlocking = domainDefects.some(
+        (item) => item.severity === 'HIGH' || item.severity === 'BLOCKING'
+      );
+      if (domainPassed === false && domainBlocking) {
+        return {
+          available: true,
+          href: `/review/${domain}`,
+          pairId: `DOMAIN-${domain}`,
+          kind: 'DOMAIN' as const,
+          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Deleting a blocker or editing content and clicking Approve and save is human approval. After that only IDs and required sections are checked. Continue stays closed until no HIGH domain defects remain.`
         };
       }
       return {
-        available: true,
-        href: `/review/${domain}/${unpaid.pairId}`,
-        pairId: unpaid.pairId,
-        reason: `${unpaid.pairId} Pair Coherence did not pass. Deleting a blocker or editing content and clicking Approve and save is human approval. After that only IDs and required sections are checked.`
+        available: false,
+        href: '',
+        pairId: '',
+        kind: '' as const,
+        reason: 'No remaining HIGH blockers to review.'
       };
     })()
   };

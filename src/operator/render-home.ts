@@ -117,6 +117,9 @@ function runActivity(card: OperatorDomainCard): string {
     return `<p class="activity">Work order NONE. Start freezes the baseline and runs pair SIR tasks until the domain is ready.</p>`;
   }
   if (card.documents.available) {
+    if (card.review.available && card.review.kind === 'DOMAIN') {
+      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Deleting a blocker or editing its content and clicking Approve and save is human approval. After that, only IDs and required sections are checked. Continue stays closed until no HIGH domain defects remain.</p>`;
+    }
     if (card.review.available) {
       return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Deleting a blocker or editing its content and clicking Approve and save is human approval. After that, only IDs and required sections are checked. Domain Coherence stays closed until every pair actually passed.</p>`;
     }
@@ -203,7 +206,7 @@ function documentList(card: OperatorDomainCard): string {
 function defectList(card: OperatorDomainCard): string {
   const items = uniqueFindings(card.findings ?? []);
   if (!items.length) return '';
-  const reviewHref = card.review.available ? card.review.href : `/review/${card.domain}/${items[0]?.objectId ?? ''}`;
+  const reviewHref = card.review.available ? card.review.href : `/review/${card.domain}`;
   return `<section class="defects">
       <p class="kicker">QC defects</p>
       <p class="meta">Deleting a blocker or editing its content, then Approve and save, is human approval of that change. After that, only IDs, handles and required sections are checked.</p>

@@ -18,6 +18,11 @@ import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, 
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
 import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, parseReviewSaveBody } from './pair-review.js';
+import {
+  remainingDomainDefects,
+  renderDomainReviewHtml,
+  snapshotPathFromDomainPath
+} from './domain-review.js';
 import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -382,6 +387,61 @@ const rematerialized = rematerializeHumanReview({
 assert(rematerialized.passed === true, 'deleting remaining HIGH defects derives passed=true');
 assert(rematerialized.defects.length === 0, 'deleted blockers are not kept in the rematerialized review');
 assert(rematerialized.coherenceSummary.includes('Human approved'), 'human save is recorded as pair-level approval');
+
+assert(
+  snapshotPathFromDomainPath('pairs[A2_AP-A2].capability.relatedCriteria')?.snapshotPath ===
+    'referenceMappings.capabilityRelatedCriteria',
+  'domain relatedCriteria path maps to pair snapshot path'
+);
+const domainHtml = renderDomainReviewHtml({
+  domain: 'A',
+  domainState: 'REPAIR_REQUIRED',
+  passed: false,
+  coherenceSummary: 'HIGH related-criteria defect remains.',
+  blockingCount: 1,
+  gateIssues: [],
+  defects: [
+    {
+      defectId: 'defect_001',
+      severity: 'HIGH',
+      coherenceDimension: 'BROKEN_RELATED_CRITERION',
+      issue: 'The lifecycle pair omits a reciprocal related-criterion link to the suitability pair.',
+      coherenceExpectation: 'Related-criterion lists must be reciprocal across the affected pairs.',
+      pairId: 'A2_AP-A2',
+      domainPath: 'pairs[A2_AP-A2].capability.relatedCriteria',
+      snapshotPath: 'referenceMappings.capabilityRelatedCriteria',
+      currentValue: [],
+      valueJson: '[]'
+    }
+  ]
+});
+assert(domainHtml.includes('Approve and save'), 'domain review page must human-approve through save');
+assert(domainHtml.includes('save-domain-review'), 'domain review posts save-domain-review');
+assert(domainHtml.includes('Human domain approval'), 'domain save is domain-level human approval');
+assert(domainHtml.includes('not domain APPROVED'), 'domain save must not grant domain APPROVED');
+
+const domainHigh = {
+  defectId: 'defect_001' as const,
+  severity: 'HIGH' as const,
+  coherenceDimension: 'BROKEN_RELATED_CRITERION' as const,
+  affectedPairHandles: ['pair_002' as const],
+  affectedPairIds: ['A2_AP-A2'],
+  affectedPathHandles: ['path_015' as const],
+  affectedPaths: ['pairs[A2_AP-A2].capability.relatedCriteria'],
+  issue: 'The lifecycle pair omits a reciprocal related-criterion link to the suitability pair.',
+  coherenceExpectation: 'Related-criterion lists must be reciprocal across the affected pairs.',
+  recommendedRepairPairHandles: ['pair_002' as const],
+  recommendedRepairPairIds: ['A2_AP-A2'],
+  recommendedRepairPathHandles: ['path_015' as const],
+  recommendedRepairPaths: ['pairs[A2_AP-A2].capability.relatedCriteria']
+};
+assert(remainingDomainDefects({
+  domain: 'A',
+  domainCoherencePacketSha256: 'a'.repeat(64),
+  passed: false,
+  coherenceSummary: 'HIGH related-criteria defect remains.',
+  defects: [domainHigh]
+}, ['defect_001']).length === 0, 'deleting the only HIGH domain defect leaves no remaining defects');
 
 const emptyRoots = Object.fromEntries(Object.keys(SNAPSHOT_ROOT_TASK).map((key) => [key, {}]));
 assert(schemaGate('A2_AP-A2', emptyRoots).length === 0, 'schema gate passes when required sections and IDs are intact');

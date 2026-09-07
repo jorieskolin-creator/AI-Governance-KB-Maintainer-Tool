@@ -83,6 +83,7 @@ export interface OperatorDomainCard {
     available: boolean;
     href: string;
     pairId: string;
+    kind: 'PAIR' | 'DOMAIN' | '';
     reason: string;
   };
   lastModelCall?: {
@@ -337,6 +338,7 @@ export function buildOperatorStatus(input: {
         available: false,
         href: '',
         pairId: '',
+        kind: '',
         reason: 'No remaining HIGH blockers to review.'
       },
       lastModelCall: overlay?.modelCalls[0]

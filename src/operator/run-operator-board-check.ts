@@ -83,6 +83,7 @@ assert(html.includes('after five pairs are VALIDATED') || html.includes('After f
 assert(html.includes('DOMAIN_COHERENCE_REVIEW'), 'home page must admit domain coherence after five validated pairs');
 assert(html.includes('DRAFT documents'), 'home page must name DRAFT documents as the pair-complete output');
 assert(html.includes('IDs, handles, required sections') || html.includes('Approve and save'), 'home page must name the human-approval schema gate');
+assert(status.domains[0]?.review.kind === '' || status.domains[0]?.review.kind === 'PAIR' || status.domains[0]?.review.kind === 'DOMAIN', 'review kind is governed');
 assert(html.includes('Production candidates'), 'home page must show the production-candidate unit');
 assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
 assert(html.includes('/api/operator/status'), 'home page must keep the status API link');
