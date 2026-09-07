@@ -24,6 +24,7 @@ import {
   snapshotPathFromDomainPath
 } from './domain-review.js';
 import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
+import { validMinimalSnapshotFixture } from '../validation/sir-snapshot-schema.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -341,6 +342,7 @@ const reviewHtml = renderPairReviewHtml({
   ]
 });
 assert(reviewHtml.includes('Approve and save'), 'review page must human-approve through save');
+assert(reviewHtml.includes('expectedCandidateHash'), 'review save binds the current candidate revision');
 assert(reviewHtml.includes('data-defect-id="defect_001"'), 'review page must allow deleting a blocker');
 assert(reviewHtml.includes('data-path="evidence.capability[evidence_001]"'), 'review page must allow editing the semantic path');
 assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
@@ -416,6 +418,7 @@ const domainHtml = renderDomainReviewHtml({
   ]
 });
 assert(domainHtml.includes('Approve and save'), 'domain review page must human-approve through save');
+assert(domainHtml.includes('expectedCandidateHash'), 'domain save binds the current candidate revision');
 assert(domainHtml.includes('save-domain-review'), 'domain review posts save-domain-review');
 assert(domainHtml.includes('Human domain approval'), 'domain save is domain-level human approval');
 assert(domainHtml.includes('not domain APPROVED'), 'domain save must not grant domain APPROVED');
@@ -444,13 +447,19 @@ assert(remainingDomainDefects({
 }, ['defect_001']).length === 0, 'deleting the only HIGH domain defect leaves no remaining defects');
 
 const emptyRoots = Object.fromEntries(Object.keys(SNAPSHOT_ROOT_TASK).map((key) => [key, {}]));
-assert(schemaGate('A2_AP-A2', emptyRoots).length === 0, 'schema gate passes when required sections and IDs are intact');
+assert(schemaGate('A2_AP-A2', emptyRoots).length > 0, 'schema gate rejects empty required sections');
+assert(
+  schemaGate('A2_AP-A2', emptyRoots).some((item) => item.includes('atomics') || item.includes('empty or structurally incomplete')),
+  'empty objects do not satisfy SIR section contracts'
+);
 assert(
   schemaGate('A2_AP-A2', { pairBoundary: {} }).some((item) => item.includes('atomics')),
   'schema gate requires the pair SIR sections'
 );
+const validSnapshot = validMinimalSnapshotFixture();
+assert(schemaGate('A2_AP-A2', validSnapshot).length === 0, 'schema gate passes a complete section-valid snapshot');
 assert(
-  schemaGate('A2_AP-A2', { ...emptyRoots, pairBoundary: { pairId: 'B1_AP-B1' } }).some((item) =>
+  schemaGate('A2_AP-A2', { ...validSnapshot, pairBoundary: { ...(validSnapshot.pairBoundary as object), pairId: 'B1_AP-B1' } }).some((item) =>
     item.includes('pairId drifted')
   ),
   'schema gate rejects identity drift'
@@ -462,6 +471,14 @@ assert(
 assert(
   (parseReviewSaveBody({ deletedDefectIds: ['defect_001'], patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }] }).patches[0]?.value as { title?: string }).title === 'Fixed',
   'JSON save body parses human content edits'
+);
+assert(
+  parseReviewSaveBody({
+    deletedDefectIds: ['defect_001'],
+    expectedCandidateHash: 'a'.repeat(64),
+    patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }]
+  }).expectedCandidateHash === 'a'.repeat(64),
+  'JSON save body parses the bound candidate revision hash'
 );
 
 const availability = commandAvailability({

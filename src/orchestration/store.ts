@@ -4,6 +4,17 @@ import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding } from '../validation/contracts.js';
 import type { ModelExecutionResponse } from '../ai/provider-client.js';
 import type { ModelRole } from '../domain/task-contract.js';
+import { PAIR_TASK_SEQUENCE } from './pipeline.js';
+import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
+import { pairCandidateRevisionHash, domainCandidateRevisionHash } from './candidate-revision.js';
+import {
+  evaluateDomainGates,
+  evaluatePairGates,
+  snapshotIsComplete,
+  type NamedGateOutcome,
+  type NamedGateResult
+} from './named-gates.js';
+import { schemaGateSnapshotIssues } from '../validation/sir-snapshot-schema.js';
 
 export async function createDomainRun(input: {
   domain: string;
@@ -126,12 +137,35 @@ export async function completeTaskRun(input: {
   output: unknown;
   outputHash: string;
 }): Promise<void> {
-  await getDbPool().query(
+  const result = await getDbPool().query<{
+    pair_run_id: string;
+    task_type: CognitiveTaskType;
+    input_hash: string;
+    task_contract: TaskContract;
+  }>(
     `update task_runs
      set status = 'COMPLETED', output = $2::jsonb, output_hash = $3, completed_at = now()
-     where id = $1`,
+     where id = $1
+     returning pair_run_id, task_type, input_hash, task_contract`,
     [input.taskRunId, JSON.stringify(input.output), input.outputHash]
   );
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error(`Failed to complete task ${input.taskRunId}.`);
+  }
+  await insertArtifactRevision({
+    pairRunId: row.pair_run_id,
+    taskType: row.task_type,
+    inputHash: row.input_hash,
+    output: input.output,
+    outputHash: input.outputHash,
+    taskContract: row.task_contract,
+    taskRunId: input.taskRunId
+  });
+  await persistPairCandidate(row.pair_run_id);
+  if (row.task_type === 'DOMAIN_COHERENCE_REVIEW') {
+    await persistDomainCandidateForHostPair(row.pair_run_id, input.output);
+  }
 }
 
 export async function failTaskRun(taskRunId: string): Promise<void> {
@@ -160,6 +194,26 @@ export async function getLatestCompletedTaskArtifact<T>(
   pairRunId: string,
   taskType: CognitiveTaskType
 ): Promise<CompletedTaskArtifact<T> | undefined> {
+  const revision = await getDbPool().query<{
+    output: T;
+    task_contract: TaskContract;
+    input_hash: string;
+    output_hash: string;
+  }>(
+    `select output, task_contract, input_hash, output_hash from artifact_revisions
+     where pair_run_id = $1 and task_type = $2
+     order by revision_no desc limit 1`,
+    [pairRunId, taskType]
+  );
+  const revisionRow = revision.rows[0];
+  if (revisionRow) {
+    return {
+      output: revisionRow.output,
+      taskContract: revisionRow.task_contract,
+      inputHash: revisionRow.input_hash,
+      outputHash: revisionRow.output_hash
+    };
+  }
   const result = await getDbPool().query<{
     output: T;
     task_contract: TaskContract;
@@ -185,6 +239,8 @@ export async function getLatestTaskArtifactWithOutput<T>(
   pairRunId: string,
   taskType: CognitiveTaskType
 ): Promise<CompletedTaskArtifact<T> | undefined> {
+  const revision = await getLatestCompletedTaskArtifact<T>(pairRunId, taskType);
+  if (revision) return revision;
   const result = await getDbPool().query<{
     output: T;
     task_contract: TaskContract;
@@ -213,20 +269,18 @@ export async function replaceCompletedTaskOutput(input: {
   output: unknown;
   outputHash: string;
 }): Promise<void> {
-  const result = await getDbPool().query(
-    `update task_runs
-     set output = $3::jsonb, output_hash = $4
-     where id = (
-       select id from task_runs
-       where pair_run_id = $1 and task_type = $2 and status = 'COMPLETED'
-       order by completed_at desc
-       limit 1
-     )`,
-    [input.pairRunId, input.taskType, JSON.stringify(input.output), input.outputHash]
-  );
-  if (result.rowCount !== 1) {
+  const current = await getLatestCompletedTaskArtifact(input.pairRunId, input.taskType);
+  if (!current) {
     throw new Error(`No completed ${input.taskType} artifact to patch.`);
   }
+  await insertArtifactRevision({
+    pairRunId: input.pairRunId,
+    taskType: input.taskType,
+    inputHash: current.inputHash,
+    output: input.output,
+    outputHash: input.outputHash,
+    taskContract: current.taskContract
+  });
 }
 
 export async function failLatestCompletedTask(
@@ -617,5 +671,202 @@ export async function getRecentModelCalls(pairRunIds: string[]): Promise<ModelCa
     latencyMs: row.latency_ms,
     createdAt: row.created_at
   }));
+}
+
+async function insertArtifactRevision(input: {
+  pairRunId: string;
+  taskType: CognitiveTaskType;
+  inputHash: string;
+  output: unknown;
+  outputHash: string;
+  taskContract: TaskContract;
+  taskRunId?: string;
+}): Promise<void> {
+  await getDbPool().query(
+    `insert into artifact_revisions(
+      pair_run_id, task_type, revision_no, input_hash, output_hash, output, task_contract,
+      task_run_id, superseded_revision_id
+    )
+    select $1, $2,
+      coalesce((select max(revision_no) from artifact_revisions where pair_run_id = $1 and task_type = $2), 0) + 1,
+      $3, $4, $5::jsonb, $6::jsonb, $7,
+      (select id from artifact_revisions where pair_run_id = $1 and task_type = $2 order by revision_no desc limit 1)`,
+    [
+      input.pairRunId,
+      input.taskType,
+      input.inputHash,
+      input.outputHash,
+      JSON.stringify(input.output),
+      JSON.stringify(input.taskContract),
+      input.taskRunId ?? null
+    ]
+  );
+}
+
+export async function getPairArtifactOutputHashes(pairRunId: string): Promise<Record<string, string>> {
+  const hashes: Record<string, string> = {};
+  const completed = await getDbPool().query<{ task_type: string; output_hash: string }>(
+    `select task_type, output_hash from task_runs
+     where pair_run_id = $1 and status = 'COMPLETED' and output_hash is not null`,
+    [pairRunId]
+  );
+  for (const row of completed.rows) hashes[row.task_type] = row.output_hash;
+  const revisions = await getDbPool().query<{ task_type: string; output_hash: string }>(
+    `select distinct on (task_type) task_type, output_hash
+     from artifact_revisions
+     where pair_run_id = $1
+     order by task_type, revision_no desc`,
+    [pairRunId]
+  );
+  for (const row of revisions.rows) hashes[row.task_type] = row.output_hash;
+  return hashes;
+}
+
+export async function currentPairCandidateHash(pairRunId: string, pairId: string): Promise<string> {
+  const hashes = await getPairArtifactOutputHashes(pairRunId);
+  const pairHashes: Record<string, string> = {};
+  for (const taskType of PAIR_TASK_SEQUENCE) {
+    if (hashes[taskType]) pairHashes[taskType] = hashes[taskType];
+  }
+  return pairCandidateRevisionHash(pairId, pairHashes);
+}
+
+export async function currentDomainCandidateHash(
+  domain: string,
+  pairRuns: readonly PairRunRecord[],
+  domainCoherenceOutputHash: string
+): Promise<string> {
+  const pairHashes: Record<string, string> = {};
+  for (const pair of pairRuns) {
+    pairHashes[pair.pairId] = await currentPairCandidateHash(pair.id, pair.pairId);
+  }
+  return domainCandidateRevisionHash(domain, pairHashes, domainCoherenceOutputHash);
+}
+
+async function persistGateResults(candidateRevisionId: string, results: NamedGateResult[]): Promise<void> {
+  for (const result of results) {
+    await getDbPool().query(
+      `insert into gate_results(candidate_revision_id, gate_name, outcome, validator_version, findings)
+       values ($1, $2, $3, $4, $5::jsonb)
+       on conflict (candidate_revision_id, gate_name) do nothing`,
+      [
+        candidateRevisionId,
+        result.gateName,
+        result.outcome,
+        result.validatorVersion,
+        JSON.stringify(result.findings)
+      ]
+    );
+  }
+}
+
+export async function persistPairCandidate(
+  pairRunId: string,
+  reviewOverride?: unknown
+): Promise<NamedGateOutcome[]> {
+  const pair = await getDbPool().query<{ pair_id: string }>(
+    'select pair_id from pair_runs where id = $1',
+    [pairRunId]
+  );
+  const pairId = pair.rows[0]?.pair_id;
+  if (!pairId) return [];
+  const hashes = await getPairArtifactOutputHashes(pairRunId);
+  const pairHashes: Record<string, string> = {};
+  for (const taskType of PAIR_TASK_SEQUENCE) {
+    if (hashes[taskType]) pairHashes[taskType] = hashes[taskType];
+  }
+  const revisionHash = pairCandidateRevisionHash(pairId, pairHashes);
+  const existing = await getDbPool().query<{ id: string }>(
+    `select id from candidate_revisions where pair_run_id = $1 and revision_hash = $2 and scope = 'PAIR'`,
+    [pairRunId, revisionHash]
+  );
+  let candidateId = existing.rows[0]?.id;
+  if (!candidateId) {
+    const previous = await getDbPool().query<{ id: string }>(
+      `select id from candidate_revisions where pair_run_id = $1 and scope = 'PAIR' order by created_at desc limit 1`,
+      [pairRunId]
+    );
+    const inserted = await getDbPool().query<{ id: string }>(
+      `insert into candidate_revisions(
+        pair_run_id, scope, revision_hash, artifact_output_hashes, superseded_revision_id
+      ) values ($1, 'PAIR', $2, $3::jsonb, $4)
+      returning id`,
+      [pairRunId, revisionHash, JSON.stringify(pairHashes), previous.rows[0]?.id ?? null]
+    );
+    candidateId = inserted.rows[0]?.id;
+  }
+  if (!candidateId) return [];
+
+  const snapshot: Record<string, unknown> = {};
+  for (const [root, taskType] of Object.entries(SNAPSHOT_ROOT_TASK)) {
+    const artifact = await getLatestCompletedTaskArtifact(pairRunId, taskType);
+    if (artifact) snapshot[root] = artifact.output;
+  }
+  const reviewArtifact =
+    reviewOverride !== undefined
+      ? { output: reviewOverride }
+      : await getLatestCompletedTaskArtifact(pairRunId, 'PAIR_COHERENCE_REVIEW');
+  const complete = snapshotIsComplete(pairHashes);
+  const schemaIssues = complete ? schemaGateSnapshotIssues(snapshot) : ['snapshot incomplete'];
+  const gates = evaluatePairGates({
+    snapshotComplete: complete,
+    schemaIssues,
+    sourceMappings: snapshot.sourceMappings,
+    review: reviewArtifact?.output
+  });
+  await persistGateResults(candidateId, gates);
+  return gates.map((item) => item.outcome);
+}
+
+export async function persistDomainCandidateForHostPair(
+  hostPairRunId: string,
+  reviewOverride?: unknown
+): Promise<NamedGateOutcome[]> {
+  const host = await getDbPool().query<{ domain_run_id: string; domain: string }>(
+    `select pr.domain_run_id, dr.domain
+     from pair_runs pr
+     join domain_runs dr on dr.id = pr.domain_run_id
+     where pr.id = $1`,
+    [hostPairRunId]
+  );
+  const row = host.rows[0];
+  if (!row) return [];
+  const pairRuns = await getPairRuns(row.domain_run_id);
+  const reviewArtifact = await getLatestCompletedTaskArtifact(hostPairRunId, 'DOMAIN_COHERENCE_REVIEW');
+  const hash = reviewArtifact?.outputHash ?? '';
+  if (!hash) return [];
+  const revisionHash = await currentDomainCandidateHash(row.domain, pairRuns, hash);
+  const existing = await getDbPool().query<{ id: string }>(
+    `select id from candidate_revisions where domain_run_id = $1 and revision_hash = $2 and scope = 'DOMAIN'`,
+    [row.domain_run_id, revisionHash]
+  );
+  let candidateId = existing.rows[0]?.id;
+  if (!candidateId) {
+    const previous = await getDbPool().query<{ id: string }>(
+      `select id from candidate_revisions where domain_run_id = $1 and scope = 'DOMAIN' order by created_at desc limit 1`,
+      [row.domain_run_id]
+    );
+    const pairHashes: Record<string, string> = {};
+    for (const pairRun of pairRuns) {
+      pairHashes[pairRun.pairId] = await currentPairCandidateHash(pairRun.id, pairRun.pairId);
+    }
+    const inserted = await getDbPool().query<{ id: string }>(
+      `insert into candidate_revisions(
+        domain_run_id, scope, revision_hash, artifact_output_hashes, superseded_revision_id
+      ) values ($1, 'DOMAIN', $2, $3::jsonb, $4)
+      returning id`,
+      [
+        row.domain_run_id,
+        revisionHash,
+        JSON.stringify({ ...pairHashes, DOMAIN_COHERENCE_REVIEW: hash }),
+        previous.rows[0]?.id ?? null
+      ]
+    );
+    candidateId = inserted.rows[0]?.id;
+  }
+  if (!candidateId) return [];
+  const gates = evaluateDomainGates({ review: reviewOverride ?? reviewArtifact?.output });
+  await persistGateResults(candidateId, gates);
+  return gates.map((item) => item.outcome);
 }
 

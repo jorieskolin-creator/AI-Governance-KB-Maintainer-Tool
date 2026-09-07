@@ -4,7 +4,7 @@
 
 Complete the existing architecture as one trustworthy pipeline:
 
-`source support → SIR authoring → typed compilation → revision-bound review and repair → rendering → external approval → publication`
+`source support → SIR authoring → typed compilation → revision-bound review and repair → rendering → standalone operator approval → publication`
 
 The first acceptance vehicle is one offline capability/anti-pattern pair. It must prove both a successful non-production release rehearsal and recovery from a real injected defect. Production-shaped release acceptance then requires one complete five-pair domain because the domain remains the approval and release unit.
 
@@ -16,7 +16,7 @@ The first acceptance vehicle is one offline capability/anti-pattern pair. It mus
 - Any edit creates a new revision and invalidates affected downstream gates.
 - A source claim is supported only by an allowed exact locator and governed context. Human acceptance cannot manufacture source support.
 - Draft visibility is independent of publication readiness.
-- External approval and publication are separate operations and trust boundaries.
+- Operator approval and publication remain two internal operations even if the UI uses one button. No enterprise authorization layer is required now.
 - Publication is idempotent, resumable, and bound to the exact approved manifest hash.
 
 ## Delivery plan
@@ -37,7 +37,7 @@ Acceptance: the fixture replays deterministically without live providers or prod
 - Require an explicit schema-valid zero-defect review before deriving a clean result.
 - Restrict normalization to allowlisted, meaning-preserving aliases and record every coercion.
 - Replace the human `schemaGate()` with complete section-schema and reference-graph validation.
-- Apply the same fail-closed rule to equivalent normalization paths.
+- Apply the same fail-closed rule to equivalent normalization paths. Pair Coherence has no alias coerce; keep its strict schema.
 
 Acceptance:
 
@@ -139,13 +139,14 @@ Acceptance: a known invalid response is corrected from its defect packet rather 
 
 Acceptance: approval review presents exactly the bytes and hashes that publication would release.
 
-### 8. Separate external approval from publication
+### 8. Separate operator approval from publication
 
-Implement two operations:
+The Maintainer is a standalone operator tool. Standalone operator approval bound to artifact hashes is enough. Do not add enterprise authentication, SSO, or a separate approver identity now.
 
-1. `recordExternalApproval()`
-   - authenticates a governed approver;
-   - binds scope, authority, timestamp, reference, candidate hash, and manifest hash;
+Keep two internal operations even if the operator UI uses one button:
+
+1. `recordApproval()`
+   - records the operator decision against the exact candidate hash and proposed manifest hash;
    - rejects stale or mismatched approval bundles.
 2. `publishApprovedRelease()`
    - performs `APPROVED → PUBLISHING → PUBLISHED | PUBLICATION_FAILED`;
@@ -153,14 +154,14 @@ Implement two operations:
    - uploads artifacts before publishing the manifest;
    - persists a resumable publication job and verifies final destinations and hashes.
 
-The QC “Approve and save” action must never grant external release approval.
+The QC “Approve and save” action repairs or accepts listed defects. It must never grant domain `APPROVED` or publish a release.
 
 Acceptance:
 
 - Duplicate approval and publication requests are idempotent.
 - A partial upload retries to one release.
 - Published bytes match the approved manifest.
-- No external approval can apply to a newer revision.
+- No approval can apply to a newer revision.
 
 ### 9. Prove vertical slices before expansion
 
@@ -176,7 +177,7 @@ First, run one pair through a non-production release rehearsal:
 - simulated approval and publication;
 - partial-failure recovery.
 
-Then run one complete five-pair domain through authenticated external approval and production-shaped immutable publication.
+Then run one complete five-pair domain through hash-bound operator approval and immutable publication.
 
 Only after both paths pass should generation expand across all six domains.
 
@@ -194,7 +195,7 @@ Consolidate cognitive tasks only where measured completion quality and repair co
 4. Source acquisition and coverage.
 5. Revision-aware repair and correction requests.
 6. Rendering and approval bundle.
-7. Authenticated external approval intake.
+7. Standalone hash-bound operator approval.
 8. Idempotent publisher and recovery.
 9. Full vertical-slice acceptance suite.
 10. Optional task-boundary optimization.
@@ -203,25 +204,22 @@ Each pull request must include migrations where needed, rollback behavior, invar
 
 ## Environment strategy
 
-Use separate environments and credentials for different authority levels:
+Do not redesign the architecture. One Railway environment is enough: Postgres, Vercel Blob, provider credentials, and the operator UI in the same application. Isolation is by run IDs, versions, and test namespaces — not by a second Railway project or an enterprise auth layer.
 
-1. **Cloud development**
-   - local PostgreSQL;
-   - recorded/stubbed model executor by default;
-   - no production provider, approval, or artifact-store credentials;
-   - deterministic build and predeployment checks.
-2. **Railway staging**
-   - separate database and private staging artifact namespace;
-   - staging-only provider credentials;
-   - operator commands enabled only behind trusted access;
-   - publication and approval feature flags disabled until their acceptance gates pass.
-3. **Production**
-   - isolated database and immutable artifact destination;
-   - authenticated approval intake and distinct publisher identity;
-   - no shared staging credentials or release namespace;
-   - explicit audit retention, backups, monitoring, and rollback procedures.
+1. **Offline / Cloud Agent development**
+   - local or environment PostgreSQL;
+   - recorded or stubbed model executor by default;
+   - deterministic build and predeployment checks;
+   - no live publication as part of ordinary predeployment.
+2. **Single Railway environment**
+   - one database, one blob namespace, one operator process;
+   - operator commands gated by `OPERATOR_COMMANDS_ENABLED`;
+   - publication remains a separate internal operation bound to an approved manifest hash;
+   - secrets stay in the environment secret store, not in the repository.
 
-Repository-managed Cloud Agent setup should remain deterministic and secret-free. Secrets belong in environment-managed secret stores. Live-provider smoke tests and staging publication tests should be explicit jobs, not part of every offline predeployment run.
+`drizzle-orm` advisory upgrades and `.cursor/environment.json` port-schema hygiene are outside this flow. Do not mix them into the main pipeline pull requests.
+
+Repository-managed Cloud Agent setup should remain deterministic and secret-free. Live-provider smoke tests and publication tests are explicit jobs, not part of every offline predeployment run.
 
 ## Definition of trustworthy
 
@@ -234,6 +232,6 @@ The Maintainer is trustworthy when one complete domain proves:
 5. Empty or uninterpretable QC cannot pass.
 6. Empty or structurally invalid human edits cannot save.
 7. Every decision is bound to an immutable revision.
-8. Approval is authenticated and bound to the exact manifest.
+8. Operator approval is hash-bound to the exact candidate and manifest.
 9. Publication is idempotent and recovers from partial failure.
 10. One end-to-end test covers both successful release and repaired-defect release.

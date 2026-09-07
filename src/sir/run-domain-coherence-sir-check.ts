@@ -157,6 +157,32 @@ if (!validate(messyModelOutput).passed) {
   throw new Error('Coerced messy Domain Coherence model JSON failed completion.');
 }
 
+const emptyObject = validate({});
+if (
+  emptyObject.passed ||
+  !emptyObject.findings.some((item) => item.checkId === 'SIR_DOMAIN_COHERENCE_REVIEW_INCOMPLETE')
+) {
+  throw new Error('Empty Domain Coherence JSON must remain an incomplete review, not a pass.');
+}
+if (coerceSirDomainCoherenceOutput({}, packet)) {
+  throw new Error('Empty Domain Coherence JSON must not coerce to a zero-defect pass.');
+}
+
+const explanationOnly = {
+  passed: false,
+  explanation: 'The requested review could not be completed.'
+};
+const explanationResult = validate(explanationOnly);
+if (
+  explanationResult.passed ||
+  !explanationResult.findings.some((item) => item.checkId === 'SIR_DOMAIN_COHERENCE_REVIEW_INCOMPLETE')
+) {
+  throw new Error('Explanation-only Domain Coherence JSON must remain an incomplete review, not a pass.');
+}
+if (coerceSirDomainCoherenceOutput(explanationOnly, packet)) {
+  throw new Error('Explanation-only Domain Coherence JSON must not coerce to a zero-defect pass.');
+}
+
 const domainPrompt = buildPromptPacket(contract);
 if (!domainPrompt.user.includes('DOMAIN_COHERENCE_REVIEW') || !domainPrompt.user.includes('affectedPairHandles')) {
   throw new Error('Domain Coherence prompt must include the identity-free output shape.');
@@ -184,5 +210,7 @@ console.log(JSON.stringify({
   freeFormObjectPath: 'COERCED',
   modelOwnedPassAndDomainIdentity: 'STRIPPED',
   messyModelJson: 'COERCED',
+  emptyObjectJson: 'INCOMPLETE',
+  explanationOnlyJson: 'INCOMPLETE',
   tamperedDomainCoherencePacket: 'REJECTED'
 }, null, 2));

@@ -4,6 +4,7 @@ import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-pack
 import {
   getLatestCompletedTaskArtifact,
   getLatestTaskArtifactWithOutput,
+  persistPairCandidate,
   replaceCompletedTaskOutput
 } from '../orchestration/store.js';
 import { runCognitiveTask } from '../orchestration/task-runner.js';
@@ -126,6 +127,7 @@ export async function runPairQcRepair(input: {
       outputHash: canonicalArtifactHash(nextOutput)
     });
   }
+  await persistPairCandidate(input.pairRunId);
   operatorLog('operator.repair.applied', {
     pairId: input.pairId,
     repairedTaskTypes: touched,

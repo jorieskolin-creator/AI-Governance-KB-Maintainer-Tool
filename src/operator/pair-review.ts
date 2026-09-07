@@ -3,13 +3,16 @@ import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { PairCoherencePacket } from '../orchestration/pair-coherence-packet.js';
 import { canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import {
+  currentPairCandidateHash,
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getPairRuns,
+  persistPairCandidate,
   replaceCompletedTaskOutput,
   updatePairState,
   type PairRunRecord
 } from '../orchestration/store.js';
+import { pairMayValidate, staleRevisionIssues } from '../orchestration/named-gates.js';
 import {
   applySnapshotPatches,
   blockingQcDefects,
@@ -18,8 +21,7 @@ import {
   readSnapshotPath,
   repairPathsFromDefects,
   reviewFromUnknown,
-  snapshotSlice,
-  SNAPSHOT_ROOT_TASK
+  snapshotSlice
 } from '../repair/qc-repair.js';
 import type { RepairPatch } from '../repair/local-repair.js';
 import {
@@ -34,6 +36,7 @@ import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
 import type { PairState } from '../domain/states.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
+import { schemaGateSnapshotIssues } from '../validation/sir-snapshot-schema.js';
 
 export interface ReviewDefectView {
   defectId: string;
@@ -56,6 +59,7 @@ export interface PairReviewPage {
   blockingCount: number;
   notice?: string;
   gateIssues: string[];
+  candidateHash?: string;
 }
 
 export interface PairReviewSaveResult {
@@ -145,13 +149,7 @@ export function schemaGate(pairId: string, snapshot: unknown): string[] {
   if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
     return ['Pair snapshot is missing required sections.'];
   }
-  const record = snapshot as Record<string, unknown>;
-  const issues: string[] = [];
-  for (const root of Object.keys(SNAPSHOT_ROOT_TASK)) {
-    if (record[root] === undefined || record[root] === null) {
-      issues.push(`Required section ${root} is missing.`);
-    }
-  }
+  const issues = schemaGateSnapshotIssues(snapshot as Record<string, unknown>);
   issues.push(...collectIdentityIssues(pairId, snapshot));
   issues.push(...collectHandleIssues(snapshot));
   return issues;
@@ -186,8 +184,8 @@ export function rematerializeHumanReview(input: {
   const deleted = input.deletedIds.filter((id) => input.review.defects.some((item) => item.defectId === id));
   const note =
     deleted.length > 0
-      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Schema/ID gate passed.`
-      : ` Human approved ${input.savedAt}: semantic edits saved. Schema/ID gate passed.`;
+      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Section schema and reference-graph gate passed.`
+      : ` Human approved ${input.savedAt}: semantic edits saved. Section schema and reference-graph gate passed.`;
   const summary = `${input.review.coherenceSummary.trim()}${note}`.trim();
   return materializePairCoherenceReview(
     {
@@ -206,7 +204,15 @@ function lockedPacket(contract: { lockedInputs: Record<string, unknown> }, pairI
   return raw as PairCoherencePacket;
 }
 
-export function parseReviewSaveBody(body: Record<string, unknown>): { deletedIds: string[]; patches: RepairPatch[] } {
+export function parseReviewSaveBody(body: Record<string, unknown>): {
+  deletedIds: string[];
+  patches: RepairPatch[];
+  expectedCandidateHash?: string;
+} {
+  const expectedCandidateHash =
+    typeof body.expectedCandidateHash === 'string' && body.expectedCandidateHash.trim()
+      ? body.expectedCandidateHash.trim()
+      : undefined;
   const ids: string[] = [];
   for (const [key, value] of Object.entries(body)) {
     if (!key.startsWith('delete:') && key !== 'deleteDefect') continue;
@@ -246,7 +252,7 @@ export function parseReviewSaveBody(body: Record<string, unknown>): { deletedIds
       throw new Error(`Content at ${path} is not valid JSON. Human approval requires machine-readable form.`);
     }
   }
-  return { deletedIds: [...new Set(ids)], patches };
+  return { deletedIds: [...new Set(ids)], patches, expectedCandidateHash };
 }
 
 export async function loadPairReviewPage(domain: DomainId, pairId: string, notice?: string): Promise<PairReviewPage> {
@@ -291,7 +297,8 @@ export async function loadPairReviewPage(domain: DomainId, pairId: string, notic
     defects,
     blockingCount: blocking.length,
     notice,
-    gateIssues: []
+    gateIssues: [],
+    candidateHash: await currentPairCandidateHash(pairRun.id, pairId)
   };
 }
 
@@ -347,6 +354,20 @@ export async function savePairReview(input: {
   const packet = lockedPacket(artifact.taskContract, input.pairId);
   const snapshot = await loadPairCoherenceSnapshot(pairRun.id);
   const parsed = parseReviewSaveBody(input.body);
+  const currentHash = await currentPairCandidateHash(pairRun.id, input.pairId);
+  const stale = staleRevisionIssues(currentHash, parsed.expectedCandidateHash);
+  if (stale.length) {
+    return {
+      domain: input.domain,
+      pairId: input.pairId,
+      persisted: false,
+      humanApproved: false,
+      passed: false,
+      deleted: parsed.deletedIds,
+      patchCount: parsed.patches.length,
+      gateIssues: stale
+    };
+  }
   const allowedPaths = repairPathsFromDefects(review.defects);
   const knownPaths = allowedPaths.length ? allowedPaths : parsed.patches.map((item) => item.path);
   for (const patch of parsed.patches) {
@@ -395,7 +416,8 @@ export async function savePairReview(input: {
     output: rematerialized,
     outputHash: canonicalArtifactHash(rematerialized)
   });
-  if (rematerialized.passed === true) {
+  const outcomes = await persistPairCandidate(pairRun.id, rematerialized);
+  if (pairMayValidate(outcomes)) {
     await markValidated(pairRun.id, current);
   }
   operatorLog('operator.review.human_approved', {
@@ -420,8 +442,8 @@ export async function savePairReview(input: {
 export function renderPairReviewHtml(page: PairReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No HIGH/BLOCKING defects remain. Approve and save still checks IDs and required sections.'
-      : `${String(page.blockingCount)} HIGH/BLOCKING defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the only check is schema: IDs, handles and required sections.`;
+      ? 'No HIGH/BLOCKING defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.'
+      : `${String(page.blockingCount)} HIGH/BLOCKING defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -462,6 +484,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
       <input type="hidden" name="domain" value="${escapeHtml(page.domain)}">
       <input type="hidden" name="pairId" value="${escapeHtml(page.pairId)}">
       <input type="hidden" name="action" value="save-pair-review">
+      <input type="hidden" name="expectedCandidateHash" value="${escapeHtml(page.candidateHash ?? '')}">
       ${
         page.defects.length
           ? page.defects
@@ -480,11 +503,11 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
       </article>`
               )
               .join('')
-          : '<p class="banner">No remaining pair-coherence defects are listed. Approve and save still checks IDs and required sections.</p>'
+          : '<p class="banner">No remaining pair-coherence defects are listed. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
       }
       <div class="actions">
         <button type="submit">Approve and save</button>
-        <span class="meta">Human approval of these edits. Next check is schema only: IDs, handles, required sections.</span>
+        <span class="meta">Human approval of these edits. Next check is complete section schemas, handles, identity, and the reference graph.</span>
       </div>
     </form>
   </main>
@@ -519,6 +542,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
         domain: form.querySelector('[name="domain"]').value,
         pairId: form.querySelector('[name="pairId"]').value,
         action: 'save-pair-review',
+        expectedCandidateHash: form.querySelector('[name="expectedCandidateHash"]').value,
         deletedDefectIds: deleted,
         patches: patches
       };
@@ -535,8 +559,8 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
             return;
           }
           var notice = payload.passed
-            ? 'Human approved. Schema/ID gate passed. Deleted blockers are gone. Pair Coherence now passes.'
-            : 'Human approved the saved edits. Schema/ID gate passed. HIGH blockers still remain.';
+            ? 'Human approved. Section schema and reference-graph gate passed. Deleted blockers are gone. Pair Coherence now passes.'
+            : 'Human approved the saved edits. Section schema and reference-graph gate passed. HIGH blockers still remain.';
           window.location.assign('/review/' + encodeURIComponent(body.domain) + '/' + encodeURIComponent(body.pairId) + '?notice=' + encodeURIComponent(notice));
         });
       }).catch(function () {
