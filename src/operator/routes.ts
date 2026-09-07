@@ -249,11 +249,26 @@ export function registerOperatorRoutes(
           action,
           domain,
           pairId: result.pairId,
+          persisted: result.persisted,
+          humanApproved: result.humanApproved,
           passed: result.passed
         });
+        if (!result.persisted) {
+          const message = result.gateIssues.join(' ') || 'Schema gate rejected the save.';
+          if (wantsHtml(request)) {
+            const page = await loadPairReviewPage(domain, pairId, message);
+            page.gateIssues = result.gateIssues;
+            return reply
+              .code(409)
+              .type('text/html; charset=utf-8')
+              .header('cache-control', 'no-store')
+              .send(renderPairReviewHtml(page));
+          }
+          return reply.code(409).send({ error: message, ...result });
+        }
         const notice = result.passed
-          ? `Saved ${pairId}. Quality gate passed. Pair Coherence now passes. Domain Coherence stays closed until all five pairs pass.`
-          : `Saved ${pairId}. Quality gate kept IDs and metadata valid. HIGH blockers still remain, so Pair Coherence has not passed.`;
+          ? `Human approved ${pairId}. Schema/ID gate passed. Deleted blockers are gone. Pair Coherence now passes.`
+          : `Human approved ${pairId} edits. Schema/ID gate passed. HIGH blockers still remain.`;
         if (wantsHtml(request)) {
           return reply.redirect(
             `/review/${domain}/${pairId}?notice=${encodeURIComponent(notice)}`
@@ -268,6 +283,21 @@ export function registerOperatorRoutes(
       const message = error instanceof Error ? error.message : 'Operator command failed.';
       operatorLog('operator.command.rejected', { action, error: message });
       const code = message.includes('not configured') || message.includes('disabled') ? 403 : 409;
+      if (action === 'save-pair-review' && wantsHtml(request)) {
+        try {
+          const domain = parseDomainId(body.domain);
+          const pairId = parsePairId(domain, body.pairId);
+          const page = await loadPairReviewPage(domain, pairId, message);
+          page.gateIssues = [message];
+          return reply
+            .code(code)
+            .type('text/html; charset=utf-8')
+            .header('cache-control', 'no-store')
+            .send(renderPairReviewHtml(page));
+        } catch {
+          return noticeRedirect(reply, message, String(body.domain ?? ''));
+        }
+      }
       if (wantsHtml(request)) return noticeRedirect(reply, message, String(body.domain ?? ''));
       return reply.code(code).send({ error: message });
     }

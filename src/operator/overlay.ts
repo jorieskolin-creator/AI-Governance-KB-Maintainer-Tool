@@ -230,7 +230,7 @@ export async function loadDomainOverlay(
         available: true,
         href: `/review/${domain}/${unpaid.pairId}`,
         pairId: unpaid.pairId,
-        reason: `${unpaid.pairId} Pair Coherence did not pass. Edit or delete remaining blockers, then Save. Save re-checks IDs and metadata.`
+        reason: `${unpaid.pairId} Pair Coherence did not pass. Deleting a blocker or editing content and clicking Approve and save is human approval. After that only IDs and required sections are checked.`
       };
     })()
   };

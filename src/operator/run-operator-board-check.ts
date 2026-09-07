@@ -82,7 +82,7 @@ assert(!html.includes('http-equiv="refresh"'), 'idle board must not auto-navigat
 assert(html.includes('after five pairs are VALIDATED') || html.includes('After five pairs are VALIDATED'), 'home page must still complete the five-pair authoring unit');
 assert(html.includes('DOMAIN_COHERENCE_REVIEW'), 'home page must admit domain coherence after five validated pairs');
 assert(html.includes('DRAFT documents'), 'home page must name DRAFT documents as the pair-complete output');
-assert(html.includes('IDs and metadata') || html.includes('machine-readability') || html.includes('Save that re-checks IDs'), 'home page must name the human Save quality gate');
+assert(html.includes('IDs, handles, required sections') || html.includes('Approve and save'), 'home page must name the human-approval schema gate');
 assert(html.includes('Production candidates'), 'home page must show the production-candidate unit');
 assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
 assert(html.includes('/api/operator/status'), 'home page must keep the status API link');

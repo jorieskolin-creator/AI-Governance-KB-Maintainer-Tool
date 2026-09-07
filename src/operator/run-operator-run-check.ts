@@ -12,13 +12,13 @@ import {
   type SirPairBoundaryOutput
 } from '../cognitive/sir-initial-contracts.js';
 import { canReopenTaskRun } from '../orchestration/store.js';
-import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
+import { PAIR_TASK_SEQUENCE, canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
 import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
-import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml } from './pair-review.js';
-import { canTransition, pairTransitions } from '../orchestration/pipeline.js';
+import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, parseReviewSaveBody } from './pair-review.js';
+import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -335,10 +335,11 @@ const reviewHtml = renderPairReviewHtml({
     }
   ]
 });
-assert(reviewHtml.includes('Save and run quality gate'), 'review page must save through a quality gate');
-assert(reviewHtml.includes('delete:defect_001'), 'review page must allow deleting a blocker');
-assert(reviewHtml.includes('patch:evidence.capability[evidence_001]'), 'review page must allow editing the semantic path');
+assert(reviewHtml.includes('Approve and save'), 'review page must human-approve through save');
+assert(reviewHtml.includes('data-defect-id="defect_001"'), 'review page must allow deleting a blocker');
+assert(reviewHtml.includes('data-path="evidence.capability[evidence_001]"'), 'review page must allow editing the semantic path');
 assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
+assert(reviewHtml.includes('Human pair approval'), 'review save is pair-level human approval');
 
 const highDefect = {
   defectId: 'defect_001' as const,
@@ -380,7 +381,28 @@ const rematerialized = rematerializeHumanReview({
 });
 assert(rematerialized.passed === true, 'deleting remaining HIGH defects derives passed=true');
 assert(rematerialized.defects.length === 0, 'deleted blockers are not kept in the rematerialized review');
-assert(rematerialized.coherenceSummary.includes('Human review'), 'human save is recorded in the coherence summary');
+assert(rematerialized.coherenceSummary.includes('Human approved'), 'human save is recorded as pair-level approval');
+
+const emptyRoots = Object.fromEntries(Object.keys(SNAPSHOT_ROOT_TASK).map((key) => [key, {}]));
+assert(schemaGate('A2_AP-A2', emptyRoots).length === 0, 'schema gate passes when required sections and IDs are intact');
+assert(
+  schemaGate('A2_AP-A2', { pairBoundary: {} }).some((item) => item.includes('atomics')),
+  'schema gate requires the pair SIR sections'
+);
+assert(
+  schemaGate('A2_AP-A2', { ...emptyRoots, pairBoundary: { pairId: 'B1_AP-B1' } }).some((item) =>
+    item.includes('pairId drifted')
+  ),
+  'schema gate rejects identity drift'
+);
+assert(
+  parseReviewSaveBody({ deletedDefectIds: ['defect_001'], patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }] }).deletedIds.join(',') === 'defect_001',
+  'JSON save body parses deleted blockers'
+);
+assert(
+  (parseReviewSaveBody({ deletedDefectIds: ['defect_001'], patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }] }).patches[0]?.value as { title?: string }).title === 'Fixed',
+  'JSON save body parses human content edits'
+);
 
 const availability = commandAvailability({
   databaseReady: true,

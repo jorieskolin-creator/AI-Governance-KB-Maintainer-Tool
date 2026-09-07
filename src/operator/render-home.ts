@@ -118,7 +118,7 @@ function runActivity(card: OperatorDomainCard): string {
   }
   if (card.documents.available) {
     if (card.review.available) {
-      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers, edit or delete, then Save. Domain Coherence stays closed until every pair actually passed.</p>`;
+      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Deleting a blocker or editing its content and clicking Approve and save is human approval. After that, only IDs and required sections are checked. Domain Coherence stays closed until every pair actually passed.</p>`;
     }
     return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. External approval and published release stay closed.</p>`;
   }
@@ -206,7 +206,7 @@ function defectList(card: OperatorDomainCard): string {
   const reviewHref = card.review.available ? card.review.href : `/review/${card.domain}/${items[0]?.objectId ?? ''}`;
   return `<section class="defects">
       <p class="kicker">QC defects</p>
-      <p class="meta">Edit or delete remaining blockers on the review page, then Save. Save always re-checks IDs and metadata for machine readability.</p>
+      <p class="meta">Deleting a blocker or editing its content, then Approve and save, is human approval of that change. After that, only IDs, handles and required sections are checked.</p>
       <ul>${items
         .map(
           (item) =>
@@ -515,7 +515,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. After five pairs actually pass Pair Coherence, DRAFT documents are assembled and Continue runs DOMAIN_COHERENCE_REVIEW. Remaining HIGH blockers are reviewed by a human Save that re-checks IDs and metadata. External approval and published release stay closed.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human approval step: edit or delete, then Approve and save. After that only schema is checked (IDs, handles, required sections). After five pairs actually pass Pair Coherence, DRAFT documents are assembled and Continue runs DOMAIN_COHERENCE_REVIEW. External approval and published release stay closed.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>

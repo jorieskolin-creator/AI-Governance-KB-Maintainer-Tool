@@ -107,7 +107,7 @@ A full pair/domain regeneration is a last-resort explicit action, not normal fai
 
 The service may determine `READY_FOR_APPROVAL` based on completed quality gates. `APPROVED` is supplied by the external human process. After approval, semantic content is frozen. Canonical JSON compilation and production-document rendering are deterministic publication operations.
 
-Operator Continue after five pairs that actually passed Pair Coherence runs `DOMAIN_COHERENCE_REVIEW` and stops at `READY_FOR_APPROVAL`. Pair-complete DRAFT documents are assembled deterministically from persisted SIR artifacts without granting `APPROVED` or publishing a versioned release. Remaining HIGH pair-coherence blockers are a human review: the operator may edit semantic values at recommended paths or delete a blocker, then Save. Save always re-runs the deterministic ID/metadata machine-readability gate. Deleting a blocker is not domain `APPROVED` and does not publish.
+Operator Continue after five pairs that actually passed Pair Coherence runs `DOMAIN_COHERENCE_REVIEW` and stops at `READY_FOR_APPROVAL`. Pair-complete DRAFT documents are assembled deterministically from persisted SIR artifacts without granting `APPROVED` or publishing a versioned release. Remaining HIGH pair-coherence blockers are a human approval step: the operator may edit semantic values at recommended paths or delete a blocker, then Approve and save. That save is human approval of those changes. After it, only the deterministic schema/ID/required-section gate runs. Deleting a blocker is not domain `APPROVED` and does not publish.
 
 ## Persistence
 
