@@ -4,7 +4,6 @@ import type { SirAtomicDecompositionOutput } from '../cognitive/sir-atomic-contr
 import type { SirEvidenceArchitectureOutput } from '../cognitive/sir-evidence-contract.js';
 import type { SirFindingArchitectureOutput } from '../cognitive/sir-finding-contract.js';
 import type { SirLifecycleAssuranceOutput } from '../cognitive/sir-lifecycle-contract.js';
-import type { SirDomainCoherenceOutput } from '../cognitive/sir-domain-coherence-contract.js';
 import type { SirPairCoherenceOutput } from '../cognitive/sir-pair-coherence-contract.js';
 import type { SirReferenceMappingOutput } from '../cognitive/sir-reference-mapping-contract.js';
 import type { SirSourceMappingOutput } from '../cognitive/sir-source-mapping-contract.js';
@@ -14,6 +13,7 @@ import type { SourceContextPacket } from '../orchestration/source-context-packet
 import { materializeSirAtomics } from './atomic-materializer.js';
 import { materializeSirEvidence } from './evidence-materializer.js';
 import { materializeSirFindings } from './finding-materializer.js';
+import { coerceSirDomainCoherenceOutput } from '../validation/sir-domain-coherence-completion.js';
 import { materializeDomainCoherenceReview } from './domain-coherence-materializer.js';
 import { materializeSirLifecycleTargets } from './lifecycle-materializer.js';
 import { materializePairCoherenceReview } from './pair-coherence-materializer.js';
@@ -99,10 +99,11 @@ export function materializeValidatedSirTaskOutput(
         'Validated DOMAIN_COHERENCE_REVIEW output cannot be materialized without its locked Domain Coherence Packet.'
       );
     }
-    return materializeDomainCoherenceReview(
-      output as SirDomainCoherenceOutput,
-      packet as DomainCoherencePacket
-    );
+    const coerced = coerceSirDomainCoherenceOutput(output, packet as DomainCoherencePacket);
+    if (!coerced) {
+      throw new Error('Validated DOMAIN_COHERENCE_REVIEW output could not be coerced to the SIR defect contract.');
+    }
+    return materializeDomainCoherenceReview(coerced, packet as DomainCoherencePacket);
   }
 
   return output;

@@ -390,7 +390,7 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
       if (message.includes('READY_FOR_APPROVAL') || message.includes('HIGH defects listed')) {
         throw error;
       }
-      if (!isProviderRouteFailure(error) && canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'REPAIR_REQUIRED')) {
+      if (canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'REPAIR_REQUIRED')) {
         await updateDomainState(run.id, 'REPAIR_REQUIRED');
       }
       throw error;

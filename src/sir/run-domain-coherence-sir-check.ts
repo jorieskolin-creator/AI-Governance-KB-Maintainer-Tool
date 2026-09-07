@@ -7,7 +7,8 @@ import {
   buildDomainCoherencePacket,
   type DomainCoherencePairDigestInput
 } from '../orchestration/domain-coherence-packet.js';
-import { validateSirDomainCoherenceCompletion } from '../validation/sir-domain-coherence-completion.js';
+import { coerceSirDomainCoherenceOutput, validateSirDomainCoherenceCompletion } from '../validation/sir-domain-coherence-completion.js';
+import { buildPromptPacket } from '../cognitive/prompt-builder.js';
 import { materializeDomainCoherenceReview } from './domain-coherence-materializer.js';
 
 const hash = 'a'.repeat(64);
@@ -119,21 +120,46 @@ if (!validate(unknownPair).findings.some((item) => item.checkId === 'SIR_DOMAIN_
 
 const duplicatePath = structuredClone(highDefect);
 duplicatePath.defects[0]!.affectedPathHandles = ['path_001', 'path_001'];
-if (!validate(duplicatePath).findings.some((item) => item.checkId === 'SIR_DOMAIN_COHERENCE_DUPLICATE_HANDLE')) {
-  throw new Error('Duplicate Domain Coherence path handle was not rejected.');
+if (!validate(duplicatePath).passed) {
+  throw new Error('Duplicate Domain Coherence path handles should collapse during coerce.');
 }
 
 const freePath = {
   ...highDefect,
   defects: [{ ...highDefect.defects[0]!, affectedPaths: ['pairs[A1_AP-A1].capability.boundary'] }]
 };
-if (!validate(freePath).findings.some((item) => item.checkId === 'SIR_DOMAIN_COHERENCE_OUTPUT_CONTRACT')) {
-  throw new Error('Free-form affectedPaths field was not rejected by strict Domain Coherence output contract.');
+if (!validate(freePath).passed) {
+  throw new Error('Resolvable free-form Domain Coherence paths should coerce to locked path handles.');
 }
 
 const modelOwnedPass = { ...noDefects, passed: true, domain: 'A' };
-if (!validate(modelOwnedPass).findings.some((item) => item.checkId === 'SIR_DOMAIN_COHERENCE_OUTPUT_CONTRACT')) {
-  throw new Error('Model-owned Domain Coherence pass/domain identity was not rejected.');
+if (!validate(modelOwnedPass).passed) {
+  throw new Error('Model-owned passed/domain fields should be stripped before Domain Coherence completion.');
+}
+
+const messyModelOutput = {
+  summary: 'Cross-pair overlap remains after pair-level human approval of residual blockers.',
+  findings: [
+    {
+      severity: 'high',
+      type: 'overlap',
+      pairs: ['A1', 'A2'],
+      description: 'A1 and A2 still claim overlapping ownership of the same purpose-boundary decision.',
+      expected: 'Each pair should retain a distinct ownership boundary without silently absorbing an adjacent criterion.'
+    }
+  ]
+};
+const coercedMessy = coerceSirDomainCoherenceOutput(messyModelOutput, packet);
+if (!coercedMessy || coercedMessy.defects.length !== 1 || coercedMessy.defects[0]?.severity !== 'HIGH') {
+  throw new Error('Messy Domain Coherence model JSON was not coerced to the SIR defect contract.');
+}
+if (!validate(messyModelOutput).passed) {
+  throw new Error('Coerced messy Domain Coherence model JSON failed completion.');
+}
+
+const domainPrompt = buildPromptPacket(contract);
+if (!domainPrompt.user.includes('DOMAIN_COHERENCE_REVIEW') || !domainPrompt.user.includes('affectedPairHandles')) {
+  throw new Error('Domain Coherence prompt must include the identity-free output shape.');
 }
 
 const tamperedPacket = structuredClone(contract);
@@ -154,8 +180,9 @@ console.log(JSON.stringify({
   mediumDefectNonBlocking: 'PASS',
   unknownPathHandle: 'REJECTED',
   unknownPairHandle: 'REJECTED',
-  duplicatePathHandle: 'REJECTED',
-  freeFormObjectPath: 'REJECTED',
-  modelOwnedPassAndDomainIdentity: 'REJECTED',
+  duplicatePathHandle: 'COLLAPSED',
+  freeFormObjectPath: 'COERCED',
+  modelOwnedPassAndDomainIdentity: 'STRIPPED',
+  messyModelJson: 'COERCED',
   tamperedDomainCoherencePacket: 'REJECTED'
 }, null, 2));

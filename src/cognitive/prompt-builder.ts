@@ -241,6 +241,22 @@ const REFERENCE_MAPPING_SHAPE = {
   referenceNotes: ['string']
 };
 
+const DOMAIN_COHERENCE_REVIEW_SHAPE = {
+  defects: [
+    {
+      severity: 'LOW | MEDIUM | HIGH | BLOCKING',
+      coherenceDimension:
+        'OVERLAP | COVERAGE_GAP | CONTRADICTORY_BOUNDARY | DUPLICATED_ATOMIC_MECHANISM | INCONSISTENT_TERMINOLOGY | CONFLICTING_SOURCE_INTERPRETATION | INCONSISTENT_EVIDENCE_OR_ASSURANCE | BROKEN_RELATED_CRITERION | CROSS_PAIR_CONTRADICTION',
+      affectedPairHandles: ['pair_001 from locked domain coherence packet'],
+      affectedPathHandles: ['path_001 from locked domain coherence packet'],
+      issue: 'string, min 10 characters',
+      coherenceExpectation: 'string, min 10 characters',
+      recommendedRepairPairHandles: ['pair_001 from locked domain coherence packet'],
+      recommendedRepairPathHandles: ['path_001 from locked domain coherence packet']
+    }
+  ],
+  coherenceSummary: 'string, min 10 characters. An empty defects array is a valid pass-shaped completion. Do not emit passed, domain, pair IDs or defect IDs.'
+};
 const PAIR_COHERENCE_REVIEW_SHAPE = {
   defects: [
     {
@@ -282,6 +298,7 @@ const OUTPUT_SHAPES: Partial<Record<CognitiveTaskType, unknown>> = {
   LIFECYCLE_ASSURANCE: LIFECYCLE_ASSURANCE_SHAPE,
   REFERENCE_MAPPING: REFERENCE_MAPPING_SHAPE,
   PAIR_COHERENCE_REVIEW: PAIR_COHERENCE_REVIEW_SHAPE,
+  DOMAIN_COHERENCE_REVIEW: DOMAIN_COHERENCE_REVIEW_SHAPE,
   LOCAL_REPAIR: LOCAL_REPAIR_SHAPE
 };
 
