@@ -337,14 +337,17 @@ const reviewHtml = renderPairReviewHtml({
       coherenceExpectation: 'Evidence titles must state a testable, attributable claim.',
       path: 'evidence.capability[evidence_001]',
       currentValue: { handle: 'evidence_001', title: 'Thin evidence title' },
-      valueJson: '{\n  "handle": "evidence_001",\n  "title": "Thin evidence title"\n}'
+      valueJson: '{\n  "handle": "evidence_001",\n  "title": "Thin evidence title"\n}',
+      disposition: 'OPEN',
+      rationale: ''
     }
   ]
 });
 assert(reviewHtml.includes('Approve and save'), 'review page must human-approve through save');
 assert(reviewHtml.includes('expectedCandidateHash'), 'review save binds the current candidate revision');
-assert(reviewHtml.includes('data-defect-id="defect_001"'), 'review page must allow deleting a blocker');
+assert(reviewHtml.includes('data-disposition-finding="defect_001"'), 'review page must record an explicit disposition');
 assert(reviewHtml.includes('data-path="evidence.capability[evidence_001]"'), 'review page must allow editing the semantic path');
+assert(!reviewHtml.includes('Delete this blocker'), 'review page must not infer resolution from form deletion');
 assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
 assert(reviewHtml.includes('Human pair approval'), 'review save is pair-level human approval');
 
@@ -365,7 +368,19 @@ assert(remainingDefects({
   passed: false,
   coherenceSummary: 'HIGH evidence defect remains.',
   defects: [highDefect]
-}, ['defect_001']).length === 0, 'deleting the only HIGH defect leaves no remaining defects');
+}, []).length === 1, 'findings stay open without an explicit closing disposition');
+assert(remainingDefects({
+  pairId: 'A2_AP-A2',
+  pairCoherencePacketSha256: 'a'.repeat(64),
+  passed: false,
+  coherenceSummary: 'HIGH evidence defect remains.',
+  defects: [highDefect]
+}, [{
+  findingId: 'defect_001',
+  disposition: 'RESOLVED',
+  authority: 'OPERATOR',
+  rationale: 'Evidence title now states the governed claim with attribution.'
+}]).length === 0, 'RESOLVED with rationale closes the finding for coherence');
 
 const rematerialized = rematerializeHumanReview({
   review: {
@@ -383,11 +398,16 @@ const rematerialized = rematerializeHumanReview({
     pathRegistry: [{ pathHandle: 'path_001', objectPath: 'evidence.capability[evidence_001]', label: 'Capability evidence' }],
     packetSha256: 'a'.repeat(64)
   },
-  deletedIds: ['defect_001'],
+  dispositions: [{
+    findingId: 'defect_001',
+    disposition: 'RESOLVED',
+    authority: 'OPERATOR',
+    rationale: 'Evidence title now states the governed claim with attribution.'
+  }],
   savedAt: '2026-09-07T04:20:00.000Z'
 });
-assert(rematerialized.passed === true, 'deleting remaining HIGH defects derives passed=true');
-assert(rematerialized.defects.length === 0, 'deleted blockers are not kept in the rematerialized review');
+assert(rematerialized.passed === true, 'closing remaining HIGH defects derives passed=true');
+assert(rematerialized.defects.length === 1, 'dispositioned findings remain listed on the saved revision');
 assert(rematerialized.coherenceSummary.includes('Human approved'), 'human save is recorded as pair-level approval');
 
 assert(
@@ -413,7 +433,9 @@ const domainHtml = renderDomainReviewHtml({
       domainPath: 'pairs[A2_AP-A2].capability.relatedCriteria',
       snapshotPath: 'referenceMappings.capabilityRelatedCriteria',
       currentValue: [],
-      valueJson: '[]'
+      valueJson: '[]',
+      disposition: 'OPEN',
+      rationale: ''
     }
   ]
 });
@@ -444,7 +466,7 @@ assert(remainingDomainDefects({
   passed: false,
   coherenceSummary: 'HIGH related-criteria defect remains.',
   defects: [domainHigh]
-}, ['defect_001']).length === 0, 'deleting the only HIGH domain defect leaves no remaining defects');
+}, []).length === 1, 'domain findings stay open without an explicit closing disposition');
 
 const emptyRoots = Object.fromEntries(Object.keys(SNAPSHOT_ROOT_TASK).map((key) => [key, {}]));
 assert(schemaGate('A2_AP-A2', emptyRoots).length > 0, 'schema gate rejects empty required sections');
@@ -466,7 +488,19 @@ assert(
 );
 assert(
   parseReviewSaveBody({ deletedDefectIds: ['defect_001'], patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }] }).deletedIds.join(',') === 'defect_001',
-  'JSON save body parses deleted blockers'
+  'JSON save body still parses deleted blockers so they can be rejected'
+);
+assert(
+  parseReviewSaveBody({
+    findingDispositions: [{
+      findingId: 'defect_001',
+      disposition: 'RESOLVED',
+      authority: 'OPERATOR',
+      rationale: 'Evidence title now states the governed claim with attribution.'
+    }],
+    patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }]
+  }).dispositions[0]?.disposition === 'RESOLVED',
+  'JSON save body parses explicit finding dispositions'
 );
 assert(
   (parseReviewSaveBody({ deletedDefectIds: ['defect_001'], patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }] }).patches[0]?.value as { title?: string }).title === 'Fixed',

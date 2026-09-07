@@ -369,7 +369,10 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
       await runPairQcRepair({
         pairRunId: pairRun.id,
         pairId: next.pairId,
-        domainRunId: run.id
+        domainRunId: run.id,
+        domain,
+        baseline: snapshot,
+        targetVersion: pairRun.targetVersion
       });
       next = { domain, pairId: next.pairId, taskType: 'PAIR_COHERENCE_REVIEW' };
     } catch (error) {

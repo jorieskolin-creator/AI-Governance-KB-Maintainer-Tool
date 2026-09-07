@@ -140,3 +140,14 @@ export const gateResults = pgTable('gate_results', {
   findings: jsonb('findings').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
+
+export const findingDispositions = pgTable('finding_dispositions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  candidateRevisionId: uuid('candidate_revision_id').notNull(),
+  findingId: text('finding_id').notNull(),
+  scope: text('scope').notNull(),
+  disposition: text('disposition').notNull(),
+  authority: text('authority').notNull(),
+  rationale: text('rationale').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});

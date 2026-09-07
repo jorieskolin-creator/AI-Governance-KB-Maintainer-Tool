@@ -1,13 +1,18 @@
 import type { DomainId } from '../authoring/authoring-plan.js';
+import type { BaselineSnapshot } from '../baseline/snapshot.js';
 import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { DomainCoherencePacket } from '../orchestration/domain-coherence-packet.js';
 import { canTransition, domainTransitions, expectedDomainPairIds } from '../orchestration/pipeline.js';
 import {
   currentDomainCandidateHash,
+  getBaselineSnapshotById,
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getPairRuns,
+  latestDomainCandidateRevisionId,
+  loadFindingDispositions,
   persistDomainCandidateForHostPair,
+  persistFindingDispositions,
   persistPairCandidate,
   replaceCompletedTaskOutput,
   updateDomainState
@@ -18,21 +23,43 @@ import {
   patchedSnapshotRoots,
   pathIsAllowed,
   readSnapshotPath,
+  reviewFromUnknown,
   snapshotSlice,
   SNAPSHOT_ROOT_TASK
 } from '../repair/qc-repair.js';
 import type { RepairPatch } from '../repair/local-repair.js';
 import {
-  materializeDomainCoherenceReview,
-  type MaterializedDomainCoherenceDefect,
-  type MaterializedDomainCoherenceReview
-} from '../sir/domain-coherence-materializer.js';
-import type { SirDomainCoherenceDefectDraft } from '../cognitive/sir-domain-coherence-contract.js';
+  blockingOpenDefects,
+  deletedFindingFormIssues,
+  dispositionForFinding,
+  openDefects,
+  parseFindingDispositionDrafts,
+  reviewForNamedGates,
+  validateFindingDispositions,
+  type FindingDispositionDraft,
+  type FindingDispositionOrOpen
+} from '../repair/finding-dispositions.js';
+import {
+  bindDomainCoherenceReviewContract,
+  bindPairCoherenceReviewContract,
+  compileAndRecordCurrentPair,
+  currentPairPacketBindings,
+  domainPacketInputHash,
+  pairPacketInputHash,
+  rebuildDomainPacketFromCurrentPairs,
+  rebuildPairCoherencePacket,
+  rematerializeDomainReviewForCurrentPacket,
+  rematerializePairReviewForCurrentPacket,
+  reviewNotesFromReview,
+  staleDomainPairSnapshotIssues
+} from '../repair/revision-aware-repair.js';
+import { buildPairAuthoringPlan } from './authoring-context.js';
+import type { MaterializedDomainCoherenceDefect, MaterializedDomainCoherenceReview } from '../sir/domain-coherence-materializer.js';
 import { operatorCommandsEnabled } from './commands.js';
 import { isOpenDomainState } from './eligibility.js';
 import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
-import { schemaGate } from './pair-review.js';
+import { schemaGate } from './schema-gate.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
 
 const DOMAIN_PATH_TO_SNAPSHOT: Record<string, string> = {
@@ -59,6 +86,8 @@ export interface DomainReviewDefectView {
   snapshotPath: string;
   currentValue: unknown;
   valueJson: string;
+  disposition: FindingDispositionOrOpen;
+  rationale: string;
 }
 
 export interface DomainReviewPage {
@@ -115,44 +144,18 @@ export function domainReviewFromUnknown(output: unknown): MaterializedDomainCohe
 
 export function remainingDomainDefects(
   review: MaterializedDomainCoherenceReview,
-  deletedIds: readonly string[]
+  dispositions: readonly FindingDispositionDraft[]
 ): MaterializedDomainCoherenceDefect[] {
-  const deleted = new Set(deletedIds);
-  return review.defects.filter((item) => !deleted.has(item.defectId));
-}
-
-function semanticDomainDefects(defects: MaterializedDomainCoherenceDefect[]): SirDomainCoherenceDefectDraft[] {
-  return defects.map((item) => ({
-    severity: item.severity,
-    coherenceDimension: item.coherenceDimension,
-    affectedPairHandles: [...item.affectedPairHandles],
-    affectedPathHandles: [...item.affectedPathHandles],
-    issue: item.issue,
-    coherenceExpectation: item.coherenceExpectation,
-    recommendedRepairPairHandles: [...item.recommendedRepairPairHandles],
-    recommendedRepairPathHandles: [...item.recommendedRepairPathHandles]
-  }));
+  return openDefects(review.defects, dispositions);
 }
 
 export function rematerializeHumanDomainReview(input: {
   review: MaterializedDomainCoherenceReview;
   packet: DomainCoherencePacket;
-  deletedIds: readonly string[];
+  dispositions: readonly FindingDispositionDraft[];
   savedAt: string;
 }): MaterializedDomainCoherenceReview {
-  const remaining = remainingDomainDefects(input.review, input.deletedIds);
-  const deleted = input.deletedIds.filter((id) => input.review.defects.some((item) => item.defectId === id));
-  const note =
-    deleted.length > 0
-      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Section schema and reference-graph gate passed.`
-      : ` Human approved ${input.savedAt}: semantic edits saved. Section schema and reference-graph gate passed.`;
-  return materializeDomainCoherenceReview(
-    {
-      defects: semanticDomainDefects(remaining),
-      coherenceSummary: `${input.review.coherenceSummary.trim()}${note}`.trim()
-    },
-    input.packet
-  );
+  return rematerializeDomainReviewForCurrentPacket(input);
 }
 
 function lockedDomainPacket(contract: { lockedInputs: Record<string, unknown> }, domain: DomainId): DomainCoherencePacket {
@@ -167,12 +170,18 @@ export function parseDomainSaveBody(body: Record<string, unknown>): {
   deletedIds: string[];
   patches: Array<RepairPatch & { pairId: string }>;
   expectedCandidateHash?: string;
+  dispositions: FindingDispositionDraft[];
+  dispositionIssues: string[];
 } {
   const expectedCandidateHash =
     typeof body.expectedCandidateHash === 'string' && body.expectedCandidateHash.trim()
       ? body.expectedCandidateHash.trim()
       : undefined;
   const ids: string[] = [];
+  for (const [key, value] of Object.entries(body)) {
+    if (!key.startsWith('delete:') && key !== 'deleteDefect') continue;
+    if (value === 'on' || value === 'true' || value === true) ids.push(key.slice('delete:'.length));
+  }
   const listed = body.deletedDefectIds;
   if (typeof listed === 'string' && listed.trim()) {
     ids.push(...listed.split(',').map((item) => item.trim()).filter(Boolean));
@@ -189,7 +198,14 @@ export function parseDomainSaveBody(body: Record<string, unknown>): {
       patches.push({ pairId: rec.pairId, path: rec.path, value: rec.value });
     }
   }
-  return { deletedIds: [...new Set(ids)], patches, expectedCandidateHash };
+  const parsedDispositions = parseFindingDispositionDrafts(body, 'OPERATOR');
+  return {
+    deletedIds: [...new Set(ids)],
+    patches,
+    expectedCandidateHash,
+    dispositions: parsedDispositions.drafts,
+    dispositionIssues: parsedDispositions.issues
+  };
 }
 
 export async function loadDomainReviewPage(domain: DomainId, notice?: string): Promise<DomainReviewPage> {
@@ -213,12 +229,19 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
   for (const pairRun of pairRuns) {
     snapshots.set(pairRun.pairId, await loadPairCoherenceSnapshot(pairRun.id));
   }
-  const blocking = review.defects.filter((item) => item.severity === 'HIGH' || item.severity === 'BLOCKING');
+  const candidateId = await latestDomainCandidateRevisionId(run.id);
+  const dispositions = candidateId ? await loadFindingDispositions(candidateId, 'DOMAIN') : [];
+  const stalePairIssues = staleDomainPairSnapshotIssues(
+    lockedDomainPacket(artifact.taskContract, domain),
+    await currentPairPacketBindings(pairRuns)
+  );
+  const blocking = blockingOpenDefects(review.defects, dispositions);
   const defects: DomainReviewDefectView[] = review.defects.map((item) => {
     const domainPath = item.recommendedRepairPaths[0] ?? item.affectedPaths[0] ?? '';
     const mapped = domainPath ? snapshotPathFromDomainPath(domainPath) : undefined;
     const snapshot = mapped ? snapshots.get(mapped.pairId) : undefined;
     const currentValue = mapped && snapshot ? readSnapshotPath(snapshot, mapped.snapshotPath) : undefined;
+    const recorded = dispositionForFinding(dispositions, item.defectId);
     return {
       defectId: item.defectId,
       severity: item.severity,
@@ -229,7 +252,9 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
       domainPath,
       snapshotPath: mapped?.snapshotPath ?? '',
       currentValue,
-      valueJson: currentValue === undefined ? '' : JSON.stringify(currentValue, null, 2)
+      valueJson: currentValue === undefined ? '' : JSON.stringify(currentValue, null, 2),
+      disposition: recorded?.disposition ?? 'OPEN',
+      rationale: recorded?.rationale ?? ''
     };
   });
   return {
@@ -240,7 +265,7 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
     defects,
     blockingCount: blocking.length,
     notice,
-    gateIssues: [],
+    gateIssues: stalePairIssues,
     candidateHash: await currentDomainCandidateHash(domain, pairRuns, artifact.outputHash)
   };
 }
@@ -289,8 +314,14 @@ export async function saveDomainReview(input: {
   const packet = lockedDomainPacket(artifact.taskContract, input.domain);
   const parsed = parseDomainSaveBody(input.body);
   const currentHash = await currentDomainCandidateHash(input.domain, pairRuns, artifact.outputHash);
-  const stale = staleRevisionIssues(currentHash, parsed.expectedCandidateHash);
-  if (stale.length) {
+  const formIssues = [
+    ...staleRevisionIssues(currentHash, parsed.expectedCandidateHash),
+    ...deletedFindingFormIssues(parsed.deletedIds),
+    ...parsed.dispositionIssues,
+    ...validateFindingDispositions(review.defects, parsed.dispositions),
+    ...staleDomainPairSnapshotIssues(packet, await currentPairPacketBindings(pairRuns))
+  ];
+  if (formIssues.length) {
     return {
       domain: input.domain,
       persisted: false,
@@ -298,9 +329,16 @@ export async function saveDomainReview(input: {
       passed: false,
       deleted: parsed.deletedIds,
       patchCount: parsed.patches.length,
-      gateIssues: stale
+      gateIssues: formIssues
     };
   }
+  const sealed = await getBaselineSnapshotById(run.baselineSnapshotId);
+  if (!sealed) throw new Error('Sealed baseline snapshot is missing.');
+  const baseline: BaselineSnapshot = {
+    id: sealed.id,
+    sha256: sealed.sha256,
+    manifest: sealed.manifest as BaselineSnapshot['manifest']
+  };
   const allowedSnapshotPaths = review.defects
     .flatMap((item) => [item.recommendedRepairPaths[0], item.affectedPaths[0]])
     .map((path) => (path ? snapshotPathFromDomainPath(path)?.snapshotPath : undefined))
@@ -336,13 +374,6 @@ export async function saveDomainReview(input: {
     };
   }
 
-  const rematerialized = rematerializeHumanDomainReview({
-    review,
-    packet,
-    deletedIds: parsed.deletedIds,
-    savedAt: new Date().toISOString()
-  });
-
   for (const pairRun of pairRuns) {
     const patched = patchedByPair.get(pairRun.pairId);
     if (!patched) continue;
@@ -358,27 +389,115 @@ export async function saveDomainReview(input: {
         outputHash: canonicalArtifactHash(nextOutput)
       });
     }
+    const pairArtifact = await getLatestCompletedTaskArtifact(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+    if (!pairArtifact) {
+      return {
+        domain: input.domain,
+        persisted: false,
+        humanApproved: false,
+        passed: false,
+        deleted: parsed.deletedIds,
+        patchCount: parsed.patches.length,
+        gateIssues: [`Domain review cannot use a stale pair snapshot: ${pairRun.pairId} has no Pair Coherence review.`]
+      };
+    }
+    const pairReview = reviewFromUnknown(pairRun.pairId, pairArtifact.output);
+    if (!pairReview) {
+      return {
+        domain: input.domain,
+        persisted: false,
+        humanApproved: false,
+        passed: false,
+        deleted: parsed.deletedIds,
+        patchCount: parsed.patches.length,
+        gateIssues: [`Domain review cannot use a stale pair snapshot: ${pairRun.pairId} Pair Coherence review cannot be read.`]
+      };
+    }
+    const plan = buildPairAuthoringPlan({
+      domain: input.domain,
+      pairId: pairRun.pairId,
+      snapshot: baseline,
+      targetVersion: pairRun.targetVersion
+    });
+    const pairPacket = rebuildPairCoherencePacket({ snapshot: patched, authoringPlan: plan });
+    const rematerializedPair = rematerializePairReviewForCurrentPacket({
+      review: pairReview,
+      packet: pairPacket,
+      dispositions: [],
+      savedAt: new Date().toISOString()
+    });
+    const nextPairContract = bindPairCoherenceReviewContract(pairArtifact.taskContract, pairPacket);
+    await replaceCompletedTaskOutput({
+      pairRunId: pairRun.id,
+      taskType: 'PAIR_COHERENCE_REVIEW',
+      output: rematerializedPair,
+      outputHash: canonicalArtifactHash(rematerializedPair),
+      taskContract: nextPairContract,
+      inputHash: pairPacketInputHash(nextPairContract, pairPacket)
+    });
+    await persistPairCandidate(pairRun.id, rematerializedPair);
+    await compileAndRecordCurrentPair({
+      pairRunId: pairRun.id,
+      pairId: pairRun.pairId,
+      domain: input.domain,
+      snapshot: patched,
+      baseline,
+      targetVersion: pairRun.targetVersion,
+      reviewNotes: reviewNotesFromReview(rematerializedPair)
+    });
   }
+
+  let currentPacket: DomainCoherencePacket;
+  try {
+    currentPacket = await rebuildDomainPacketFromCurrentPairs({
+      domain: input.domain,
+      pairRuns,
+      baseline
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      domain: input.domain,
+      persisted: false,
+      humanApproved: false,
+      passed: false,
+      deleted: parsed.deletedIds,
+      patchCount: parsed.patches.length,
+      gateIssues: [message]
+    };
+  }
+  const rematerialized = rematerializeHumanDomainReview({
+    review,
+    packet: currentPacket,
+    dispositions: parsed.dispositions,
+    savedAt: new Date().toISOString()
+  });
+  const nextDomainContract = bindDomainCoherenceReviewContract(artifact.taskContract, currentPacket);
   await replaceCompletedTaskOutput({
     pairRunId: hostPair.id,
     taskType: 'DOMAIN_COHERENCE_REVIEW',
     output: rematerialized,
-    outputHash: canonicalArtifactHash(rematerialized)
+    outputHash: canonicalArtifactHash(rematerialized),
+    taskContract: nextDomainContract,
+    inputHash: domainPacketInputHash(nextDomainContract, currentPacket)
   });
-  for (const pairRun of pairRuns) {
-    if (patchedByPair.has(pairRun.pairId)) {
-      await persistPairCandidate(pairRun.id);
-    }
+  const outcomes = await persistDomainCandidateForHostPair(
+    hostPair.id,
+    reviewForNamedGates(rematerialized, parsed.dispositions)
+  );
+  const domainCandidateId = await latestDomainCandidateRevisionId(run.id);
+  if (domainCandidateId) {
+    await persistFindingDispositions(domainCandidateId, 'DOMAIN', parsed.dispositions);
   }
-  const outcomes = await persistDomainCandidateForHostPair(hostPair.id, rematerialized);
   if (domainMayReadyForApproval(outcomes)) {
     await markDomainReady(run.id, run.state);
   }
   operatorLog('operator.domain_review.human_approved', {
     domain: input.domain,
-    deleted: parsed.deletedIds,
+    dispositions: parsed.dispositions.map((item) => `${item.findingId}=${item.disposition}`),
     patchCount: parsed.patches.length,
-    passed: rematerialized.passed
+    passed: rematerialized.passed,
+    domainCoherencePacketSha256: currentPacket.packetSha256
   });
   return {
     domain: input.domain,
@@ -394,8 +513,8 @@ export async function saveDomainReview(input: {
 export function renderDomainReviewHtml(page: DomainReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No HIGH/BLOCKING domain defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.'
-      : `${String(page.blockingCount)} HIGH/BLOCKING domain defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
+      ? 'No open HIGH/BLOCKING domain defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved. Findings stay listed; closing them requires an explicit disposition.'
+      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Edit semantic content and record RESOLVED, WAIVED, ACCEPTED_RISK, or REJECTED with rationale. Deleting a finding from the form does not close it. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -412,8 +531,10 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
     a { color:var(--brass); }
     .banner, .defect { border:1px solid var(--line); border-radius:12px; padding:1rem 1.1rem; margin:0 0 1rem; background:var(--panel); }
     .meta, p { color:var(--muted); }
-    label.delete { display:flex; gap:.6rem; align-items:flex-start; margin:.8rem 0; color:var(--ink); }
-    textarea { width:100%; min-height:9rem; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+    label.field { display:block; margin:.8rem 0; color:var(--ink); }
+    select, textarea { width:100%; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+    textarea { min-height:9rem; }
+    textarea.rationale { min-height:4.5rem; }
     button {
       appearance:none; border:1px solid var(--brass); background:#2a241c; color:var(--ink);
       border-radius:999px; padding:.5rem 1.1rem; font: inherit; cursor:pointer;
@@ -439,26 +560,42 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
       ${
         page.defects.length
           ? page.defects
-              .map(
-                (item) => `<article class="defect">
+              .map((item) => {
+                const waivable = item.severity !== 'BLOCKING';
+                return `<article class="defect">
         <p class="kicker">${escapeHtml(item.severity)} · ${escapeHtml(item.defectId)} · ${escapeHtml(item.pairId)} · ${escapeHtml(item.coherenceDimension)}</p>
         <p>${escapeHtml(item.issue)}</p>
         <p class="meta">${escapeHtml(item.coherenceExpectation)}</p>
         <p class="meta">Path <code>${escapeHtml(item.domainPath || 'none')}</code></p>
-        <label class="delete"><input type="checkbox" data-defect-id="${escapeHtml(item.defectId)}" name="delete:${escapeHtml(item.defectId)}"> Delete this blocker. Checking it and saving is human approval that it is no longer a domain blocker.</label>
+        <label class="field">Disposition for this revision
+          <select data-disposition-finding="${escapeHtml(item.defectId)}" name="disposition:${escapeHtml(item.defectId)}">
+            <option value="OPEN"${item.disposition === 'OPEN' ? ' selected' : ''}>OPEN — still a finding on this revision</option>
+            <option value="RESOLVED"${item.disposition === 'RESOLVED' ? ' selected' : ''}>RESOLVED</option>
+            ${
+              waivable
+                ? `<option value="WAIVED"${item.disposition === 'WAIVED' ? ' selected' : ''}>WAIVED</option>
+            <option value="ACCEPTED_RISK"${item.disposition === 'ACCEPTED_RISK' ? ' selected' : ''}>ACCEPTED_RISK</option>`
+                : ''
+            }
+            <option value="REJECTED"${item.disposition === 'REJECTED' ? ' selected' : ''}>REJECTED — remains open</option>
+          </select>
+        </label>
+        <label class="field">Disposition rationale (required unless OPEN)
+          <textarea class="rationale" data-rationale-finding="${escapeHtml(item.defectId)}" name="rationale:${escapeHtml(item.defectId)}">${escapeHtml(item.rationale)}</textarea>
+        </label>
         ${
           item.snapshotPath
-            ? `<label>Semantic value at path (JSON)<textarea data-pair-id="${escapeHtml(item.pairId)}" data-path="${escapeHtml(item.snapshotPath)}" name="content:${escapeHtml(item.defectId)}">${escapeHtml(item.valueJson)}</textarea></label>`
+            ? `<label class="field">Semantic value at path (JSON)<textarea data-pair-id="${escapeHtml(item.pairId)}" data-path="${escapeHtml(item.snapshotPath)}" name="content:${escapeHtml(item.defectId)}">${escapeHtml(item.valueJson)}</textarea></label>`
             : ''
         }
-      </article>`
-              )
+      </article>`;
+              })
               .join('')
-          : '<p class="banner">No remaining domain-coherence defects are listed. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
+          : '<p class="banner">No domain-coherence findings are listed on this revision. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
       }
       <div class="actions">
         <button type="submit">Approve and save</button>
-        <span class="meta">Human approval of these domain edits. Next check is complete section schemas, handles, identity, and the reference graph.</span>
+        <span class="meta">Human approval of these domain edits and dispositions. Next check is complete section schemas, handles, identity, and the reference graph.</span>
       </div>
     </form>
   </main>
@@ -468,9 +605,18 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
     if (!form) return;
     form.addEventListener('submit', function (event) {
       event.preventDefault();
-      var deleted = [];
-      form.querySelectorAll('input[data-defect-id]').forEach(function (input) {
-        if (input.checked) deleted.push(input.getAttribute('data-defect-id'));
+      var dispositions = [];
+      form.querySelectorAll('select[data-disposition-finding]').forEach(function (select) {
+        var findingId = select.getAttribute('data-disposition-finding');
+        var disposition = select.value;
+        if (!findingId || disposition === 'OPEN') return;
+        var rationaleArea = form.querySelector('textarea[data-rationale-finding="' + findingId + '"]');
+        dispositions.push({
+          findingId: findingId,
+          disposition: disposition,
+          authority: 'OPERATOR',
+          rationale: rationaleArea ? String(rationaleArea.value || '') : ''
+        });
       });
       var patches = [];
       var invalid = '';
@@ -494,7 +640,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
         domain: form.querySelector('[name="domain"]').value,
         action: 'save-domain-review',
         expectedCandidateHash: form.querySelector('[name="expectedCandidateHash"]').value,
-        deletedDefectIds: deleted,
+        findingDispositions: dispositions,
         patches: patches
       };
       fetch('/api/operator/commands', {
@@ -510,8 +656,8 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
             return;
           }
           var notice = payload.passed
-            ? 'Human approved. Section schema and reference-graph gate passed. Deleted domain blockers are gone. Domain Coherence now passes.'
-            : 'Human approved the saved edits. Section schema and reference-graph gate passed. HIGH domain blockers still remain.';
+            ? 'Human approved. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Domain Coherence now passes.'
+            : 'Human approved the saved edits. Section schema and reference-graph gate passed. Open HIGH domain blockers still remain.';
           window.location.assign('/review/' + encodeURIComponent(body.domain) + '?notice=' + encodeURIComponent(notice));
         });
       }).catch(function () {

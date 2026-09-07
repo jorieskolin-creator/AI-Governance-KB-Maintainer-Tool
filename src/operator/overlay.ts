@@ -8,10 +8,14 @@ import {
   getPairRuns,
   getRecentModelCalls,
   getTaskRunsForPairs,
+  latestDomainCandidateRevisionId,
+  latestPairCandidateRevisionId,
+  loadFindingDispositions,
   type FindingRecord,
   type ModelCallRecord
 } from '../orchestration/store.js';
-import { blockingQcDefects, qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
+import { qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
+import { blockingOpenDefects, openDefects } from '../repair/finding-dispositions.js';
 import { pairSnapshots, readDomainCoherenceSnapshot, enrichPairSnapshots } from './commands.js';
 import { commandAvailability, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
@@ -107,7 +111,11 @@ export async function loadDomainOverlay(
     const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
     const review = reviewFromUnknown(pairRun.pairId, artifact?.output);
     if (!review || review.passed === true || review.defects.length === 0) continue;
-    for (const item of qcDefectsToFindings(pairRun.pairId, review)) {
+    const candidateId = await latestPairCandidateRevisionId(pairRun.id);
+    const dispositions = candidateId ? await loadFindingDispositions(candidateId, 'PAIR') : [];
+    const openReview = { ...review, defects: openDefects(review.defects, dispositions) };
+    if (openReview.defects.length === 0) continue;
+    for (const item of qcDefectsToFindings(pairRun.pairId, openReview)) {
       if (parkedKeys.has(`${item.objectId}|${item.checkId}`)) continue;
       qcFindings.push({
         id: `${pairRun.id}:${item.checkId}`,
@@ -141,8 +149,19 @@ export async function loadDomainOverlay(
     : undefined;
   const domainPassed = domainReviewPassed(domainArtifact?.output);
   if (domainArtifact?.output && domainPassed !== true) {
+    const domainCandidateId = hostPair ? await latestDomainCandidateRevisionId(run.id) : undefined;
+    const domainDispositions = domainCandidateId
+      ? await loadFindingDispositions(domainCandidateId, 'DOMAIN')
+      : [];
     const defects = Array.isArray(domainArtifact.output.defects) ? domainArtifact.output.defects : [];
-    for (const [index, defect] of defects.entries()) {
+    const openDomain = openDefects(
+      defects.map((defect, index) => ({
+        ...defect,
+        defectId: typeof defect.defectId === 'string' ? defect.defectId : `defect_${String(index + 1).padStart(3, '0')}`
+      })),
+      domainDispositions
+    );
+    for (const [index, defect] of openDomain.entries()) {
       const objectId =
         Array.isArray(defect.affectedPairIds) && typeof defect.affectedPairIds[0] === 'string'
           ? defect.affectedPairIds[0]
@@ -173,7 +192,13 @@ export async function loadDomainOverlay(
     if (!pair) continue;
     const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
     const review = reviewFromUnknown(pairRun.pairId, artifact?.output);
-    const blocking = review ? blockingQcDefects(review).filter((defect) => !parkedKeys.has(`${pairRun.pairId}|${defect.defectId}`)).length : 0;
+    const candidateId = await latestPairCandidateRevisionId(pairRun.id);
+    const dispositions = candidateId ? await loadFindingDispositions(candidateId, 'PAIR') : [];
+    const blocking = review
+      ? blockingOpenDefects(review.defects, dispositions).filter(
+          (defect) => !parkedKeys.has(`${pairRun.pairId}|${defect.defectId}`)
+        ).length
+      : 0;
     const localRepairCompleted = taskRuns.some(
       (task) => task.pairRunId === pairRun.id && task.taskType === 'LOCAL_REPAIR' && task.status === 'COMPLETED'
     );

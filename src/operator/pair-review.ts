@@ -1,21 +1,45 @@
 import type { DomainId } from '../authoring/authoring-plan.js';
+import type { BaselineSnapshot } from '../baseline/snapshot.js';
 import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { PairCoherencePacket } from '../orchestration/pair-coherence-packet.js';
 import { canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import {
   currentPairCandidateHash,
+  getBaselineSnapshotById,
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getPairRuns,
+  latestPairCandidateRevisionId,
+  loadFindingDispositions,
+  persistFindingDispositions,
   persistPairCandidate,
   replaceCompletedTaskOutput,
   updatePairState,
   type PairRunRecord
 } from '../orchestration/store.js';
 import { pairMayValidate, staleRevisionIssues } from '../orchestration/named-gates.js';
+import { buildPairAuthoringPlan } from './authoring-context.js';
+import {
+  blockingOpenDefects,
+  deletedFindingFormIssues,
+  dispositionForFinding,
+  openDefects,
+  parseFindingDispositionDrafts,
+  reviewForNamedGates,
+  validateFindingDispositions,
+  type FindingDispositionDraft,
+  type FindingDispositionOrOpen
+} from '../repair/finding-dispositions.js';
+import {
+  bindPairCoherenceReviewContract,
+  compileAndRecordCurrentPair,
+  pairPacketInputHash,
+  rebuildPairCoherencePacket,
+  rematerializePairReviewForCurrentPacket,
+  reviewNotesFromReview
+} from '../repair/revision-aware-repair.js';
 import {
   applySnapshotPatches,
-  blockingQcDefects,
   pathIsAllowed,
   patchedSnapshotRoots,
   readSnapshotPath,
@@ -24,11 +48,7 @@ import {
   snapshotSlice
 } from '../repair/qc-repair.js';
 import type { RepairPatch } from '../repair/local-repair.js';
-import {
-  materializePairCoherenceReview,
-  type MaterializedPairCoherenceDefect,
-  type MaterializedPairCoherenceReview
-} from '../sir/pair-coherence-materializer.js';
+import type { MaterializedPairCoherenceDefect, MaterializedPairCoherenceReview } from '../sir/pair-coherence-materializer.js';
 import type { SirPairCoherenceDefectDraft } from '../cognitive/sir-pair-coherence-contract.js';
 import { isOpenDomainState } from './eligibility.js';
 import { operatorCommandsEnabled } from './commands.js';
@@ -36,7 +56,8 @@ import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
 import type { PairState } from '../domain/states.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
-import { schemaGateSnapshotIssues } from '../validation/sir-snapshot-schema.js';
+import { schemaGate } from './schema-gate.js';
+export { schemaGate };
 
 export interface ReviewDefectView {
   defectId: string;
@@ -47,6 +68,8 @@ export interface ReviewDefectView {
   path: string;
   currentValue: unknown;
   valueJson: string;
+  disposition: FindingDispositionOrOpen;
+  rationale: string;
 }
 
 export interface PairReviewPage {
@@ -82,85 +105,11 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function capabilityIdOf(pairId: string): string {
-  return pairId.split('_')[0] ?? pairId;
-}
-
-function collectIdentityIssues(pairId: string, value: unknown, path = ''): string[] {
-  const capabilityId = capabilityIdOf(pairId);
-  const antipatternId = `AP-${capabilityId}`;
-  const issues: string[] = [];
-  if (!value || typeof value !== 'object') return issues;
-  if (Array.isArray(value)) {
-    value.forEach((item, index) => {
-      issues.push(...collectIdentityIssues(pairId, item, `${path}[${String(index)}]`));
-    });
-    return issues;
-  }
-  const record = value as Record<string, unknown>;
-  if (typeof record.pairId === 'string' && record.pairId !== pairId) {
-    issues.push(`${path || '/'}.pairId drifted to ${record.pairId}.`);
-  }
-  if (typeof record.capabilityId === 'string' && record.capabilityId !== capabilityId) {
-    issues.push(`${path || '/'}.capabilityId drifted to ${record.capabilityId}.`);
-  }
-  if (typeof record.antipatternId === 'string' && record.antipatternId !== antipatternId) {
-    issues.push(`${path || '/'}.antipatternId drifted to ${record.antipatternId}.`);
-  }
-  for (const [key, child] of Object.entries(record)) {
-    if (child && typeof child === 'object') {
-      issues.push(...collectIdentityIssues(pairId, child, path ? `${path}.${key}` : key));
-    }
-  }
-  return issues;
-}
-
-function collectHandleIssues(value: unknown, path = ''): string[] {
-  const issues: string[] = [];
-  if (!value || typeof value !== 'object') return issues;
-  if (Array.isArray(value)) {
-    const seen = new Map<string, number>();
-    value.forEach((item, index) => {
-      if (item && typeof item === 'object' && !Array.isArray(item)) {
-        const handle = (item as { handle?: unknown }).handle;
-        if (typeof handle === 'string') {
-          if (!handle.trim()) {
-            issues.push(`${path}[${String(index)}].handle is empty.`);
-          } else if (seen.has(handle)) {
-            issues.push(`${path} has duplicate handle ${handle}.`);
-          } else {
-            seen.set(handle, index);
-          }
-        }
-      }
-      issues.push(...collectHandleIssues(item, `${path}[${String(index)}]`));
-    });
-    return issues;
-  }
-  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
-    if (child && typeof child === 'object') {
-      issues.push(...collectHandleIssues(child, path ? `${path}.${key}` : key));
-    }
-  }
-  return issues;
-}
-
-export function schemaGate(pairId: string, snapshot: unknown): string[] {
-  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
-    return ['Pair snapshot is missing required sections.'];
-  }
-  const issues = schemaGateSnapshotIssues(snapshot as Record<string, unknown>);
-  issues.push(...collectIdentityIssues(pairId, snapshot));
-  issues.push(...collectHandleIssues(snapshot));
-  return issues;
-}
-
 export function remainingDefects(
   review: MaterializedPairCoherenceReview,
-  deletedIds: readonly string[]
+  dispositions: readonly FindingDispositionDraft[]
 ): MaterializedPairCoherenceDefect[] {
-  const deleted = new Set(deletedIds);
-  return review.defects.filter((item) => !deleted.has(item.defectId));
+  return openDefects(review.defects, dispositions);
 }
 
 export function semanticDefectsFrom(reviewDefects: MaterializedPairCoherenceDefect[]): SirPairCoherenceDefectDraft[] {
@@ -177,37 +126,18 @@ export function semanticDefectsFrom(reviewDefects: MaterializedPairCoherenceDefe
 export function rematerializeHumanReview(input: {
   review: MaterializedPairCoherenceReview;
   packet: PairCoherencePacket;
-  deletedIds: readonly string[];
+  dispositions: readonly FindingDispositionDraft[];
   savedAt: string;
 }): MaterializedPairCoherenceReview {
-  const remaining = remainingDefects(input.review, input.deletedIds);
-  const deleted = input.deletedIds.filter((id) => input.review.defects.some((item) => item.defectId === id));
-  const note =
-    deleted.length > 0
-      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Section schema and reference-graph gate passed.`
-      : ` Human approved ${input.savedAt}: semantic edits saved. Section schema and reference-graph gate passed.`;
-  const summary = `${input.review.coherenceSummary.trim()}${note}`.trim();
-  return materializePairCoherenceReview(
-    {
-      defects: semanticDefectsFrom(remaining),
-      coherenceSummary: summary
-    },
-    input.packet
-  );
-}
-
-function lockedPacket(contract: { lockedInputs: Record<string, unknown> }, pairId: string): PairCoherencePacket {
-  const raw = contract.lockedInputs.pair_coherence_packet;
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-    throw new Error(`PAIR_COHERENCE_REVIEW for ${pairId} has no locked Pair Coherence Packet.`);
-  }
-  return raw as PairCoherencePacket;
+  return rematerializePairReviewForCurrentPacket(input);
 }
 
 export function parseReviewSaveBody(body: Record<string, unknown>): {
   deletedIds: string[];
   patches: RepairPatch[];
   expectedCandidateHash?: string;
+  dispositions: FindingDispositionDraft[];
+  dispositionIssues: string[];
 } {
   const expectedCandidateHash =
     typeof body.expectedCandidateHash === 'string' && body.expectedCandidateHash.trim()
@@ -252,7 +182,14 @@ export function parseReviewSaveBody(body: Record<string, unknown>): {
       throw new Error(`Content at ${path} is not valid JSON. Human approval requires machine-readable form.`);
     }
   }
-  return { deletedIds: [...new Set(ids)], patches, expectedCandidateHash };
+  const parsedDispositions = parseFindingDispositionDrafts(body, 'OPERATOR');
+  return {
+    deletedIds: [...new Set(ids)],
+    patches,
+    expectedCandidateHash,
+    dispositions: parsedDispositions.drafts,
+    dispositionIssues: parsedDispositions.issues
+  };
 }
 
 export async function loadPairReviewPage(domain: DomainId, pairId: string, notice?: string): Promise<PairReviewPage> {
@@ -272,11 +209,14 @@ export async function loadPairReviewPage(domain: DomainId, pairId: string, notic
     throw new Error(`${pairId} PAIR_COHERENCE_REVIEW cannot be read.`);
   }
   const snapshot = await loadPairCoherenceSnapshot(pairRun.id);
-  const blocking = blockingQcDefects(review);
+  const candidateId = await latestPairCandidateRevisionId(pairRun.id);
+  const dispositions = candidateId ? await loadFindingDispositions(candidateId, 'PAIR') : [];
+  const blocking = blockingOpenDefects(review.defects, dispositions);
   const paths = repairPathsFromDefects(blocking.length ? blocking : review.defects);
   const defects: ReviewDefectView[] = review.defects.map((item) => {
     const path = item.recommendedRepairPaths[0] ?? item.affectedPaths[0] ?? paths[0] ?? '';
     const currentValue = path ? readSnapshotPath(snapshot, path) : undefined;
+    const recorded = dispositionForFinding(dispositions, item.defectId);
     return {
       defectId: item.defectId,
       severity: item.severity,
@@ -285,7 +225,9 @@ export async function loadPairReviewPage(domain: DomainId, pairId: string, notic
       coherenceExpectation: item.coherenceExpectation,
       path,
       currentValue,
-      valueJson: currentValue === undefined ? '' : JSON.stringify(currentValue, null, 2)
+      valueJson: currentValue === undefined ? '' : JSON.stringify(currentValue, null, 2),
+      disposition: recorded?.disposition ?? 'OPEN',
+      rationale: recorded?.rationale ?? ''
     };
   });
   return {
@@ -351,12 +293,17 @@ export async function savePairReview(input: {
   if (!review) {
     throw new Error(`${input.pairId} PAIR_COHERENCE_REVIEW cannot be read.`);
   }
-  const packet = lockedPacket(artifact.taskContract, input.pairId);
   const snapshot = await loadPairCoherenceSnapshot(pairRun.id);
   const parsed = parseReviewSaveBody(input.body);
   const currentHash = await currentPairCandidateHash(pairRun.id, input.pairId);
   const stale = staleRevisionIssues(currentHash, parsed.expectedCandidateHash);
-  if (stale.length) {
+  const formIssues = [
+    ...stale,
+    ...deletedFindingFormIssues(parsed.deletedIds),
+    ...parsed.dispositionIssues,
+    ...validateFindingDispositions(review.defects, parsed.dispositions)
+  ];
+  if (formIssues.length) {
     return {
       domain: input.domain,
       pairId: input.pairId,
@@ -365,7 +312,7 @@ export async function savePairReview(input: {
       passed: false,
       deleted: parsed.deletedIds,
       patchCount: parsed.patches.length,
-      gateIssues: stale
+      gateIssues: formIssues
     };
   }
   const allowedPaths = repairPathsFromDefects(review.defects);
@@ -392,12 +339,30 @@ export async function savePairReview(input: {
     };
   }
 
+  const sealed = await getBaselineSnapshotById(run.baselineSnapshotId);
+  if (!sealed) throw new Error('Sealed baseline snapshot is missing.');
+  const baseline: BaselineSnapshot = {
+    id: sealed.id,
+    sha256: sealed.sha256,
+    manifest: sealed.manifest as BaselineSnapshot['manifest']
+  };
+  const plan = buildPairAuthoringPlan({
+    domain: input.domain,
+    pairId: input.pairId,
+    snapshot: baseline,
+    targetVersion: pairRun.targetVersion
+  });
+  const currentPacket = rebuildPairCoherencePacket({
+    snapshot: patched as PairCoherenceSnapshot,
+    authoringPlan: plan
+  });
   const rematerialized = rematerializeHumanReview({
     review,
-    packet,
-    deletedIds: parsed.deletedIds,
+    packet: currentPacket,
+    dispositions: parsed.dispositions,
     savedAt: new Date().toISOString()
   });
+  const nextContract = bindPairCoherenceReviewContract(artifact.taskContract, currentPacket);
 
   const current = await reopenForHumanReview(pairRun);
   const touched = parsed.patches.length ? patchedSnapshotRoots(parsed.patches.map((item) => item.path)) : [];
@@ -414,18 +379,37 @@ export async function savePairReview(input: {
     pairRunId: pairRun.id,
     taskType: 'PAIR_COHERENCE_REVIEW',
     output: rematerialized,
-    outputHash: canonicalArtifactHash(rematerialized)
+    outputHash: canonicalArtifactHash(rematerialized),
+    taskContract: nextContract,
+    inputHash: pairPacketInputHash(nextContract, currentPacket)
   });
-  const outcomes = await persistPairCandidate(pairRun.id, rematerialized);
+  const outcomes = await persistPairCandidate(
+    pairRun.id,
+    reviewForNamedGates(rematerialized, parsed.dispositions)
+  );
+  const candidateId = await latestPairCandidateRevisionId(pairRun.id);
+  if (candidateId) {
+    await persistFindingDispositions(candidateId, 'PAIR', parsed.dispositions);
+  }
+  await compileAndRecordCurrentPair({
+    pairRunId: pairRun.id,
+    pairId: input.pairId,
+    domain: input.domain,
+    snapshot: patched,
+    baseline,
+    targetVersion: pairRun.targetVersion,
+    reviewNotes: reviewNotesFromReview(rematerialized)
+  });
   if (pairMayValidate(outcomes)) {
     await markValidated(pairRun.id, current);
   }
   operatorLog('operator.review.human_approved', {
     domain: input.domain,
     pairId: input.pairId,
-    deleted: parsed.deletedIds,
+    dispositions: parsed.dispositions.map((item) => `${item.findingId}=${item.disposition}`),
     patchCount: parsed.patches.length,
-    passed: rematerialized.passed
+    passed: rematerialized.passed,
+    pairCoherencePacketSha256: currentPacket.packetSha256
   });
   return {
     domain: input.domain,
@@ -442,8 +426,8 @@ export async function savePairReview(input: {
 export function renderPairReviewHtml(page: PairReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No HIGH/BLOCKING defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.'
-      : `${String(page.blockingCount)} HIGH/BLOCKING defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
+      ? 'No open HIGH/BLOCKING defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved. Findings stay listed; closing them requires an explicit disposition.'
+      : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Edit semantic content and record RESOLVED, WAIVED, ACCEPTED_RISK, or REJECTED with rationale. Deleting a finding from the form does not close it. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -460,8 +444,10 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     a { color:var(--brass); }
     .banner, .defect { border:1px solid var(--line); border-radius:12px; padding:1rem 1.1rem; margin:0 0 1rem; background:var(--panel); }
     .meta, p { color:var(--muted); }
-    label.delete { display:flex; gap:.6rem; align-items:flex-start; margin:.8rem 0; color:var(--ink); }
-    textarea { width:100%; min-height:9rem; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+    label.field { display:block; margin:.8rem 0; color:var(--ink); }
+    select, textarea { width:100%; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+    textarea { min-height:9rem; }
+    textarea.rationale { min-height:4.5rem; }
     button {
       appearance:none; border:1px solid var(--brass); background:#2a241c; color:var(--ink);
       border-radius:999px; padding:.5rem 1.1rem; font: inherit; cursor:pointer;
@@ -488,26 +474,42 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
       ${
         page.defects.length
           ? page.defects
-              .map(
-                (item) => `<article class="defect">
+              .map((item) => {
+                const waivable = item.severity !== 'BLOCKING';
+                return `<article class="defect">
         <p class="kicker">${escapeHtml(item.severity)} · ${escapeHtml(item.defectId)} · ${escapeHtml(item.coherenceDimension)}</p>
         <p>${escapeHtml(item.issue)}</p>
         <p class="meta">${escapeHtml(item.coherenceExpectation)}</p>
         <p class="meta">Path <code>${escapeHtml(item.path || 'none')}</code></p>
-        <label class="delete"><input type="checkbox" data-defect-id="${escapeHtml(item.defectId)}" name="delete:${escapeHtml(item.defectId)}"> Delete this blocker. Checking it and saving is human approval that it is no longer a blocker.</label>
+        <label class="field">Disposition for this revision
+          <select data-disposition-finding="${escapeHtml(item.defectId)}" name="disposition:${escapeHtml(item.defectId)}">
+            <option value="OPEN"${item.disposition === 'OPEN' ? ' selected' : ''}>OPEN — still a finding on this revision</option>
+            <option value="RESOLVED"${item.disposition === 'RESOLVED' ? ' selected' : ''}>RESOLVED</option>
+            ${
+              waivable
+                ? `<option value="WAIVED"${item.disposition === 'WAIVED' ? ' selected' : ''}>WAIVED</option>
+            <option value="ACCEPTED_RISK"${item.disposition === 'ACCEPTED_RISK' ? ' selected' : ''}>ACCEPTED_RISK</option>`
+                : ''
+            }
+            <option value="REJECTED"${item.disposition === 'REJECTED' ? ' selected' : ''}>REJECTED — remains open</option>
+          </select>
+        </label>
+        <label class="field">Disposition rationale (required unless OPEN)
+          <textarea class="rationale" data-rationale-finding="${escapeHtml(item.defectId)}" name="rationale:${escapeHtml(item.defectId)}">${escapeHtml(item.rationale)}</textarea>
+        </label>
         ${
           item.path
-            ? `<label>Semantic value at path (JSON)<textarea data-path="${escapeHtml(item.path)}" name="content:${escapeHtml(item.defectId)}">${escapeHtml(item.valueJson)}</textarea></label>`
+            ? `<label class="field">Semantic value at path (JSON)<textarea data-path="${escapeHtml(item.path)}" name="content:${escapeHtml(item.defectId)}">${escapeHtml(item.valueJson)}</textarea></label>`
             : ''
         }
-      </article>`
-              )
+      </article>`;
+              })
               .join('')
-          : '<p class="banner">No remaining pair-coherence defects are listed. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
+          : '<p class="banner">No pair-coherence findings are listed on this revision. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
       }
       <div class="actions">
         <button type="submit">Approve and save</button>
-        <span class="meta">Human approval of these edits. Next check is complete section schemas, handles, identity, and the reference graph.</span>
+        <span class="meta">Human approval of these edits and dispositions. Next check is complete section schemas, handles, identity, and the reference graph.</span>
       </div>
     </form>
   </main>
@@ -517,9 +519,18 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     if (!form) return;
     form.addEventListener('submit', function (event) {
       event.preventDefault();
-      var deleted = [];
-      form.querySelectorAll('input[data-defect-id]').forEach(function (input) {
-        if (input.checked) deleted.push(input.getAttribute('data-defect-id'));
+      var dispositions = [];
+      form.querySelectorAll('select[data-disposition-finding]').forEach(function (select) {
+        var findingId = select.getAttribute('data-disposition-finding');
+        var disposition = select.value;
+        if (!findingId || disposition === 'OPEN') return;
+        var rationaleArea = form.querySelector('textarea[data-rationale-finding="' + findingId + '"]');
+        dispositions.push({
+          findingId: findingId,
+          disposition: disposition,
+          authority: 'OPERATOR',
+          rationale: rationaleArea ? String(rationaleArea.value || '') : ''
+        });
       });
       var patches = [];
       var invalid = '';
@@ -543,7 +554,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
         pairId: form.querySelector('[name="pairId"]').value,
         action: 'save-pair-review',
         expectedCandidateHash: form.querySelector('[name="expectedCandidateHash"]').value,
-        deletedDefectIds: deleted,
+        findingDispositions: dispositions,
         patches: patches
       };
       fetch('/api/operator/commands', {
@@ -559,8 +570,8 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
             return;
           }
           var notice = payload.passed
-            ? 'Human approved. Section schema and reference-graph gate passed. Deleted blockers are gone. Pair Coherence now passes.'
-            : 'Human approved the saved edits. Section schema and reference-graph gate passed. HIGH blockers still remain.';
+            ? 'Human approved. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Pair Coherence now passes.'
+            : 'Human approved the saved edits. Section schema and reference-graph gate passed. Open HIGH blockers still remain.';
           window.location.assign('/review/' + encodeURIComponent(body.domain) + '/' + encodeURIComponent(body.pairId) + '?notice=' + encodeURIComponent(notice));
         });
       }).catch(function () {

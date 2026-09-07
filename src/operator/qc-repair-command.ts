@@ -1,4 +1,6 @@
 import type { CognitiveTaskType } from '../domain/states.js';
+import type { DomainId } from '../authoring/authoring-plan.js';
+import type { BaselineSnapshot } from '../baseline/snapshot.js';
 import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
 import {
@@ -18,6 +20,12 @@ import {
   snapshotSlice
 } from '../repair/qc-repair.js';
 import { validateLocalRepairOutput } from '../repair/local-repair.js';
+import {
+  compileAndRecordCurrentPair,
+  REPAIR_NOT_COHERENCE_ADMISSIBLE,
+  reviewNotesFromReview
+} from '../repair/revision-aware-repair.js';
+import { schemaGate } from './schema-gate.js';
 import { operatorLog } from './log.js';
 
 async function requiredArtifact<T>(pairRunId: string, taskType: CognitiveTaskType): Promise<T> {
@@ -77,7 +85,10 @@ export async function runPairQcRepair(input: {
   pairRunId: string;
   pairId: string;
   domainRunId: string;
-}): Promise<{ usedFallback: boolean; repairedTaskTypes: CognitiveTaskType[] }> {
+  domain: DomainId;
+  baseline: BaselineSnapshot;
+  targetVersion?: string;
+}): Promise<{ usedFallback: boolean; repairedTaskTypes: CognitiveTaskType[]; coherenceAdmissible: boolean }> {
   const reviewArtifact = await getLatestTaskArtifactWithOutput(
     input.pairRunId,
     'PAIR_COHERENCE_REVIEW'
@@ -128,12 +139,31 @@ export async function runPairQcRepair(input: {
     });
   }
   await persistPairCandidate(input.pairRunId);
+  const gateIssues = schemaGate(input.pairId, patched);
+  if (gateIssues.length) {
+    operatorLog('operator.repair.rejected_revision', {
+      pairId: input.pairId,
+      repairedTaskTypes: touched,
+      repairCount: output.repairs.length,
+      gateIssues
+    });
+    throw new Error(`${REPAIR_NOT_COHERENCE_ADMISSIBLE} ${gateIssues.join(' ')}`);
+  }
+  await compileAndRecordCurrentPair({
+    pairRunId: input.pairRunId,
+    pairId: input.pairId,
+    domain: input.domain,
+    snapshot: patched,
+    baseline: input.baseline,
+    targetVersion: input.targetVersion,
+    reviewNotes: reviewNotesFromReview(review)
+  });
   operatorLog('operator.repair.applied', {
     pairId: input.pairId,
     repairedTaskTypes: touched,
     repairCount: output.repairs.length
   });
-  return { usedFallback: result.usedFallback, repairedTaskTypes: touched };
+  return { usedFallback: result.usedFallback, repairedTaskTypes: touched, coherenceAdmissible: true };
 }
 
 export { repairPathsFromDefects };
