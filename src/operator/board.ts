@@ -79,6 +79,13 @@ export interface OperatorDomainCard {
     indexHref: string;
     bundleHref: string;
   };
+  lastModelCall?: {
+    role: string;
+    provider: string;
+    model: string;
+    status: string;
+    isFallback: boolean;
+  };
 }
 
 export interface PipelineActivity {
@@ -319,7 +326,16 @@ export function buildOperatorStatus(input: {
         available: false,
         indexHref: `/documents/${entry.domain}`,
         bundleHref: `/api/operator/documents/${entry.domain}`
-      }
+      },
+      lastModelCall: overlay?.modelCalls[0]
+        ? {
+            role: overlay.modelCalls[0].role,
+            provider: overlay.modelCalls[0].provider,
+            model: overlay.modelCalls[0].model,
+            status: overlay.modelCalls[0].status,
+            isFallback: overlay.modelCalls[0].isFallback
+          }
+        : undefined
     };
   });
 

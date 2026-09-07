@@ -214,6 +214,11 @@ function domainPanel(card: OperatorDomainCard): string {
       <p class="meta">${escapeHtml(workOrderLabel(card.state, card.runId))} work order · ${String(card.pairs.length)} pairs · ${String(card.pairs[0]?.tasks.length ?? 0)} SIR tasks each</p>
       ${card.runId ? `<p class="meta">Run <code>${escapeHtml(card.runId)}</code></p>` : ''}
       ${card.baselineSha256 ? `<p class="meta">Baseline <code>${escapeHtml(card.baselineSha256.slice(0, 12))}…</code></p>` : ''}
+      ${
+        card.lastModelCall
+          ? `<p class="meta">Last model call <code>${escapeHtml(card.lastModelCall.role)}</code> ${escapeHtml(card.lastModelCall.provider)}/${escapeHtml(card.lastModelCall.model)}${card.lastModelCall.isFallback ? ' fallback' : ''} · ${escapeHtml(card.lastModelCall.status)}</p>`
+          : ''
+      }
     </header>
     ${machineStrip(card)}
     <div class="commands">
@@ -257,8 +262,6 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
   const running = status.domains.some((card) => startedTasks(card).length > 0);
   const waitingForStart = !running && notice.toLowerCase().includes('running');
   const refreshMs = running ? 8000 : waitingForStart ? 2000 : 0;
-  const findings = uniqueFindings(status.findings);
-  const lastCall = status.modelCalls[0];
 
   return `<!doctype html>
 <html lang="en">
@@ -509,23 +512,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
       ${panels}
     </section>
     <section class="note">
-      <p>This board shows only the latest run for the selected domain. Start freezes a baseline and runs pair SIR tasks until five pairs are VALIDATED. Continue then runs DOMAIN_COHERENCE_REVIEW and stops. Do not start a second run or another domain while one is open. Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. DRAFT documents are assembled from VALIDATED pair artifacts. Canonical production compile and versioned release stay closed until external APPROVED. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
-      ${
-        lastCall
-          ? `<p>Last model call: <code>${escapeHtml(lastCall.role)}</code> ${escapeHtml(lastCall.provider)}/${escapeHtml(lastCall.model)}${lastCall.isFallback ? ' fallback' : ''} · ${escapeHtml(lastCall.status)}</p>`
-          : ''
-      }
-      ${
-        findings.length
-          ? `<ul>${findings
-              .slice(0, 8)
-              .map(
-                (item) =>
-                  `<li><code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)} · ${escapeHtml(item.severity)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''} — ${escapeHtml(item.issue)}</li>`
-              )
-              .join('')}</ul>`
-          : ''
-      }
+      <p>This board shows only the latest run for the selected domain. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
     </section>
   </main>
   <script>

@@ -79,11 +79,13 @@ assert(html.includes('Park HIGH blockers for later review'), 'home page must off
 assert(html.includes('command-form'), 'home page must post operator commands from domain-scoped forms');
 assert(html.includes("fetch('/api/operator/commands'"), 'Retry/Continue must not rely on meta-refresh form posts');
 assert(!html.includes('http-equiv="refresh"'), 'idle board must not auto-navigate away from a command click');
-assert(html.includes('until five pairs are VALIDATED'), 'home page must still complete the five-pair authoring unit');
+assert(html.includes('after five pairs are VALIDATED') || html.includes('After five pairs are VALIDATED'), 'home page must still complete the five-pair authoring unit');
 assert(html.includes('DOMAIN_COHERENCE_REVIEW'), 'home page must admit domain coherence after five validated pairs');
 assert(html.includes('DRAFT documents'), 'home page must name DRAFT documents as the pair-complete output');
 assert(html.includes('Production candidates'), 'home page must show the production-candidate unit');
 assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
+assert(html.includes('/api/operator/status'), 'home page must keep the status API link');
+assert(!html.includes('Last model call:'), 'home page must not dump a global last-model-call mix at the footer');
 assert(html.includes('Pipeline'), 'home page must show pipeline activity');
 assert(html.includes('Work order'), 'home page must show the work-order machine');
 assert(html.includes('Current task'), 'home page must show the current-task machine');
