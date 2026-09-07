@@ -118,12 +118,12 @@ function runActivity(card: OperatorDomainCard): string {
   }
   if (card.documents.available) {
     if (card.review.available && card.review.kind === 'DOMAIN') {
-      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Deleting a blocker or editing its content and clicking Approve and save is human approval. After that, only IDs and required sections are checked. Continue stays closed until no HIGH domain defects remain.</p>`;
+      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Deleting a blocker or editing its content and clicking Approve and save is human approval. After that complete section schemas and the reference graph are checked. Empty sections cannot be saved. Continue stays closed until no HIGH domain defects remain.</p>`;
     }
     if (card.review.available) {
-      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Deleting a blocker or editing its content and clicking Approve and save is human approval. After that, only IDs and required sections are checked. Domain Coherence stays closed until every pair actually passed.</p>`;
+      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Deleting a blocker or editing its content and clicking Approve and save is human approval. After that complete section schemas and the reference graph are checked. Empty sections cannot be saved. Domain Coherence stays closed until every pair actually passed.</p>`;
     }
-    return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. External approval and published release stay closed.</p>`;
+      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. Operator approval and published release stay closed.</p>`;
   }
   return `<p class="activity">Work order OPEN. Pipeline WAITING. Continue runs remaining pair SIR tasks without asking approval after each step. Stops when the domain is ready or a task fails.</p>`;
 }
@@ -209,7 +209,7 @@ function defectList(card: OperatorDomainCard): string {
   const reviewHref = card.review.available ? card.review.href : `/review/${card.domain}`;
   return `<section class="defects">
       <p class="kicker">QC defects</p>
-      <p class="meta">Deleting a blocker or editing its content, then Approve and save, is human approval of that change. After that, only IDs, handles and required sections are checked.</p>
+      <p class="meta">Deleting a blocker or editing its content, then Approve and save, is human approval of that change. After that complete section schemas, handles, identity, and the reference graph are checked. Empty sections cannot be saved.</p>
       <ul>${items
         .map(
           (item) =>
@@ -518,7 +518,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human approval step: edit or delete, then Approve and save. After that only schema is checked (IDs, handles, required sections). After five pairs actually pass Pair Coherence, DRAFT documents are assembled and Continue runs DOMAIN_COHERENCE_REVIEW. External approval and published release stay closed.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human approval step: edit or delete, then Approve and save. After that complete section schemas, handles, identity, and the reference graph are checked; empty sections cannot be saved. After five pairs actually pass Pair Coherence, DRAFT documents are assembled and Continue runs DOMAIN_COHERENCE_REVIEW. Operator approval and published release stay closed until their hash-bound operations exist.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>

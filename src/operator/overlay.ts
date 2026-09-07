@@ -226,7 +226,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}/${unpaid.pairId}`,
           pairId: unpaid.pairId,
           kind: 'PAIR' as const,
-          reason: `${unpaid.pairId} Pair Coherence did not pass. Deleting a blocker or editing content and clicking Approve and save is human approval. After that only IDs and required sections are checked.`
+          reason: `${unpaid.pairId} Pair Coherence did not pass. Deleting a blocker or editing content and clicking Approve and save is human approval. After that complete section schemas, handles, identity, and the reference graph are checked. Empty sections cannot be saved.`
         };
       }
       const domainDefects =
@@ -240,7 +240,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}`,
           pairId: `DOMAIN-${domain}`,
           kind: 'DOMAIN' as const,
-          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Deleting a blocker or editing content and clicking Approve and save is human approval. After that only IDs and required sections are checked. Continue stays closed until no HIGH domain defects remain.`
+          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Deleting a blocker or editing content and clicking Approve and save is human approval. After that complete section schemas, handles, identity, and the reference graph are checked. Empty sections cannot be saved. Continue stays closed until no HIGH domain defects remain.`
         };
       }
       return {

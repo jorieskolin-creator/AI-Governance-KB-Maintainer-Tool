@@ -24,6 +24,7 @@ import {
   snapshotPathFromDomainPath
 } from './domain-review.js';
 import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
+import { validMinimalSnapshotFixture } from '../validation/sir-snapshot-schema.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -444,13 +445,19 @@ assert(remainingDomainDefects({
 }, ['defect_001']).length === 0, 'deleting the only HIGH domain defect leaves no remaining defects');
 
 const emptyRoots = Object.fromEntries(Object.keys(SNAPSHOT_ROOT_TASK).map((key) => [key, {}]));
-assert(schemaGate('A2_AP-A2', emptyRoots).length === 0, 'schema gate passes when required sections and IDs are intact');
+assert(schemaGate('A2_AP-A2', emptyRoots).length > 0, 'schema gate rejects empty required sections');
+assert(
+  schemaGate('A2_AP-A2', emptyRoots).some((item) => item.includes('atomics') || item.includes('empty or structurally incomplete')),
+  'empty objects do not satisfy SIR section contracts'
+);
 assert(
   schemaGate('A2_AP-A2', { pairBoundary: {} }).some((item) => item.includes('atomics')),
   'schema gate requires the pair SIR sections'
 );
+const validSnapshot = validMinimalSnapshotFixture();
+assert(schemaGate('A2_AP-A2', validSnapshot).length === 0, 'schema gate passes a complete section-valid snapshot');
 assert(
-  schemaGate('A2_AP-A2', { ...emptyRoots, pairBoundary: { pairId: 'B1_AP-B1' } }).some((item) =>
+  schemaGate('A2_AP-A2', { ...validSnapshot, pairBoundary: { ...(validSnapshot.pairBoundary as object), pairId: 'B1_AP-B1' } }).some((item) =>
     item.includes('pairId drifted')
   ),
   'schema gate rejects identity drift'

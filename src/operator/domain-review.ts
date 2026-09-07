@@ -139,8 +139,8 @@ export function rematerializeHumanDomainReview(input: {
   const deleted = input.deletedIds.filter((id) => input.review.defects.some((item) => item.defectId === id));
   const note =
     deleted.length > 0
-      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Schema/ID gate passed.`
-      : ` Human approved ${input.savedAt}: semantic edits saved. Schema/ID gate passed.`;
+      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Section schema and reference-graph gate passed.`
+      : ` Human approved ${input.savedAt}: semantic edits saved. Section schema and reference-graph gate passed.`;
   return materializeDomainCoherenceReview(
     {
       defects: semanticDomainDefects(remaining),
@@ -364,8 +364,8 @@ export async function saveDomainReview(input: {
 export function renderDomainReviewHtml(page: DomainReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No HIGH/BLOCKING domain defects remain. Approve and save still checks IDs and required sections.'
-      : `${String(page.blockingCount)} HIGH/BLOCKING domain defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the only check is schema: IDs, handles and required sections.`;
+      ? 'No HIGH/BLOCKING domain defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.'
+      : `${String(page.blockingCount)} HIGH/BLOCKING domain defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -423,11 +423,11 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
       </article>`
               )
               .join('')
-          : '<p class="banner">No remaining domain-coherence defects are listed. Approve and save still checks IDs and required sections.</p>'
+          : '<p class="banner">No remaining domain-coherence defects are listed. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
       }
       <div class="actions">
         <button type="submit">Approve and save</button>
-        <span class="meta">Human approval of these domain edits. Next check is schema only: IDs, handles, required sections.</span>
+        <span class="meta">Human approval of these domain edits. Next check is complete section schemas, handles, identity, and the reference graph.</span>
       </div>
     </form>
   </main>
@@ -478,8 +478,8 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
             return;
           }
           var notice = payload.passed
-            ? 'Human approved. Schema/ID gate passed. Deleted domain blockers are gone. Domain Coherence now passes.'
-            : 'Human approved the saved edits. Schema/ID gate passed. HIGH domain blockers still remain.';
+            ? 'Human approved. Section schema and reference-graph gate passed. Deleted domain blockers are gone. Domain Coherence now passes.'
+            : 'Human approved the saved edits. Section schema and reference-graph gate passed. HIGH domain blockers still remain.';
           window.location.assign('/review/' + encodeURIComponent(body.domain) + '?notice=' + encodeURIComponent(notice));
         });
       }).catch(function () {

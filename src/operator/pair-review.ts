@@ -18,8 +18,7 @@ import {
   readSnapshotPath,
   repairPathsFromDefects,
   reviewFromUnknown,
-  snapshotSlice,
-  SNAPSHOT_ROOT_TASK
+  snapshotSlice
 } from '../repair/qc-repair.js';
 import type { RepairPatch } from '../repair/local-repair.js';
 import {
@@ -34,6 +33,7 @@ import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
 import type { PairState } from '../domain/states.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
+import { schemaGateSnapshotIssues } from '../validation/sir-snapshot-schema.js';
 
 export interface ReviewDefectView {
   defectId: string;
@@ -145,13 +145,7 @@ export function schemaGate(pairId: string, snapshot: unknown): string[] {
   if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
     return ['Pair snapshot is missing required sections.'];
   }
-  const record = snapshot as Record<string, unknown>;
-  const issues: string[] = [];
-  for (const root of Object.keys(SNAPSHOT_ROOT_TASK)) {
-    if (record[root] === undefined || record[root] === null) {
-      issues.push(`Required section ${root} is missing.`);
-    }
-  }
+  const issues = schemaGateSnapshotIssues(snapshot as Record<string, unknown>);
   issues.push(...collectIdentityIssues(pairId, snapshot));
   issues.push(...collectHandleIssues(snapshot));
   return issues;
@@ -186,8 +180,8 @@ export function rematerializeHumanReview(input: {
   const deleted = input.deletedIds.filter((id) => input.review.defects.some((item) => item.defectId === id));
   const note =
     deleted.length > 0
-      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Schema/ID gate passed.`
-      : ` Human approved ${input.savedAt}: semantic edits saved. Schema/ID gate passed.`;
+      ? ` Human approved ${input.savedAt}: deleted ${deleted.join(', ')}. Section schema and reference-graph gate passed.`
+      : ` Human approved ${input.savedAt}: semantic edits saved. Section schema and reference-graph gate passed.`;
   const summary = `${input.review.coherenceSummary.trim()}${note}`.trim();
   return materializePairCoherenceReview(
     {
@@ -420,8 +414,8 @@ export async function savePairReview(input: {
 export function renderPairReviewHtml(page: PairReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No HIGH/BLOCKING defects remain. Approve and save still checks IDs and required sections.'
-      : `${String(page.blockingCount)} HIGH/BLOCKING defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the only check is schema: IDs, handles and required sections.`;
+      ? 'No HIGH/BLOCKING defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.'
+      : `${String(page.blockingCount)} HIGH/BLOCKING defect(s). Deleting a blocker or editing its content is human approval of that change. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -480,11 +474,11 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
       </article>`
               )
               .join('')
-          : '<p class="banner">No remaining pair-coherence defects are listed. Approve and save still checks IDs and required sections.</p>'
+          : '<p class="banner">No remaining pair-coherence defects are listed. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
       }
       <div class="actions">
         <button type="submit">Approve and save</button>
-        <span class="meta">Human approval of these edits. Next check is schema only: IDs, handles, required sections.</span>
+        <span class="meta">Human approval of these edits. Next check is complete section schemas, handles, identity, and the reference graph.</span>
       </div>
     </form>
   </main>
@@ -535,8 +529,8 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
             return;
           }
           var notice = payload.passed
-            ? 'Human approved. Schema/ID gate passed. Deleted blockers are gone. Pair Coherence now passes.'
-            : 'Human approved the saved edits. Schema/ID gate passed. HIGH blockers still remain.';
+            ? 'Human approved. Section schema and reference-graph gate passed. Deleted blockers are gone. Pair Coherence now passes.'
+            : 'Human approved the saved edits. Section schema and reference-graph gate passed. HIGH blockers still remain.';
           window.location.assign('/review/' + encodeURIComponent(body.domain) + '/' + encodeURIComponent(body.pairId) + '?notice=' + encodeURIComponent(notice));
         });
       }).catch(function () {
