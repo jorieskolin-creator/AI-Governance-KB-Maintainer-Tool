@@ -282,8 +282,8 @@ export function registerOperatorRoutes(
           return reply.code(409).send({ error: message, ...result });
         }
         const notice = result.passed
-          ? `Human approved domain ${domain}. Section schema and reference-graph gate passed. Deleted domain blockers are gone. Domain Coherence now passes.`
-          : `Human approved domain ${domain} edits. Section schema and reference-graph gate passed. HIGH domain blockers still remain.`;
+          ? `Human approved domain ${domain}. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Domain Coherence now passes.`
+          : `Human approved domain ${domain} edits. Section schema and reference-graph gate passed. Open HIGH domain blockers still remain.`;
         if (wantsHtml(request)) {
           return reply.redirect(`/review/${domain}?notice=${encodeURIComponent(notice)}`);
         }
@@ -318,8 +318,8 @@ export function registerOperatorRoutes(
           return reply.code(409).send({ error: message, ...result });
         }
         const notice = result.passed
-          ? `Human approved ${pairId}. Section schema and reference-graph gate passed. Deleted blockers are gone. Pair Coherence now passes.`
-          : `Human approved ${pairId} edits. Section schema and reference-graph gate passed. HIGH blockers still remain.`;
+          ? `Human approved ${pairId}. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Pair Coherence now passes.`
+          : `Human approved ${pairId} edits. Section schema and reference-graph gate passed. Open HIGH blockers still remain.`;
         if (wantsHtml(request)) {
           return reply.redirect(
             `/review/${domain}/${pairId}?notice=${encodeURIComponent(notice)}`

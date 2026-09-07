@@ -16,6 +16,7 @@ import {
   type NamedGateResult
 } from './named-gates.js';
 import { schemaGateSnapshotIssues } from '../validation/sir-snapshot-schema.js';
+import type { FindingDisposition, FindingDispositionDraft } from '../repair/finding-dispositions.js';
 
 export async function createDomainRun(input: {
   domain: string;
@@ -269,6 +270,8 @@ export async function replaceCompletedTaskOutput(input: {
   taskType: CognitiveTaskType;
   output: unknown;
   outputHash: string;
+  taskContract?: TaskContract;
+  inputHash?: string;
 }): Promise<void> {
   const current = await getLatestCompletedTaskArtifact(input.pairRunId, input.taskType);
   if (!current) {
@@ -277,10 +280,10 @@ export async function replaceCompletedTaskOutput(input: {
   await insertArtifactRevision({
     pairRunId: input.pairRunId,
     taskType: input.taskType,
-    inputHash: current.inputHash,
+    inputHash: input.inputHash ?? current.inputHash,
     output: input.output,
     outputHash: input.outputHash,
-    taskContract: current.taskContract
+    taskContract: input.taskContract ?? current.taskContract
   });
 }
 
@@ -909,5 +912,70 @@ export async function persistDomainCandidateForHostPair(
   const gates = evaluateDomainGates({ review: reviewOverride ?? reviewArtifact?.output });
   await persistGateResults(candidateId, gates);
   return gates.map((item) => item.outcome);
+}
+
+export async function latestPairCandidateRevisionId(pairRunId: string): Promise<string | undefined> {
+  const result = await getDbPool().query<{ id: string }>(
+    `select id from candidate_revisions where pair_run_id = $1 and scope = 'PAIR' order by created_at desc limit 1`,
+    [pairRunId]
+  );
+  return result.rows[0]?.id;
+}
+
+export async function latestDomainCandidateRevisionId(domainRunId: string): Promise<string | undefined> {
+  const result = await getDbPool().query<{ id: string }>(
+    `select id from candidate_revisions where domain_run_id = $1 and scope = 'DOMAIN' order by created_at desc limit 1`,
+    [domainRunId]
+  );
+  return result.rows[0]?.id;
+}
+
+export async function persistFindingDispositions(
+  candidateRevisionId: string,
+  scope: 'PAIR' | 'DOMAIN',
+  drafts: readonly FindingDispositionDraft[]
+): Promise<void> {
+  const db = getDbPool();
+  for (const draft of drafts) {
+    await db.query(
+      `insert into finding_dispositions(
+        candidate_revision_id, finding_id, scope, disposition, authority, rationale
+      ) values ($1, $2, $3, $4, $5, $6)
+      on conflict (candidate_revision_id, finding_id, scope)
+      do update set disposition = excluded.disposition, authority = excluded.authority, rationale = excluded.rationale`,
+      [
+        candidateRevisionId,
+        draft.findingId,
+        scope,
+        draft.disposition,
+        draft.authority,
+        draft.rationale.trim()
+      ]
+    );
+  }
+}
+
+export async function loadFindingDispositions(
+  candidateRevisionId: string,
+  scope: 'PAIR' | 'DOMAIN'
+): Promise<FindingDispositionDraft[]> {
+  const result = await getDbPool().query<{
+    finding_id: string;
+    disposition: FindingDisposition;
+    authority: string;
+    rationale: string;
+  }>(
+    `select finding_id, disposition, authority, rationale
+     from finding_dispositions
+     where candidate_revision_id = $1 and scope = $2
+     order by finding_id`,
+    [candidateRevisionId, scope]
+  );
+  return result.rows.map((row) => ({
+    findingId: row.finding_id,
+    disposition: row.disposition,
+    authority: row.authority,
+    rationale: row.rationale
+  }));
 }
 
