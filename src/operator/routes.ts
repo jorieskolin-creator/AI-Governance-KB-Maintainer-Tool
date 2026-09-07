@@ -3,6 +3,12 @@ import type { OperatorStatus } from './board.js';
 import { parseDomainId, runDomainPipeline, startDomainRun, runNextEligibleTask, dismissBlockingDefects, closeParkedDefect } from './commands.js';
 import { operatorLog } from './log.js';
 import { renderOperatorHome } from './render-home.js';
+import {
+  assembleDomainCandidateBundle,
+  findCompiledObject,
+  renderCandidateIndexHtml,
+  renderCandidateObjectHtml
+} from './candidate-documents.js';
 
 function wantsHtml(request: FastifyRequest): boolean {
   const accept = request.headers.accept ?? '';
@@ -14,6 +20,14 @@ function noticeRedirect(reply: FastifyReply, notice: string, domain?: string) {
   params.set('notice', notice);
   if (domain) params.set('domain', domain);
   return reply.redirect(`/?${params.toString()}`);
+}
+
+function parseObjectId(value: unknown): string {
+  const raw = String(value ?? '').trim().replace(/\.json$/i, '');
+  if (!/^(AP-)?[A-F][1-5]$/.test(raw)) {
+    throw new Error('Object id must be a capability or anti-pattern id such as A1 or AP-A1.');
+  }
+  return raw;
 }
 
 function queueDomainPipeline(domain: ReturnType<typeof parseDomainId>, request: FastifyRequest): void {
@@ -60,6 +74,65 @@ export function registerOperatorRoutes(
   app.get('/api/operator/status', async (_request, reply) => {
     const status = await loadStatus();
     return reply.header('cache-control', 'no-store').send(status);
+  });
+
+  app.get('/api/operator/documents/:domain', async (request, reply) => {
+    try {
+      const domain = parseDomainId((request.params as { domain?: unknown }).domain);
+      const bundle = await assembleDomainCandidateBundle(domain);
+      return reply.header('cache-control', 'no-store').send(bundle);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Document assembly failed.';
+      return reply.code(409).send({ error: message });
+    }
+  });
+
+  app.get('/api/operator/documents/:domain/:objectId', async (request, reply) => {
+    try {
+      const params = request.params as { domain?: unknown; objectId?: unknown };
+      const domain = parseDomainId(params.domain);
+      const objectId = parseObjectId(params.objectId);
+      const bundle = await assembleDomainCandidateBundle(domain);
+      const object = findCompiledObject(bundle, objectId);
+      if (!object) {
+        const item = bundle.documents.find((entry) => entry.objectId === objectId);
+        return reply.code(409).send({ error: item?.error ?? `${objectId} has no DRAFT document.` });
+      }
+      return reply.header('cache-control', 'no-store').send(object);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Document assembly failed.';
+      return reply.code(409).send({ error: message });
+    }
+  });
+
+  app.get('/documents/:domain', async (request, reply) => {
+    try {
+      const domain = parseDomainId((request.params as { domain?: unknown }).domain);
+      const bundle = await assembleDomainCandidateBundle(domain);
+      return reply
+        .type('text/html; charset=utf-8')
+        .header('cache-control', 'no-store')
+        .send(renderCandidateIndexHtml(bundle));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Document assembly failed.';
+      return noticeRedirect(reply, message, String((request.params as { domain?: unknown }).domain ?? ''));
+    }
+  });
+
+  app.get('/documents/:domain/:objectId', async (request, reply) => {
+    try {
+      const params = request.params as { domain?: unknown; objectId?: unknown };
+      const domain = parseDomainId(params.domain);
+      const objectId = parseObjectId(params.objectId);
+      const bundle = await assembleDomainCandidateBundle(domain);
+      return reply
+        .type('text/html; charset=utf-8')
+        .header('cache-control', 'no-store')
+        .send(renderCandidateObjectHtml({ domain, bundle, objectId }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Document assembly failed.';
+      return noticeRedirect(reply, message, String((request.params as { domain?: unknown }).domain ?? ''));
+    }
   });
 
   app.post('/api/operator/commands', async (request, reply) => {

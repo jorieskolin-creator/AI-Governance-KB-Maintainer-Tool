@@ -116,6 +116,9 @@ function runActivity(card: OperatorDomainCard): string {
   if (!card.runId) {
     return `<p class="activity">Work order NONE. Start freezes the baseline and runs pair SIR tasks until the domain is ready.</p>`;
   }
+  if (card.documents.available) {
+    return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. External approval and published release stay closed.</p>`;
+  }
   return `<p class="activity">Work order OPEN. Pipeline WAITING. Continue runs remaining pair SIR tasks without asking approval after each step. Stops when the domain is ready or a task fails.</p>`;
 }
 
@@ -151,6 +154,9 @@ function continueLabel(card: OperatorDomainCard): string {
   if (card.commands.runNextTask.next?.taskType === 'LOCAL_REPAIR') {
     return `Repair ${card.commands.runNextTask.next.pairId} QC defects and re-check pair coherence`;
   }
+  if (card.commands.runNextTask.next?.taskType === 'DOMAIN_COHERENCE_REVIEW') {
+    return `Run domain ${card.domain} DOMAIN_COHERENCE_REVIEW`;
+  }
   if (card.commands.runNextTask.next) return `Continue domain ${card.domain} until ready`;
   return 'Continue domain until ready';
 }
@@ -173,6 +179,16 @@ function parkedList(card: OperatorDomainCard): string {
             </form></li>`
         )
         .join('')}</ul>
+    </section>`;
+}
+
+function documentList(card: OperatorDomainCard): string {
+  if (!card.documents.available) return '';
+  return `<section class="defects documents">
+      <p class="kicker">DRAFT production candidates</p>
+      <p class="meta">Assembled deterministically from the five VALIDATED pairs. These are not APPROVED and are not a versioned release.</p>
+      <p><a href="${escapeHtml(card.documents.indexHref)}">Open domain ${escapeHtml(card.domain)} documents</a>
+        · <a href="${escapeHtml(card.documents.bundleHref)}">JSON bundle</a></p>
     </section>`;
 }
 
@@ -207,14 +223,26 @@ function domainPanel(card: OperatorDomainCard): string {
       <p class="command-reason">${escapeHtml(card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.dismissBlockers.enabled ? card.commands.dismissBlockers.reason : card.commands.runNextTask.reason)}</p>
     </div>
     ${runActivity(card)}
+    ${documentList(card)}
     ${defectList(card)}
     ${parkedList(card)}
     ${pairGrid(card)}
     <ol class="domain-unit">
-      <li><span>Domain coherence</span><strong>locked until five pairs are VALIDATED</strong></li>
+      <li><span>Domain coherence</span><strong>${
+        card.commands.runNextTask.next?.taskType === 'DOMAIN_COHERENCE_REVIEW'
+          ? 'eligible · Continue runs the five-pair review'
+          : card.state === 'READY_FOR_APPROVAL'
+            ? 'passed · waiting external approval'
+            : card.state === 'REPAIR_REQUIRED' && card.pairs.every((pair) => pair.state === 'VALIDATED' || pair.state === 'DEFERRED')
+              ? 'HIGH defects listed'
+              : 'after five pairs are VALIDATED'
+      }</strong></li>
       <li><span>External approval</span><strong>human process · not granted here</strong></li>
-      <li><span>Canonical compile</span><strong>pending compiler</strong></li>
-      <li><span>Versioned release</span><strong>pending publication</strong></li>
+      <li><span>Production candidates</span><strong>${
+        card.documents.available ? 'DRAFT documents available · not APPROVED' : 'after five pairs are VALIDATED'
+      }</strong></li>
+      <li><span>Canonical compile</span><strong>production compile closed until APPROVED</strong></li>
+      <li><span>Versioned release</span><strong>closed until APPROVED</strong></li>
     </ol>
   </article>`;
 }
@@ -367,6 +395,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     .defects strong { color: #d9896f; margin-right: 0.35rem; }
     .defects.parked strong { color: var(--brass); }
     .defects.parked button { margin-top: 0.4rem; }
+    .defects.documents a { color: var(--brass); }
     .pair-grid { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
     .pair-grid th, .pair-grid td {
       border-bottom: 1px solid var(--line);
@@ -461,7 +490,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Slice 2 freezes a baseline, starts a domain run, and runs remaining pair SIR tasks until the domain is ready. Per-task approval is not requested. External approval and compile stay closed.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. After five pairs are VALIDATED, DRAFT documents are assembled and Continue runs DOMAIN_COHERENCE_REVIEW. External approval and published release stay closed.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>
@@ -480,7 +509,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
       ${panels}
     </section>
     <section class="note">
-      <p>This board shows only the latest run for the selected domain. Start freezes a baseline and runs pair SIR tasks until five pairs are VALIDATED. Continue retries a FAILED task in place, then keeps going. Do not start a second run or another domain while one is open. Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
+      <p>This board shows only the latest run for the selected domain. Start freezes a baseline and runs pair SIR tasks until five pairs are VALIDATED. Continue then runs DOMAIN_COHERENCE_REVIEW and stops. Do not start a second run or another domain while one is open. Pair IDs stay derived as <code>A1_AP-A1</code> through <code>F5_AP-F5</code>. Commands cannot skip a SIR stage, infer tactics, or grant approval. DRAFT documents are assembled from VALIDATED pair artifacts. Canonical production compile and versioned release stay closed until external APPROVED. Status: <a href="/api/operator/status"><code>/api/operator/status</code></a>.</p>
       ${
         lastCall
           ? `<p>Last model call: <code>${escapeHtml(lastCall.role)}</code> ${escapeHtml(lastCall.provider)}/${escapeHtml(lastCall.model)}${lastCall.isFallback ? ' fallback' : ''} · ${escapeHtml(lastCall.status)}</p>`

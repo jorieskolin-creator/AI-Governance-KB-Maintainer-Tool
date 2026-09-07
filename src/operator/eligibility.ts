@@ -17,6 +17,11 @@ export interface EligiblePairSnapshot {
   tasks: Array<{ taskType: CognitiveTaskType; status: OperatorTaskStatus }>;
 }
 
+export interface DomainCoherenceSnapshot {
+  status: OperatorTaskStatus;
+  passed?: boolean;
+}
+
 export interface NextEligibleTask {
   domain: DomainId;
   pairId: string;
@@ -26,7 +31,19 @@ export interface NextEligibleTask {
 export function classifyDomainPipelineStop(
   errorMessage: string
 ): 'DOMAIN_READY' | 'BLOCKED' | 'FAILED' {
-  if (errorMessage.includes('Five pairs are VALIDATED') || errorMessage.includes('DOMAIN_COHERENCE_REVIEW')) {
+  if (
+    errorMessage.includes('READY_FOR_APPROVAL') ||
+    errorMessage.includes('compile stays closed until external APPROVED')
+  ) {
+    return 'DOMAIN_READY';
+  }
+  if (
+    errorMessage.includes('Five pairs are VALIDATED') &&
+    errorMessage.includes('stays closed')
+  ) {
+    return 'DOMAIN_READY';
+  }
+  if (errorMessage.includes('parked for later')) {
     return 'DOMAIN_READY';
   }
   if (
@@ -34,12 +51,11 @@ export function classifyDomainPipelineStop(
     errorMessage.includes('No eligible SIR task') ||
     errorMessage.includes('requires local repair') ||
     errorMessage.includes('QC defects are listed') ||
-    errorMessage.includes('not an operator-admitted')
+    errorMessage.includes('HIGH defects listed') ||
+    errorMessage.includes('not an operator-admitted') ||
+    errorMessage.includes('requires completed PAIR_COHERENCE_REVIEW')
   ) {
     return 'BLOCKED';
-  }
-  if (errorMessage.includes('parked for later')) {
-    return 'DOMAIN_READY';
   }
   return 'FAILED';
 }
@@ -86,7 +102,8 @@ function retryableFailedTask(
 
 export function nextEligiblePairTask(
   domain: DomainId,
-  pairs: readonly EligiblePairSnapshot[]
+  pairs: readonly EligiblePairSnapshot[],
+  domainCoherence?: DomainCoherenceSnapshot
 ): NextEligibleTask | { blocked: string } {
   for (const pair of pairs) {
     if (pair.state === 'NOT_STARTED' || pair.state === 'VALIDATED' || pair.state === 'DEFERRED') continue;
@@ -133,9 +150,26 @@ export function nextEligiblePairTask(
         blocked: `${String(deferred)} pair(s) have HIGH blockers parked for later review. DOMAIN_COHERENCE stays closed.`
       };
     }
+    const hostPairId = pairs[0]?.pairId;
+    if (!hostPairId) {
+      return { blocked: `No eligible SIR task in domain ${domain}.` };
+    }
+    if (!domainCoherence || domainCoherence.status === 'PENDING') {
+      return { domain, pairId: hostPairId, taskType: 'DOMAIN_COHERENCE_REVIEW' };
+    }
+    if (domainCoherence.status === 'STARTED') {
+      return { blocked: `Domain ${domain} DOMAIN_COHERENCE_REVIEW is already running.` };
+    }
+    if (domainCoherence.status === 'FAILED') {
+      return { domain, pairId: hostPairId, taskType: 'DOMAIN_COHERENCE_REVIEW' };
+    }
+    if (domainCoherence.passed === true) {
+      return {
+        blocked: `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Canonical compile stays closed until external APPROVED.`
+      };
+    }
     return {
-      blocked:
-        'Five pairs are VALIDATED. DOMAIN_COHERENCE_REVIEW is the next unit and stays closed in Slice 2.'
+      blocked: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Domain stays REPAIR_REQUIRED.`
     };
   }
 
@@ -162,7 +196,11 @@ export function commandAvailability(input: {
   commandsEnabled: boolean;
   modelRoutesConfigured: boolean;
   domain: DomainId;
-  activeRun?: { state: DomainState; pairs: readonly EligiblePairSnapshot[] };
+  activeRun?: {
+    state: DomainState;
+    pairs: readonly EligiblePairSnapshot[];
+    domainCoherence?: DomainCoherenceSnapshot;
+  };
 }): {
   startDomainRun: CommandFlag;
   runNextTask: CommandFlag;
@@ -191,7 +229,7 @@ export function commandAvailability(input: {
   }
 
   if (input.activeRun && isOpenDomainState(input.activeRun.state)) {
-    const next = nextEligiblePairTask(input.domain, input.activeRun.pairs);
+    const next = nextEligiblePairTask(input.domain, input.activeRun.pairs, input.activeRun.domainCoherence);
     if ('blocked' in next) {
       return {
         startDomainRun: {
@@ -226,7 +264,9 @@ export function commandAvailability(input: {
         reason:
           next.taskType === 'LOCAL_REPAIR'
             ? `Repair recommended QC paths on ${next.pairId}, then re-check pair coherence. Per-task approval is not requested.`
-            : `Continue domain ${input.domain} from ${next.pairId} ${next.taskType} until five pairs are VALIDATED. Per-task approval is not requested.`,
+            : next.taskType === 'DOMAIN_COHERENCE_REVIEW'
+              ? `Run DOMAIN_COHERENCE_REVIEW for domain ${input.domain}. Stops after that review. Approval and compile stay closed.`
+              : `Continue domain ${input.domain} from ${next.pairId} ${next.taskType} until five pairs are VALIDATED. Per-task approval is not requested.`,
         next
       },
       recordApproval

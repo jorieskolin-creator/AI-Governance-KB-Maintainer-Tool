@@ -2,14 +2,16 @@ import type { DomainId } from '../authoring/authoring-plan.js';
 import { getModelRoute } from '../ai/model-router.js';
 import { loadRepoBaselineArtifacts } from '../baseline/repo-artifacts.js';
 import { sealBaselineSnapshot, type BaselineSnapshot } from '../baseline/snapshot.js';
-import type { CognitiveTaskType, PairState } from '../domain/states.js';
+import type { CognitiveTaskType, DomainState, PairState } from '../domain/states.js';
 import {
   canTransition,
+  domainTransitions,
   expectedDomainPairIds,
   PAIR_TASK_SEQUENCE,
   pairTransitions
 } from '../orchestration/pipeline.js';
 import { resolveSirTaskContract, type ResolvableSirTaskType } from '../orchestration/sir-contract-resolver.js';
+import { resolveDomainCoherenceContract } from '../orchestration/domain-coherence-resolver.js';
 import {
   buildSourceContextPacket,
   type AuthoringSourceRegisterRecord
@@ -27,8 +29,10 @@ import {
   persistParkedDefects,
   closeParkedFinding,
   updatePairState,
+  updateDomainState,
   failOrphanedStartedTasks,
-  type PairRunRecord
+  type PairRunRecord,
+  type TaskRunRecord
 } from '../orchestration/store.js';
 import { runCognitiveTask } from '../orchestration/task-runner.js';
 import { loadCategoriesBaseline } from '../baseline/categories.js';
@@ -41,6 +45,7 @@ import {
   isOpenDomainState,
   nextEligiblePairTask,
   classifyDomainPipelineStop,
+  type DomainCoherenceSnapshot,
   type EligiblePairSnapshot,
   type NextEligibleTask
 } from './eligibility.js';
@@ -95,6 +100,93 @@ export function pairSnapshots(
       tasks
     };
   });
+}
+
+export function readDomainCoherenceSnapshot(
+  domain: DomainId,
+  pairRuns: readonly PairRunRecord[],
+  taskRuns: readonly TaskRunRecord[],
+  passed?: boolean
+): DomainCoherenceSnapshot | undefined {
+  const hostPairId = expectedDomainPairIds(domain)[0];
+  const host = pairRuns.find((item) => item.pairId === hostPairId);
+  if (!host) return undefined;
+  const latest = taskRuns.find(
+    (task) => task.pairRunId === host.id && task.taskType === 'DOMAIN_COHERENCE_REVIEW'
+  );
+  if (!latest) return undefined;
+  return { status: latest.status, passed };
+}
+
+function domainReviewPassed(output: unknown): boolean | undefined {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) return undefined;
+  const passed = (output as { passed?: unknown }).passed;
+  return typeof passed === 'boolean' ? passed : undefined;
+}
+
+async function enterDomainValidating(domainRunId: string, state: DomainState): Promise<DomainState> {
+  if (state === 'DOMAIN_VALIDATING') return state;
+  if (!canTransition(domainTransitions, state, 'DOMAIN_VALIDATING')) {
+    throw new Error(`Illegal domain transition ${state} → DOMAIN_VALIDATING.`);
+  }
+  await updateDomainState(domainRunId, 'DOMAIN_VALIDATING');
+  return 'DOMAIN_VALIDATING';
+}
+
+async function runDomainCoherenceReview(input: {
+  domain: DomainId;
+  domainRunId: string;
+  hostPairRunId: string;
+  snapshot: BaselineSnapshot;
+}): Promise<{ usedFallback: boolean; passed: boolean }> {
+  const pairRuns = await getPairRuns(input.domainRunId);
+  const pairs = await Promise.all(
+    expectedDomainPairIds(input.domain).map(async (pairId) => {
+      const pairRun = pairRuns.find((item) => item.pairId === pairId);
+      if (!pairRun) throw new Error(`Pair run ${pairId} is missing.`);
+      const artifact = await getLatestCompletedTaskArtifact(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+      if (!artifact) {
+        throw new Error(
+          `DOMAIN_COHERENCE_REVIEW requires completed PAIR_COHERENCE_REVIEW on all five pairs; missing ${pairId}.`
+        );
+      }
+      const plan = buildPairAuthoringPlan({
+        domain: input.domain,
+        pairId,
+        snapshot: input.snapshot
+      });
+      return {
+        authoringPlan: plan,
+        pairCoherenceTaskContract: artifact.taskContract,
+        pairCoherenceOutput: artifact.output,
+        categoryBaseline: categoryBaselineRecord(input.domain),
+        goldenReference: goldenReferenceRecord()
+      };
+    })
+  );
+  const contract = resolveDomainCoherenceContract({
+    domain: input.domain,
+    domainBaseline: categoryBaselineRecord(),
+    goldenStandardDomainRules: goldenReferenceRecord(),
+    pairs
+  });
+  const hostPlan = pairs[0]?.authoringPlan;
+  if (!hostPlan) throw new Error(`Domain ${input.domain} is missing a host pair for domain coherence.`);
+  const result = await runCognitiveTask({
+    pairRunId: input.hostPairRunId,
+    contract,
+    completionContext: {
+      runId: input.domainRunId,
+      expectedPairId: hostPlan.identity.pairId,
+      expectedCapabilityId: hostPlan.identity.capabilityId,
+      expectedAntipatternId: hostPlan.identity.antipatternId
+    }
+  });
+  const passed = domainReviewPassed(result.output);
+  if (passed !== true) {
+    return { usedFallback: result.usedFallback, passed: false };
+  }
+  return { usedFallback: result.usedFallback, passed: true };
 }
 
 export async function freezeRepoBaseline(): Promise<BaselineSnapshot> {
@@ -219,11 +311,73 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
   const pairRuns = await getPairRuns(run.id);
   const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
   const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
-  const eligible = nextEligiblePairTask(domain, snapshots);
+  const hostPairId = expectedDomainPairIds(domain)[0];
+  const hostPair = pairRuns.find((item) => item.pairId === hostPairId);
+  const domainArtifact = hostPair
+    ? await getLatestTaskArtifactWithOutput<{ passed?: boolean }>(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
+    : undefined;
+  const domainCoherence = readDomainCoherenceSnapshot(
+    domain,
+    pairRuns,
+    taskRuns,
+    domainReviewPassed(domainArtifact?.output)
+  );
+  const eligible = nextEligiblePairTask(domain, snapshots, domainCoherence);
   if ('blocked' in eligible) throw new Error(eligible.blocked);
   let next: NextEligibleTask = eligible;
   const pairRun = pairRuns.find((item) => item.pairId === next.pairId);
   if (!pairRun) throw new Error(`Pair run ${next.pairId} is missing.`);
+
+  const sealed = await getBaselineSnapshotById(run.baselineSnapshotId);
+  if (!sealed) throw new Error('Sealed baseline snapshot is missing.');
+  const snapshot: BaselineSnapshot = {
+    id: sealed.id,
+    sha256: sealed.sha256,
+    manifest: sealed.manifest as BaselineSnapshot['manifest']
+  };
+
+  if (next.taskType === 'DOMAIN_COHERENCE_REVIEW') {
+    operatorLog('operator.task.admitted', {
+      domain,
+      pairId: next.pairId,
+      taskType: next.taskType,
+      domainRunId: run.id
+    });
+    try {
+      await enterDomainValidating(run.id, run.state);
+      const review = await runDomainCoherenceReview({
+        domain,
+        domainRunId: run.id,
+        hostPairRunId: pairRun.id,
+        snapshot
+      });
+      if (review.passed) {
+        if (!canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'READY_FOR_APPROVAL')) {
+          throw new Error('Illegal domain transition DOMAIN_VALIDATING → READY_FOR_APPROVAL.');
+        }
+        await updateDomainState(run.id, 'READY_FOR_APPROVAL');
+        throw new Error(
+          `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Canonical compile stays closed until external APPROVED.`
+        );
+      }
+      if (!canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'REPAIR_REQUIRED')) {
+        throw new Error('Illegal domain transition DOMAIN_VALIDATING → REPAIR_REQUIRED.');
+      }
+      await updateDomainState(run.id, 'REPAIR_REQUIRED');
+      throw new Error(
+        `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Domain stays REPAIR_REQUIRED.`
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes('READY_FOR_APPROVAL') || message.includes('HIGH defects listed')) {
+        throw error;
+      }
+      if (!isProviderRouteFailure(error) && canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'REPAIR_REQUIRED')) {
+        await updateDomainState(run.id, 'REPAIR_REQUIRED');
+      }
+      throw error;
+    }
+  }
 
   if (next.taskType === 'LOCAL_REPAIR') {
     operatorLog('operator.task.admitted', { domain, pairId: next.pairId, taskType: next.taskType, domainRunId: run.id });
@@ -251,13 +405,6 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
   if (!isResolvable(next.taskType)) {
     throw new Error(`${next.taskType} is not an operator-admitted pair task.`);
   }
-  const sealed = await getBaselineSnapshotById(run.baselineSnapshotId);
-  if (!sealed) throw new Error('Sealed baseline snapshot is missing.');
-  const snapshot: BaselineSnapshot = {
-    id: sealed.id,
-    sha256: sealed.sha256,
-    manifest: sealed.manifest as BaselineSnapshot['manifest']
-  };
   const plan = buildPairAuthoringPlan({ domain, pairId: next.pairId, snapshot });
   const sourceContextPacket =
     next.taskType === 'SOURCE_MAPPING'
@@ -461,6 +608,20 @@ export async function resumeOpenDomainPipelines(): Promise<{ reclaimed: number; 
   for (const domain of ['A', 'B', 'C', 'D', 'E', 'F'] as const) {
     const run = await getLatestDomainRun(domain);
     if (!run || !isOpenDomainState(run.state)) continue;
+    const pairRuns = await getPairRuns(run.id);
+    const taskRuns = await getTaskRunsForPairs(pairRuns.map((item) => item.id));
+    const snapshots = pairSnapshots(expectedDomainPairIds(domain), pairRuns, taskRuns);
+    const hostPairId = expectedDomainPairIds(domain)[0];
+    const hostPair = pairRuns.find((item) => item.pairId === hostPairId);
+    const domainArtifact = hostPair
+      ? await getLatestTaskArtifactWithOutput<{ passed?: boolean }>(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
+      : undefined;
+    const next = nextEligiblePairTask(
+      domain,
+      snapshots,
+      readDomainCoherenceSnapshot(domain, pairRuns, taskRuns, domainReviewPassed(domainArtifact?.output))
+    );
+    if ('blocked' in next || next.taskType === 'DOMAIN_COHERENCE_REVIEW') continue;
     resumed.push(domain);
     operatorLog('operator.pipeline.resume', { domain, domainRunId: run.id });
     void runDomainPipeline(domain)

@@ -107,6 +107,8 @@ A full pair/domain regeneration is a last-resort explicit action, not normal fai
 
 The service may determine `READY_FOR_APPROVAL` based on completed quality gates. `APPROVED` is supplied by the external human process. After approval, semantic content is frozen. Canonical JSON compilation and production-document rendering are deterministic publication operations.
 
+Operator Continue after five VALIDATED pairs runs `DOMAIN_COHERENCE_REVIEW` and stops at `READY_FOR_APPROVAL`. Pair-complete DRAFT documents are assembled deterministically from persisted SIR artifacts without granting `APPROVED` or publishing a versioned release.
+
 ## Persistence
 
 PostgreSQL is the control plane for:

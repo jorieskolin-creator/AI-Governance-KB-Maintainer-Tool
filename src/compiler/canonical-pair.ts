@@ -38,6 +38,8 @@ export interface ApprovalRecordInput {
   change_control: string;
 }
 
+export type CanonicalReleaseStatus = 'APPROVED' | 'FROZEN' | 'DRAFT';
+
 export interface CanonicalPairMetadata {
   schemaVersion: string;
   domainTitle: string;
@@ -45,9 +47,9 @@ export interface CanonicalPairMetadata {
   antipatternTitle: string;
   capabilityVersion: string;
   antipatternVersion: string;
-  releaseStatus: 'APPROVED' | 'FROZEN';
-  capabilityApprovalRecord: ApprovalRecordInput;
-  antipatternApprovalRecord: ApprovalRecordInput;
+  releaseStatus: CanonicalReleaseStatus;
+  capabilityApprovalRecord?: ApprovalRecordInput;
+  antipatternApprovalRecord?: ApprovalRecordInput;
 }
 
 export interface CanonicalPairArtifacts {
@@ -71,6 +73,7 @@ export interface CanonicalPairCompileInput {
   metadata: CanonicalPairMetadata;
   artifacts: CanonicalPairArtifacts;
   approvedTacticCatalog: readonly ApprovedTacticCatalogMapping[] | null;
+  candidate?: boolean;
 }
 
 export interface CanonicalPairCompileResult {
@@ -110,7 +113,7 @@ function unique(values: string[]): string[] {
   return [...new Set(values)];
 }
 
-function assertPairIdentity(artifacts: CanonicalPairArtifacts): void {
+function assertPairIdentity(artifacts: CanonicalPairArtifacts, candidate = false): void {
   const capabilityId = artifacts.pairBoundary.capabilityId;
   const antipatternId = artifacts.pairBoundary.antipatternId;
   if (antipatternId !== `AP-${capabilityId}`) {
@@ -144,14 +147,19 @@ function assertPairIdentity(artifacts: CanonicalPairArtifacts): void {
   }
   if (
     artifacts.pairCoherenceReview.pairId !== artifacts.pairBoundary.pairId ||
-    !artifacts.pairCoherenceReview.passed ||
-    artifacts.pairCoherenceReview.defects.length > 0
+    !artifacts.pairCoherenceReview.passed
   ) {
+    throw new Error('Canonical compilation requires a passed pair-coherence review.');
+  }
+  if (!candidate && artifacts.pairCoherenceReview.defects.length > 0) {
     throw new Error('Canonical compilation requires a defect-free passed pair-coherence review.');
   }
 }
 
 function assertApproval(metadata: CanonicalPairMetadata): void {
+  if (!metadata.capabilityApprovalRecord || !metadata.antipatternApprovalRecord) {
+    throw new Error('Canonical compilation requires approval records.');
+  }
   if (metadata.capabilityApprovalRecord.release_version !== metadata.capabilityVersion) {
     throw new Error('Capability approval record release_version does not match capability version.');
   }
@@ -298,8 +306,10 @@ function antipatternAtomicItems(
 
 export function compileCanonicalPair(input: CanonicalPairCompileInput): CanonicalPairCompileResult {
   const { metadata, artifacts } = input;
-  assertPairIdentity(artifacts);
-  assertApproval(metadata);
+  assertPairIdentity(artifacts, input.candidate === true);
+  if (input.candidate !== true) {
+    assertApproval(metadata);
+  }
 
   if (artifacts.sourceMapping.unmappedClaims.length > 0) {
     throw new Error(
@@ -317,7 +327,9 @@ export function compileCanonicalPair(input: CanonicalPairCompileInput): Canonica
     id: capabilityId,
     version: metadata.capabilityVersion,
     release_status: metadata.releaseStatus,
-    approval_record: metadata.capabilityApprovalRecord,
+    ...(metadata.capabilityApprovalRecord
+      ? { approval_record: metadata.capabilityApprovalRecord }
+      : {}),
     domain,
     domain_title: metadata.domainTitle,
     object_type: 'CAPABILITY',
@@ -358,7 +370,9 @@ export function compileCanonicalPair(input: CanonicalPairCompileInput): Canonica
     id: antipatternId,
     version: metadata.antipatternVersion,
     release_status: metadata.releaseStatus,
-    approval_record: metadata.antipatternApprovalRecord,
+    ...(metadata.antipatternApprovalRecord
+      ? { approval_record: metadata.antipatternApprovalRecord }
+      : {}),
     domain,
     domain_title: metadata.domainTitle,
     object_type: 'ANTIPATTERN',

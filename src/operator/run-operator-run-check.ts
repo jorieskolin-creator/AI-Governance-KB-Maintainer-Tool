@@ -16,6 +16,7 @@ import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
 import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
+import { relatedCriterionIds } from '../compiler/production-candidate.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -177,9 +178,9 @@ assert(
 
 assert(
   classifyDomainPipelineStop(
-    'Five pairs are VALIDATED. DOMAIN_COHERENCE_REVIEW is the next unit and stays closed in Slice 2.'
+    'Domain A DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Canonical compile stays closed until external APPROVED.'
   ) === 'DOMAIN_READY',
-  'validated domain must stop the pair pipeline without asking approval'
+  'passed domain coherence must stop before compile and approval'
 );
 assert(
   classifyDomainPipelineStop('A1_AP-A1 PAIR_BOUNDARY is already running.') === 'BLOCKED',
@@ -199,6 +200,56 @@ assert(
     'DOMAIN_READY',
   'parked blockers must stop the pair pipeline without looking like a crash'
 );
+assert(
+  classifyDomainPipelineStop(
+    'Domain A DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Domain stays REPAIR_REQUIRED.'
+  ) === 'BLOCKED',
+  'failed domain coherence must stay blocked on listed defects'
+);
+
+const fiveValidated = [
+  { pairId: 'A1_AP-A1', state: 'VALIDATED' as const, tasks: allCompleted },
+  { pairId: 'A2_AP-A2', state: 'VALIDATED' as const, tasks: allCompleted },
+  { pairId: 'A3_AP-A3', state: 'VALIDATED' as const, tasks: allCompleted },
+  { pairId: 'A4_AP-A4', state: 'VALIDATED' as const, tasks: allCompleted },
+  { pairId: 'A5_AP-A5', state: 'VALIDATED' as const, tasks: allCompleted }
+];
+const domainQc = nextEligiblePairTask('A', fiveValidated);
+assert(!('blocked' in domainQc) && domainQc.taskType === 'DOMAIN_COHERENCE_REVIEW', 'five validated pairs admit domain coherence');
+assert(!('blocked' in domainQc) && domainQc.pairId === 'A1_AP-A1', 'domain coherence persists on the host pair');
+const domainQcPassed = nextEligiblePairTask('A', fiveValidated, { status: 'COMPLETED', passed: true });
+assert(
+  'blocked' in domainQcPassed && domainQcPassed.blocked.includes('READY_FOR_APPROVAL'),
+  'passed domain coherence waits for external approval'
+);
+const domainQcFailed = nextEligiblePairTask('A', fiveValidated, { status: 'FAILED' });
+assert(
+  !('blocked' in domainQcFailed) && domainQcFailed.taskType === 'DOMAIN_COHERENCE_REVIEW',
+  'failed domain coherence retries in place'
+);
+
+assert(
+  relatedCriterionIds(['A2', { criterionId: 'A3', criterionHandle: 'criterion_001' }, 'A2']).join(',') === 'A2,A3',
+  'candidate compile must normalize materialized related criteria to canonical ids'
+);
+assert(relatedCriterionIds([{ boundarySummary: 'x' }]).length === 0, 'related criteria without criterionId are dropped');
+
+const fiveValidatedAvailability = commandAvailability({
+  databaseReady: true,
+  commandsEnabled: true,
+  modelRoutesConfigured: true,
+  domain: 'A',
+  activeRun: {
+    state: 'IN_PROGRESS',
+    pairs: fiveValidated
+  }
+});
+assert(fiveValidatedAvailability.runNextTask.enabled === true, 'five validated pairs must enable Continue');
+assert(
+  fiveValidatedAvailability.runNextTask.next?.taskType === 'DOMAIN_COHERENCE_REVIEW',
+  'Continue after five VALIDATED pairs is domain coherence'
+);
+assert(fiveValidatedAvailability.recordApproval.enabled === false, 'approval stays closed after pair validation');
 
 const deferredPairs = nextEligiblePairTask('B', [
   { pairId: 'B1_AP-B1', state: 'VALIDATED', tasks: allCompleted },

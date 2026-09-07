@@ -12,11 +12,17 @@ import {
   type ModelCallRecord
 } from '../orchestration/store.js';
 import { blockingQcDefects, qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
-import { pairSnapshots } from './commands.js';
+import { pairSnapshots, readDomainCoherenceSnapshot } from './commands.js';
 import { commandAvailability, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
 import type { EligiblePairSnapshot } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
+
+function domainReviewPassed(output: unknown): boolean | undefined {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) return undefined;
+  const passed = (output as { passed?: unknown }).passed;
+  return typeof passed === 'boolean' ? passed : undefined;
+}
 
 export interface DomainRunOverlay {
   domain: DomainId;
@@ -32,6 +38,11 @@ export interface DomainRunOverlay {
     runNextTask: CommandFlag;
     recordApproval: CommandFlag;
     dismissBlockers: CommandFlag;
+  };
+  documents: {
+    available: boolean;
+    indexHref: string;
+    bundleHref: string;
   };
 }
 
@@ -60,6 +71,11 @@ export async function loadDomainOverlay(
           domain
         }),
         dismissBlockers: closedDismiss
+      },
+      documents: {
+        available: false,
+        indexHref: `/documents/${domain}`,
+        bundleHref: `/api/operator/documents/${domain}`
       }
     };
   }
@@ -92,6 +108,48 @@ export async function loadDomainOverlay(
   const findings = [...qcFindings, ...openFindings];
   const modelCalls = await getRecentModelCalls(pairRuns.map((item) => item.id));
   const taskInFlight = taskRuns.some((task) => task.status === 'STARTED');
+  const hostPairId = expectedDomainPairIds(domain)[0];
+  const hostPair = pairRuns.find((item) => item.pairId === hostPairId);
+  const domainArtifact = hostPair
+    ? await getLatestTaskArtifactWithOutput<{
+        passed?: boolean;
+        defects?: Array<{
+          defectId?: string;
+          severity?: string;
+          issue?: string;
+          affectedPaths?: string[];
+          affectedPairIds?: string[];
+        }>;
+      }>(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
+    : undefined;
+  const domainPassed = domainReviewPassed(domainArtifact?.output);
+  if (domainArtifact?.output && domainPassed !== true) {
+    const defects = Array.isArray(domainArtifact.output.defects) ? domainArtifact.output.defects : [];
+    for (const [index, defect] of defects.entries()) {
+      const objectId =
+        Array.isArray(defect.affectedPairIds) && typeof defect.affectedPairIds[0] === 'string'
+          ? defect.affectedPairIds[0]
+          : `DOMAIN-${domain}`;
+      const checkId = typeof defect.defectId === 'string' ? defect.defectId : `defect_${String(index + 1).padStart(3, '0')}`;
+      if (parkedKeys.has(`${objectId}|${checkId}`)) continue;
+      findings.push({
+        id: `${hostPair?.id ?? run.id}:${checkId}`,
+        pairRunId: hostPair?.id ?? null,
+        checkId,
+        severity: defect.severity === 'BLOCKING' || defect.severity === 'HIGH' || defect.severity === 'MEDIUM' || defect.severity === 'LOW'
+          ? defect.severity
+          : 'HIGH',
+        objectId,
+        objectPath: Array.isArray(defect.affectedPaths) && typeof defect.affectedPaths[0] === 'string'
+          ? defect.affectedPaths[0]
+          : 'domainCoherence',
+        issue: typeof defect.issue === 'string' ? defect.issue : 'Domain coherence defect.',
+        resolved: false,
+        createdAt: new Date()
+      });
+    }
+  }
+  const domainCoherence = readDomainCoherenceSnapshot(domain, pairRuns, taskRuns, domainPassed);
   let dismissBlockers = closedDismiss;
   for (const pairRun of pairRuns) {
     const pair = pairs.find((item) => item.pairId === pairRun.pairId);
@@ -134,9 +192,14 @@ export async function loadDomainOverlay(
         commandsEnabled: operatorCommandsEnabled(),
         modelRoutesConfigured: modelRoutesConfigured(),
         domain,
-        activeRun: { state: run.state, pairs }
+        activeRun: { state: run.state, pairs, domainCoherence }
       }),
       dismissBlockers
+    },
+    documents: {
+      available: pairs.filter((pair) => pair.state === 'VALIDATED').length === 5,
+      indexHref: `/documents/${domain}`,
+      bundleHref: `/api/operator/documents/${domain}`
     }
   };
 }

@@ -74,6 +74,11 @@ export interface OperatorDomainCard {
     recordApproval: CommandFlag;
     dismissBlockers: CommandFlag;
   };
+  documents: {
+    available: boolean;
+    indexHref: string;
+    bundleHref: string;
+  };
 }
 
 export interface PipelineActivity {
@@ -309,6 +314,11 @@ export function buildOperatorStatus(input: {
         runNextTask: CLOSED,
         recordApproval: APPROVAL_CLOSED,
         dismissBlockers: DISMISS_CLOSED
+      },
+      documents: overlay?.documents ?? {
+        available: false,
+        indexHref: `/documents/${entry.domain}`,
+        bundleHref: `/api/operator/documents/${entry.domain}`
       }
     };
   });

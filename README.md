@@ -19,14 +19,14 @@ The branch now includes:
 - path-scoped local repair contracts;
 - A1/AP-A1 Golden Standard regression and mutation harness;
 - repository-held capability, anti-pattern and shared-definition schemas;
-- Railway deployment, `/health/ready` database-backed health gate, a read-only operator home at `/`, and Slice 2 run commands (`start domain run`, `continue domain until ready`) gated by `OPERATOR_COMMANDS_ENABLED`. Start or continue runs remaining pair SIR tasks without per-step approval and stops when the domain is ready or a task fails;
+- Railway deployment, `/health/ready` database-backed health gate, a read-only operator home at `/`, and Slice 2 run commands (`start domain run`, `continue domain until ready`) gated by `OPERATOR_COMMANDS_ENABLED`. Start or continue runs remaining pair SIR tasks without per-step approval; after five pairs are VALIDATED, DRAFT documents are assembled from persisted pair artifacts and Continue runs `DOMAIN_COHERENCE_REVIEW` and stops. External approval and published release stay closed;
 
 ## Still deliberately pending
 
-- local repair, domain-coherence execution from the operator UI, and external-approval intake;
+- local repair from the operator UI, and closed external-approval intake;
 - exact model/provider assignments in Railway role variables;
 - exact approved canonical A1/AP-A1 JSON files in `golden/fixtures/`;
-- complete canonical JSON compiler and publication compiler;
+- production canonical compile and publication after external APPROVED;
 - final Vercel Blob artifact adapter and release manifest writer;
 - field-level authoring inspection and external-approval intake.
 
