@@ -72,6 +72,7 @@ function expectUnsupported(taskType:CognitiveTaskType):void {
 }
 
 expectUnsupported('LOCAL_REPAIR');
+expectUnsupported('SOURCE_CONTEXT');
 
 console.log(JSON.stringify({
   explicitSirV2Routes:'PASS',
@@ -87,6 +88,7 @@ console.log(JSON.stringify({
   legacyLifecycleDedicatedRoute:'PASS',
   legacyV1Fallback:'PASS',
   nextUnregisteredSirV2Task:'LOCAL_REPAIR',
+  sourceContextNotSirV2:'REJECTED',
   localRepairV1Route:'PASS',
   unregisteredSirV2Fallback:'REJECTED'
 }, null, 2));

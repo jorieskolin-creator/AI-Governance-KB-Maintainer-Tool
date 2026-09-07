@@ -1,5 +1,10 @@
 import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
 import type { ValidationFinding } from '../validation/contracts.js';
+import {
+  isSourceContextPacket,
+  sourceContextLocatorCount,
+  type SourceContextPacket
+} from './source-context-packet.js';
 
 export const GATE_VALIDATOR_VERSION = '1.0.0';
 
@@ -78,10 +83,72 @@ export function evaluateSourceCoverage(sourceMappings: unknown): NamedGateOutcom
   return 'SOURCE_COVERAGE_COMPLETE';
 }
 
+function sourceAcquisitionFinding(
+  packet: SourceContextPacket | undefined,
+  checkId: string,
+  objectPath: string,
+  issue: string,
+  dependencyScope: string[]
+): ValidationFinding {
+  return {
+    checkId,
+    kind: 'SOURCE',
+    severity: 'BLOCKING',
+    objectId: packet?.pairId ?? 'SOURCE_CONTEXT',
+    objectPath,
+    issue,
+    dependencyScope,
+    recommendedAction:
+      'Acquire governed exact locators from a sealed locator catalog where rights allow. Do not invent locators. BLOCKING source findings are not waivable.'
+  };
+}
+
+export function evaluateSourceAcquisition(packet: unknown): NamedGateResult {
+  if (!isSourceContextPacket(packet)) {
+    return {
+      gateName: 'SOURCE_COVERAGE',
+      outcome: 'SOURCE_GAPS_PRESENT',
+      validatorVersion: GATE_VALIDATOR_VERSION,
+      findings: [
+        sourceAcquisitionFinding(
+          undefined,
+          'SOURCE_CONTEXT_PACKET_INVALID',
+          '/',
+          'Source acquisition did not persist a verifiable Source Context Packet.',
+          []
+        )
+      ]
+    };
+  }
+  const locatorCount = sourceContextLocatorCount(packet);
+  const missing = packet.missingContextSourceHandles;
+  let checkId = 'SOURCE_CONTEXT_MAPPINGS_PENDING';
+  let objectPath = '/sourceMappings';
+  let issue =
+    'Governed locators were acquired, but claim-to-locator mappings do not exist yet. SOURCE_COVERAGE_COMPLETE waits for SOURCE_MAPPING.';
+  if (locatorCount === 0) {
+    checkId = 'SOURCE_CONTEXT_ZERO_LOCATORS';
+    objectPath = '/locatorContexts';
+    issue =
+      'Source acquisition completed with zero governed locators. Claim-bearing authoring remains unsupported until exact locators exist.';
+  } else if (missing.length > 0 || !packet.mappingContextAvailable) {
+    checkId = 'SOURCE_CONTEXT_MISSING_PASSAGES';
+    objectPath = '/missingContextSourceHandles';
+    issue = `Source acquisition is missing governed locator context for ${missing.join(', ') || 'one or more allowed sources'}.`;
+  }
+  return {
+    gateName: 'SOURCE_COVERAGE',
+    outcome: 'SOURCE_GAPS_PRESENT',
+    validatorVersion: GATE_VALIDATOR_VERSION,
+    findings: [sourceAcquisitionFinding(packet, checkId, objectPath, issue, missing)]
+  };
+}
+
 export function evaluatePairGates(input: {
   snapshotComplete: boolean;
   schemaIssues: readonly string[];
   sourceMappings: unknown;
+  sourceContextPacket?: unknown;
   review: unknown;
 }): NamedGateResult[] {
   const results: NamedGateResult[] = [];
@@ -101,6 +168,8 @@ export function evaluatePairGates(input: {
       validatorVersion: GATE_VALIDATOR_VERSION,
       findings: []
     });
+  } else if (input.sourceContextPacket !== undefined) {
+    results.push(evaluateSourceAcquisition(input.sourceContextPacket));
   }
   if (input.review === undefined) {
     return results;

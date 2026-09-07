@@ -4,7 +4,8 @@ import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding } from '../validation/contracts.js';
 import type { ModelExecutionResponse } from '../ai/provider-client.js';
 import type { ModelRole } from '../domain/task-contract.js';
-import { PAIR_TASK_SEQUENCE } from './pipeline.js';
+import { canonicalArtifactHash } from './artifact-hash.js';
+import { PAIR_CANDIDATE_HASH_TASKS } from './pipeline.js';
 import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
 import { pairCandidateRevisionHash, domainCandidateRevisionHash } from './candidate-revision.js';
 import {
@@ -703,6 +704,36 @@ async function insertArtifactRevision(input: {
   );
 }
 
+export async function persistDeterministicArtifact(input: {
+  pairRunId: string;
+  taskType: CognitiveTaskType;
+  output: unknown;
+  outputHash: string;
+  inputHash: string;
+  taskContract: TaskContract;
+}): Promise<void> {
+  if (input.outputHash !== canonicalArtifactHash(input.output)) {
+    throw new Error(`${input.taskType} output hash does not match the artifact being persisted.`);
+  }
+  await insertArtifactRevision({
+    pairRunId: input.pairRunId,
+    taskType: input.taskType,
+    inputHash: input.inputHash,
+    output: input.output,
+    outputHash: input.outputHash,
+    taskContract: input.taskContract
+  });
+  await persistPairCandidate(input.pairRunId);
+}
+
+function pairCandidateArtifactHashes(hashes: Record<string, string>): Record<string, string> {
+  const pairHashes: Record<string, string> = {};
+  for (const taskType of PAIR_CANDIDATE_HASH_TASKS) {
+    if (hashes[taskType]) pairHashes[taskType] = hashes[taskType];
+  }
+  return pairHashes;
+}
+
 export async function getPairArtifactOutputHashes(pairRunId: string): Promise<Record<string, string>> {
   const hashes: Record<string, string> = {};
   const completed = await getDbPool().query<{ task_type: string; output_hash: string }>(
@@ -724,11 +755,7 @@ export async function getPairArtifactOutputHashes(pairRunId: string): Promise<Re
 
 export async function currentPairCandidateHash(pairRunId: string, pairId: string): Promise<string> {
   const hashes = await getPairArtifactOutputHashes(pairRunId);
-  const pairHashes: Record<string, string> = {};
-  for (const taskType of PAIR_TASK_SEQUENCE) {
-    if (hashes[taskType]) pairHashes[taskType] = hashes[taskType];
-  }
-  return pairCandidateRevisionHash(pairId, pairHashes);
+  return pairCandidateRevisionHash(pairId, pairCandidateArtifactHashes(hashes));
 }
 
 export async function currentDomainCandidateHash(
@@ -751,10 +778,7 @@ async function ensurePairCandidateRevision(pairRunId: string): Promise<string | 
   const pairId = pair.rows[0]?.pair_id;
   if (!pairId) return undefined;
   const hashes = await getPairArtifactOutputHashes(pairRunId);
-  const pairHashes: Record<string, string> = {};
-  for (const taskType of PAIR_TASK_SEQUENCE) {
-    if (hashes[taskType]) pairHashes[taskType] = hashes[taskType];
-  }
+  const pairHashes = pairCandidateArtifactHashes(hashes);
   const revisionHash = pairCandidateRevisionHash(pairId, pairHashes);
   const existing = await getDbPool().query<{ id: string }>(
     `select id from candidate_revisions where pair_run_id = $1 and revision_hash = $2 and scope = 'PAIR'`,
@@ -823,10 +847,12 @@ export async function persistPairCandidate(
   const hashes = await getPairArtifactOutputHashes(pairRunId);
   const complete = snapshotIsComplete(hashes);
   const schemaIssues = complete ? schemaGateSnapshotIssues(snapshot) : ['snapshot incomplete'];
+  const sourceContextArtifact = await getLatestCompletedTaskArtifact(pairRunId, 'SOURCE_CONTEXT');
   const gates = evaluatePairGates({
     snapshotComplete: complete,
     schemaIssues,
     sourceMappings: snapshot.sourceMappings,
+    sourceContextPacket: sourceContextArtifact?.output,
     review: reviewArtifact?.output
   });
   await persistGateResults(candidateId, gates);

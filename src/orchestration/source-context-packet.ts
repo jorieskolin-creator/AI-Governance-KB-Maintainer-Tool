@@ -164,6 +164,26 @@ function validateLimits(limits: SourceContextPacketLimits): void {
   }
 }
 
+export function isSourceContextPacket(value: unknown): value is SourceContextPacket {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return (
+    record.packetVersion === '1.0.0' &&
+    typeof record.pairId === 'string' &&
+    typeof record.authoringPlanSha256 === 'string' &&
+    typeof record.sourceRegisterVersion === 'string' &&
+    typeof record.sourceRegisterSha256 === 'string' &&
+    Array.isArray(record.sources) &&
+    Array.isArray(record.missingContextSourceHandles) &&
+    typeof record.mappingContextAvailable === 'boolean' &&
+    typeof record.packetSha256 === 'string'
+  );
+}
+
+export function sourceContextLocatorCount(packet: SourceContextPacket): number {
+  return packet.sources.reduce((count, source) => count + source.locatorContexts.length, 0);
+}
+
 export function buildSourceContextPacket(input: {
   authoringPlan: AuthoringPlan;
   sealedSourceRegisterVersion: string;

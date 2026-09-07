@@ -17,6 +17,7 @@ export type DomainState =
 export type RepairState = 'OPEN' | 'REPAIRING' | 'REVALIDATING' | 'RESOLVED';
 
 export type CognitiveTaskType =
+  | 'SOURCE_CONTEXT'
   | 'PAIR_BOUNDARY'
   | 'AP_FAILURE_MODEL'
   | 'APPLICABILITY'

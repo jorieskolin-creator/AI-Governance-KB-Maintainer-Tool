@@ -12,10 +12,7 @@ import {
 } from '../orchestration/pipeline.js';
 import { resolveSirTaskContract, type ResolvableSirTaskType } from '../orchestration/sir-contract-resolver.js';
 import { resolveDomainCoherenceContract } from '../orchestration/domain-coherence-resolver.js';
-import {
-  buildSourceContextPacket,
-  type AuthoringSourceRegisterRecord
-} from '../orchestration/source-context-packet.js';
+import { ensurePersistedSourceContext } from '../orchestration/source-context-acquisition.js';
 import {
   createDomainRun,
   createPairRun,
@@ -80,7 +77,11 @@ export function parseDomainId(value: unknown): DomainId {
 }
 
 function isResolvable(taskType: CognitiveTaskType): taskType is ResolvableSirTaskType {
-  return taskType !== 'DOMAIN_COHERENCE_REVIEW' && taskType !== 'LOCAL_REPAIR';
+  return (
+    taskType !== 'DOMAIN_COHERENCE_REVIEW' &&
+    taskType !== 'LOCAL_REPAIR' &&
+    taskType !== 'SOURCE_CONTEXT'
+  );
 }
 
 export function pairSnapshots(
@@ -225,46 +226,10 @@ export async function startDomainRun(domain: DomainId): Promise<{ domainRunId: s
       throw new Error('Illegal pair transition DRAFT → AUTHORING.');
     }
     await updatePairState(pairRunId, 'AUTHORING');
+    const plan = buildPairAuthoringPlan({ domain, pairId, snapshot });
+    await ensurePersistedSourceContext(pairRunId, plan);
   }
   return { domainRunId, baselineSha256: snapshot.sha256 };
-}
-
-function sourceRecordsForPlan(plan: ReturnType<typeof buildPairAuthoringPlan>): AuthoringSourceRegisterRecord[] {
-  const artifacts = loadRepoBaselineArtifacts();
-  const register = artifacts.find((item) => item.artifactType === 'SOURCE_REGISTER')?.content as {
-    sources: Array<{
-      id: string;
-      version_or_date: string;
-      verification_status: string;
-      last_verified_date: string;
-      effective_status: string;
-      authority_tier: string;
-      authority_type: string;
-      official_location: string;
-      roles_or_applicability_conditions?: string[];
-      licensing_storage_boundary: string;
-      domain_coverage: string[];
-    }>;
-  };
-  return plan.sourceUniverse.map((allowed) => {
-    const source = register.sources.find((item) => item.id === allowed.sourceId);
-    if (!source) throw new Error(`Source ${allowed.sourceId} is missing from the sealed register.`);
-    return {
-      sourceId: source.id,
-      versionOrDate: source.version_or_date,
-      verificationStatus: 'VERIFIED' as const,
-      lastVerifiedDate: source.last_verified_date,
-      effectiveStatus: source.effective_status === 'IN_FORCE' ? 'IN_FORCE' : 'PUBLISHED',
-      authorityTier: source.authority_tier,
-      authorityType: source.authority_type,
-      officialLocation: source.official_location,
-      applicabilityBoundary: (source.roles_or_applicability_conditions ?? ['Registered applicability boundary.']).join(' '),
-      licensingBoundary: source.licensing_storage_boundary,
-      domainCoverage: source.domain_coverage,
-      modelContextPolicy: 'METADATA_LOCATOR_ONLY' as const,
-      usageRightsReference: null
-    };
-  });
 }
 
 async function transitionAfterTask(pairRunId: string, pairState: PairState, taskType: CognitiveTaskType): Promise<void> {
@@ -424,24 +389,14 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     throw new Error(`${next.taskType} is not an operator-admitted pair task.`);
   }
   const plan = buildPairAuthoringPlan({ domain, pairId: next.pairId, snapshot });
-  const sourceContextPacket =
-    next.taskType === 'SOURCE_MAPPING'
-      ? buildSourceContextPacket({
-          authoringPlan: plan,
-          sealedSourceRegisterVersion: plan.baseline.sourceRegisterVersion,
-          sealedSourceRegisterSha256: plan.baseline.sourceRegisterSha256,
-          registerRecords: sourceRecordsForPlan(plan),
-          locatorContexts: []
-        })
-      : undefined;
-
+  const sourceContextPacket = await ensurePersistedSourceContext(pairRun.id, plan);
   const contract = await resolveSirTaskContract({
     pairRunId: pairRun.id,
     taskType: next.taskType,
     authoringPlan: plan,
     categoryBaseline: categoryBaselineRecord(domain),
     goldenReference: goldenReferenceRecord(),
-    sourceContextPacket
+    sourceContextPacket: next.taskType === 'SOURCE_MAPPING' ? sourceContextPacket : undefined
   });
 
   operatorLog('operator.task.admitted', { domain, pairId: next.pairId, taskType: next.taskType, domainRunId: run.id });
