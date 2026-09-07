@@ -6,6 +6,7 @@ import type { ErrorObject, ValidateFunction } from 'ajv';
 export interface CanonicalValidationContext {
   activeSchemaVersion: string;
   requiredLifecycleStages: string[];
+  draft?: boolean;
 }
 
 export interface CanonicalValidationIssue {
@@ -47,7 +48,11 @@ async function loadRegistry(): Promise<SchemaRegistry> {
       loadJson('schemas/capability.schema.json'),
       loadJson('schemas/antipattern.schema.json')
     ]);
-    const ajv = new Ajv2020({ allErrors: true, strict: true, validateFormats: true });
+    const ajv = new Ajv2020({
+      allErrors: true,
+      strict: false,
+      validateFormats: true
+    });
     ajv.addFormat('date', { type: 'string', validate: isIsoDate });
     ajv.addSchema(shared);
     return {
@@ -76,12 +81,20 @@ function addIssue(
   issues.push({ checkId, objectId, objectPath, issue: text });
 }
 
+function isDraftApprovalRecordRequirement(error: ErrorObject): boolean {
+  if (error.keyword !== 'required') return false;
+  const missing = (error.params as { missingProperty?: unknown } | undefined)?.missingProperty;
+  return missing === 'approval_record';
+}
+
 function addSchemaIssues(
   issues: CanonicalValidationIssue[],
   objectId: string,
-  errors: ErrorObject[] | null | undefined
+  errors: ErrorObject[] | null | undefined,
+  draft = false
 ): void {
   for (const error of errors ?? []) {
+    if (draft && isDraftApprovalRecordRequirement(error)) continue;
     addIssue(
       issues,
       'CANONICAL_SCHEMA',
@@ -112,7 +125,17 @@ function validateCommon(
   if (object.domain !== expectedDomain) {
     addIssue(issues, 'DOMAIN_ID_MATCH', objectId, '/domain', `Expected domain ${expectedDomain}.`);
   }
-  if (object.approval_record?.release_version !== object.version) {
+  if (object.approval_record) {
+    if (object.approval_record.release_version !== object.version) {
+      addIssue(
+        issues,
+        'APPROVAL_VERSION_MATCH',
+        objectId,
+        '/approval_record/release_version',
+        'Approval release_version must equal canonical object version.'
+      );
+    }
+  } else if (!context.draft) {
     addIssue(
       issues,
       'APPROVAL_VERSION_MATCH',
@@ -257,9 +280,9 @@ export async function validateCanonicalPair(
   const issues: CanonicalValidationIssue[] = [];
 
   const capabilityValid = schemas.capability(capabilityInput);
-  if (!capabilityValid) addSchemaIssues(issues, capabilityId, schemas.capability.errors);
+  if (!capabilityValid) addSchemaIssues(issues, capabilityId, schemas.capability.errors, context.draft === true);
   const antipatternValid = schemas.antipattern(antipatternInput);
-  if (!antipatternValid) addSchemaIssues(issues, antipatternId, schemas.antipattern.errors);
+  if (!antipatternValid) addSchemaIssues(issues, antipatternId, schemas.antipattern.errors, context.draft === true);
 
   if (antipatternId !== `AP-${capabilityId}`) {
     addIssue(

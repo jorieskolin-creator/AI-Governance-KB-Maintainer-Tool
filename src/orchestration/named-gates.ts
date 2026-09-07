@@ -57,6 +57,15 @@ function qcComplete(review: unknown): boolean {
   return typeof review.coherenceSummary === 'string' && review.coherenceSummary.trim().length >= 10;
 }
 
+export function evaluateCanonicalCompile(defects: readonly ValidationFinding[]): NamedGateResult {
+  return {
+    gateName: 'CANONICAL_COMPILE',
+    outcome: defects.length === 0 ? 'CANONICAL_COMPILE_VALID' : 'COMPILE_FAILED',
+    validatorVersion: GATE_VALIDATOR_VERSION,
+    findings: [...defects]
+  };
+}
+
 export function evaluateSourceCoverage(sourceMappings: unknown): NamedGateOutcome | undefined {
   if (!isRecord(sourceMappings)) return undefined;
   const capability = Array.isArray(sourceMappings.capability) ? sourceMappings.capability : null;

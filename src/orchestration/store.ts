@@ -743,33 +743,13 @@ export async function currentDomainCandidateHash(
   return domainCandidateRevisionHash(domain, pairHashes, domainCoherenceOutputHash);
 }
 
-async function persistGateResults(candidateRevisionId: string, results: NamedGateResult[]): Promise<void> {
-  for (const result of results) {
-    await getDbPool().query(
-      `insert into gate_results(candidate_revision_id, gate_name, outcome, validator_version, findings)
-       values ($1, $2, $3, $4, $5::jsonb)
-       on conflict (candidate_revision_id, gate_name) do nothing`,
-      [
-        candidateRevisionId,
-        result.gateName,
-        result.outcome,
-        result.validatorVersion,
-        JSON.stringify(result.findings)
-      ]
-    );
-  }
-}
-
-export async function persistPairCandidate(
-  pairRunId: string,
-  reviewOverride?: unknown
-): Promise<NamedGateOutcome[]> {
+async function ensurePairCandidateRevision(pairRunId: string): Promise<string | undefined> {
   const pair = await getDbPool().query<{ pair_id: string }>(
     'select pair_id from pair_runs where id = $1',
     [pairRunId]
   );
   const pairId = pair.rows[0]?.pair_id;
-  if (!pairId) return [];
+  if (!pairId) return undefined;
   const hashes = await getPairArtifactOutputHashes(pairRunId);
   const pairHashes: Record<string, string> = {};
   for (const taskType of PAIR_TASK_SEQUENCE) {
@@ -795,6 +775,40 @@ export async function persistPairCandidate(
     );
     candidateId = inserted.rows[0]?.id;
   }
+  return candidateId;
+}
+
+async function persistGateResults(candidateRevisionId: string, results: NamedGateResult[]): Promise<void> {
+  for (const result of results) {
+    await getDbPool().query(
+      `insert into gate_results(candidate_revision_id, gate_name, outcome, validator_version, findings)
+       values ($1, $2, $3, $4, $5::jsonb)
+       on conflict (candidate_revision_id, gate_name) do nothing`,
+      [
+        candidateRevisionId,
+        result.gateName,
+        result.outcome,
+        result.validatorVersion,
+        JSON.stringify(result.findings)
+      ]
+    );
+  }
+}
+
+export async function recordPairNamedGates(
+  pairRunId: string,
+  results: NamedGateResult[]
+): Promise<void> {
+  const candidateId = await ensurePairCandidateRevision(pairRunId);
+  if (!candidateId) return;
+  await persistGateResults(candidateId, results);
+}
+
+export async function persistPairCandidate(
+  pairRunId: string,
+  reviewOverride?: unknown
+): Promise<NamedGateOutcome[]> {
+  const candidateId = await ensurePairCandidateRevision(pairRunId);
   if (!candidateId) return [];
 
   const snapshot: Record<string, unknown> = {};
@@ -806,7 +820,8 @@ export async function persistPairCandidate(
     reviewOverride !== undefined
       ? { output: reviewOverride }
       : await getLatestCompletedTaskArtifact(pairRunId, 'PAIR_COHERENCE_REVIEW');
-  const complete = snapshotIsComplete(pairHashes);
+  const hashes = await getPairArtifactOutputHashes(pairRunId);
+  const complete = snapshotIsComplete(hashes);
   const schemaIssues = complete ? schemaGateSnapshotIssues(snapshot) : ['snapshot incomplete'];
   const gates = evaluatePairGates({
     snapshotComplete: complete,
