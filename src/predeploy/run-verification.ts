@@ -46,6 +46,7 @@ const gates: Gate[] = [
   { id: 'OPERATOR_RUNS', script: 'dist/operator/run-operator-run-check.js' },
   { id: 'QC_LOCAL_REPAIR', script: 'dist/repair/run-qc-repair-check.js' },
   { id: 'REVISION_AWARE_REPAIR', script: 'dist/repair/run-revision-aware-repair-check.js' },
+  { id: 'CONTENT_CORRECTION', script: 'dist/repair/run-content-correction-check.js' },
   { id: 'IMMUTABLE_REVISIONS', script: 'dist/orchestration/run-revision-gate-check.js' },
   { id: 'SIR_COMPILER', script: 'dist/compiler/run-sir-compiler-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }

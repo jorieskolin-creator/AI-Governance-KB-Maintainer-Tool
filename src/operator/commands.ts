@@ -32,6 +32,7 @@ import {
   type TaskRunRecord
 } from '../orchestration/store.js';
 import { runCognitiveTask } from '../orchestration/task-runner.js';
+import { isProviderRouteFailure } from '../repair/content-correction.js';
 import { loadCategoriesBaseline } from '../baseline/categories.js';
 import {
   buildPairAuthoringPlan,
@@ -258,10 +259,6 @@ async function markRepairRequired(pairRunId: string, pairState: PairState): Prom
     throw new Error(`Illegal pair transition ${pairState} → REPAIR_REQUIRED.`);
   }
   await updatePairState(pairRunId, 'REPAIR_REQUIRED');
-}
-
-function isProviderRouteFailure(error: unknown): boolean {
-  return error instanceof Error && error.message.includes('failed primary and fallback routes');
 }
 
 async function reopenForRetry(pairRunId: string, pairState: PairState): Promise<PairState> {

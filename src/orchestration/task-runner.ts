@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { executeModel } from '../ai/provider-client.js';
 import { getModelRoute, type ModelTarget } from '../ai/model-router.js';
-import { buildPromptPacket } from '../cognitive/prompt-builder.js';
+import { buildPromptPacket, type CognitivePromptPacket } from '../cognitive/prompt-builder.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import type { TaskContract } from '../domain/task-contract.js';
 import { materializeValidatedSirTaskOutput } from '../sir/task-artifact.js';
@@ -16,9 +16,19 @@ import {
   failTaskRun,
   getCompletedTaskTypes,
   persistModelCall,
+  persistRejectedTaskOutput,
   persistValidationFindings,
   resolveFindingsForPair
 } from './store.js';
+import {
+  buildContentCorrectionPacket,
+  contentCorrectionFailureMessage,
+  providerRouteFailureMessage,
+  routeCognitiveTask,
+  uniqueValidationFindings,
+  type PacketKind,
+  type RouteTarget
+} from '../repair/content-correction.js';
 
 function retries(): number {
   const parsed = Number(process.env.MODEL_MAX_RETRIES ?? 2);
@@ -45,7 +55,11 @@ async function executeTarget(input: {
       const response = await executeModel({
         target: input.target,
         systemPrompt: input.packet.system,
-        userPrompt: input.packet.user
+        userPrompt: input.packet.user,
+        structuredOutput: {
+          schemaName: input.contract.outputContract.schemaName,
+          requiredFields: input.contract.outputContract.requiredFields
+        }
       });
       await persistModelCall({
         taskRunId: input.taskRunId,
@@ -136,9 +150,11 @@ async function tryRoute(input: {
 
 async function persistCompletedOutput(input: {
   taskRunId: string;
+  pairRunId: string;
   contract: TaskContract;
   modelOutput: unknown;
 }): Promise<unknown> {
+  await resolveFindingsForPair(input.pairRunId);
   const persistedOutput = materializeValidatedSirTaskOutput(input.contract, input.modelOutput);
   await completeTaskRun({
     taskRunId: input.taskRunId,
@@ -167,7 +183,7 @@ export async function runCognitiveTask(input: {
     taskRunId,
     inputHash
   });
-  const packet = buildPromptPacket(input.contract);
+  const originalPacket = buildPromptPacket(input.contract);
   const route = getModelRoute(input.contract.modelRole);
   operatorLog('operator.model.route', {
     taskType: input.contract.taskType,
@@ -176,63 +192,89 @@ export async function runCognitiveTask(input: {
     fallback: `${route.fallback.provider}/${route.fallback.model}`
   });
 
-  const primary = await tryRoute({
-    taskRunId,
-    pairRunId: input.pairRunId,
-    contract: input.contract,
-    target: route.primary,
-    isFallback: false,
-    packet,
-    completed,
-    completionContext: input.completionContext
+  let correctionPacket: CognitivePromptPacket | undefined;
+  const routed = await routeCognitiveTask({
+    async runAttempt(args: { target: RouteTarget; packetKind: PacketKind }) {
+      const packet = args.packetKind === 'CORRECTION' ? correctionPacket : originalPacket;
+      if (!packet) {
+        throw new Error('Content correction packet was requested before a validation defect was persisted.');
+      }
+      const target = args.target === 'primary' ? route.primary : route.fallback;
+      operatorLog(args.packetKind === 'CORRECTION' ? 'operator.model.correction' : 'operator.model.route_attempt', {
+        taskType: input.contract.taskType,
+        target: args.target,
+        packetKind: args.packetKind,
+        provider: target.provider,
+        model: target.model
+      });
+      return tryRoute({
+        taskRunId,
+        pairRunId: input.pairRunId,
+        contract: input.contract,
+        target,
+        isFallback: args.target === 'fallback',
+        packet,
+        completed,
+        completionContext: input.completionContext
+      });
+    },
+    async onValidationFailure({ rejectedJson, findings }) {
+      correctionPacket = buildContentCorrectionPacket(input.contract, rejectedJson, findings);
+      if (rejectedJson !== undefined) {
+        await persistRejectedTaskOutput({
+          taskRunId,
+          output: rejectedJson,
+          outputHash: canonicalArtifactHash(rejectedJson)
+        });
+      }
+      if (findings.length) {
+        await persistValidationFindings(input.pairRunId, findings);
+      }
+    }
   });
 
-  if (primary.passed && primary.output !== undefined) {
+  if (routed.status === 'COMPLETED') {
     const output = await persistCompletedOutput({
       taskRunId,
+      pairRunId: input.pairRunId,
       contract: input.contract,
-      modelOutput: primary.output
+      modelOutput: routed.output
     });
-    return { output, usedFallback: false };
+    return { output, usedFallback: routed.usedFallback };
   }
 
-  const fallback = await tryRoute({
-    taskRunId,
-    pairRunId: input.pairRunId,
-    contract: input.contract,
-    target: route.fallback,
-    isFallback: true,
-    packet,
-    completed,
-    completionContext: input.completionContext
-  });
-
-  if (fallback.passed && fallback.output !== undefined) {
-    const output = await persistCompletedOutput({
-      taskRunId,
-      contract: input.contract,
-      modelOutput: fallback.output
-    });
-    return { output, usedFallback: true };
-  }
-
-  const terminalFindings = [...primary.findings, ...fallback.findings].filter(
-    (item, index, all) =>
-      all.findIndex(
-        (other) => other.checkId === item.checkId && other.objectPath === item.objectPath && other.issue === item.issue
-      ) === index
-  );
-  if (terminalFindings.length) {
-    await persistValidationFindings(input.pairRunId, terminalFindings);
+  if (routed.status === 'FAIL_CONTENT_CORRECTION') {
+    const correction = routed.attempts.find((item) => item.packetKind === 'CORRECTION');
+    const prior = routed.attempts
+      .filter((item) => item.packetKind !== 'CORRECTION')
+      .flatMap((item) => item.findings);
+    const extra = uniqueValidationFindings(correction?.findings ?? []).filter(
+      (item) =>
+        !prior.some(
+          (other) =>
+            other.checkId === item.checkId && other.objectPath === item.objectPath && other.issue === item.issue
+        )
+    );
+    if (extra.length) {
+      await persistValidationFindings(input.pairRunId, extra);
+    }
+    if (routed.rejectedJson !== undefined) {
+      await persistRejectedTaskOutput({
+        taskRunId,
+        output: routed.rejectedJson,
+        outputHash: canonicalArtifactHash(routed.rejectedJson)
+      });
+    }
   }
   await failTaskRun(taskRunId);
 
-  const failureMessages = [primary.executionError?.message, fallback.executionError?.message]
-    .filter(Boolean)
-    .join(' | ');
-  throw new Error(
-    `Task ${input.contract.taskType} failed primary and fallback routes${
-      failureMessages ? `: ${failureMessages}` : ' due to deterministic completion failure.'
-    }`
-  );
+  if (routed.status === 'FAIL_EXECUTION_ROUTES') {
+    const failureMessages = routed.attempts
+      .map((item) => item.executionError?.message)
+      .filter(Boolean)
+      .join(' | ');
+    throw new Error(providerRouteFailureMessage(input.contract.taskType, failureMessages || undefined));
+  }
+
+  throw new Error(contentCorrectionFailureMessage(input.contract.taskType));
 }

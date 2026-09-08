@@ -54,14 +54,14 @@ Each role has an explicit primary provider/model and fallback provider/model. Pr
 2. persist the task as `STARTED` with deterministic input hash;
 3. build the provider-neutral prompt packet;
 4. execute the role's primary provider/model;
-5. run deterministic task completion;
+5. run deterministic task completion; local validation remains the pass/fail authority even when a provider accepted structured JSON;
 6. persist `COMPLETED` only when the output passes;
-7. if the primary execution or completion fails, execute the configured fallback;
-8. require the fallback to pass the same deterministic gate;
+7. if primary execution fails for transport, timeout, quota, empty response, or provider availability, execute the configured fallback with the same original packet;
+8. if completion fails after a successful model response, persist the rejected JSON and findings and issue one bounded correction request on the same provider (rejected JSON, exact findings, applicable schema, contract identity, allowed repair paths); do not replay the original prompt to another provider;
 9. persist model-call metadata for every attempt;
-10. persist failure findings and leave the task failed when neither route passes.
+10. persist failure findings and leave the task failed when execution routes are exhausted or the bounded correction remains invalid. Still-invalid content is surfaced through human review.
 
-A model never overrides a deterministic gate.
+A model never overrides a deterministic gate. Provider-native `json_object` / `json_schema` response formatting is a transport hint only.
 
 ## Local repair
 

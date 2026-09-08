@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseModelJson, requestBody, supportsCustomTemperature } from '../ai/provider-client.js';
+import { parseModelJson, requestBody, supportsCustomTemperature, supportsProviderJsonSchema } from '../ai/provider-client.js';
 import { getProviderBaseUrl } from '../ai/model-router.js';
 import { loadCategoriesBaseline } from '../baseline/categories.js';
 import { previewRepoBaselineManifest } from '../baseline/repo-artifacts.js';
@@ -201,6 +201,12 @@ assert(
 assert(
   classifyDomainPipelineStop('Task PAIR_BOUNDARY failed primary and fallback routes') === 'FAILED',
   'model or SIR failure must stop the pipeline for in-place retry'
+);
+assert(
+  classifyDomainPipelineStop(
+    'Task PAIR_BOUNDARY failed deterministic completion after bounded content correction.'
+  ) === 'FAILED',
+  'still-invalid corrected content must stop for human review'
 );
 
 assert(
@@ -556,12 +562,45 @@ assert(
   'Muse Spark body must not send temperature'
 );
 assert(
-  requestBody({
+  (requestBody({
     target: { provider: 'META', model: 'muse-spark-1.2' },
     systemPrompt: 'sys',
     userPrompt: 'user'
-  }).response_format,
+  }).response_format as { type?: string }).type === 'json_object',
   'Muse Spark still requests json_object'
+);
+assert(supportsProviderJsonSchema({ provider: 'OPENAI', model: 'gpt-4o' }) === true, 'gpt-4o may send json_schema');
+assert(
+  supportsProviderJsonSchema({ provider: 'OPENAI', model: 'gpt-5.6-terra' }) === false,
+  'gpt-5.6-terra must not send json_schema'
+);
+assert(
+  (
+    requestBody({
+      target: { provider: 'OPENAI', model: 'gpt-4o' },
+      systemPrompt: 'sys',
+      userPrompt: 'user',
+      structuredOutput: {
+        schemaName: 'SirPairBoundaryOutput',
+        requiredFields: ['capability.canonicalDefinition', 'boundaryRationale']
+      }
+    }).response_format as { type?: string }
+  ).type === 'json_schema',
+  'gpt-4o request uses json_schema as a transport hint only'
+);
+assert(
+  (
+    requestBody({
+      target: { provider: 'OPENAI', model: 'gpt-5.6-terra' },
+      systemPrompt: 'sys',
+      userPrompt: 'user',
+      structuredOutput: {
+        schemaName: 'SirPairBoundaryOutput',
+        requiredFields: ['capability.canonicalDefinition']
+      }
+    }).response_format as { type?: string }
+  ).type === 'json_object',
+  'gpt-5.6-terra request keeps json_object'
 );
 assert(getProviderBaseUrl('META') === 'https://api.meta.ai/v1', 'Meta default base URL is the Model API');
 assert(
