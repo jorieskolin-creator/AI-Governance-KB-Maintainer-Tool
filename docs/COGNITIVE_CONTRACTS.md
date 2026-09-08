@@ -10,6 +10,8 @@ The model conversation is never pipeline state. Validated persisted task artifac
 
 ## Pair task sequence
 
+Deterministic `SOURCE_CONTEXT` is acquired before `SOURCE_MAPPING`. It is not a model SIR task.
+
 1. `PAIR_BOUNDARY`
 2. `AP_FAILURE_MODEL`
 3. `APPLICABILITY`
@@ -21,10 +23,13 @@ The model conversation is never pipeline state. Validated persisted task artifac
 9. `SOURCE_MAPPING`
 10. `FINDING_ARCHITECTURE`
 11. `CONTROL_BOUNDARY`
-12. `REFERENCE_MAPPING`
-13. `PAIR_COHERENCE_REVIEW`
+12. `LIFECYCLE_ASSURANCE`
+13. `REFERENCE_MAPPING`
+14. `PAIR_COHERENCE_REVIEW`
 
 A completed domain batch is reviewed separately with `DOMAIN_COHERENCE_REVIEW` before it can become ready for external approval.
+
+The 14 pair SIR tasks remain separate. Shared completion-validator routes are not consolidations. `PRIMARY_QUESTIONS` and `ATOMIC_DECOMPOSITION` may be measured later as a prompt-grouping candidate only; both validators must still run independently. Merge stays closed unless a later explicit authorization is added after evidence. Never merge source acquisition into authoring, or QC into authoring.
 
 ## Cognitive isolation rules
 
@@ -32,7 +37,10 @@ A completed domain batch is reviewed separately with `DOMAIN_COHERENCE_REVIEW` b
 - `EVIDENCE_ARCHITECTURE` owns evidence objects, deterministic evidence IDs and exact atomic bindings.
 - `EVIDENCE_SAFETY` owns ceilings, false-positive guards, prohibited inferences, contradiction handling and freshness rules.
 - `AP_ABSENCE_CONTRACT` is isolated so silence or missing evidence can never become tested absence.
+- `SOURCE_CONTEXT` is code-owned source acquisition; it is never a model authoring step.
 - `SOURCE_MAPPING` can use only the deterministic allowed-source packet created from the sealed Source Register baseline.
+- `FINDING_ARCHITECTURE` owns finding definitions; `CONTROL_BOUNDARY` owns hard-gate and machine/human authority boundaries.
+- `LIFECYCLE_ASSURANCE` owns assurance targets per governed lifecycle stage and stays separate from control-boundary authoring.
 - `PAIR_COHERENCE_REVIEW` and `DOMAIN_COHERENCE_REVIEW` are critic-only; they return localized defects, never replacement production content.
 - Tactic references remain empty unless an exact approved reciprocal catalog mapping can be deterministically verified.
 

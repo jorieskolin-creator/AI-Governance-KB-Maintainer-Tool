@@ -1,5 +1,6 @@
 import type { OperatorDomainCard, OperatorStatus } from './board.js';
 import { flowLabel, OPERATOR_DOMAINS, taskDisplayStatus, taskLabel, workOrderLabel } from './board.js';
+import { operatorTaskBoundaryWording } from '../orchestration/task-boundaries.js';
 
 function escapeHtml(value: string): string {
   return value
@@ -547,6 +548,10 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <section class="flow">
       <p class="kicker">Domain flow</p>
       <ol>${flow}</ol>
+    </section>
+    <section class="flow">
+      <p class="kicker">Task boundaries</p>
+      <p class="lede">${escapeHtml(operatorTaskBoundaryWording())}</p>
     </section>
     <section class="board">
       <p class="kicker">Domain board</p>
