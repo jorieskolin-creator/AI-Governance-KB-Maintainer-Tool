@@ -1,4 +1,4 @@
-import { canonicalArtifactHash, canonicalArtifactValue } from './artifact-hash.js';
+import { canonicalArtifactHash, canonicalArtifactValue, sha256Utf8 } from './artifact-hash.js';
 
 const left = { b: 2, a: 1, nested: { z: 'last', a: 'first' } };
 const right = { nested: { a: 'first', z: 'last' }, a: 1, b: 2 };
@@ -51,6 +51,10 @@ if (!bigintRejected) {
 const canonical = canonicalArtifactValue({ z: 2, a: 1 });
 if (canonical !== '{"a":1,"z":2}') {
   throw new Error(`Unexpected canonical JSON representation: ${canonical}`);
+}
+
+if (canonicalArtifactHash({ z: 2, a: 1 }) !== sha256Utf8(canonical)) {
+  throw new Error('canonicalArtifactHash is not SHA-256 of the canonical UTF-8 bytes.');
 }
 
 console.log(JSON.stringify({

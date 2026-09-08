@@ -66,6 +66,7 @@ export interface DomainCandidateBundle {
   domainCoherence: 'PENDING' | 'PASSED' | 'FAILED' | 'NONE';
   releaseStatus: 'DRAFT';
   approval: 'NOT_GRANTED';
+  unresolvedIssues: string[];
   pairs: CandidatePairResult[];
   documents: CandidateDocumentItem[];
 }
@@ -255,6 +256,17 @@ export async function assembleDomainCandidateBundle(domain: DomainId): Promise<D
     }
   }
 
+  const unresolvedIssues: string[] = [];
+  if (domainCoherence !== 'PASSED') {
+    unresolvedIssues.push(`Domain coherence is ${domainCoherence}; DRAFT documents are not an approval bundle.`);
+  }
+  for (const pair of pairs) {
+    if (pair.status === 'FAILED') {
+      unresolvedIssues.push(pair.error ?? `${pair.pairId} failed DRAFT compile.`);
+    }
+    for (const note of pair.notes) unresolvedIssues.push(`${pair.pairId}: ${note}`);
+  }
+
   return {
     documentKind: 'DOMAIN_PRODUCTION_CANDIDATE_BUNDLE',
     domain,
@@ -263,6 +275,7 @@ export async function assembleDomainCandidateBundle(domain: DomainId): Promise<D
     domainCoherence,
     releaseStatus: 'DRAFT',
     approval: 'NOT_GRANTED',
+    unresolvedIssues,
     pairs,
     documents
   };
@@ -270,10 +283,10 @@ export async function assembleDomainCandidateBundle(domain: DomainId): Promise<D
 
 function escapeHtml(value: string): string {
   return value
-    .replaceAll('&', '&')
-    .replaceAll('<', '<')
-    .replaceAll('>', '>')
-    .replaceAll('"', '"')
+    .replaceAll('&', '&' + 'amp;')
+    .replaceAll('<', '&' + 'lt;')
+    .replaceAll('>', '&' + 'gt;')
+    .replaceAll('"', '&' + 'quot;')
     .replaceAll("'", '&#39;');
 }
 
@@ -398,11 +411,11 @@ export function renderCandidateObjectHtml(input: {
     <p class="banner">${
       failed
         ? escapeHtml(pair?.error ?? document?.error ?? 'This pair could not be compiled into a DRAFT document.')
-        : 'Assembled deterministically from persisted pair SIR artifacts. External approval and versioned release stay closed.'
+        : 'DRAFT visibility only. Unresolved source gaps, compile notes, and open findings remain visible. This is not the immutable approval bundle and is not APPROVED.'
     }</p>
     ${
       !failed && pair?.notes.length
-        ? `<p class="banner">${pair.notes.map((note) => escapeHtml(note)).join('<br>')}</p>`
+        ? `<p class="banner">Unresolved issues:<br>${pair.notes.map((note) => escapeHtml(note)).join('<br>')}</p>`
         : ''
     }
     <p class="meta"><a href="/documents/${escapeHtml(input.domain)}">Domain ${escapeHtml(input.domain)} documents</a>
@@ -459,8 +472,15 @@ export function renderCandidateIndexHtml(bundle: DomainCandidateBundle): string 
     <p class="kicker">DRAFT production candidates · approval not granted</p>
     <h1>${escapeHtml(bundle.domainTitle)}</h1>
     <p class="banner">${String(compiled)} of ${String(bundle.documents.length)} objects compiled as DRAFT.
-      Domain coherence: ${escapeHtml(bundle.domainCoherence)}. Versioned release stays closed until external APPROVED.</p>
-    <p><a href="/?domain=${escapeHtml(bundle.domain)}">Operator board</a> · <a href="/api/operator/documents/${escapeHtml(bundle.domain)}">JSON bundle</a></p>
+      Domain coherence: ${escapeHtml(bundle.domainCoherence)}. Approval is not granted. Unresolved issues stay visible here and are not publication bytes.</p>
+    ${
+      bundle.unresolvedIssues.length
+        ? `<ul class="fail">${bundle.unresolvedIssues.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+        : ''
+    }
+    <p><a href="/?domain=${escapeHtml(bundle.domain)}">Operator board</a>
+      · <a href="/api/operator/documents/${escapeHtml(bundle.domain)}">JSON bundle</a>
+      · <a href="/approval/${escapeHtml(bundle.domain)}">Approval bundle</a></p>
     <ol>${bundle.documents
       .map(
         (item) =>

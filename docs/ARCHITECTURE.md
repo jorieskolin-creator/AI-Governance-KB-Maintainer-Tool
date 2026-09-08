@@ -109,6 +109,8 @@ The service may determine `READY_FOR_APPROVAL` based on completed quality gates.
 
 Operator Continue after five pairs that actually passed Pair Coherence runs `DOMAIN_COHERENCE_REVIEW` and stops at `READY_FOR_APPROVAL`. Pair-complete DRAFT documents are assembled deterministically from persisted SIR artifacts without granting `APPROVED` or publishing a versioned release. Remaining HIGH pair-coherence blockers are a human approval step: the operator may edit semantic values at recommended paths and must record an explicit finding disposition (`RESOLVED`, `WAIVED`, `ACCEPTED_RISK`, or `REJECTED`) with authority and rationale. Deleting a finding from the form does not close it. BLOCKING findings are not waivable. That save is human approval of those changes against a new candidate revision; it rebuilds coherence packets from current snapshot hashes and re-runs schema, compile, and coherence gates. It is not domain `APPROVED` and does not publish.
 
+When a domain candidate is `READY_FOR_APPROVAL`, the operator approval review presents an immutable approval bundle bound to that candidate hash. The bundle contains candidate, source, baseline, render, gate-result, and proposed-manifest hashes, plus the exact canonical JSON and HTML bytes publication would release. Semantic parity between canonical JSON and each rendered format is fail-closed. DRAFT documents remain available and continue to identify unresolved issues. The QC “Approve and save” action and the approval-bundle preview do not grant domain `APPROVED` and do not publish.
+
 ## Persistence
 
 PostgreSQL is the control plane for:

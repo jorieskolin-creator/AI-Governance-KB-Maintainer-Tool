@@ -47,6 +47,8 @@ export interface DomainRunOverlay {
     available: boolean;
     indexHref: string;
     bundleHref: string;
+    approvalHref: string;
+    approvalAvailable: boolean;
   };
   review: {
     available: boolean;
@@ -86,7 +88,9 @@ export async function loadDomainOverlay(
       documents: {
         available: false,
         indexHref: `/documents/${domain}`,
-        bundleHref: `/api/operator/documents/${domain}`
+        bundleHref: `/api/operator/documents/${domain}`,
+        approvalHref: `/approval/${domain}`,
+        approvalAvailable: false
       },
       review: {
         available: false,
@@ -241,7 +245,9 @@ export async function loadDomainOverlay(
     documents: {
       available: pairs.filter((pair) => pair.state === 'VALIDATED').length === 5,
       indexHref: `/documents/${domain}`,
-      bundleHref: `/api/operator/documents/${domain}`
+      bundleHref: `/api/operator/documents/${domain}`,
+      approvalHref: `/approval/${domain}`,
+      approvalAvailable: run.state === 'READY_FOR_APPROVAL'
     },
     review: (() => {
       const unpaid = pairs.find((pair) => pair.pairCoherencePassed !== true && pair.tasks.some((task) => task.taskType === 'PAIR_COHERENCE_REVIEW' && task.status === 'COMPLETED'));
@@ -251,7 +257,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}/${unpaid.pairId}`,
           pairId: unpaid.pairId,
           kind: 'PAIR' as const,
-          reason: `${unpaid.pairId} Pair Coherence did not pass. Deleting a blocker or editing content and clicking Approve and save is human approval. After that complete section schemas, handles, identity, and the reference graph are checked. Empty sections cannot be saved.`
+          reason: `${unpaid.pairId} Pair Coherence did not pass. Record an explicit disposition (RESOLVED, WAIVED, ACCEPTED_RISK, or REJECTED) with authority and rationale. Deleting a finding does not close it. BLOCKING findings are not waivable. That save is bound to a new candidate revision and is not domain APPROVED.`
         };
       }
       const domainDefects =
@@ -265,7 +271,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}`,
           pairId: `DOMAIN-${domain}`,
           kind: 'DOMAIN' as const,
-          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Deleting a blocker or editing content and clicking Approve and save is human approval. After that complete section schemas, handles, identity, and the reference graph are checked. Empty sections cannot be saved. Continue stays closed until no HIGH domain defects remain.`
+          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Record an explicit disposition with authority and rationale. Deleting a finding does not close it. BLOCKING findings are not waivable. Continue stays closed until no HIGH domain defects remain. That save is not domain APPROVED.`
         };
       }
       return {

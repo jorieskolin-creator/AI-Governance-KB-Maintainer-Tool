@@ -9,6 +9,8 @@ import {
   renderCandidateIndexHtml,
   renderCandidateObjectHtml
 } from './candidate-documents.js';
+import { approvalBytesResponse, renderApprovalReviewHtml } from './approval-review.js';
+import { assembleDomainApprovalBundle } from '../release/assemble-approval-bundle.js';
 import { loadPairReviewPage, renderPairReviewHtml, savePairReview } from './pair-review.js';
 import { loadDomainReviewPage, renderDomainReviewHtml, saveDomainReview } from './domain-review.js';
 
@@ -28,6 +30,14 @@ function parseObjectId(value: unknown): string {
   const raw = String(value ?? '').trim().replace(/\.json$/i, '');
   if (!/^(AP-)?[A-F][1-5]$/.test(raw)) {
     throw new Error('Object id must be a capability or anti-pattern id such as A1 or AP-A1.');
+  }
+  return raw;
+}
+
+function parseSha256(value: unknown): string {
+  const raw = String(value ?? '').trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(raw)) {
+    throw new Error('Artifact digest must be a 64-character SHA-256 hex string.');
   }
   return raw;
 }
@@ -142,6 +152,84 @@ export function registerOperatorRoutes(
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Document assembly failed.';
       return noticeRedirect(reply, message, String((request.params as { domain?: unknown }).domain ?? ''));
+    }
+  });
+
+  app.get('/approval/:domain', async (request, reply) => {
+    try {
+      const domain = parseDomainId((request.params as { domain?: unknown }).domain);
+      const expected = (request.query as { candidate?: unknown }).candidate;
+      const result = await assembleDomainApprovalBundle({
+        domain,
+        expectedDomainCandidateHash: typeof expected === 'string' ? expected : undefined
+      });
+      const html = renderApprovalReviewHtml({
+        domain,
+        domainCandidateHash: result.domainCandidateHash,
+        issues: result.ok ? [] : result.issues,
+        bundle: result.ok ? result.bundle : undefined,
+        bundleSha256: result.ok ? result.bundleSha256 : undefined
+      });
+      return reply
+        .code(result.ok ? 200 : 409)
+        .type('text/html; charset=utf-8')
+        .header('cache-control', 'no-store')
+        .send(html);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Approval bundle assembly failed.';
+      return noticeRedirect(reply, message, String((request.params as { domain?: unknown }).domain ?? ''));
+    }
+  });
+
+  app.get('/api/operator/approval/:domain', async (request, reply) => {
+    try {
+      const domain = parseDomainId((request.params as { domain?: unknown }).domain);
+      const expected = (request.query as { candidate?: unknown }).candidate;
+      const result = await assembleDomainApprovalBundle({
+        domain,
+        expectedDomainCandidateHash: typeof expected === 'string' ? expected : undefined
+      });
+      if (!result.ok) {
+        return reply.code(409).send({ error: result.issues.join(' '), ...result });
+      }
+      return reply.header('cache-control', 'no-store').send({
+        documentKind: result.bundle.documentKind,
+        domainCandidateHash: result.domainCandidateHash,
+        bundleSha256: result.bundleSha256,
+        bundle: result.bundle,
+        approval: result.bundle.approval,
+        releaseStatus: result.bundle.releaseStatus
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Approval bundle assembly failed.';
+      return reply.code(409).send({ error: message });
+    }
+  });
+
+  app.get('/api/operator/approval/:domain/bytes/:sha256', async (request, reply) => {
+    try {
+      const domain = parseDomainId((request.params as { domain?: unknown }).domain);
+      const digest = parseSha256((request.params as { sha256?: unknown }).sha256);
+      const expected = (request.query as { candidate?: unknown }).candidate;
+      const result = await assembleDomainApprovalBundle({
+        domain,
+        expectedDomainCandidateHash: typeof expected === 'string' ? expected : undefined
+      });
+      if (!result.ok) {
+        return reply.code(409).send({ error: result.issues.join(' ') });
+      }
+      const payload = approvalBytesResponse(result.payloads, digest);
+      if (!payload) {
+        return reply.code(409).send({ error: 'Requested bytes are not in the current approval bundle.' });
+      }
+      return reply
+        .type(payload.contentType)
+        .header('cache-control', 'no-store')
+        .header('x-canonical-sha256', digest)
+        .send(payload.utf8);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Approval bytes lookup failed.';
+      return reply.code(409).send({ error: message });
     }
   });
 

@@ -70,9 +70,10 @@ const bundle: DomainCandidateBundle = {
   domainTitle: plan.identity.domainTitle,
   domainState: 'IN_PROGRESS',
   domainCoherence: 'NONE',
-  releaseStatus: 'DRAFT',
-  approval: 'NOT_GRANTED',
-  pairs: [
+    releaseStatus: 'DRAFT',
+    approval: 'NOT_GRANTED',
+    unresolvedIssues: draft.notes,
+    pairs: [
     {
       pairId: 'A2_AP-A2',
       status: 'COMPILED',
@@ -99,6 +100,7 @@ const html = renderCandidateObjectHtml({ domain: 'A', bundle, objectId: 'A2' });
 for (const identity of ['A2-Q1', 'A2-SC-001', 'EVD-A2-001', 'FND-A2-001', 'SRCMAP-A2-001']) {
   assert(html.includes(identity), `DRAFT HTML must include canonical identity ${identity}`);
 }
+assert(html.includes('Unresolved issues') || html.includes('not APPROVED'), 'DRAFT HTML must identify that approval is not granted');
 assert(!html.toLowerCase().includes('undefined'), 'DRAFT HTML must not contain missing identities');
 
 const incomplete = await compileSirPair({

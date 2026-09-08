@@ -151,3 +151,14 @@ export const findingDispositions = pgTable('finding_dispositions', {
   rationale: text('rationale').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
+
+export const approvalBundles = pgTable('approval_bundles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  domainRunId: uuid('domain_run_id').notNull(),
+  domainCandidateRevisionId: uuid('domain_candidate_revision_id').notNull(),
+  domainCandidateHash: text('domain_candidate_hash').notNull(),
+  bundle: jsonb('bundle').notNull(),
+  bundleSha256: text('bundle_sha256').notNull(),
+  payloads: jsonb('payloads').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});

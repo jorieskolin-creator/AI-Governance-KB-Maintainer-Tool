@@ -992,3 +992,104 @@ export async function loadFindingDispositions(
   }));
 }
 
+export async function loadNamedGateResults(candidateRevisionId: string): Promise<NamedGateResult[]> {
+  const result = await getDbPool().query<{
+    gate_name: NamedGateResult['gateName'];
+    outcome: NamedGateResult['outcome'];
+    validator_version: string;
+    findings: ValidationFinding[];
+  }>(
+    `select gate_name, outcome, validator_version, findings
+     from gate_results
+     where candidate_revision_id = $1
+     order by gate_name`,
+    [candidateRevisionId]
+  );
+  return result.rows.map((row) => ({
+    gateName: row.gate_name,
+    outcome: row.outcome,
+    validatorVersion: row.validator_version,
+    findings: Array.isArray(row.findings) ? row.findings : []
+  }));
+}
+
+export async function getCandidateRevisionIdByHash(input: {
+  scope: 'PAIR' | 'DOMAIN';
+  revisionHash: string;
+  pairRunId?: string;
+  domainRunId?: string;
+}): Promise<string | undefined> {
+  if (input.scope === 'PAIR') {
+    const result = await getDbPool().query<{ id: string }>(
+      `select id from candidate_revisions
+       where scope = 'PAIR' and pair_run_id = $1 and revision_hash = $2`,
+      [input.pairRunId, input.revisionHash]
+    );
+    return result.rows[0]?.id;
+  }
+  const result = await getDbPool().query<{ id: string }>(
+    `select id from candidate_revisions
+     where scope = 'DOMAIN' and domain_run_id = $1 and revision_hash = $2`,
+    [input.domainRunId, input.revisionHash]
+  );
+  return result.rows[0]?.id;
+}
+
+export interface FrozenApprovalBundleRow {
+  domainCandidateHash: string;
+  bundle: unknown;
+  bundleSha256: string;
+  payloads: unknown;
+}
+
+export async function loadFrozenApprovalBundle(
+  domainCandidateHash: string
+): Promise<FrozenApprovalBundleRow | undefined> {
+  const result = await getDbPool().query<{
+    domain_candidate_hash: string;
+    bundle: unknown;
+    bundle_sha256: string;
+    payloads: unknown;
+  }>(
+    `select domain_candidate_hash, bundle, bundle_sha256, payloads
+     from approval_bundles
+     where domain_candidate_hash = $1`,
+    [domainCandidateHash]
+  );
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    domainCandidateHash: row.domain_candidate_hash,
+    bundle: row.bundle,
+    bundleSha256: row.bundle_sha256,
+    payloads: row.payloads
+  };
+}
+
+export async function persistFrozenApprovalBundle(input: {
+  domainRunId: string;
+  domainCandidateRevisionId: string;
+  domainCandidateHash: string;
+  bundle: unknown;
+  bundleSha256: string;
+  payloads: unknown;
+}): Promise<FrozenApprovalBundleRow> {
+  await getDbPool().query(
+    `insert into approval_bundles(
+      domain_run_id, domain_candidate_revision_id, domain_candidate_hash, bundle, bundle_sha256, payloads
+    ) values ($1, $2, $3, $4::jsonb, $5, $6::jsonb)
+    on conflict (domain_candidate_hash) do nothing`,
+    [
+      input.domainRunId,
+      input.domainCandidateRevisionId,
+      input.domainCandidateHash,
+      JSON.stringify(input.bundle),
+      input.bundleSha256,
+      JSON.stringify(input.payloads)
+    ]
+  );
+  const stored = await loadFrozenApprovalBundle(input.domainCandidateHash);
+  if (!stored) throw new Error('Failed to persist the immutable approval bundle.');
+  return stored;
+}
+

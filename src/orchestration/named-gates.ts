@@ -33,6 +33,7 @@ export type NamedGateOutcome =
   | 'COHERENCE_CLEAN'
   | 'DEFECTS_OPEN'
   | 'RENDER_PARITY_VALID'
+  | 'RENDER_PARITY_FAILED'
   | 'READY_FOR_APPROVAL'
   | 'APPROVED'
   | 'PUBLISHED'
@@ -66,6 +67,15 @@ export function evaluateCanonicalCompile(defects: readonly ValidationFinding[]):
   return {
     gateName: 'CANONICAL_COMPILE',
     outcome: defects.length === 0 ? 'CANONICAL_COMPILE_VALID' : 'COMPILE_FAILED',
+    validatorVersion: GATE_VALIDATOR_VERSION,
+    findings: [...defects]
+  };
+}
+
+export function evaluateRenderParity(defects: readonly ValidationFinding[]): NamedGateResult {
+  return {
+    gateName: 'RENDER_PARITY',
+    outcome: defects.length === 0 ? 'RENDER_PARITY_VALID' : 'RENDER_PARITY_FAILED',
     validatorVersion: GATE_VALIDATOR_VERSION,
     findings: [...defects]
   };

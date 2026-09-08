@@ -34,6 +34,18 @@ export function canonicalArtifactValue(value: unknown): string {
   return canonicalJsonValue(jsonStorageValue(value));
 }
 
+export function utf8Bytes(text: string): Uint8Array {
+  return new TextEncoder().encode(text);
+}
+
+export function sha256Bytes(bytes: Uint8Array): string {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
+export function sha256Utf8(text: string): string {
+  return sha256Bytes(utf8Bytes(text));
+}
+
 export function canonicalArtifactHash(value: unknown): string {
-  return createHash('sha256').update(canonicalArtifactValue(value)).digest('hex');
+  return sha256Utf8(canonicalArtifactValue(value));
 }

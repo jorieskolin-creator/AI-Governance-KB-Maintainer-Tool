@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256Utf8 } from '../orchestration/artifact-hash.js';
 
 export interface ReleaseBaselineIdentity {
   baseline_snapshot_id: string;
@@ -51,6 +51,20 @@ export interface DomainReleaseManifest {
   created_at: string;
 }
 
+export interface ProposedReleaseApproval {
+  status: 'NOT_GRANTED';
+}
+
+export interface ProposedDomainReleaseManifest {
+  manifest_version: '1.0.0';
+  manifest_kind: 'PROPOSED_RELEASE_MANIFEST';
+  domain: string;
+  domain_release_version: string;
+  baseline: ReleaseBaselineIdentity;
+  external_approval: ProposedReleaseApproval;
+  pairs: PairManifestEntry[];
+}
+
 function stable(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(stable).join(',')}]`;
@@ -66,7 +80,15 @@ export function serializeReleaseManifest(manifest: DomainReleaseManifest): strin
 }
 
 export function manifestSha256(manifest: DomainReleaseManifest): string {
-  return createHash('sha256').update(serializeReleaseManifest(manifest)).digest('hex');
+  return sha256Utf8(serializeReleaseManifest(manifest));
+}
+
+export function serializeProposedReleaseManifest(manifest: ProposedDomainReleaseManifest): string {
+  return stable(manifest);
+}
+
+export function proposedManifestSha256(manifest: ProposedDomainReleaseManifest): string {
+  return sha256Utf8(serializeProposedReleaseManifest(manifest));
 }
 
 export function releaseBasePath(domain: string, domainReleaseVersion: string): string {
@@ -87,22 +109,16 @@ export function pairBasePath(input: {
   return `${root}/${input.domain}/${pair}/${versions}`;
 }
 
-export function validateReleaseManifest(manifest: DomainReleaseManifest): void {
-  if (!/^[A-F]$/.test(manifest.domain)) throw new Error(`Invalid release domain ${manifest.domain}.`);
-  if (!manifest.domain_release_version.trim()) throw new Error('Domain release version is required.');
-  if (!manifest.external_approval.approval_reference.trim()) {
-    throw new Error('External approval reference is required before publication.');
-  }
-  if (manifest.pairs.length === 0) throw new Error('A domain release must contain at least one pair.');
-
+function validateManifestPairs(domain: string, pairs: readonly PairManifestEntry[]): void {
+  if (pairs.length === 0) throw new Error('A domain release must contain at least one pair.');
   const pairIds = new Set<string>();
   const artifactPaths = new Set<string>();
-  for (const pair of manifest.pairs) {
+  for (const pair of manifestPairsSorted(pairs)) {
     if (pair.antipattern_id !== `AP-${pair.capability_id}`) {
       throw new Error(`Invalid pair identity ${pair.capability_id}/${pair.antipattern_id}.`);
     }
-    if (pair.capability_id.slice(0, 1) !== manifest.domain) {
-      throw new Error(`${pair.capability_id} does not belong to domain ${manifest.domain}.`);
+    if (pair.capability_id.slice(0, 1) !== domain) {
+      throw new Error(`${pair.capability_id} does not belong to domain ${domain}.`);
     }
     if (pairIds.has(pair.pair_id)) throw new Error(`Duplicate pair ${pair.pair_id} in release manifest.`);
     pairIds.add(pair.pair_id);
@@ -112,6 +128,46 @@ export function validateReleaseManifest(manifest: DomainReleaseManifest): void {
       artifactPaths.add(artifact.path);
       if (!/^[a-f0-9]{64}$/.test(artifact.sha256)) {
         throw new Error(`Invalid SHA-256 for ${artifact.path}.`);
+      }
+    }
+  }
+}
+
+export function manifestPairsSorted(pairs: readonly PairManifestEntry[]): PairManifestEntry[] {
+  return [...pairs]
+    .map((pair) => ({
+      ...pair,
+      artifacts: [...pair.artifacts].sort((left, right) => left.path.localeCompare(right.path))
+    }))
+    .sort((left, right) => left.pair_id.localeCompare(right.pair_id));
+}
+
+export function validateReleaseManifest(manifest: DomainReleaseManifest): void {
+  if (!/^[A-F]$/.test(manifest.domain)) throw new Error(`Invalid release domain ${manifest.domain}.`);
+  if (!manifest.domain_release_version.trim()) throw new Error('Domain release version is required.');
+  if (!manifest.external_approval.approval_reference.trim()) {
+    throw new Error('External approval reference is required before publication.');
+  }
+  validateManifestPairs(manifest.domain, manifest.pairs);
+}
+
+export function validateProposedReleaseManifest(manifest: ProposedDomainReleaseManifest): void {
+  if (manifest.manifest_kind !== 'PROPOSED_RELEASE_MANIFEST') {
+    throw new Error('Proposed release manifest kind is required.');
+  }
+  if (!/^[A-F]$/.test(manifest.domain)) throw new Error(`Invalid release domain ${manifest.domain}.`);
+  if (!manifest.domain_release_version.trim()) throw new Error('Domain release version is required.');
+  if (manifest.external_approval.status !== 'NOT_GRANTED') {
+    throw new Error('A proposed release manifest cannot claim external approval.');
+  }
+  if ('approval_reference' in manifest.external_approval) {
+    throw new Error('A proposed release manifest cannot carry an approval reference.');
+  }
+  validateManifestPairs(manifest.domain, manifest.pairs);
+  for (const pair of manifest.pairs) {
+    for (const artifact of pair.artifacts) {
+      if (artifact.url !== artifact.path) {
+        throw new Error(`Proposed artifact ${artifact.path} must use its path as the pending URL.`);
       }
     }
   }

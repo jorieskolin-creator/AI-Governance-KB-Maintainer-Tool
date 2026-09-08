@@ -78,6 +78,8 @@ export interface OperatorDomainCard {
     available: boolean;
     indexHref: string;
     bundleHref: string;
+    approvalHref: string;
+    approvalAvailable: boolean;
   };
   review: {
     available: boolean;
@@ -332,7 +334,9 @@ export function buildOperatorStatus(input: {
       documents: overlay?.documents ?? {
         available: false,
         indexHref: `/documents/${entry.domain}`,
-        bundleHref: `/api/operator/documents/${entry.domain}`
+        bundleHref: `/api/operator/documents/${entry.domain}`,
+        approvalHref: `/approval/${entry.domain}`,
+        approvalAvailable: false
       },
       review: overlay?.review ?? {
         available: false,

@@ -5,6 +5,7 @@ import {
   STALE_REVISION_ISSUE,
   evaluatePairGates,
   evaluateDomainGates,
+  evaluateRenderParity,
   gateBoundToCurrentRevision,
   pairMayValidate,
   domainMayReadyForApproval,
@@ -163,6 +164,21 @@ assert(
 );
 
 assert(Boolean(allSnapshotHashes.PAIR_BOUNDARY), 'pair candidate uses named SIR task hashes');
+assert(evaluateRenderParity([]).outcome === 'RENDER_PARITY_VALID', 'empty render defects record RENDER_PARITY_VALID');
+assert(
+  evaluateRenderParity([
+    {
+      checkId: 'RENDER_PARITY',
+      kind: 'PUBLICATION_PARITY',
+      severity: 'BLOCKING',
+      objectId: 'A2',
+      objectPath: '/title',
+      issue: 'Rendered title diverged from canonical JSON.',
+      dependencyScope: []
+    }
+  ]).outcome === 'RENDER_PARITY_FAILED',
+  'render semantic drift records RENDER_PARITY_FAILED'
+);
 
 console.log(
   JSON.stringify(
@@ -179,7 +195,9 @@ console.log(
         QC_INCOMPLETE: 'PASS',
         COHERENCE_CLEAN: 'PASS',
         DEFECTS_OPEN: 'PASS',
-        READY_FOR_APPROVAL: 'PASS'
+        READY_FOR_APPROVAL: 'PASS',
+        RENDER_PARITY_VALID: 'PASS',
+        RENDER_PARITY_FAILED: 'PASS'
       },
       lifecycleFromGates: 'PASS'
     },
