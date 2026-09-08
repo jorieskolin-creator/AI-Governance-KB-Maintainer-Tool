@@ -16,6 +16,12 @@ export function renderApprovalReviewHtml(input: {
   issues?: readonly string[];
   bundle?: ApprovalBundle;
   bundleSha256?: string;
+  commandsEnabled?: boolean;
+  recordedApproval?: {
+    approvalReference: string;
+    effectiveFrom: string;
+    releaseManifestSha256: string;
+  };
 }): string {
   const ready = Boolean(input.bundle && input.bundleSha256 && (!input.issues || input.issues.length === 0));
   const bundle = input.bundle;
@@ -51,6 +57,38 @@ export function renderApprovalReviewHtml(input: {
     input.issues && input.issues.length > 0
       ? `<ul class="fail">${input.issues.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
       : '';
+  const approvalForm =
+    ready && !input.recordedApproval && input.commandsEnabled
+      ? `<section>
+      <h2>Record operator approval</h2>
+      <p>Approval is bound to this candidate, bundle, and proposed-manifest hash. It does not publish.</p>
+      <form method="post" action="/api/operator/commands">
+        <input type="hidden" name="domain" value="${escapeHtml(input.domain)}">
+        <input type="hidden" name="action" value="record-approval">
+        <input type="hidden" name="domainCandidateHash" value="${escapeHtml(bundle?.domainCandidateHash ?? '')}">
+        <input type="hidden" name="approvalBundleSha256" value="${escapeHtml(input.bundleSha256 ?? '')}">
+        <input type="hidden" name="proposedManifestSha256" value="${escapeHtml(bundle?.proposedManifestSha256 ?? '')}">
+        <label>Approval reference <input name="approvalReference" required></label>
+        <label>Effective from <input name="effectiveFrom" type="date" required></label>
+        <button type="submit">Record approval</button>
+      </form>
+    </section>`
+      : '';
+  const publicationForm =
+    input.recordedApproval && input.commandsEnabled
+      ? `<section>
+      <h2>Publish approved release</h2>
+      <p>Publication uploads the approved immutable bytes and manifest. Retrying the same request verifies existing hashes; it never overwrites them.</p>
+      <form method="post" action="/api/operator/commands">
+        <input type="hidden" name="domain" value="${escapeHtml(input.domain)}">
+        <input type="hidden" name="action" value="publish-approved-release">
+        <input type="hidden" name="domainCandidateHash" value="${escapeHtml(bundle?.domainCandidateHash ?? input.domainCandidateHash ?? '')}">
+        <input type="hidden" name="approvalBundleSha256" value="${escapeHtml(input.bundleSha256 ?? '')}">
+        <input type="hidden" name="releaseManifestSha256" value="${escapeHtml(input.recordedApproval.releaseManifestSha256)}">
+        <button type="submit">Publish approved release</button>
+      </form>
+    </section>`
+      : '';
 
   return `<!doctype html>
 <html lang="en">
@@ -75,12 +113,18 @@ export function renderApprovalReviewHtml(input: {
 </head>
 <body>
   <main>
-    <p class="kicker">Immutable approval bundle · not APPROVED · not published</p>
+    <p class="kicker">${
+      input.recordedApproval
+        ? 'Immutable approval bundle · operator APPROVED · publication separate'
+        : 'Immutable approval bundle · not APPROVED · not published'
+    }</p>
     <h1>Domain ${escapeHtml(input.domain)} hash-bound preview</h1>
     <p class="banner">${
-      ready
-        ? 'These are the exact bytes and hashes publication would release. Operator approval and versioned publication stay closed.'
-        : 'No current approval bundle is available. DRAFT documents can still show unresolved issues. This page does not grant APPROVED.'
+      input.recordedApproval
+        ? 'Operator approval is bound to these hashes. Publication uploads the approved immutable bytes as a separate command.'
+        : ready
+          ? 'These are the exact bytes and hashes an approved release would publish. Recording approval does not publish.'
+          : 'No current approval bundle is available. DRAFT documents can still show unresolved issues. This page does not grant APPROVED.'
     }</p>
     ${issues}
     ${
@@ -89,6 +133,12 @@ export function renderApprovalReviewHtml(input: {
         : ''
     }
     ${hashes}
+    ${
+      input.recordedApproval
+        ? `<section><h2>Recorded approval</h2>
+        <p>Reference <code>${escapeHtml(input.recordedApproval.approvalReference)}</code> · effective <code>${escapeHtml(input.recordedApproval.effectiveFrom)}</code> · approved release manifest <code>${escapeHtml(input.recordedApproval.releaseManifestSha256)}</code></p></section>`
+        : ''
+    }
     ${pairHashes ? `<h2>Pair and source hashes</h2>${pairHashes}` : ''}
     ${renders ? `<h2>Rendered publication bytes</h2>${renders}` : ''}
     ${
@@ -98,6 +148,8 @@ export function renderApprovalReviewHtml(input: {
       <pre>${escapeHtml(JSON.stringify(bundle.proposedManifest, null, 2))}</pre>`
         : ''
     }
+    ${approvalForm}
+    ${publicationForm}
     <p><a href="/documents/${escapeHtml(input.domain)}">DRAFT documents</a>
       · <a href="/?domain=${escapeHtml(input.domain)}">Operator board</a></p>
   </main>

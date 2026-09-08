@@ -12,6 +12,8 @@ export type DomainState =
   | 'REPAIR_REQUIRED'
   | 'READY_FOR_APPROVAL'
   | 'APPROVED'
+  | 'PUBLISHING'
+  | 'PUBLICATION_FAILED'
   | 'PUBLISHED';
 
 export type RepairState = 'OPEN' | 'REPAIRING' | 'REVALIDATING' | 'RESOLVED';

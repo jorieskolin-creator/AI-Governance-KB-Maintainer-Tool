@@ -4,6 +4,8 @@ import type { TaskContract } from '../domain/task-contract.js';
 import type { ValidationFinding } from '../validation/contracts.js';
 import type { ModelExecutionResponse } from '../ai/provider-client.js';
 import type { ModelRole } from '../domain/task-contract.js';
+import type { DomainReleaseManifest } from '../release/manifest.js';
+import type { ApprovalBundlePayload } from '../release/approval-bundle.js';
 import { canonicalArtifactHash } from './artifact-hash.js';
 import { PAIR_CANDIDATE_HASH_TASKS } from './pipeline.js';
 import { SNAPSHOT_ROOT_TASK } from '../repair/qc-repair.js';
@@ -11,6 +13,7 @@ import { pairCandidateRevisionHash, domainCandidateRevisionHash } from './candid
 import {
   evaluateDomainGates,
   evaluatePairGates,
+  GATE_VALIDATOR_VERSION,
   snapshotIsComplete,
   type NamedGateOutcome,
   type NamedGateResult
@@ -470,6 +473,35 @@ export async function getLatestDomainRun(domain: string): Promise<DomainRunRecor
      order by d.created_at desc
      limit 1`,
     [domain]
+  );
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    id: row.id,
+    domain: row.domain,
+    state: row.state,
+    baselineSnapshotId: row.baseline_snapshot_id,
+    baselineSha256: row.sha256,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+export async function getDomainRunById(id: string): Promise<DomainRunRecord | undefined> {
+  const result = await getDbPool().query<{
+    id: string;
+    domain: string;
+    state: DomainState;
+    baseline_snapshot_id: string;
+    sha256: string;
+    created_at: Date;
+    updated_at: Date;
+  }>(
+    `select d.id, d.domain, d.state, d.baseline_snapshot_id, b.sha256, d.created_at, d.updated_at
+     from domain_runs d
+     join baseline_snapshots b on b.id = d.baseline_snapshot_id
+     where d.id = $1`,
+    [id]
   );
   const row = result.rows[0];
   if (!row) return undefined;
@@ -1035,6 +1067,22 @@ export async function getCandidateRevisionIdByHash(input: {
   return result.rows[0]?.id;
 }
 
+export async function recordDomainNamedGates(
+  domainRunId: string,
+  candidateHash: string,
+  results: NamedGateResult[]
+): Promise<void> {
+  const candidateId = await getCandidateRevisionIdByHash({
+    scope: 'DOMAIN',
+    domainRunId,
+    revisionHash: candidateHash
+  });
+  if (!candidateId) {
+    throw new Error('Current domain candidate revision is missing while recording a gate result.');
+  }
+  await persistGateResults(candidateId, results);
+}
+
 export interface FrozenApprovalBundleRow {
   domainCandidateHash: string;
   bundle: unknown;
@@ -1091,5 +1139,476 @@ export async function persistFrozenApprovalBundle(input: {
   const stored = await loadFrozenApprovalBundle(input.domainCandidateHash);
   if (!stored) throw new Error('Failed to persist the immutable approval bundle.');
   return stored;
+}
+
+export interface DomainApprovalRecord {
+  id: string;
+  domainRunId: string;
+  domainCandidateHash: string;
+  approvalBundleSha256: string;
+  proposedManifestSha256: string;
+  releaseManifest: DomainReleaseManifest;
+  releasePayloads: Record<string, ApprovalBundlePayload>;
+  releaseManifestSha256: string;
+  approvalReference: string;
+  approvedByRole: 'OPERATOR';
+  approvedOn: string;
+  effectiveFrom: string;
+}
+
+export async function loadDomainApproval(domainRunId: string): Promise<DomainApprovalRecord | undefined> {
+  const result = await getDbPool().query<{
+    id: string;
+    domain_run_id: string;
+    domain_candidate_hash: string;
+    approval_bundle_sha256: string;
+    proposed_manifest_sha256: string;
+    release_manifest: DomainReleaseManifest;
+    release_payloads: Record<string, ApprovalBundlePayload>;
+    release_manifest_sha256: string;
+    approval_reference: string;
+    approved_by_role: 'OPERATOR';
+    approved_on: Date;
+    effective_from: string;
+  }>(
+    `select id, domain_run_id, domain_candidate_hash, approval_bundle_sha256,
+            proposed_manifest_sha256, release_manifest, release_payloads, release_manifest_sha256,
+            approval_reference, approved_by_role, approved_on, effective_from
+     from domain_approvals
+     where domain_run_id = $1`,
+    [domainRunId]
+  );
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    id: row.id,
+    domainRunId: row.domain_run_id,
+    domainCandidateHash: row.domain_candidate_hash,
+    approvalBundleSha256: row.approval_bundle_sha256,
+    proposedManifestSha256: row.proposed_manifest_sha256,
+    releaseManifest: row.release_manifest,
+    releasePayloads: row.release_payloads,
+    releaseManifestSha256: row.release_manifest_sha256,
+    approvalReference: row.approval_reference,
+    approvedByRole: row.approved_by_role,
+    approvedOn: row.approved_on.toISOString(),
+    effectiveFrom: row.effective_from
+  };
+}
+
+export async function loadDomainApprovalForCandidate(input: {
+  domain: string;
+  domainCandidateHash: string;
+}): Promise<DomainApprovalRecord | undefined> {
+  const result = await getDbPool().query<{
+    id: string;
+    domain_run_id: string;
+    domain_candidate_hash: string;
+    approval_bundle_sha256: string;
+    proposed_manifest_sha256: string;
+    release_manifest: DomainReleaseManifest;
+    release_payloads: Record<string, ApprovalBundlePayload>;
+    release_manifest_sha256: string;
+    approval_reference: string;
+    approved_by_role: 'OPERATOR';
+    approved_on: Date;
+    effective_from: string;
+  }>(
+    `select a.id, a.domain_run_id, a.domain_candidate_hash, a.approval_bundle_sha256,
+            a.proposed_manifest_sha256, a.release_manifest, a.release_payloads, a.release_manifest_sha256,
+            a.approval_reference, a.approved_by_role, a.approved_on, a.effective_from
+     from domain_approvals a
+     join domain_runs d on d.id = a.domain_run_id
+     where d.domain = $1 and a.domain_candidate_hash = $2`,
+    [input.domain, input.domainCandidateHash]
+  );
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    id: row.id,
+    domainRunId: row.domain_run_id,
+    domainCandidateHash: row.domain_candidate_hash,
+    approvalBundleSha256: row.approval_bundle_sha256,
+    proposedManifestSha256: row.proposed_manifest_sha256,
+    releaseManifest: row.release_manifest,
+    releasePayloads: row.release_payloads,
+    releaseManifestSha256: row.release_manifest_sha256,
+    approvalReference: row.approval_reference,
+    approvedByRole: row.approved_by_role,
+    approvedOn: row.approved_on.toISOString(),
+    effectiveFrom: row.effective_from
+  };
+}
+
+export async function loadLatestDomainApprovalForDomain(
+  domain: string
+): Promise<DomainApprovalRecord | undefined> {
+  const result = await getDbPool().query<{
+    id: string;
+    domain_run_id: string;
+    domain_candidate_hash: string;
+    approval_bundle_sha256: string;
+    proposed_manifest_sha256: string;
+    release_manifest: DomainReleaseManifest;
+    release_payloads: Record<string, ApprovalBundlePayload>;
+    release_manifest_sha256: string;
+    approval_reference: string;
+    approved_by_role: 'OPERATOR';
+    approved_on: Date;
+    effective_from: string;
+  }>(
+    `select a.id, a.domain_run_id, a.domain_candidate_hash, a.approval_bundle_sha256,
+            a.proposed_manifest_sha256, a.release_manifest, a.release_payloads, a.release_manifest_sha256,
+            a.approval_reference, a.approved_by_role, a.approved_on, a.effective_from
+     from domain_approvals a
+     join domain_runs d on d.id = a.domain_run_id
+     where d.domain = $1
+     order by a.created_at desc
+     limit 1`,
+    [domain]
+  );
+  const row = result.rows[0];
+  if (!row) return undefined;
+  return {
+    id: row.id,
+    domainRunId: row.domain_run_id,
+    domainCandidateHash: row.domain_candidate_hash,
+    approvalBundleSha256: row.approval_bundle_sha256,
+    proposedManifestSha256: row.proposed_manifest_sha256,
+    releaseManifest: row.release_manifest,
+    releasePayloads: row.release_payloads,
+    releaseManifestSha256: row.release_manifest_sha256,
+    approvalReference: row.approval_reference,
+    approvedByRole: row.approved_by_role,
+    approvedOn: row.approved_on.toISOString(),
+    effectiveFrom: row.effective_from
+  };
+}
+
+export async function persistDomainApproval(input: Omit<DomainApprovalRecord, 'id'>): Promise<DomainApprovalRecord> {
+  const client = await getDbPool().connect();
+  try {
+    await client.query('begin');
+    const domain = await client.query<{ state: DomainState }>(
+      'select state from domain_runs where id = $1 for update',
+      [input.domainRunId]
+    );
+    const state = domain.rows[0]?.state;
+    if (!state) throw new Error('Domain run is missing while recording approval.');
+
+    const existing = await client.query<{
+      id: string;
+      domain_run_id: string;
+      domain_candidate_hash: string;
+      approval_bundle_sha256: string;
+      proposed_manifest_sha256: string;
+      release_manifest: DomainReleaseManifest;
+      release_payloads: Record<string, ApprovalBundlePayload>;
+      release_manifest_sha256: string;
+      approval_reference: string;
+      approved_by_role: 'OPERATOR';
+      approved_on: Date;
+      effective_from: string | Date;
+    }>(
+      `select id, domain_run_id, domain_candidate_hash, approval_bundle_sha256,
+              proposed_manifest_sha256, release_manifest, release_payloads, release_manifest_sha256,
+              approval_reference, approved_by_role, approved_on, effective_from
+       from domain_approvals
+       where domain_run_id = $1
+       for update`,
+      [input.domainRunId]
+    );
+    const current = existing.rows[0];
+    if (current) {
+      if (
+        current.domain_candidate_hash !== input.domainCandidateHash ||
+        current.approval_bundle_sha256 !== input.approvalBundleSha256 ||
+        current.proposed_manifest_sha256 !== input.proposedManifestSha256 ||
+        current.release_manifest_sha256 !== input.releaseManifestSha256
+      ) {
+        throw new Error('Domain run already has an approval bound to different immutable hashes.');
+      }
+      const existingEffectiveFrom =
+        current.effective_from instanceof Date
+          ? current.effective_from.toISOString().slice(0, 10)
+          : String(current.effective_from).slice(0, 10);
+      if (
+        current.approval_reference !== input.approvalReference ||
+        existingEffectiveFrom !== input.effectiveFrom
+      ) {
+        throw new Error('Domain run already has an approval with a different operator identity.');
+      }
+      await client.query('commit');
+      return {
+        id: current.id,
+        domainRunId: current.domain_run_id,
+        domainCandidateHash: current.domain_candidate_hash,
+        approvalBundleSha256: current.approval_bundle_sha256,
+        proposedManifestSha256: current.proposed_manifest_sha256,
+        releaseManifest: current.release_manifest,
+        releasePayloads: current.release_payloads,
+        releaseManifestSha256: current.release_manifest_sha256,
+        approvalReference: current.approval_reference,
+        approvedByRole: current.approved_by_role,
+        approvedOn: current.approved_on.toISOString(),
+        effectiveFrom: existingEffectiveFrom
+      };
+    }
+    if (state !== 'READY_FOR_APPROVAL') {
+      throw new Error(`Domain run is ${state}, not READY_FOR_APPROVAL.`);
+    }
+
+    const inserted = await client.query<{ id: string }>(
+      `insert into domain_approvals(
+        domain_run_id, domain_candidate_hash, approval_bundle_sha256, proposed_manifest_sha256,
+        release_manifest, release_payloads, release_manifest_sha256, approval_reference, approved_by_role,
+        approved_on, effective_from
+      ) values ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7,$8,$9,$10::timestamptz,$11::date)
+      returning id`,
+      [
+        input.domainRunId,
+        input.domainCandidateHash,
+        input.approvalBundleSha256,
+        input.proposedManifestSha256,
+        JSON.stringify(input.releaseManifest),
+        JSON.stringify(input.releasePayloads),
+        input.releaseManifestSha256,
+        input.approvalReference,
+        input.approvedByRole,
+        input.approvedOn,
+        input.effectiveFrom
+      ]
+    );
+    const id = inserted.rows[0]?.id;
+    if (!id) throw new Error('Failed to persist the immutable domain approval.');
+    await client.query(
+      `update domain_runs
+       set state = 'APPROVED', approval_reference = $2, approved_at = $3::timestamptz, updated_at = now()
+       where id = $1 and state = 'READY_FOR_APPROVAL'`,
+      [input.domainRunId, input.approvalReference, input.approvedOn]
+    );
+    await client.query('commit');
+    return { id, ...input };
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export type PublicationJobState = 'PENDING' | 'UPLOADING' | 'PUBLISHED' | 'FAILED';
+
+export interface PublicationJobRecord {
+  id: string;
+  domainRunId: string;
+  domainApprovalId: string;
+  releaseManifestSha256: string;
+  state: PublicationJobState;
+  attemptCount: number;
+  lastError: string | null;
+  releaseId: string | null;
+}
+
+interface PublicationJobRow {
+  id: string;
+  domain_run_id: string;
+  domain_approval_id: string;
+  release_manifest_sha256: string;
+  state: PublicationJobState;
+  attempt_count: number;
+  last_error: string | null;
+  release_id: string | null;
+}
+
+export async function beginPublicationJob(input: {
+  domainRunId: string;
+  domainApprovalId: string;
+  releaseManifestSha256: string;
+}): Promise<PublicationJobRecord> {
+  const client = await getDbPool().connect();
+  try {
+    await client.query('begin');
+    const domain = await client.query<{ state: DomainState }>(
+      'select state from domain_runs where id = $1 for update',
+      [input.domainRunId]
+    );
+    const state = domain.rows[0]?.state;
+    if (!state) throw new Error('Domain run is missing while starting publication.');
+    if (!['APPROVED', 'PUBLISHING', 'PUBLICATION_FAILED', 'PUBLISHED'].includes(state)) {
+      throw new Error(`Domain run is ${state}, not approved for publication.`);
+    }
+    const approval = await client.query<{ release_manifest_sha256: string }>(
+      `select release_manifest_sha256 from domain_approvals
+       where id = $1 and domain_run_id = $2
+       for update`,
+      [input.domainApprovalId, input.domainRunId]
+    );
+    if (approval.rows[0]?.release_manifest_sha256 !== input.releaseManifestSha256) {
+      throw new Error('Publication manifest hash is not bound to the recorded domain approval.');
+    }
+    const existing = await client.query<PublicationJobRow>(
+      `select id, domain_run_id, domain_approval_id, release_manifest_sha256, state,
+              attempt_count, last_error, release_id
+       from publication_jobs
+       where domain_run_id = $1
+       for update`,
+      [input.domainRunId]
+    );
+    let row = existing.rows[0];
+    if (row && (row.domain_approval_id !== input.domainApprovalId || row.release_manifest_sha256 !== input.releaseManifestSha256)) {
+      throw new Error('Domain publication job is bound to a different approval or manifest.');
+    }
+    if (row?.state === 'PUBLISHED' && row.release_id) {
+      await client.query('commit');
+      return {
+        id: row.id,
+        domainRunId: row.domain_run_id,
+        domainApprovalId: row.domain_approval_id,
+        releaseManifestSha256: row.release_manifest_sha256,
+        state: row.state,
+        attemptCount: row.attempt_count,
+        lastError: row.last_error,
+        releaseId: row.release_id
+      };
+    }
+    if (row) {
+      const updated = await client.query<PublicationJobRow>(
+        `update publication_jobs
+         set state = 'UPLOADING', attempt_count = attempt_count + 1, last_error = null, updated_at = now()
+         where id = $1
+         returning id, domain_run_id, domain_approval_id, release_manifest_sha256, state,
+                   attempt_count, last_error, release_id`,
+        [row.id]
+      );
+      row = updated.rows[0];
+    } else {
+      const inserted = await client.query<PublicationJobRow>(
+        `insert into publication_jobs(
+          domain_run_id, domain_approval_id, release_manifest_sha256, state, attempt_count
+        ) values ($1,$2,$3,'UPLOADING',1)
+        returning id, domain_run_id, domain_approval_id, release_manifest_sha256, state,
+                  attempt_count, last_error, release_id`,
+        [input.domainRunId, input.domainApprovalId, input.releaseManifestSha256]
+      );
+      row = inserted.rows[0];
+    }
+    if (!row) throw new Error('Failed to create the publication job.');
+    await client.query(
+      `update domain_runs set state = 'PUBLISHING', updated_at = now()
+       where id = $1 and state in ('APPROVED', 'PUBLICATION_FAILED', 'PUBLISHING')`,
+      [input.domainRunId]
+    );
+    await client.query('commit');
+    return {
+      id: row.id,
+      domainRunId: row.domain_run_id,
+      domainApprovalId: row.domain_approval_id,
+      releaseManifestSha256: row.release_manifest_sha256,
+      state: row.state,
+      attemptCount: row.attempt_count,
+      lastError: row.last_error,
+      releaseId: row.release_id
+    };
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function completePublicationJob(input: {
+  jobId: string;
+  domainRunId: string;
+  releaseManifestSha256: string;
+  releaseId: string;
+}): Promise<void> {
+  const client = await getDbPool().connect();
+  try {
+    await client.query('begin');
+    const completed = await client.query(
+      `update publication_jobs
+       set state = 'PUBLISHED', release_id = $4, last_error = null, updated_at = now()
+       where id = $1 and domain_run_id = $2 and release_manifest_sha256 = $3
+         and state = 'UPLOADING'`,
+      [input.jobId, input.domainRunId, input.releaseManifestSha256, input.releaseId]
+    );
+    if (completed.rowCount !== 1) {
+      throw new Error('Publication job is no longer active for the approved manifest.');
+    }
+    const domain = await client.query(
+      `update domain_runs set state = 'PUBLISHED', updated_at = now()
+       where id = $1 and state = 'PUBLISHING'`,
+      [input.domainRunId]
+    );
+    if (domain.rowCount !== 1) throw new Error('Domain run is no longer PUBLISHING.');
+    await client.query('commit');
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally {
+    client.release();
+  }
+  await recordPublicationNamedGate(input.domainRunId, 'PUBLISHED');
+}
+
+export async function failPublicationJob(input: {
+  jobId: string;
+  domainRunId: string;
+  error: string;
+}): Promise<void> {
+  const client = await getDbPool().connect();
+  try {
+    await client.query('begin');
+    await client.query(
+      `update publication_jobs
+       set state = 'FAILED', last_error = $2, updated_at = now()
+       where id = $1 and state = 'UPLOADING'`,
+      [input.jobId, input.error.slice(0, 4000)]
+    );
+    await client.query(
+      `update domain_runs set state = 'PUBLICATION_FAILED', updated_at = now()
+       where id = $1 and state = 'PUBLISHING'`,
+      [input.domainRunId]
+    );
+    await client.query('commit');
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally {
+    client.release();
+  }
+  await recordPublicationNamedGate(input.domainRunId, 'PUBLICATION_FAILED');
+}
+
+export async function recordPublicationNamedGate(
+  domainRunId: string,
+  outcome: 'PUBLISHED' | 'PUBLICATION_FAILED'
+): Promise<void> {
+  const approval = await loadDomainApproval(domainRunId);
+  if (!approval) {
+    throw new Error('Domain approval is missing while recording the publication gate.');
+  }
+  const candidateId = await getCandidateRevisionIdByHash({
+    scope: 'DOMAIN',
+    domainRunId,
+    revisionHash: approval.domainCandidateHash
+  });
+  if (!candidateId) {
+    throw new Error('Current domain candidate revision is missing while recording a publication gate.');
+  }
+  await getDbPool().query(
+    `insert into gate_results(candidate_revision_id, gate_name, outcome, validator_version, findings)
+     values ($1, 'PUBLICATION', $2, $3, '[]'::jsonb)
+     on conflict (candidate_revision_id, gate_name) do update
+     set outcome = case
+           when gate_results.outcome = 'PUBLISHED' then gate_results.outcome
+           else excluded.outcome
+         end,
+         validator_version = excluded.validator_version,
+         findings = excluded.findings`,
+    [candidateId, outcome, GATE_VALIDATOR_VERSION]
+  );
 }
 

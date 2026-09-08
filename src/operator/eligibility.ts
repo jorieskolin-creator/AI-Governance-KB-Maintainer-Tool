@@ -216,9 +216,9 @@ export function commandAvailability(input: {
   runNextTask: CommandFlag;
   recordApproval: CommandFlag;
 } {
-  const recordApproval: CommandFlag = {
+  let recordApproval: CommandFlag = {
     enabled: false,
-    reason: 'External approval intake stays closed. APPROVED is not granted in this UI.'
+    reason: 'Approval is available only after a current READY_FOR_APPROVAL bundle is assembled.'
   };
 
   if (!input.databaseReady) {
@@ -235,6 +235,13 @@ export function commandAvailability(input: {
       startDomainRun: { enabled: false, reason },
       runNextTask: { enabled: false, reason },
       recordApproval
+    };
+  }
+
+  if (input.activeRun?.state === 'READY_FOR_APPROVAL') {
+    recordApproval = {
+      enabled: true,
+      reason: 'Record standalone operator approval against the exact current candidate, approval-bundle, and proposed-manifest hashes. Publication remains a separate operation.'
     };
   }
 

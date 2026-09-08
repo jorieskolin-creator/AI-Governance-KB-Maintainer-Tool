@@ -265,6 +265,24 @@ assert(
 );
 assert(fiveValidatedAvailability.recordApproval.enabled === false, 'approval stays closed after pair validation');
 
+const readyAvailability = commandAvailability({
+  databaseReady: true,
+  commandsEnabled: true,
+  modelRoutesConfigured: true,
+  domain: 'A',
+  activeRun: {
+    state: 'READY_FOR_APPROVAL',
+    pairs: fiveValidated,
+    domainCoherence: { status: 'COMPLETED', passed: true }
+  }
+});
+assert(readyAvailability.recordApproval.enabled === true, 'READY_FOR_APPROVAL enables hash-bound operator approval');
+assert(readyAvailability.startDomainRun.enabled === false, 'ready domain does not start a new run');
+assert(
+  readyAvailability.runNextTask.enabled === false,
+  'Continue stays closed after READY_FOR_APPROVAL because approval is a separate command'
+);
+
 const deferredPairs = nextEligiblePairTask('B', [
   { pairId: 'B1_AP-B1', state: 'VALIDATED', tasks: allCompleted },
   { pairId: 'B2_AP-B2', state: 'VALIDATED', tasks: allCompleted },

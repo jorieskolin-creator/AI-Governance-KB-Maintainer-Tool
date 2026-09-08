@@ -1,5 +1,9 @@
 import { createHash } from 'node:crypto';
-import type { ArtifactStore, ReleaseArtifact } from '../storage/artifact-store.js';
+import {
+  putImmutableOrVerify,
+  type ArtifactStore,
+  type ReleaseArtifact
+} from '../storage/artifact-store.js';
 import { createArtifactStore } from '../storage/vercel-blob.js';
 import {
   manifestSha256,
@@ -98,7 +102,7 @@ async function publishPair(
       bytes: prepared.bytes,
       sha256: hash
     };
-    const stored = await store.putImmutable(artifact);
+    const stored = await putImmutableOrVerify(store, artifact);
     manifestArtifacts.push({
       artifact_type: prepared.artifactType,
       object_id: prepared.objectId,
@@ -149,7 +153,7 @@ export async function publishDomainRelease(
   }
 
   const manifestPath = `${releaseBasePath(input.domain, input.domainReleaseVersion)}/release_manifest.json`;
-  const storedManifest = await store.putImmutable({
+  const storedManifest = await putImmutableOrVerify(store, {
     path: manifestPath,
     contentType: 'application/json',
     bytes: manifestBytes,
