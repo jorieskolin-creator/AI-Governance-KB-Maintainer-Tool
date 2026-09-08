@@ -298,8 +298,12 @@ const covered = evaluatePairGates({
   review: undefined
 });
 assert(
-  covered.some((item) => item.outcome === 'SOURCE_COVERAGE_COMPLETE'),
-  'final claim-to-locator mapping gate takes precedence once SOURCE_MAPPING exists'
+  covered.some((item) => item.outcome === 'SOURCE_GAPS_PRESENT') &&
+    !covered.some((item) => item.outcome === 'SOURCE_COVERAGE_COMPLETE') &&
+    covered.some((item) =>
+      item.findings.some((finding) => finding.checkId === 'SOURCE_CONTEXT_ZERO_LOCATORS')
+    ),
+  'fabricated claim mappings cannot complete coverage against a zero-locator packet'
 );
 
 const snapshot: BaselineSnapshot = {
@@ -328,7 +332,7 @@ console.log(
       outOfUniverseLocator: 'REJECTED',
       metadataOnlySnippetStrip: 'PASS',
       mappingsPendingNotComplete: 'PASS',
-      finalMappingGatePrecedence: 'PASS',
+      fabricatedMappingsDoNotCompleteZeroLocatorPacket: 'PASS',
       sealedRegisterDoesNotInventLocators: 'PASS',
       sourceContextNotBoardSirTask: 'PASS'
     },
