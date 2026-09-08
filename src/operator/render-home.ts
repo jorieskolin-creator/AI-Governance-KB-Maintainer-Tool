@@ -124,7 +124,7 @@ function runActivity(card: OperatorDomainCard): string {
       return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Record an explicit disposition with authority and rationale. Deleting a finding does not close it. Domain Coherence stays closed until every pair actually passed.</p>`;
     }
     if (card.documents.approvalAvailable) {
-      return `<p class="activity">Work order OPEN. Domain coherence passed. The hash-bound approval bundle is the exact bytes publication would release. Operator approval and published release stay closed.</p>`;
+      return `<p class="activity">Work order OPEN. Domain coherence passed. The hash-bound approval bundle is the exact bytes publication would release. Record operator approval against those hashes. Publication stays a separate operation.</p>`;
     }
       return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts and still show unresolved issues. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. Operator approval and published release stay closed.</p>`;
   }
@@ -209,7 +209,7 @@ function documentList(card: OperatorDomainCard): string {
   }</a></p>`;
   return `<section class="defects documents">
       <p class="kicker">DRAFT production candidates</p>
-      <p class="meta">DRAFT documents stay visible with unresolved issues. The approval bundle, when present, is the exact bytes and hashes publication would release. Neither is APPROVED and neither publishes a versioned release.</p>
+      <p class="meta">DRAFT documents stay visible with unresolved issues. The approval bundle binds the reviewed candidate and proposed manifest. Recording operator approval finalizes immutable APPROVED bytes; publication remains a separate operation.</p>
       ${draft}
       ${approval}
     </section>`;
@@ -269,17 +269,17 @@ function domainPanel(card: OperatorDomainCard): string {
               ? 'HIGH defects listed'
               : 'after five pairs are VALIDATED'
       }</strong></li>
-      <li><span>External approval</span><strong>human process · not granted here</strong></li>
+      <li><span>Operator approval</span><strong>${card.commands.recordApproval.enabled ? 'current hash-bound bundle may be approved' : 'after READY_FOR_APPROVAL'}</strong></li>
       <li><span>Production candidates</span><strong>${
         card.documents.available ? 'DRAFT documents available · unresolved issues remain visible · not APPROVED' : 'after five pairs are VALIDATED'
       }</strong></li>
       <li><span>Approval bundle</span><strong>${
         card.documents.approvalAvailable
-          ? 'hash-bound preview of publication bytes · not APPROVED'
+          ? 'hash-bound candidate and proposed manifest'
           : 'after READY_FOR_APPROVAL'
       }</strong></li>
-      <li><span>Canonical compile</span><strong>production compile closed until APPROVED</strong></li>
-      <li><span>Versioned release</span><strong>closed until APPROVED</strong></li>
+      <li><span>Canonical compile</span><strong>release bytes finalize only after APPROVED</strong></li>
+      <li><span>Versioned release</span><strong>separate idempotent operation after APPROVED</strong></li>
     </ol>
   </article>`;
 }
@@ -535,7 +535,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human approval step: record an explicit disposition, then Approve and save. After that complete section schemas, handles, identity, and the reference graph are checked; empty sections cannot be saved. After five pairs actually pass Pair Coherence, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, the approval bundle presents the exact publication bytes and hashes. Operator approval and published release stay closed until their hash-bound operations exist.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human approval step: record an explicit disposition, then Approve and save. After that complete section schemas, handles, identity, and the reference graph are checked; empty sections cannot be saved. After five pairs actually pass Pair Coherence, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, the approval bundle binds the candidate and proposed manifest hashes. Operator approval finalizes immutable APPROVED bytes; publication is a separate hash-verified operation.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>

@@ -116,7 +116,33 @@ const pairInput = {
   sourceContextPacketSha256: sourcePacketHash,
   capability: draft.capability,
   antipattern: draft.antipattern,
-  gates: [compileGate]
+  gates: [
+    {
+      gateName: 'SIR' as const,
+      outcome: 'SIR_VALID' as const,
+      validatorVersion: '1.0.0',
+      findings: []
+    },
+    {
+      gateName: 'SOURCE_COVERAGE' as const,
+      outcome: 'SOURCE_COVERAGE_COMPLETE' as const,
+      validatorVersion: '1.0.0',
+      findings: []
+    },
+    compileGate,
+    {
+      gateName: 'QC' as const,
+      outcome: 'QC_COMPLETE' as const,
+      validatorVersion: '1.0.0',
+      findings: []
+    },
+    {
+      gateName: 'COHERENCE' as const,
+      outcome: 'COHERENCE_CLEAN' as const,
+      validatorVersion: '1.0.0',
+      findings: []
+    }
+  ]
 };
 
 const built = buildApprovalBundle({
@@ -319,7 +345,49 @@ assert(reviewHtml.includes(built.bundleSha256), 'approval review must show the f
 assert(reviewHtml.includes(built.bundle.proposedManifestSha256), 'approval review must show the proposed manifest hash');
 assert(reviewHtml.includes(capabilityRender.json.sha256), 'approval review must show the publication JSON hash');
 assert(reviewHtml.includes('not APPROVED'), 'approval review must not claim APPROVED');
-assert(!reviewHtml.includes('recordApproval'), 'approval review must not expose recordApproval');
+assert(
+  !reviewHtml.includes('name="action" value="record-approval"'),
+  'approval review must not expose operator approval when commands are closed'
+);
+assert(
+  !reviewHtml.includes('save-pair-review') && !reviewHtml.includes('save-domain-review'),
+  'QC Approve and save must remain off the hash-bound approval page'
+);
+const commandReviewHtml = renderApprovalReviewHtml({
+  domain: 'A',
+  domainCandidateHash,
+  bundle: built.bundle,
+  bundleSha256: built.bundleSha256,
+  commandsEnabled: true
+});
+assert(
+  commandReviewHtml.includes('name="action" value="record-approval"'),
+  'hash-bound review must expose record-approval only as a distinct operator command'
+);
+assert(
+  !commandReviewHtml.includes('name="action" value="publish-approved-release"'),
+  'publication must stay closed until operator approval is recorded'
+);
+const approvedReviewHtml = renderApprovalReviewHtml({
+  domain: 'A',
+  domainCandidateHash,
+  bundle: built.bundle,
+  bundleSha256: built.bundleSha256,
+  commandsEnabled: true,
+  recordedApproval: {
+    approvalReference: 'OP-2026-001',
+    effectiveFrom: '2026-09-08',
+    releaseManifestSha256: '1'.repeat(64)
+  }
+});
+assert(
+  !approvedReviewHtml.includes('name="action" value="record-approval"'),
+  'recorded approval must not re-open hash-bound approval intake'
+);
+assert(
+  approvedReviewHtml.includes('name="action" value="publish-approved-release"'),
+  'recorded approval must expose publication as a separate command'
+);
 
 const encoderHash = createHash('sha256').update(utf8Bytes(capabilityRender.json.utf8)).digest('hex');
 assert(encoderHash === capabilityRender.json.sha256, 'TextEncoder bytes must match the JSON publication hash');

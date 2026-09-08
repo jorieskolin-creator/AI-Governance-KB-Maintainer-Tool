@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { put } from '@vercel/blob';
+import { get, put } from '@vercel/blob';
 import type { ArtifactStore, ReleaseArtifact, StoredArtifact } from './artifact-store.js';
 
 export type BlobAccess = 'public' | 'private';
@@ -29,6 +29,21 @@ function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
 }
 
 export class VercelBlobArtifactStore implements ArtifactStore {
+  async readImmutable(path: string): Promise<StoredArtifact | undefined> {
+    const blob = await get(path, {
+      access: configuredAccess(),
+      token: requiredToken(),
+      useCache: false
+    });
+    if (!blob || blob.statusCode !== 200 || !blob.stream) return undefined;
+    const bytes = new Uint8Array(await new Response(blob.stream).arrayBuffer());
+    return {
+      path: blob.blob.pathname,
+      immutableUrl: blob.blob.url,
+      sha256: actualSha256(bytes)
+    };
+  }
+
   async putImmutable(artifact: ReleaseArtifact): Promise<StoredArtifact> {
     const computed = actualSha256(artifact.bytes);
     if (computed !== artifact.sha256) {

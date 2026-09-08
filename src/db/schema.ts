@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, date, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const baselineSnapshots = pgTable('baseline_snapshots', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -161,4 +161,33 @@ export const approvalBundles = pgTable('approval_bundles', {
   bundleSha256: text('bundle_sha256').notNull(),
   payloads: jsonb('payloads').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const domainApprovals = pgTable('domain_approvals', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  domainRunId: uuid('domain_run_id').notNull().unique(),
+  domainCandidateHash: text('domain_candidate_hash').notNull(),
+  approvalBundleSha256: text('approval_bundle_sha256').notNull(),
+  proposedManifestSha256: text('proposed_manifest_sha256').notNull(),
+  releaseManifest: jsonb('release_manifest').notNull(),
+  releasePayloads: jsonb('release_payloads').notNull(),
+  releaseManifestSha256: text('release_manifest_sha256').notNull(),
+  approvalReference: text('approval_reference').notNull(),
+  approvedByRole: text('approved_by_role').notNull(),
+  approvedOn: timestamp('approved_on', { withTimezone: true }).notNull(),
+  effectiveFrom: date('effective_from').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const publicationJobs = pgTable('publication_jobs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  domainRunId: uuid('domain_run_id').notNull().unique(),
+  domainApprovalId: uuid('domain_approval_id').notNull().unique(),
+  releaseManifestSha256: text('release_manifest_sha256').notNull(),
+  state: text('state').notNull(),
+  attemptCount: integer('attempt_count').default(0).notNull(),
+  lastError: text('last_error'),
+  releaseId: uuid('release_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });

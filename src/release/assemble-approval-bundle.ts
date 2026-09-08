@@ -36,6 +36,7 @@ import {
 export interface ApprovalBundleView {
   ok: true;
   current: true;
+  domainRunId: string;
   domainCandidateHash: string;
   bundle: ApprovalBundle;
   bundleSha256: string;
@@ -58,7 +59,7 @@ async function loadPersistedSirSnapshot(pairRunId: string): Promise<Record<strin
   return snapshot;
 }
 
-function isPayloadMap(value: unknown): value is Record<string, ApprovalBundlePayload> {
+export function isApprovalBundlePayloadMap(value: unknown): value is Record<string, ApprovalBundlePayload> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   return Object.values(value).every((item) => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
@@ -67,7 +68,7 @@ function isPayloadMap(value: unknown): value is Record<string, ApprovalBundlePay
   });
 }
 
-function parseFrozenBundle(value: unknown): ApprovalBundle | undefined {
+export function parseFrozenApprovalBundle(value: unknown): ApprovalBundle | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const rec = value as ApprovalBundle;
   if (rec.documentKind !== APPROVAL_BUNDLE_KIND) return undefined;
@@ -78,7 +79,7 @@ function parseFrozenBundle(value: unknown): ApprovalBundle | undefined {
   return rec;
 }
 
-function verifyPayloads(
+export function verifyFrozenApprovalBundlePayloads(
   bundle: ApprovalBundle,
   payloads: Record<string, ApprovalBundlePayload>
 ): string[] {
@@ -149,8 +150,8 @@ export async function assembleDomainApprovalBundle(input: {
 
   const frozen = await loadFrozenApprovalBundle(domainCandidateHash);
   if (frozen) {
-    const bundle = parseFrozenBundle(frozen.bundle);
-    if (!bundle || !isPayloadMap(frozen.payloads)) {
+    const bundle = parseFrozenApprovalBundle(frozen.bundle);
+    if (!bundle || !isApprovalBundlePayloadMap(frozen.payloads)) {
       return {
         ok: false,
         current: true,
@@ -175,13 +176,14 @@ export async function assembleDomainApprovalBundle(input: {
         issues: ['Stored approval bundle hash does not match the frozen document.']
       };
     }
-    const payloadIssues = verifyPayloads(bundle, frozen.payloads);
+    const payloadIssues = verifyFrozenApprovalBundlePayloads(bundle, frozen.payloads);
     if (payloadIssues.length > 0) {
       return { ok: false, current: true, domainCandidateHash, issues: payloadIssues };
     }
     return {
       ok: true,
       current: true,
+      domainRunId: run.id,
       domainCandidateHash,
       bundle,
       bundleSha256: frozen.bundleSha256,
@@ -327,8 +329,8 @@ export async function assembleDomainApprovalBundle(input: {
     bundleSha256: built.bundleSha256,
     payloads: built.payloads
   });
-  const storedBundle = parseFrozenBundle(stored.bundle);
-  if (!storedBundle || !isPayloadMap(stored.payloads) || stored.bundleSha256 !== built.bundleSha256) {
+  const storedBundle = parseFrozenApprovalBundle(stored.bundle);
+  if (!storedBundle || !isApprovalBundlePayloadMap(stored.payloads) || stored.bundleSha256 !== built.bundleSha256) {
     return {
       ok: false,
       current: true,
@@ -340,6 +342,7 @@ export async function assembleDomainApprovalBundle(input: {
   return {
     ok: true,
     current: true,
+    domainRunId: run.id,
     domainCandidateHash,
     bundle: storedBundle,
     bundleSha256: stored.bundleSha256,

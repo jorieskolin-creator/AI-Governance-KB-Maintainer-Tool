@@ -1,6 +1,14 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { OperatorStatus } from './board.js';
-import { parseDomainId, runDomainPipeline, startDomainRun, runNextEligibleTask, dismissBlockingDefects, closeParkedDefect } from './commands.js';
+import {
+  closeParkedDefect,
+  dismissBlockingDefects,
+  operatorCommandsEnabled,
+  parseDomainId,
+  runDomainPipeline,
+  runNextEligibleTask,
+  startDomainRun
+} from './commands.js';
 import { operatorLog } from './log.js';
 import { renderOperatorHome } from './render-home.js';
 import {
@@ -10,7 +18,19 @@ import {
   renderCandidateObjectHtml
 } from './candidate-documents.js';
 import { approvalBytesResponse, renderApprovalReviewHtml } from './approval-review.js';
-import { assembleDomainApprovalBundle } from '../release/assemble-approval-bundle.js';
+import {
+  assembleDomainApprovalBundle,
+  parseFrozenApprovalBundle
+} from '../release/assemble-approval-bundle.js';
+import {
+  loadDomainApprovalForCandidate,
+  loadLatestDomainApprovalForDomain,
+  loadFrozenApprovalBundle
+} from '../orchestration/store.js';
+import {
+  publishApprovedRelease,
+  recordApproval
+} from '../release/operator-release.js';
 import { loadPairReviewPage, renderPairReviewHtml, savePairReview } from './pair-review.js';
 import { loadDomainReviewPage, renderDomainReviewHtml, saveDomainReview } from './domain-review.js';
 
@@ -159,19 +179,43 @@ export function registerOperatorRoutes(
     try {
       const domain = parseDomainId((request.params as { domain?: unknown }).domain);
       const expected = (request.query as { candidate?: unknown }).candidate;
+      const candidate = typeof expected === 'string' ? expected : undefined;
       const result = await assembleDomainApprovalBundle({
         domain,
-        expectedDomainCandidateHash: typeof expected === 'string' ? expected : undefined
+        expectedDomainCandidateHash: candidate
       });
+      let recordedApproval:
+        | { approvalReference: string; effectiveFrom: string; releaseManifestSha256: string }
+        | undefined;
+      let bundle = result.ok ? result.bundle : undefined;
+      let bundleSha256 = result.ok ? result.bundleSha256 : undefined;
+      if (!result.ok) {
+        const approval = candidate
+          ? await loadDomainApprovalForCandidate({ domain, domainCandidateHash: candidate })
+          : await loadLatestDomainApprovalForDomain(domain);
+        const frozen = approval ? await loadFrozenApprovalBundle(approval.domainCandidateHash) : undefined;
+        const frozenBundle = frozen ? parseFrozenApprovalBundle(frozen.bundle) : undefined;
+        if (approval && frozen && frozenBundle && frozen.bundleSha256 === approval.approvalBundleSha256) {
+          bundle = frozenBundle;
+          bundleSha256 = frozen.bundleSha256;
+          recordedApproval = {
+            approvalReference: approval.approvalReference,
+            effectiveFrom: approval.effectiveFrom,
+            releaseManifestSha256: approval.releaseManifestSha256
+          };
+        }
+      }
       const html = renderApprovalReviewHtml({
         domain,
-        domainCandidateHash: result.domainCandidateHash,
-        issues: result.ok ? [] : result.issues,
-        bundle: result.ok ? result.bundle : undefined,
-        bundleSha256: result.ok ? result.bundleSha256 : undefined
+        domainCandidateHash: result.domainCandidateHash ?? candidate,
+        issues: result.ok || recordedApproval ? [] : result.issues,
+        bundle,
+        bundleSha256,
+        commandsEnabled: operatorCommandsEnabled(),
+        recordedApproval
       });
       return reply
-        .code(result.ok ? 200 : 409)
+        .code(result.ok || recordedApproval ? 200 : 409)
         .type('text/html; charset=utf-8')
         .header('cache-control', 'no-store')
         .send(html);
@@ -269,7 +313,18 @@ export function registerOperatorRoutes(
   });
 
   app.post('/api/operator/commands', async (request, reply) => {
-    const body = (request.body ?? {}) as { domain?: unknown; action?: unknown; findingId?: unknown; pairId?: unknown };
+    const body = (request.body ?? {}) as {
+      domain?: unknown;
+      action?: unknown;
+      findingId?: unknown;
+      pairId?: unknown;
+      domainCandidateHash?: unknown;
+      approvalBundleSha256?: unknown;
+      proposedManifestSha256?: unknown;
+      releaseManifestSha256?: unknown;
+      approvalReference?: unknown;
+      effectiveFrom?: unknown;
+    };
     const action = String(body.action ?? '').trim();
     operatorLog('operator.command.received', {
       action,
@@ -339,6 +394,57 @@ export function registerOperatorRoutes(
             result.pairValidated
               ? 'Closed the parked item. That pair is VALIDATED only because Pair Coherence actually passed.'
               : 'Closed the parked item. The pair stays deferred until Pair Coherence passes or remaining blockers are reviewed and Saved.',
+            domain
+          );
+        }
+        return result;
+      }
+      if (action === 'record-approval') {
+        if (!operatorCommandsEnabled()) {
+          throw new Error('Operator commands are disabled on this deployment.');
+        }
+        const result = await recordApproval({
+          domain,
+          domainCandidateHash: parseSha256(body.domainCandidateHash),
+          approvalBundleSha256: parseSha256(body.approvalBundleSha256),
+          proposedManifestSha256: parseSha256(body.proposedManifestSha256),
+          approvalReference: String(body.approvalReference ?? ''),
+          effectiveFrom: String(body.effectiveFrom ?? '')
+        });
+        operatorLog('operator.approval.recorded', {
+          domain,
+          domainRunId: result.domainRunId,
+          domainCandidateHash: result.domainCandidateHash,
+          releaseManifestSha256: result.releaseManifestSha256,
+          idempotent: result.idempotent
+        });
+        if (wantsHtml(request)) {
+          return reply.redirect(
+            `/approval/${domain}?candidate=${encodeURIComponent(result.domainCandidateHash)}`
+          );
+        }
+        return result;
+      }
+      if (action === 'publish-approved-release') {
+        if (!operatorCommandsEnabled()) {
+          throw new Error('Operator commands are disabled on this deployment.');
+        }
+        const result = await publishApprovedRelease({
+          domain,
+          domainCandidateHash: parseSha256(body.domainCandidateHash),
+          approvalBundleSha256: parseSha256(body.approvalBundleSha256),
+          releaseManifestSha256: parseSha256(body.releaseManifestSha256)
+        });
+        operatorLog('operator.release.published', {
+          domain,
+          releaseId: result.releaseId,
+          manifestSha256: result.manifestSha256,
+          idempotent: result.idempotent
+        });
+        if (wantsHtml(request)) {
+          return noticeRedirect(
+            reply,
+            `Published immutable release ${result.manifest.domain_release_version} with manifest ${result.manifestSha256}.`,
             domain
           );
         }

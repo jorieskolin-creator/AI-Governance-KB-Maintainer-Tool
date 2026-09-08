@@ -247,7 +247,13 @@ export async function loadDomainOverlay(
       indexHref: `/documents/${domain}`,
       bundleHref: `/api/operator/documents/${domain}`,
       approvalHref: `/approval/${domain}`,
-      approvalAvailable: run.state === 'READY_FOR_APPROVAL'
+      approvalAvailable: [
+        'READY_FOR_APPROVAL',
+        'APPROVED',
+        'PUBLISHING',
+        'PUBLICATION_FAILED',
+        'PUBLISHED'
+      ].includes(run.state)
     },
     review: (() => {
       const unpaid = pairs.find((pair) => pair.pairCoherencePassed !== true && pair.tasks.some((task) => task.taskType === 'PAIR_COHERENCE_REVIEW' && task.status === 'COMPLETED'));

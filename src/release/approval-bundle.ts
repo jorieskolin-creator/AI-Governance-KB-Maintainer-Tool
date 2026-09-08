@@ -109,6 +109,14 @@ function uniqueGates(gates: readonly NamedGateResult[]): NamedGateResult[] {
   return [...byName.values()].sort((left, right) => left.gateName.localeCompare(right.gateName));
 }
 
+const REQUIRED_RELEASE_PAIR_OUTCOMES = [
+  'SIR_VALID',
+  'SOURCE_COVERAGE_COMPLETE',
+  'CANONICAL_COMPILE_VALID',
+  'QC_COMPLETE',
+  'COHERENCE_CLEAN'
+] as const;
+
 export function namedGateSetHash(input: {
   domainCandidateHash: string;
   domainGates: readonly NamedGateResult[];
@@ -266,15 +274,16 @@ export function buildApprovalBundle(input: BuildApprovalBundleInput): BuiltAppro
     const capabilityRender = renderCanonicalObject(pair.capability);
     const antipatternRender = renderCanonicalObject(pair.antipattern);
     const parityDefects = [...capabilityRender.parityDefects, ...antipatternRender.parityDefects];
-    const compileGates = pair.gates.filter((gate) => gate.gateName === 'CANONICAL_COMPILE');
-    if (!compileGates.some((gate) => gate.outcome === 'CANONICAL_COMPILE_VALID')) {
+    const outcomes = new Set(pair.gates.map((gate) => gate.outcome));
+    for (const required of REQUIRED_RELEASE_PAIR_OUTCOMES) {
+      if (outcomes.has(required)) continue;
       parityDefects.push({
-        checkId: 'CANONICAL_COMPILE',
-        kind: 'PUBLICATION_PARITY',
+        checkId: 'APPROVAL_READINESS',
+        kind: 'SCHEMA',
         severity: 'BLOCKING',
         objectId: pair.pairId,
         objectPath: '/',
-        issue: `${pair.pairId} cannot enter an approval bundle without CANONICAL_COMPILE_VALID.`,
+        issue: `${pair.pairId} cannot enter an approval bundle without ${required}.`,
         dependencyScope: []
       });
     }
