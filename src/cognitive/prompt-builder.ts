@@ -302,6 +302,26 @@ const OUTPUT_SHAPES: Partial<Record<CognitiveTaskType, unknown>> = {
   LOCAL_REPAIR: LOCAL_REPAIR_SHAPE
 };
 
+export function outputShapeForTask(taskType: CognitiveTaskType): unknown {
+  return OUTPUT_SHAPES[taskType];
+}
+
+export interface CorrectionPromptFinding {
+  checkId: string;
+  kind: string;
+  severity: string;
+  objectPath: string;
+  issue: string;
+  dependencyScope: string[];
+  recommendedAction?: string;
+}
+
+export interface CorrectionPromptInput {
+  rejectedJson: unknown;
+  findings: CorrectionPromptFinding[];
+  allowedRepairPaths: string[];
+}
+
 function stripIdentity(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stripIdentity);
   if (!value || typeof value !== 'object') return value;
@@ -352,6 +372,40 @@ export function buildPromptPacket(contract: TaskContract): CognitivePromptPacket
     output_shape: OUTPUT_SHAPES[contract.taskType],
     validation_profile: contract.validationProfile,
     failure_mode: contract.failureMode
+  };
+
+  return {
+    system: SYSTEM_BOUNDARY,
+    user: JSON.stringify(userPayload, null, 2)
+  };
+}
+
+export function buildCorrectionPromptPacket(
+  contract: TaskContract,
+  correction: CorrectionPromptInput
+): CognitivePromptPacket {
+  const locked = modelFacingLockedInputs(contract.lockedInputs);
+  const userPayload = {
+    contract_identity: {
+      task_id: contract.taskId,
+      task_type: contract.taskType,
+      contract_version: contract.contractVersion,
+      schema_name: contract.outputContract.schemaName
+    },
+    objective: contract.objective,
+    correction_mode: true,
+    correction_instruction:
+      'A previous JSON completion failed local deterministic validation. Return a complete replacement JSON that matches OUTPUT SHAPE exactly. Change only content at allowed_repair_paths or a child of those paths. Preserve every other existing value. Do not invent missing upstream decisions or emit canonical identity fields.',
+    locked_inputs: locked,
+    allowed_references: contract.allowedReferences,
+    do_not: contract.doNot,
+    output_contract: contract.outputContract,
+    output_shape: OUTPUT_SHAPES[contract.taskType],
+    validation_profile: contract.validationProfile,
+    failure_mode: contract.failureMode,
+    rejected_json: correction.rejectedJson,
+    deterministic_findings: correction.findings,
+    allowed_repair_paths: correction.allowedRepairPaths
   };
 
   return {

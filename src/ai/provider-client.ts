@@ -6,10 +6,16 @@ import {
   type ModelTarget
 } from './model-router.js';
 
+export interface StructuredOutputHint {
+  schemaName: string;
+  requiredFields: string[];
+}
+
 export interface ModelExecutionRequest {
   target: ModelTarget;
   systemPrompt: string;
   userPrompt: string;
+  structuredOutput?: StructuredOutputHint;
 }
 
 export interface ModelExecutionResponse {
@@ -65,6 +71,52 @@ export function supportsCustomTemperature(target: ModelTarget): boolean {
   return true;
 }
 
+export function supportsProviderJsonSchema(target: ModelTarget): boolean {
+  // OpenAI json_schema is documented for GPT-4o-class models. GPT-5 / o-series,
+  // Kimi, Meta, and Grok keep json_object to avoid request-field 400s.
+  return target.provider === 'OPENAI' && supportsCustomTemperature(target);
+}
+
+function topLevelSchemaFields(fields: readonly string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const field of fields) {
+    const top = field.split('.')[0]?.trim();
+    if (!top || seen.has(top)) continue;
+    seen.add(top);
+    result.push(top);
+  }
+  return result;
+}
+
+export function providerNativeResponseFormat(
+  target: ModelTarget,
+  structuredOutput?: StructuredOutputHint
+): Record<string, unknown> {
+  if (!supportsProviderJsonSchema(target) || !structuredOutput) {
+    return { type: 'json_object' };
+  }
+  const name = structuredOutput.schemaName.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 64) || 'task_output';
+  const required = topLevelSchemaFields(structuredOutput.requiredFields);
+  const properties: Record<string, Record<string, unknown>> = {};
+  for (const field of required) {
+    properties[field] = {};
+  }
+  return {
+    type: 'json_schema',
+    json_schema: {
+      name,
+      strict: false,
+      schema: {
+        type: 'object',
+        properties,
+        required,
+        additionalProperties: true
+      }
+    }
+  };
+}
+
 export function requestBody(request: ModelExecutionRequest): Record<string, unknown> {
   const common: Record<string, unknown> = {
     model: request.target.model,
@@ -72,7 +124,7 @@ export function requestBody(request: ModelExecutionRequest): Record<string, unkn
       { role: 'system', content: request.systemPrompt },
       { role: 'user', content: request.userPrompt }
     ],
-    response_format: { type: 'json_object' }
+    response_format: providerNativeResponseFormat(request.target, request.structuredOutput)
   };
 
   if (supportsCustomTemperature(request.target)) {

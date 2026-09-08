@@ -177,6 +177,19 @@ export async function failTaskRun(taskRunId: string): Promise<void> {
   );
 }
 
+export async function persistRejectedTaskOutput(input: {
+  taskRunId: string;
+  output: unknown;
+  outputHash: string;
+}): Promise<void> {
+  await getDbPool().query(
+    `update task_runs
+     set output = $2::jsonb, output_hash = $3
+     where id = $1 and status = 'STARTED'`,
+    [input.taskRunId, JSON.stringify(input.output), input.outputHash]
+  );
+}
+
 export async function getCompletedTaskTypes(pairRunId: string): Promise<Set<CognitiveTaskType>> {
   const result = await getDbPool().query<{ task_type: CognitiveTaskType }>(
     `select distinct task_type from task_runs where pair_run_id = $1 and status = 'COMPLETED'`,
