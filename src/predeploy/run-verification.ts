@@ -18,6 +18,7 @@ const gates: Gate[] = [
   { id: 'SIR_DEPENDENCY_RESOLVER', script: 'dist/orchestration/run-sir-resolver-check.js' },
   { id: 'SIR_SAFETY_DEPENDENCY_RESOLVER', script: 'dist/orchestration/run-sir-safety-resolver-check.js' },
   { id: 'TASK_COMPLETION_ROUTER', script: 'dist/validation/run-task-completion-router-check.js' },
+  { id: 'TASK_BOUNDARIES', script: 'dist/orchestration/run-task-boundary-check.js' },
   { id: 'SOURCE_CONTEXT_PACKET', script: 'dist/orchestration/run-source-context-packet-check.js' },
   { id: 'SOURCE_CONTEXT_ACQUISITION', script: 'dist/orchestration/run-source-context-acquisition-check.js' },
   { id: 'SIR_SOURCE_MAPPING', script: 'dist/sir/run-source-mapping-sir-check.js' },

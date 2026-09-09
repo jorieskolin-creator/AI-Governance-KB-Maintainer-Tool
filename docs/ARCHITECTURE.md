@@ -37,6 +37,8 @@ SELECT DOMAIN BATCH
 
 ## Pair cognitive sequence
 
+Deterministic `SOURCE_CONTEXT` is acquired before `SOURCE_MAPPING`. It is code-owned source acquisition, not a model SIR task, and must not be merged into unconstrained authoring.
+
 1. `PAIR_BOUNDARY`
 2. `AP_FAILURE_MODEL`
 3. `APPLICABILITY`
@@ -44,13 +46,15 @@ SELECT DOMAIN BATCH
 5. `ATOMIC_DECOMPOSITION`
 6. `EVIDENCE_ARCHITECTURE`
 7. `EVIDENCE_SAFETY`
-8. `SOURCE_MAPPING`
-9. `FINDING_ARCHITECTURE`
-10. `CONTROL_BOUNDARY`
-11. `REFERENCE_MAPPING`
-12. `PAIR_COHERENCE_REVIEW`
+8. `AP_ABSENCE_CONTRACT`
+9. `SOURCE_MAPPING`
+10. `FINDING_ARCHITECTURE`
+11. `CONTROL_BOUNDARY`
+12. `LIFECYCLE_ASSURANCE`
+13. `REFERENCE_MAPPING`
+14. `PAIR_COHERENCE_REVIEW`
 
-Each task receives only the validated dependencies it requires. The application owns memory through persisted artifacts; model chat history is not the pipeline state.
+Each task receives only the validated dependencies it requires. The application owns memory through persisted artifacts; model chat history is not the pipeline state. Contract `upstreamTaskTypes` are the completion-validator prerequisites. The resolver still loads every prior pair SIR task in sequence; `REFERENCE_MAPPING` is the documented subset exception (`PAIR_BOUNDARY`, `FINDING_ARCHITECTURE`, `LIFECYCLE_ASSURANCE`). `SOURCE_MAPPING` also requires the sealed Source Context Packet. Shared validator routes (the first four tasks use `SIR_INITIAL`) are not task merges. Consolidation stays `KEEP_SEPARATE_UNTIL_MEASURED`; merge remains closed.
 
 ## Cognitive isolation contract
 

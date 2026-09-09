@@ -8,6 +8,10 @@ import {
   expectedDomainPairIds,
   PAIR_TASK_SEQUENCE
 } from '../orchestration/pipeline.js';
+import {
+  operatorTaskBoundarySummary,
+  type OperatorTaskBoundarySummary
+} from '../orchestration/task-boundaries.js';
 import type { CommandFlag } from './eligibility.js';
 import type { OperatorTaskStatus } from './eligibility.js';
 import type { DomainRunOverlay } from './overlay.js';
@@ -115,6 +119,7 @@ export interface OperatorStatus {
     pairTaskSequence: readonly CognitiveTaskType[];
     domainPairSlots: readonly number[];
     domainFlow: readonly DomainFlowStep[];
+    taskBoundaries: OperatorTaskBoundarySummary;
   };
   domains: OperatorDomainCard[];
   findings: Array<{ objectId: string; checkId: string; severity: string; issue: string; objectPath?: string }>;
@@ -370,7 +375,8 @@ export function buildOperatorStatus(input: {
     pipeline: {
       pairTaskSequence: PAIR_TASK_SEQUENCE,
       domainPairSlots: DOMAIN_PAIR_SLOTS,
-      domainFlow: DOMAIN_FLOW
+      domainFlow: DOMAIN_FLOW,
+      taskBoundaries: operatorTaskBoundarySummary()
     },
     domains,
     findings,

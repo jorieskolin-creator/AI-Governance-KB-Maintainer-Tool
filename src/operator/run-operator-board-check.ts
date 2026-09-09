@@ -3,6 +3,10 @@ import { resolve } from 'node:path';
 import Fastify from 'fastify';
 import { PAIR_TASK_SEQUENCE, expectedDomainPairIds } from '../orchestration/pipeline.js';
 import {
+  operatorTaskBoundarySummary,
+  operatorTaskBoundaryWording
+} from '../orchestration/task-boundaries.js';
+import {
   buildOperatorStatus,
   loadDomainCoverageTitles,
   OPERATOR_DOMAINS,
@@ -42,6 +46,14 @@ assert(status.domains[0]?.commands.runNextTask.enabled === false, 'runNextTask m
 assert(
   JSON.stringify(status.pipeline.pairTaskSequence) === JSON.stringify(PAIR_TASK_SEQUENCE),
   'operator board pair sequence drifted from pipeline.ts'
+);
+assert(status.pipeline.taskBoundaries.pairSirTaskCount === PAIR_TASK_SEQUENCE.length, 'operator board SIR task count drifted');
+assert(status.pipeline.taskBoundaries.sourceContextIsModelTask === false, 'operator board must not treat SOURCE_CONTEXT as a model task');
+assert(status.pipeline.taskBoundaries.consolidationPolicy === 'KEEP_SEPARATE_UNTIL_MEASURED', 'operator board consolidation policy drifted');
+assert(status.pipeline.taskBoundaries.mergeAuthorized === false, 'operator board must report merge closed');
+assert(
+  JSON.stringify(status.pipeline.taskBoundaries) === JSON.stringify(operatorTaskBoundarySummary()),
+  'operator board task-boundary summary drifted'
 );
 assert(status.domains.length === OPERATOR_DOMAINS.length, 'operator board must show six domains');
 
@@ -87,7 +99,11 @@ assert(html.includes('section schemas') || html.includes('Approve and save'), 'h
 assert(status.domains[0]?.review.kind === '' || status.domains[0]?.review.kind === 'PAIR' || status.domains[0]?.review.kind === 'DOMAIN', 'review kind is governed');
 assert(html.includes('Production candidates'), 'home page must show the production-candidate unit');
 assert(html.includes('latest run for the selected domain'), 'home page must say the board is the latest run only');
-assert(html.includes('/api/operator/status'), 'home page must keep the status API link');
+assert(html.includes('Task boundaries'), 'home page must name task boundaries');
+assert(html.includes(operatorTaskBoundaryWording()), 'home page must keep the task-boundary policy wording');
+assert(html.includes('KEEP_SEPARATE_UNTIL_MEASURED'), 'home page must say consolidation stays unmerged until measured');
+assert(html.includes('Source Context is code-owned'), 'home page must say Source Context is not a model authoring step');
+assert(html.includes('Merge is closed'), 'home page must say merge stays closed');
 assert(!html.includes('Last model call:'), 'home page must not dump a global last-model-call mix at the footer');
 assert(html.includes('Pipeline'), 'home page must show pipeline activity');
 assert(html.includes('Work order'), 'home page must show the work-order machine');
@@ -109,7 +125,7 @@ const api = await app.inject({ method: 'GET', url: '/api/operator/status' });
 assert(api.statusCode === 200, `GET /api/operator/status returned ${String(api.statusCode)}`);
 const payload = api.json() as {
   mode?: unknown;
-  pipeline?: { pairTaskSequence?: unknown };
+  pipeline?: { pairTaskSequence?: unknown; taskBoundaries?: { mergeAuthorized?: unknown; pairSirTaskCount?: unknown } };
   pipelineActivity?: { state?: unknown };
 };
 assert(payload.mode === 'READ_ONLY', 'status API must stay read-only without a database');
@@ -118,6 +134,8 @@ assert(
   JSON.stringify(payload.pipeline?.pairTaskSequence) === JSON.stringify(PAIR_TASK_SEQUENCE),
   'status API sequence drifted from pipeline.ts'
 );
+assert(payload.pipeline?.taskBoundaries?.mergeAuthorized === false, 'status API must report merge closed');
+assert(payload.pipeline?.taskBoundaries?.pairSirTaskCount === PAIR_TASK_SEQUENCE.length, 'status API SIR task count drifted');
 
 const denied = await withCommandFlag(false, () =>
   app.inject({
