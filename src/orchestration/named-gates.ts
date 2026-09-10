@@ -81,13 +81,46 @@ export function evaluateRenderParity(defects: readonly ValidationFinding[]): Nam
   };
 }
 
-export function evaluateSourceCoverage(sourceMappings: unknown): NamedGateOutcome | undefined {
+function mappingBoundToPacket(item: unknown, packet: SourceContextPacket): boolean {
+  if (!isRecord(item)) return false;
+  const sourceHandle = item.sourceHandle;
+  const locatorHandle = item.locatorHandle;
+  if (typeof sourceHandle !== 'string' || typeof locatorHandle !== 'string') return false;
+  const source = packet.sources.find((entry) => entry.sourceHandle === sourceHandle);
+  if (!source) return false;
+  const locator = source.locatorContexts.find((entry) => entry.locatorHandle === locatorHandle);
+  if (!locator) return false;
+  if (typeof item.sourceId === 'string' && item.sourceId !== source.sourceId) return false;
+  if (typeof item.exactLocator === 'string' && item.exactLocator !== locator.exactLocator) return false;
+  if (typeof item.locatorContextSha256 === 'string' && item.locatorContextSha256 !== locator.contextSha256) {
+    return false;
+  }
+  return true;
+}
+
+export function sourceMappingsBoundToPacket(sourceMappings: unknown, packet: unknown): boolean {
+  if (!isRecord(sourceMappings) || !isSourceContextPacket(packet)) return false;
+  if (sourceMappings.sourceContextPacketSha256 !== packet.packetSha256) return false;
+  if (sourceContextLocatorCount(packet) === 0) return false;
+  const capability = Array.isArray(sourceMappings.capability) ? sourceMappings.capability : [];
+  const antipattern = Array.isArray(sourceMappings.antipattern) ? sourceMappings.antipattern : [];
+  if (capability.length === 0 || antipattern.length === 0) return false;
+  return [...capability, ...antipattern].every((item) => mappingBoundToPacket(item, packet));
+}
+
+export function evaluateSourceCoverage(
+  sourceMappings: unknown,
+  sourceContextPacket?: unknown
+): NamedGateOutcome | undefined {
   if (!isRecord(sourceMappings)) return undefined;
   const capability = Array.isArray(sourceMappings.capability) ? sourceMappings.capability : null;
   const antipattern = Array.isArray(sourceMappings.antipattern) ? sourceMappings.antipattern : null;
   const unmapped = Array.isArray(sourceMappings.unmappedClaims) ? sourceMappings.unmappedClaims : null;
   if (!capability || !antipattern || !unmapped) return 'SOURCE_GAPS_PRESENT';
-  if (unmapped.length > 0 || capability.length + antipattern.length === 0) {
+  if (unmapped.length > 0 || capability.length === 0 || antipattern.length === 0) {
+    return 'SOURCE_GAPS_PRESENT';
+  }
+  if (sourceContextPacket !== undefined && !sourceMappingsBoundToPacket(sourceMappings, sourceContextPacket)) {
     return 'SOURCE_GAPS_PRESENT';
   }
   return 'SOURCE_COVERAGE_COMPLETE';
@@ -154,6 +187,48 @@ export function evaluateSourceAcquisition(packet: unknown): NamedGateResult {
   };
 }
 
+function sourceCoverageGapFindings(sourceMappings: unknown, packet: unknown): ValidationFinding[] {
+  if (packet === undefined) return [];
+  if (!isSourceContextPacket(packet)) {
+    return [
+      sourceAcquisitionFinding(
+        undefined,
+        'SOURCE_CONTEXT_PACKET_INVALID',
+        '/',
+        'Source acquisition did not persist a verifiable Source Context Packet.',
+        []
+      )
+    ];
+  }
+  if (sourceContextLocatorCount(packet) === 0) {
+    return [
+      sourceAcquisitionFinding(
+        packet,
+        'SOURCE_CONTEXT_ZERO_LOCATORS',
+        '/locatorContexts',
+        'Claim-to-locator mappings cannot complete coverage against a zero-locator Source Context Packet.',
+        packet.missingContextSourceHandles
+      )
+    ];
+  }
+  if (!isRecord(sourceMappings)) return [];
+  const capability = Array.isArray(sourceMappings.capability) ? sourceMappings.capability : [];
+  const antipattern = Array.isArray(sourceMappings.antipattern) ? sourceMappings.antipattern : [];
+  const unmapped = Array.isArray(sourceMappings.unmappedClaims) ? sourceMappings.unmappedClaims : [];
+  if (capability.length > 0 && antipattern.length > 0 && unmapped.length === 0) {
+    return [
+      sourceAcquisitionFinding(
+        packet,
+        'SOURCE_MAPPING_PACKET_UNBOUND',
+        '/sourceMappings',
+        'Claim-to-locator mappings are not bound to the current Source Context Packet. SOURCE_COVERAGE_COMPLETE requires packet SHA-256, locator handles, and locator context hashes to match the acquired packet.',
+        []
+      )
+    ];
+  }
+  return [];
+}
+
 export function evaluatePairGates(input: {
   snapshotComplete: boolean;
   schemaIssues: readonly string[];
@@ -170,13 +245,17 @@ export function evaluatePairGates(input: {
       findings: []
     });
   }
-  const source = evaluateSourceCoverage(input.sourceMappings);
+  const source = evaluateSourceCoverage(input.sourceMappings, input.sourceContextPacket);
   if (source) {
+    const findings =
+      source === 'SOURCE_GAPS_PRESENT'
+        ? sourceCoverageGapFindings(input.sourceMappings, input.sourceContextPacket)
+        : [];
     results.push({
       gateName: 'SOURCE_COVERAGE',
       outcome: source,
       validatorVersion: GATE_VALIDATOR_VERSION,
-      findings: []
+      findings
     });
   } else if (input.sourceContextPacket !== undefined) {
     results.push(evaluateSourceAcquisition(input.sourceContextPacket));

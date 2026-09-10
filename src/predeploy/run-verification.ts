@@ -52,6 +52,7 @@ const gates: Gate[] = [
   { id: 'SIR_COMPILER', script: 'dist/compiler/run-sir-compiler-check.js' },
   { id: 'APPROVAL_BUNDLE', script: 'dist/release/run-approval-bundle-check.js' },
   { id: 'OPERATOR_APPROVAL_PUBLICATION', script: 'dist/release/run-operator-release-check.js' },
+  { id: 'VERTICAL_SLICE', script: 'dist/release/run-vertical-slice-check.js' },
   { id: 'GOLDEN_REFERENCE', script: 'dist/golden/run-regression.js' }
 ];
 

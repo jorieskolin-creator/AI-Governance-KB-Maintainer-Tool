@@ -136,6 +136,50 @@ assert(
   'mapped claims with no unmapped gaps record SOURCE_COVERAGE_COMPLETE'
 );
 
+const unboundPacket = {
+  packetVersion: '1.0.0' as const,
+  pairId: 'A2_AP-A2',
+  authoringPlanSha256: 'a'.repeat(64),
+  sourceRegisterVersion: '1.5.0',
+  sourceRegisterSha256: 'b'.repeat(64),
+  sources: [
+    {
+      sourceHandle: 'source_001',
+      sourceId: 'SRC-EU-AIA',
+      locatorContexts: [
+        {
+          locatorHandle: 'locator_001',
+          exactLocator: 'Article 9(2)',
+          contextSha256: 'c'.repeat(64)
+        }
+      ]
+    }
+  ],
+  missingContextSourceHandles: [],
+  mappingContextAvailable: true,
+  packetSha256: 'd'.repeat(64)
+};
+const unboundCoverage = evaluatePairGates({
+  snapshotComplete: true,
+  schemaIssues: [],
+  sourceMappings: {
+    sourceContextPacketSha256: 'e'.repeat(64),
+    capability: [{ sourceHandle: 'source_001', locatorHandle: 'locator_001' }],
+    antipattern: [{ sourceHandle: 'source_001', locatorHandle: 'locator_001' }],
+    unmappedClaims: []
+  },
+  sourceContextPacket: unboundPacket,
+  review: cleanReview
+});
+assert(
+  unboundCoverage.some((item) => item.outcome === 'SOURCE_GAPS_PRESENT') &&
+    !unboundCoverage.some((item) => item.outcome === 'SOURCE_COVERAGE_COMPLETE') &&
+    unboundCoverage.some((item) =>
+      item.findings.some((finding) => finding.checkId === 'SOURCE_MAPPING_PACKET_UNBOUND')
+    ),
+  'complete-looking mappings cannot record SOURCE_COVERAGE_COMPLETE against a mismatched packet hash'
+);
+
 const earlyAcquisition = evaluatePairGates({
   snapshotComplete: false,
   schemaIssues: ['snapshot incomplete'],
@@ -191,6 +235,7 @@ console.log(
         SIR_VALID: 'PASS',
         SOURCE_GAPS_PRESENT: 'PASS',
         SOURCE_COVERAGE_COMPLETE: 'PASS',
+        SOURCE_MAPPING_PACKET_UNBOUND: 'PASS',
         QC_COMPLETE: 'PASS',
         QC_INCOMPLETE: 'PASS',
         COHERENCE_CLEAN: 'PASS',
