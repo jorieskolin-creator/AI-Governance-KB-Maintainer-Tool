@@ -34,6 +34,7 @@ export function classifyDomainPipelineStop(
 ): 'DOMAIN_READY' | 'BLOCKED' | 'FAILED' {
   if (
     errorMessage.includes('READY_FOR_APPROVAL') ||
+    errorMessage.includes('Publication stays a separate operation') ||
     errorMessage.includes('compile stays closed until external APPROVED')
   ) {
     return 'DOMAIN_READY';
@@ -175,7 +176,7 @@ export function nextEligiblePairTask(
     }
     if (domainCoherence.passed === true) {
       return {
-        blocked: `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Canonical compile stays closed until external APPROVED.`
+        blocked: `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
       };
     }
     return {

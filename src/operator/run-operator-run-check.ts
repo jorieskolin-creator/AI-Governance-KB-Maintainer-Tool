@@ -186,7 +186,7 @@ assert(
 
 assert(
   classifyDomainPipelineStop(
-    'Domain A DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Canonical compile stays closed until external APPROVED.'
+    'Domain A DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.'
   ) === 'DOMAIN_READY',
   'passed domain coherence must stop before compile and approval'
 );
@@ -234,7 +234,7 @@ assert(!('blocked' in domainQc) && domainQc.pairId === 'A1_AP-A1', 'domain coher
 const domainQcPassed = nextEligiblePairTask('A', fiveValidated, { status: 'COMPLETED', passed: true });
 assert(
   'blocked' in domainQcPassed && domainQcPassed.blocked.includes('READY_FOR_APPROVAL'),
-  'passed domain coherence waits for external approval'
+  'passed domain coherence waits for hash-bound operator approval'
 );
 const domainQcFailed = nextEligiblePairTask('A', fiveValidated, { status: 'FAILED' });
 assert(
