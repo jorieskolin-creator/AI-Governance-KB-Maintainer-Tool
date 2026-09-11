@@ -2,10 +2,11 @@ import type { DomainId } from '../authoring/authoring-plan.js';
 import type { BaselineSnapshot } from '../baseline/snapshot.js';
 import { canonicalArtifactHash } from '../orchestration/artifact-hash.js';
 import type { PairCoherencePacket } from '../orchestration/pair-coherence-packet.js';
-import { canTransition, pairTransitions } from '../orchestration/pipeline.js';
+import { canTransition, pairTransitions, PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import {
   currentPairCandidateHash,
   getBaselineSnapshotById,
+  getCompletedTaskTypes,
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getPairRuns,
@@ -83,6 +84,10 @@ export interface PairReviewPage {
   notice?: string;
   gateIssues: string[];
   candidateHash?: string;
+  hasCoherenceReview?: boolean;
+  regenerableSections?: string[];
+  reworkAvailable?: boolean;
+  commandsEnabled?: boolean;
 }
 
 export interface PairReviewSaveResult {
@@ -200,13 +205,33 @@ export async function loadPairReviewPage(domain: DomainId, pairId: string, notic
   const pairRuns = await getPairRuns(run.id);
   const pairRun = pairRuns.find((item) => item.pairId === pairId);
   if (!pairRun) throw new Error(`Pair ${pairId} is missing from domain ${domain}.`);
+  const completedTypes = await getCompletedTaskTypes(pairRun.id);
+  const regenerableSections = PAIR_TASK_SEQUENCE.filter(
+    (taskType) => taskType !== 'PAIR_COHERENCE_REVIEW' && completedTypes.has(taskType)
+  );
   const artifact = await getLatestCompletedTaskArtifact(pairRun.id, 'PAIR_COHERENCE_REVIEW');
-  if (!artifact) {
-    throw new Error(`${pairId} has no completed PAIR_COHERENCE_REVIEW to review.`);
-  }
-  const review = reviewFromUnknown(pairId, artifact.output);
+  const review = artifact ? reviewFromUnknown(pairId, artifact.output) : undefined;
   if (!review) {
-    throw new Error(`${pairId} PAIR_COHERENCE_REVIEW cannot be read.`);
+    // The pair is defected before Pair Coherence produced a readable review (an earlier
+    // SIR task failed, or the pair has not reached coherence yet). It still needs a
+    // reachable editing surface: regenerate a section, or Save & Finalize Later.
+    return {
+      domain,
+      pairId,
+      pairState: pairRun.state,
+      passed: false,
+      coherenceSummary: artifact
+        ? `${pairId} has a Pair Coherence review that cannot be read; regenerate a section or finalize later.`
+        : `${pairId} has no completed Pair Coherence review yet. Regenerate a defected section, or Save & Finalize Later while it waits on an external dependency.`,
+      defects: [],
+      blockingCount: 0,
+      notice,
+      gateIssues: [],
+      hasCoherenceReview: false,
+      regenerableSections,
+      reworkAvailable: false,
+      commandsEnabled: operatorCommandsEnabled()
+    };
   }
   const snapshot = await loadPairCoherenceSnapshot(pairRun.id);
   const candidateId = await latestPairCandidateRevisionId(pairRun.id);
@@ -240,7 +265,11 @@ export async function loadPairReviewPage(domain: DomainId, pairId: string, notic
     blockingCount: blocking.length,
     notice,
     gateIssues: [],
-    candidateHash: await currentPairCandidateHash(pairRun.id, pairId)
+    candidateHash: await currentPairCandidateHash(pairRun.id, pairId),
+    hasCoherenceReview: true,
+    regenerableSections,
+    reworkAvailable: blocking.length > 0,
+    commandsEnabled: operatorCommandsEnabled()
   };
 }
 
@@ -423,6 +452,59 @@ export async function savePairReview(input: {
   };
 }
 
+export function renderPairActions(page: PairReviewPage): string {
+  const commandsEnabled = page.commandsEnabled !== false;
+  const disabled = commandsEnabled ? '' : ' disabled';
+  const sections = page.regenerableSections ?? [];
+  const reworkForm = page.reworkAvailable
+    ? `<form class="action-form" method="post" action="/api/operator/commands">
+        <input type="hidden" name="domain" value="${escapeHtml(page.domain)}">
+        <input type="hidden" name="pairId" value="${escapeHtml(page.pairId)}">
+        <input type="hidden" name="action" value="rework-with-genai">
+        <h3>Rework with GenAI</h3>
+        <p class="meta">Run the bounded content-correction loop on the listed defects, then re-check Pair Coherence. Deterministic validation stays the authority; canonical IDs stay code-owned.</p>
+        <button type="submit"${disabled}>Rework with GenAI</button>
+      </form>`
+    : '';
+  const regenerateForm = sections.length
+    ? `<form class="action-form" method="post" action="/api/operator/commands">
+        <input type="hidden" name="domain" value="${escapeHtml(page.domain)}">
+        <input type="hidden" name="pairId" value="${escapeHtml(page.pairId)}">
+        <input type="hidden" name="action" value="regenerate-section">
+        <h3>Regenerate a section</h3>
+        <p class="meta">Discard one section's authored content and ask the Maintainer for a fresh attempt. A new revision is authored, then the gates re-run. The model never owns IDs, hashes, or references.</p>
+        <label class="field">Section
+          <select name="taskType">
+            ${sections
+              .map((section) => `<option value="${escapeHtml(section)}">${escapeHtml(section)}</option>`)
+              .join('')}
+          </select>
+        </label>
+        <button type="submit"${disabled}>Regenerate section fresh</button>
+      </form>`
+    : '';
+  const finalizeForm = `<form class="action-form" method="post" action="/api/operator/commands">
+      <input type="hidden" name="domain" value="${escapeHtml(page.domain)}">
+      <input type="hidden" name="pairId" value="${escapeHtml(page.pairId)}">
+      <input type="hidden" name="action" value="finalize-later">
+      <h3>Save &amp; Finalize Later</h3>
+      <p class="meta">Park this pair while it waits on an external dependency (for example new legislation or Legal review). Other pairs keep going; the domain stays fail-closed for approval until this is resolved. This defers, it does not waive — BLOCKING source gaps stay non-waivable.</p>
+      <label class="field">Owner / category
+        <input type="text" name="owner" placeholder="LEGAL_REVIEW" required>
+      </label>
+      <label class="field">Reason
+        <textarea class="rationale" name="reason" placeholder="Awaiting the delegated act before the locator can be sealed." required></textarea>
+      </label>
+      <button type="submit"${disabled}>Save &amp; Finalize Later</button>
+    </form>`;
+  return `<section class="pair-actions">
+    <p class="kicker">Actions for this defected object</p>
+    ${reworkForm}
+    ${regenerateForm}
+    ${finalizeForm}
+  </section>`;
+}
+
 export function renderPairReviewHtml(page: PairReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
@@ -454,6 +536,10 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     }
     .fail { color:var(--fail); }
     .actions { display:flex; gap:.8rem; align-items:center; flex-wrap:wrap; margin-top:1rem; }
+    .pair-actions { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--line); }
+    .action-form { border:1px solid var(--line); border-radius:12px; padding:1rem 1.1rem; margin:0 0 1rem; background:var(--panel); }
+    .action-form h3 { color:var(--ink); margin:0 0 .3rem; font-size:1.05rem; }
+    .action-form button[disabled] { opacity:.5; cursor:not-allowed; }
   </style>
 </head>
 <body>
@@ -508,10 +594,14 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
           : '<p class="banner">No pair-coherence findings are listed on this revision. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
       }
       <div class="actions">
-        <button type="submit">Approve and save</button>
-        <span class="meta">Human approval of these edits and dispositions. Next check is complete section schemas, handles, identity, and the reference graph.</span>
+        ${
+          page.hasCoherenceReview === false
+            ? '<span class="meta">No readable Pair Coherence review yet — edit and Approve is unavailable. Use Regenerate or Save &amp; Finalize Later below.</span>'
+            : '<button type="submit">Approve and save</button><span class="meta">Human approval of these edits and dispositions. Next check is complete section schemas, handles, identity, and the reference graph.</span>'
+        }
       </div>
     </form>
+    ${renderPairActions(page)}
   </main>
   <script>
   (function () {

@@ -114,8 +114,8 @@ export async function assembleDomainCandidateBundle(domain: DomainId): Promise<D
     const jsonAp = `/api/operator/documents/${domain}/${identity.antipatternId}.json`;
     const htmlCap = `/documents/${domain}/${identity.capabilityId}`;
     const htmlAp = `/documents/${domain}/${identity.antipatternId}`;
-    if (!pairRun || pairRun.state !== 'VALIDATED') {
-      const error = `${pairId} is ${pairRun?.state ?? 'missing'}; DRAFT compile requires VALIDATED.`;
+    if (!pairRun) {
+      const error = `${pairId} has no pair run yet.`;
       pairs.push({ pairId, status: 'FAILED', error, notes: [] });
       documents.push(
         {

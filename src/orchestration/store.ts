@@ -430,6 +430,8 @@ export interface FindingRecord {
   issue: string;
   resolved: boolean;
   createdAt: Date;
+  parkReason?: string;
+  parkOwner?: string;
 }
 
 export interface ModelCallRecord {
@@ -611,18 +613,65 @@ export async function persistParkedDefects(
     objectId: string;
     objectPath: string;
     issue: string;
-  }>
+  }>,
+  meta?: { reason?: string; owner?: string }
 ): Promise<void> {
   const db = getDbPool();
   for (const item of defects) {
     await db.query(
       `insert into validation_findings(
         pair_run_id, domain_run_id, check_id, kind, severity, object_id, object_path, issue,
-        dependency_scope, recommended_action, resolved
-      ) values ($1,$2,$3,'DEFERRED_QC',$4,$5,$6,$7,'[]'::jsonb,'PARKED_FOR_LATER_REVIEW', false)`,
-      [pairRunId, domainRunId, item.checkId, item.severity, item.objectId, item.objectPath, item.issue]
+        dependency_scope, recommended_action, resolved, park_reason, park_owner
+      ) values ($1,$2,$3,'DEFERRED_QC',$4,$5,$6,$7,'[]'::jsonb,'PARKED_FOR_LATER_REVIEW', false, $8, $9)`,
+      [
+        pairRunId,
+        domainRunId,
+        item.checkId,
+        item.severity,
+        item.objectId,
+        item.objectPath,
+        item.issue,
+        meta?.reason?.trim() || null,
+        meta?.owner?.trim() || null
+      ]
     );
   }
+}
+
+/**
+ * "Save & Finalize Later": park a pair with a free-text reason and an owner/category
+ * so processing can continue on other pairs while this one waits on an external
+ * dependency (e.g. Legal, new legislation). This is a defer, not a waiver — the
+ * parked items still require an explicit disposition to close, and BLOCKING source
+ * gaps remain non-waivable.
+ */
+export async function parkPairForLater(input: {
+  pairRunId: string;
+  domainRunId: string;
+  pairId: string;
+  reason: string;
+  owner: string;
+  contextDefects?: Array<{
+    checkId: string;
+    severity: string;
+    objectId: string;
+    objectPath: string;
+    issue: string;
+  }>;
+}): Promise<{ parked: number }> {
+  const meta = { reason: input.reason, owner: input.owner };
+  const entries = [
+    {
+      checkId: 'FINALIZE_LATER',
+      severity: 'HIGH',
+      objectId: input.pairId,
+      objectPath: '',
+      issue: `Finalized later: ${input.reason.trim()}`
+    },
+    ...(input.contextDefects ?? [])
+  ];
+  await persistParkedDefects(input.pairRunId, input.domainRunId, entries, meta);
+  return { parked: entries.length };
 }
 
 export async function getParkedFindings(domainRunId: string): Promise<FindingRecord[]> {
@@ -636,8 +685,11 @@ export async function getParkedFindings(domainRunId: string): Promise<FindingRec
     issue: string;
     resolved: boolean;
     created_at: Date;
+    park_reason: string | null;
+    park_owner: string | null;
   }>(
-    `select v.id, v.pair_run_id, v.check_id, v.severity, v.object_id, v.object_path, v.issue, v.resolved, v.created_at
+    `select v.id, v.pair_run_id, v.check_id, v.severity, v.object_id, v.object_path, v.issue, v.resolved, v.created_at,
+            v.park_reason, v.park_owner
      from validation_findings v
      left join pair_runs p on p.id = v.pair_run_id
      where (v.domain_run_id = $1 or p.domain_run_id = $1)
@@ -655,7 +707,9 @@ export async function getParkedFindings(domainRunId: string): Promise<FindingRec
     objectPath: row.object_path,
     issue: row.issue,
     resolved: row.resolved,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    parkReason: row.park_reason ?? undefined,
+    parkOwner: row.park_owner ?? undefined
   }));
 }
 
