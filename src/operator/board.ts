@@ -71,6 +71,8 @@ export interface OperatorDomainCard {
     severity: string;
     issue: string;
     objectPath?: string;
+    parkReason?: string;
+    parkOwner?: string;
   }>;
   commands: {
     startDomainRun: CommandFlag;
@@ -314,7 +316,9 @@ export function buildOperatorStatus(input: {
         checkId: item.checkId,
         severity: item.severity,
         issue: item.issue,
-        objectPath: item.objectPath
+        objectPath: item.objectPath,
+        parkReason: item.parkReason,
+        parkOwner: item.parkOwner
       })),
       pairs: pairIds.map((pairId, index) => {
         const capabilityId = capabilityIds[index];

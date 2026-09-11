@@ -263,7 +263,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}/${unpaid.pairId}`,
           pairId: unpaid.pairId,
           kind: 'PAIR' as const,
-          reason: `${unpaid.pairId} Pair Coherence did not pass. Record an explicit disposition (RESOLVED, WAIVED, ACCEPTED_RISK, or REJECTED) with authority and rationale. Deleting a finding does not close it. BLOCKING findings are not waivable. That save is bound to a new candidate revision and is not domain APPROVED.`
+          reason: `${unpaid.pairId} Pair Coherence did not pass. Edit, Rework with GenAI, Regenerate a section, or Save & Finalize Later. Record an explicit disposition (RESOLVED, WAIVED, ACCEPTED_RISK, or REJECTED) with authority and rationale. Deleting a finding does not close it. BLOCKING findings are not waivable. Saves bind a new candidate revision and are not domain APPROVED.`
         };
       }
       const domainDefects =
@@ -278,6 +278,20 @@ export async function loadDomainOverlay(
           pairId: `DOMAIN-${domain}`,
           kind: 'DOMAIN' as const,
           reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Record an explicit disposition with authority and rationale. Deleting a finding does not close it. BLOCKING findings are not waivable. Continue stays closed until no HIGH domain defects remain. That save is not domain APPROVED.`
+        };
+      }
+      // Any other defected pair (an earlier SIR task failed, or the pair is parked/DEFERRED)
+      // still needs a reachable editing surface: Edit, Regenerate a section, or Finalize Later.
+      const defected = pairs.find(
+        (pair) => pair.state === 'REPAIR_REQUIRED' || pair.state === 'DEFERRED'
+      );
+      if (defected) {
+        return {
+          available: true,
+          href: `/review/${domain}/${defected.pairId}`,
+          pairId: defected.pairId,
+          kind: 'PAIR' as const,
+          reason: `${defected.pairId} is ${defected.state}. Open the object to Edit flagged paths, Rework with GenAI, Regenerate a section, or Save & Finalize Later while it waits on an external dependency.`
         };
       }
       return {

@@ -181,11 +181,11 @@ function parkedList(card: OperatorDomainCard): string {
   if (!items.length) return '';
   return `<section class="defects parked">
       <p class="kicker">Parked for later review</p>
-      <p class="meta">HIGH blockers parked after a repair loop. They do not stop remaining pairs. Close removes an item from this queue; schema and IDs stay code-owned.</p>
+      <p class="meta">Items parked via Park HIGH blockers or Save &amp; Finalize Later. They do not stop remaining pairs, but the domain stays fail-closed for approval until they are resolved. Close removes an item from this queue; schema and IDs stay code-owned.</p>
       <ul>${items
         .map(
           (item) =>
-            `<li><strong>${escapeHtml(item.severity)}</strong> <code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''}<br>${escapeHtml(item.issue)}
+            `<li><strong>${escapeHtml(item.severity)}</strong> <code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''}${item.parkOwner ? ` · owner <code>${escapeHtml(item.parkOwner)}</code>` : ''}<br>${escapeHtml(item.issue)}${item.parkReason ? `<br><span class="meta">Reason: ${escapeHtml(item.parkReason)}</span>` : ''}
             <form class="command-form" method="post" action="/api/operator/commands">
               <input type="hidden" name="domain" value="${escapeHtml(card.domain)}">
               <input type="hidden" name="action" value="close-parked-defect">
@@ -219,17 +219,19 @@ function documentList(card: OperatorDomainCard): string {
 function defectList(card: OperatorDomainCard): string {
   const items = uniqueFindings(card.findings ?? []);
   if (!items.length) return '';
-  const reviewHref = card.review.available ? card.review.href : `/review/${card.domain}`;
+  const reviewLink = card.review.available
+    ? `<p><a href="${escapeHtml(card.review.href)}">Open defected object: Edit, Rework with GenAI, Regenerate, or Finalize Later</a></p>`
+    : '';
   return `<section class="defects">
       <p class="kicker">QC defects</p>
-      <p class="meta">QC Approve and save records dispositions on the current candidate revision. It is not domain APPROVED and does not publish.</p>
+      <p class="meta">Open the defected object to Edit flagged paths, Rework with GenAI, Regenerate a section fresh, or Save &amp; Finalize Later. QC Approve and save records dispositions on the current candidate revision. It is not domain APPROVED and does not publish.</p>
       <ul>${items
         .map(
           (item) =>
             `<li><strong>${escapeHtml(item.severity)}</strong> <code>${escapeHtml(item.objectId)}</code> ${escapeHtml(item.checkId)}${item.objectPath ? ` · <code>${escapeHtml(item.objectPath)}</code>` : ''}<br>${escapeHtml(item.issue)}</li>`
         )
         .join('')}</ul>
-      <p><a href="${escapeHtml(reviewHref)}">Open blocker review</a></p>
+      ${reviewLink}
     </section>`;
 }
 

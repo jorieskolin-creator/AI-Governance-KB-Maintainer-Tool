@@ -24,7 +24,9 @@ import {
   getPairRuns,
   getTaskRunsForPairs,
   persistParkedDefects,
+  parkPairForLater,
   closeParkedFinding,
+  failLatestCompletedTask,
   updatePairState,
   updateDomainState,
   failOrphanedStartedTasks,
@@ -523,6 +525,163 @@ export async function closeParkedDefect(domain: DomainId, findingId: string): Pr
     pairValidated
   });
   return { domain, remaining: closed.remaining, pairValidated };
+}
+
+async function reopenPairToAuthoring(pairRunId: string, state: PairState): Promise<void> {
+  if (state === 'AUTHORING') return;
+  let current = state;
+  if (current !== 'REPAIR_REQUIRED' && canTransition(pairTransitions, current, 'REPAIR_REQUIRED')) {
+    await updatePairState(pairRunId, 'REPAIR_REQUIRED');
+    current = 'REPAIR_REQUIRED';
+  }
+  if (!canTransition(pairTransitions, current, 'AUTHORING')) {
+    throw new Error(`Cannot reopen ${current} → AUTHORING for regeneration.`);
+  }
+  await updatePairState(pairRunId, 'AUTHORING');
+}
+
+/**
+ * "Save & Finalize Later": defer a defected pair with a free-text reason plus an
+ * owner/category (e.g. LEGAL_REVIEW) so processing of the other pairs can continue.
+ * Available at any open, non-VALIDATED pair stage. This is a defer, not a waiver:
+ * the domain stays fail-closed for approval while a pair is parked, and closing a
+ * parked item still requires Pair Coherence to actually pass.
+ */
+export async function finalizeLaterForPair(input: {
+  domain: DomainId;
+  pairId: string;
+  reason: string;
+  owner: string;
+}): Promise<{ domain: DomainId; pairId: string; parked: number; state: PairState }> {
+  if (!operatorCommandsEnabled()) {
+    throw new Error('Operator commands are disabled on this deployment.');
+  }
+  const reason = input.reason.trim();
+  const owner = input.owner.trim();
+  if (reason.length < 5) {
+    throw new Error('Finalize Later needs a reason of at least 5 characters describing the external dependency.');
+  }
+  if (!owner) {
+    throw new Error('Finalize Later needs an owner or category (for example LEGAL_REVIEW or AWAITING_LEGISLATION).');
+  }
+  const run = await getLatestDomainRun(input.domain);
+  if (!run || !isOpenDomainState(run.state)) {
+    throw new Error(`No open domain ${input.domain} run.`);
+  }
+  const pairRuns = await getPairRuns(run.id);
+  const pairRun = pairRuns.find((item) => item.pairId === input.pairId);
+  if (!pairRun) throw new Error(`Pair ${input.pairId} is missing.`);
+  if (pairRun.state === 'VALIDATED') {
+    throw new Error(`${input.pairId} is VALIDATED; reopen it from review before finalizing later.`);
+  }
+  if (pairRun.state === 'DEFERRED') {
+    throw new Error(`${input.pairId} is already parked for later review.`);
+  }
+  const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+  const review = reviewFromUnknown(pairRun.pairId, artifact?.output);
+  const contextDefects = review
+    ? qcDefectsToFindings(pairRun.pairId, { ...review, defects: blockingQcDefects(review) })
+    : [];
+  const parked = await parkPairForLater({
+    pairRunId: pairRun.id,
+    domainRunId: run.id,
+    pairId: input.pairId,
+    reason,
+    owner,
+    contextDefects
+  });
+  if (!canTransition(pairTransitions, pairRun.state, 'DEFERRED')) {
+    throw new Error(`Illegal pair transition ${pairRun.state} → DEFERRED.`);
+  }
+  await updatePairState(pairRun.id, 'DEFERRED');
+  operatorLog('operator.pair.finalize_later', {
+    domain: input.domain,
+    pairId: input.pairId,
+    owner,
+    parked: parked.parked
+  });
+  return { domain: input.domain, pairId: input.pairId, parked: parked.parked, state: 'DEFERRED' };
+}
+
+/**
+ * Section/object-level regeneration: discard the current authored content for one SIR
+ * section and its Pair Coherence review as new superseding revisions, then reopen the
+ * pair so a fresh cognitive attempt re-authors that section and re-runs the gates.
+ * Canonical IDs/hashes/references stay code-owned; the model only re-authors content.
+ */
+export async function regenerateSection(input: {
+  domain: DomainId;
+  pairId: string;
+  taskType: CognitiveTaskType;
+}): Promise<{ domain: DomainId; pairId: string; taskType: CognitiveTaskType }> {
+  if (!operatorCommandsEnabled()) {
+    throw new Error('Operator commands are disabled on this deployment.');
+  }
+  if (!modelRoutesConfigured()) {
+    throw new Error('Model role routing is not configured. Regeneration stays fail-closed.');
+  }
+  if (input.taskType === 'PAIR_COHERENCE_REVIEW' || !isResolvable(input.taskType)) {
+    throw new Error(`${input.taskType} is not a regenerable section.`);
+  }
+  const run = await getLatestDomainRun(input.domain);
+  if (!run || !isOpenDomainState(run.state)) {
+    throw new Error(`No open domain ${input.domain} run.`);
+  }
+  const pairRuns = await getPairRuns(run.id);
+  const pairRun = pairRuns.find((item) => item.pairId === input.pairId);
+  if (!pairRun) throw new Error(`Pair ${input.pairId} is missing.`);
+  if (pairRun.state === 'VALIDATED') {
+    throw new Error(`${input.pairId} is VALIDATED; reopen it from review before regenerating a section.`);
+  }
+  const existing = await getLatestCompletedTaskArtifact(pairRun.id, input.taskType);
+  if (!existing) {
+    throw new Error(`${input.pairId} has no completed ${input.taskType} section to regenerate.`);
+  }
+  await failLatestCompletedTask(pairRun.id, input.taskType);
+  const coherence = await getLatestCompletedTaskArtifact(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+  if (coherence) {
+    await failLatestCompletedTask(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+  }
+  await reopenPairToAuthoring(pairRun.id, pairRun.state);
+  operatorLog('operator.section.regenerate', {
+    domain: input.domain,
+    pairId: input.pairId,
+    taskType: input.taskType
+  });
+  return { domain: input.domain, pairId: input.pairId, taskType: input.taskType };
+}
+
+/**
+ * "Rework with GenAI": trigger the existing bounded content-correction / LOCAL_REPAIR
+ * loop for a defected pair. Deterministic validation remains the authority; this only
+ * confirms the pair is eligible before the pipeline runs the repair and re-checks
+ * Pair Coherence.
+ */
+export async function assertReworkWithGenAiAvailable(input: {
+  domain: DomainId;
+  pairId: string;
+}): Promise<void> {
+  if (!operatorCommandsEnabled()) {
+    throw new Error('Operator commands are disabled on this deployment.');
+  }
+  if (!modelRoutesConfigured()) {
+    throw new Error('Model role routing is not configured. Rework with GenAI stays fail-closed.');
+  }
+  const run = await getLatestDomainRun(input.domain);
+  if (!run || !isOpenDomainState(run.state)) {
+    throw new Error(`No open domain ${input.domain} run.`);
+  }
+  const pairRuns = await getPairRuns(run.id);
+  const pairRun = pairRuns.find((item) => item.pairId === input.pairId);
+  if (!pairRun) throw new Error(`Pair ${input.pairId} is missing.`);
+  const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
+  const review = reviewFromUnknown(pairRun.pairId, artifact?.output);
+  if (!review || blockingQcDefects(review).length === 0) {
+    throw new Error(`${input.pairId} has no HIGH/BLOCKING pair-coherence defects for GenAI rework.`);
+  }
+  if (pairRun.state !== 'REPAIR_REQUIRED' && canTransition(pairTransitions, pairRun.state, 'REPAIR_REQUIRED')) {
+    await updatePairState(pairRun.id, 'REPAIR_REQUIRED');
+  }
 }
 
 const domainPipelinesInFlight = new Set<DomainId>();

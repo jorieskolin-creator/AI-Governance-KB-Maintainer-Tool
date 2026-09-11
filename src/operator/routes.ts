@@ -1,14 +1,19 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { OperatorStatus } from './board.js';
 import {
+  assertReworkWithGenAiAvailable,
   closeParkedDefect,
   dismissBlockingDefects,
+  finalizeLaterForPair,
   operatorCommandsEnabled,
   parseDomainId,
+  regenerateSection,
   runDomainPipeline,
   runNextEligibleTask,
   startDomainRun
 } from './commands.js';
+import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
+import type { CognitiveTaskType } from '../domain/states.js';
 import { operatorLog } from './log.js';
 import { renderOperatorHome } from './render-home.js';
 import {
@@ -68,6 +73,17 @@ function parsePairId(domain: ReturnType<typeof parseDomainId>, value: unknown): 
     throw new Error(`Pair id must belong to domain ${domain}, such as ${domain}2_AP-${domain}2.`);
   }
   return raw;
+}
+
+function parseSectionTaskType(value: unknown): CognitiveTaskType {
+  const raw = String(value ?? '').trim();
+  const match = PAIR_TASK_SEQUENCE.find(
+    (taskType) => taskType === raw && taskType !== 'PAIR_COHERENCE_REVIEW'
+  );
+  if (!match) {
+    throw new Error('Section must be a regenerable SIR authoring task, not the pair coherence review.');
+  }
+  return match;
 }
 
 function queueDomainPipeline(domain: ReturnType<typeof parseDomainId>, request: FastifyRequest): void {
@@ -318,6 +334,9 @@ export function registerOperatorRoutes(
       action?: unknown;
       findingId?: unknown;
       pairId?: unknown;
+      taskType?: unknown;
+      reason?: unknown;
+      owner?: unknown;
       domainCandidateHash?: unknown;
       approvalBundleSha256?: unknown;
       proposedManifestSha256?: unknown;
@@ -381,6 +400,58 @@ export function registerOperatorRoutes(
           );
         }
         return result;
+      }
+      if (action === 'finalize-later') {
+        const pairId = parsePairId(domain, body.pairId);
+        const result = await finalizeLaterForPair({
+          domain,
+          pairId,
+          reason: String(body.reason ?? ''),
+          owner: String(body.owner ?? '')
+        });
+        operatorLog('operator.command.finished', {
+          action,
+          domain,
+          pairId: result.pairId,
+          parked: result.parked
+        });
+        if (wantsHtml(request)) {
+          return noticeRedirect(
+            reply,
+            `Parked ${result.pairId} for later review. Remaining pairs can continue; the domain stays fail-closed for approval until it is resolved.`,
+            domain
+          );
+        }
+        return result;
+      }
+      if (action === 'regenerate-section') {
+        const pairId = parsePairId(domain, body.pairId);
+        const taskType = parseSectionTaskType(body.taskType);
+        const result = await regenerateSection({ domain, pairId, taskType });
+        operatorLog('operator.command.finished', { action, domain, pairId, taskType });
+        if (wantsHtml(request)) {
+          queueDomainPipeline(domain, request);
+          return noticeRedirect(
+            reply,
+            `Regenerating ${taskType} for ${pairId}. A fresh cognitive attempt re-authors that section, then Pair Coherence re-runs. Canonical IDs stay code-owned.`,
+            domain
+          );
+        }
+        return result;
+      }
+      if (action === 'rework-with-genai') {
+        const pairId = parsePairId(domain, body.pairId);
+        await assertReworkWithGenAiAvailable({ domain, pairId });
+        operatorLog('operator.command.finished', { action, domain, pairId });
+        if (wantsHtml(request)) {
+          queueDomainPipeline(domain, request);
+          return noticeRedirect(
+            reply,
+            `Reworking ${pairId} with GenAI. The bounded content-correction loop repairs the listed defects, then Pair Coherence re-runs. Deterministic validation stays the authority.`,
+            domain
+          );
+        }
+        return { domain, pairId, queued: true };
       }
       if (action === 'close-parked-defect') {
         const findingId = String(body.findingId ?? '').trim();
