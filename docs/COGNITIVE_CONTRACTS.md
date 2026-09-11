@@ -27,7 +27,7 @@ Deterministic `SOURCE_CONTEXT` is acquired before `SOURCE_MAPPING`. It is not a 
 13. `REFERENCE_MAPPING`
 14. `PAIR_COHERENCE_REVIEW`
 
-A completed domain batch is reviewed separately with `DOMAIN_COHERENCE_REVIEW` before it can become ready for external approval.
+A completed domain batch is reviewed separately with `DOMAIN_COHERENCE_REVIEW` before it can become ready for operator approval.
 
 The 14 pair SIR tasks remain separate. Shared completion-validator routes are not consolidations. `PRIMARY_QUESTIONS` and `ATOMIC_DECOMPOSITION` may be measured later as a prompt-grouping candidate only; both validators must still run independently. Merge stays closed unless a later explicit authorization is added after evidence. Never merge source acquisition into authoring, or QC into authoring.
 

@@ -174,6 +174,7 @@ export function taskLabel(taskType: CognitiveTaskType): string {
 
 export function flowLabel(step: DomainFlowStep): string {
   if (step === 'PAIR_TASK_SEQUENCE') return `${String(PAIR_TASK_SEQUENCE.length)} pair SIR tasks`;
+  if (step === 'EXTERNAL_HUMAN_APPROVAL') return 'Hash-bound operator approval';
   return step
     .split('_')
     .map((part) => `${part.charAt(0)}${part.slice(1).toLowerCase()}`)

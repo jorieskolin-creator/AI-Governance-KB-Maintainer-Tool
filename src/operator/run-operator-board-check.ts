@@ -95,6 +95,8 @@ assert(html.includes('after five pairs are VALIDATED') || html.includes('After f
 assert(html.includes('DOMAIN_COHERENCE_REVIEW'), 'home page must admit domain coherence after five validated pairs');
 assert(html.includes('DRAFT documents'), 'home page must name DRAFT documents as the pair-complete output');
 assert(html.includes('Approval bundle'), 'home page must name the hash-bound approval bundle');
+assert(html.includes('Hash-bound operator approval'), 'home page must name standalone operator approval, not an external intake');
+assert(!html.includes('until external APPROVED'), 'home page must not wait for an external approval layer');
 assert(html.includes('section schemas') || html.includes('Approve and save'), 'home page must name the human-approval schema gate');
 assert(status.domains[0]?.review.kind === '' || status.domains[0]?.review.kind === 'PAIR' || status.domains[0]?.review.kind === 'DOMAIN', 'review kind is governed');
 assert(html.includes('Production candidates'), 'home page must show the production-candidate unit');

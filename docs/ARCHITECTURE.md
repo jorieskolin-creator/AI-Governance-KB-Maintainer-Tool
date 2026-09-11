@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This service creates, validates, versions and publishes production-ready AI Governance Knowledge Base category-pair documents and their canonical JSON representations after external human approval.
+This service creates, validates, versions and publishes production-ready AI Governance Knowledge Base category-pair documents and their canonical JSON representations after hash-bound operator approval.
 
 It is **not** an AI-system lifecycle workflow engine and does not grant governance approval, legal applicability, residual-risk acceptance or lifecycle authorization.
 
@@ -10,7 +10,7 @@ It is **not** an AI-system lifecycle workflow engine and does not grant governan
 
 - **Cognitive task**: one bounded AI objective with an explicit input/output contract.
 - **Pair**: one capability and its paired anti-pattern; authoring/validation unit.
-- **Domain batch**: five validated pairs; domain-coherence and external-approval unit.
+- **Domain batch**: five validated pairs; domain-coherence and operator-approval unit.
 - **Release**: approved immutable artifacts and manifest.
 
 A domain batch is never a single model call.
@@ -109,7 +109,7 @@ A full pair/domain regeneration is a last-resort explicit action, not normal fai
 
 ## Approval boundary
 
-The service may determine `READY_FOR_APPROVAL` based on completed quality gates. `APPROVED` is supplied by the external human process. After approval, semantic content is frozen. Canonical JSON compilation and production-document rendering are deterministic publication operations.
+The service may determine `READY_FOR_APPROVAL` based on completed quality gates. `APPROVED` is a standalone operator decision bound to the candidate and proposed-manifest hashes. After approval, semantic content is frozen. Canonical JSON compilation and production-document rendering are deterministic publication operations.
 
 Operator Continue after five pairs that actually passed Pair Coherence runs `DOMAIN_COHERENCE_REVIEW` and stops at `READY_FOR_APPROVAL`. Pair-complete DRAFT documents are assembled deterministically from persisted SIR artifacts without granting `APPROVED` or publishing a versioned release. Remaining HIGH pair-coherence blockers are a human approval step: the operator may edit semantic values at recommended paths and must record an explicit finding disposition (`RESOLVED`, `WAIVED`, `ACCEPTED_RISK`, or `REJECTED`) with authority and rationale. Deleting a finding from the form does not close it. BLOCKING findings are not waivable. That save is human approval of those changes against a new candidate revision; it rebuilds coherence packets from current snapshot hashes and re-runs schema, compile, and coherence gates. It is not domain `APPROVED` and does not publish.
 

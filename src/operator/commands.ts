@@ -337,7 +337,7 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
         }
         await updateDomainState(run.id, 'READY_FOR_APPROVAL');
         throw new Error(
-          `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Canonical compile stays closed until external APPROVED.`
+          `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
         );
       }
       if (!canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'REPAIR_REQUIRED')) {
