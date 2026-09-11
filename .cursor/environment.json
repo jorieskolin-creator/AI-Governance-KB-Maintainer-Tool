@@ -13,5 +13,5 @@
       "command": "npm run dev"
     }
   ],
-  "ports": [3000]
+  "ports": [{ "name": "dev-server", "port": 3000 }]
 }
