@@ -119,13 +119,16 @@ function runActivity(card: OperatorDomainCard): string {
   }
   if (card.documents.available) {
     if (card.review.available && card.review.kind === 'DOMAIN') {
-      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Fix, ask the Maintainer to fix, or Park the pair with a reason. Continue stays closed until no HIGH domain defects remain.</p>`;
+      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Fix, ask the Maintainer to fix, or Park the pair with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
     }
     if (card.review.available) {
-      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Fix, ask the Maintainer to fix, or Park with a reason. Domain Coherence stays closed until every pair actually passed or is parked.</p>`;
+      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Fix, ask the Maintainer to fix, or Park with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
     }
     if (card.documents.approvalAvailable) {
       return `<p class="activity">Work order OPEN. Domain coherence passed. The hash-bound approval bundle is the exact bytes publication would release. Record operator approval against those hashes. Publication stays a separate operation.</p>`;
+    }
+    if (card.state === 'READY_FOR_APPROVAL') {
+      return `<p class="activity">Work order OPEN. Remaining HIGH defects are parked. The rest of the domain is READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved. Publication stays a separate operation.</p>`;
     }
       return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts and still show unresolved issues. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. Operator approval and published release stay closed.</p>`;
   }
@@ -181,7 +184,7 @@ function parkedList(card: OperatorDomainCard): string {
   if (!items.length) return '';
   return `<section class="defects parked">
       <p class="kicker">Parked for later review</p>
-      <p class="meta">Items parked via Park HIGH blockers or Save &amp; Finalize Later. They do not stop remaining pairs, but the domain stays fail-closed for approval until they are resolved. Close removes an item from this queue; schema and IDs stay code-owned.</p>
+      <p class="meta">Items parked via Park or Save &amp; Finalize Later. They do not stop remaining pairs, Continue, or READY_FOR_APPROVAL. Hash-bound operator approval stays closed until they are resolved. Close removes an item from this queue; schema and IDs stay code-owned.</p>
       <ul>${items
         .map(
           (item) =>
@@ -538,7 +541,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the Maintainer to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, identity, and no unresolved parked items. After five pairs actually pass Pair Coherence, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, the approval bundle binds the candidate and proposed manifest hashes. Operator approval finalizes immutable APPROVED bytes; publication is a separate hash-verified operation.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the Maintainer to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. Parked pairs do not block Continue or READY_FOR_APPROVAL. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, and identity. Hash-bound operator approval stays closed while parked items remain. After five pairs actually pass Pair Coherence or are parked, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, the approval bundle binds the candidate and proposed manifest hashes. Operator approval finalizes immutable APPROVED bytes; publication is a separate hash-verified operation.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>

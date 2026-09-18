@@ -19,7 +19,7 @@ import {
   updateDomainState
 } from '../orchestration/store.js';
 import { domainMayReadyForApproval, staleRevisionIssues } from '../orchestration/named-gates.js';
-import { unresolvedParkedApprovalBlock } from './eligibility.js';
+import { countUnparkedBlockingDefects } from './eligibility.js';
 import {
   applySnapshotPatches,
   patchedSnapshotRoots,
@@ -264,7 +264,12 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
     lockedDomainPacket(artifact.taskContract, domain),
     await currentPairPacketBindings(pairRuns)
   );
-  const blocking = blockingOpenDefects(review.defects, dispositions);
+  const blocking = blockingOpenDefects(review.defects, dispositions).filter((item) => {
+    const domainPath = item.recommendedRepairPaths[0] ?? item.affectedPaths[0] ?? '';
+    const mapped = domainPath ? snapshotPathFromDomainPath(domainPath) : undefined;
+    const pairId = mapped?.pairId ?? item.affectedPairIds[0] ?? '';
+    return !parkedByPairId.has(pairId);
+  });
   const defects: DomainReviewDefectView[] = review.defects.map((item) => {
     const domainPath = item.recommendedRepairPaths[0] ?? item.affectedPaths[0] ?? '';
     const mapped = domainPath ? snapshotPathFromDomainPath(domainPath) : undefined;
@@ -583,10 +588,14 @@ export async function saveDomainReview(input: {
     await persistFindingDispositions(domainCandidateId, 'DOMAIN', parsed.dispositions);
   }
   if (domainMayReadyForApproval(outcomes)) {
-    const parked = await getParkedFindings(run.id);
-    if (!unresolvedParkedApprovalBlock(parked.length)) {
+    const remainingUnparked = countUnparkedBlockingDefects(
+      rematerialized.defects,
+      new Set(pairRuns.filter((item) => item.state === 'DEFERRED').map((item) => item.pairId))
+    );
+    if (remainingUnparked === 0) {
       const readyIssues: string[] = [];
       for (const pairRun of pairRuns) {
+        if (pairRun.state === 'DEFERRED') continue;
         const snapshot = patchedByPair.get(pairRun.pairId) ?? (await loadPairCoherenceSnapshot(pairRun.id));
         readyIssues.push(...schemaGate(pairRun.pairId, snapshot).map((item) => `${pairRun.pairId}: ${item}`));
       }
@@ -616,8 +625,10 @@ export async function saveDomainReview(input: {
 export function renderDomainReviewHtml(page: DomainReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No open HIGH/BLOCKING domain defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. Other pairs are not a save gate. READY_FOR_APPROVAL and publication still require complete schemas, locked vocabulary, identity, and no unresolved parked items.'
-      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Park is a defer of this pair/object, not accepted risk.`;
+      ? page.defects.some((item) => item.actionStatus === 'PARKED')
+        ? 'Remaining HIGH domain defects are parked. They do not block Continue or READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved. This is not domain APPROVED and not a versioned Knowledge Base release.'
+        : 'No open HIGH/BLOCKING domain defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. Other pairs are not a save gate. READY_FOR_APPROVAL and publication still require complete schemas, locked vocabulary, and identity.'
+      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
   return `<!doctype html>
 <html lang="en">
 <head>

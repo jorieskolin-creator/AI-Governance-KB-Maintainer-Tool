@@ -17,7 +17,7 @@ import {
 import { qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
 import { blockingOpenDefects, openDefects } from '../repair/finding-dispositions.js';
 import { pairSnapshots, readDomainCoherenceSnapshot, enrichPairSnapshots } from './commands.js';
-import { commandAvailability, type CommandFlag } from './eligibility.js';
+import { commandAvailability, countUnparkedBlockingDefects, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
 import type { EligiblePairSnapshot } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
@@ -109,7 +109,16 @@ export async function loadDomainOverlay(
   );
   const openFindings = await getOpenFindings(run.id);
   const parkedFindings = await getParkedFindings(run.id);
+  const deferredPairIds = new Set(pairs.filter((item) => item.state === 'DEFERRED').map((item) => item.pairId));
+  const parkedObjectIds = new Set(parkedFindings.map((item) => item.objectId));
   const parkedKeys = new Set(parkedFindings.map((item) => `${item.objectId}|${item.checkId}`));
+  function isParkedObject(objectId: string, checkId: string): boolean {
+    if (deferredPairIds.has(objectId)) return true;
+    if (parkedObjectIds.has(objectId)) return true;
+    if (parkedKeys.has(`${objectId}|${checkId}`)) return true;
+    if (parkedKeys.has(`${objectId}|FINALIZE_LATER`)) return true;
+    return false;
+  }
   const qcFindings: FindingRecord[] = [];
   for (const pairRun of pairRuns) {
     const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
@@ -120,7 +129,7 @@ export async function loadDomainOverlay(
     const openReview = { ...review, defects: openDefects(review.defects, dispositions) };
     if (openReview.defects.length === 0) continue;
     for (const item of qcDefectsToFindings(pairRun.pairId, openReview)) {
-      if (parkedKeys.has(`${item.objectId}|${item.checkId}`)) continue;
+      if (isParkedObject(item.objectId, item.checkId)) continue;
       qcFindings.push({
         id: `${pairRun.id}:${item.checkId}`,
         pairRunId: pairRun.id,
@@ -171,7 +180,7 @@ export async function loadDomainOverlay(
           ? defect.affectedPairIds[0]
           : `DOMAIN-${domain}`;
       const checkId = typeof defect.defectId === 'string' ? defect.defectId : `defect_${String(index + 1).padStart(3, '0')}`;
-      if (parkedKeys.has(`${objectId}|${checkId}`)) continue;
+      if (isParkedObject(objectId, checkId)) continue;
       findings.push({
         id: `${hostPair?.id ?? run.id}:${checkId}`,
         pairRunId: hostPair?.id ?? null,
@@ -200,7 +209,7 @@ export async function loadDomainOverlay(
     const dispositions = candidateId ? await loadFindingDispositions(candidateId, 'PAIR') : [];
     const blocking = review
       ? blockingOpenDefects(review.defects, dispositions).filter(
-          (defect) => !parkedKeys.has(`${pairRun.pairId}|${defect.defectId}`)
+          (defect) => !isParkedObject(pairRun.pairId, defect.defectId)
         ).length
       : 0;
     const localRepairCompleted = taskRuns.some(
@@ -223,6 +232,10 @@ export async function loadDomainOverlay(
       dismissBlockers = flag;
     }
   }
+  const unparkedBlockingDomainDefects = countUnparkedBlockingDefects(
+    Array.isArray(domainArtifact?.output?.defects) ? domainArtifact.output.defects : [],
+    deferredPairIds
+  );
   return {
     domain,
     runId: run.id,
@@ -242,13 +255,14 @@ export async function loadDomainOverlay(
           state: run.state,
           pairs,
           domainCoherence,
-          openParkedCount: parkedFindings.length
+          openParkedCount: parkedFindings.length,
+          unparkedBlockingDomainDefects
         }
       }),
       dismissBlockers
     },
     documents: {
-      available: pairs.filter((pair) => pair.state === 'VALIDATED').length === 5,
+      available: pairs.filter((pair) => pair.state === 'VALIDATED' || pair.state === 'DEFERRED').length === 5,
       indexHref: `/documents/${domain}`,
       bundleHref: `/api/operator/documents/${domain}`,
       approvalHref: `/approval/${domain}`,
@@ -263,7 +277,12 @@ export async function loadDomainOverlay(
         ].includes(run.state)
     },
     review: (() => {
-      const unpaid = pairs.find((pair) => pair.pairCoherencePassed !== true && pair.tasks.some((task) => task.taskType === 'PAIR_COHERENCE_REVIEW' && task.status === 'COMPLETED'));
+      const unpaid = pairs.find(
+        (pair) =>
+          pair.state !== 'DEFERRED' &&
+          pair.pairCoherencePassed !== true &&
+          pair.tasks.some((task) => task.taskType === 'PAIR_COHERENCE_REVIEW' && task.status === 'COMPLETED')
+      );
       if (unpaid) {
         return {
           available: true,
@@ -275,30 +294,23 @@ export async function loadDomainOverlay(
       }
       const domainDefects =
         domainArtifact?.output && Array.isArray(domainArtifact.output.defects) ? domainArtifact.output.defects : [];
-      const domainBlocking = domainDefects.some(
-        (item) => item.severity === 'HIGH' || item.severity === 'BLOCKING'
-      );
-      if (domainPassed === false && domainBlocking) {
+      if (domainPassed === false && unparkedBlockingDomainDefects > 0) {
         return {
           available: true,
           href: `/review/${domain}`,
           pairId: `DOMAIN-${domain}`,
           kind: 'DOMAIN' as const,
-          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. On that page: Fix, save and continue; Maintainer, fix this; or Park the affected pair so other pairs can move. Park is the defer status with a reason. Fix closes the finding after a focused check. Continue stays closed until no HIGH domain defects remain. That save is not domain APPROVED.`
+          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. On that page: Fix, save and continue; Maintainer, fix this; or Park the affected pair so other pairs can move. Park is the defer status with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`
         };
       }
-      // Any other defected pair (an earlier SIR task failed, or the pair is parked/DEFERRED)
-      // still needs a reachable editing surface: Edit, Regenerate a section, or Finalize Later.
-      const defected = pairs.find(
-        (pair) => pair.state === 'REPAIR_REQUIRED' || pair.state === 'DEFERRED'
-      );
+      const defected = pairs.find((pair) => pair.state === 'REPAIR_REQUIRED');
       if (defected) {
         return {
           available: true,
           href: `/review/${domain}/${defected.pairId}`,
           pairId: defected.pairId,
           kind: 'PAIR' as const,
-          reason: `${defected.pairId} is ${defected.state}. Open the object to Edit flagged paths, Rework with GenAI, Regenerate a section, or Save & Finalize Later while it waits on an external dependency.`
+          reason: `${defected.pairId} is ${defected.state}. Open the object to Fix, ask the Maintainer to fix it, or Park this pair so the rest can continue.`
         };
       }
       return {

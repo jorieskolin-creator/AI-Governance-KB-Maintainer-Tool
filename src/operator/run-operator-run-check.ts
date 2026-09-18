@@ -14,7 +14,7 @@ import {
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE, canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
-import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock } from './eligibility.js';
+import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock, countUnparkedBlockingDefects } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
 import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, schemaGateFocused, parseReviewSaveBody } from './pair-review.js';
@@ -212,7 +212,7 @@ assert(
 assert(
   classifyDomainPipelineStop('1 pair(s) have HIGH blockers parked for later review. DOMAIN_COHERENCE stays closed.') ===
     'DOMAIN_READY',
-  'parked blockers must stop the pair pipeline without looking like a crash'
+  'legacy parked-block messages still stop the pair pipeline without looking like a crash'
 );
 assert(
   classifyDomainPipelineStop(
@@ -358,8 +358,8 @@ assert(
 );
 assert(
   unresolvedParkedDomainBlock(2) ===
-    '2 parked item(s) remain unresolved. DOMAIN_COHERENCE stays closed.',
-  'unresolved parked items keep domain coherence closed even if every pair looks VALIDATED'
+    '2 parked item(s) remain unresolved. They do not block Continue or READY_FOR_APPROVAL.',
+  'unresolved parked items are visible but do not close Continue'
 );
 assert(unresolvedParkedDomainBlock(0) === undefined, 'zero parked items do not invent a domain block');
 assert(
@@ -370,15 +370,74 @@ assert(
 
 const validatedWithParkedQueue = nextEligiblePairTask('A', fiveValidated, undefined, 1);
 assert(
-  'blocked' in validatedWithParkedQueue &&
-    validatedWithParkedQueue.blocked.includes('remain unresolved'),
-  'five VALIDATED pairs with an open parked queue must not admit domain coherence'
+  !('blocked' in validatedWithParkedQueue) &&
+    validatedWithParkedQueue.taskType === 'DOMAIN_COHERENCE_REVIEW',
+  'five VALIDATED pairs with parked items still admit domain coherence'
 );
 assert(
   classifyDomainPipelineStop(
-    '1 parked item(s) remain unresolved. DOMAIN_COHERENCE stays closed.'
+    'Domain A remaining HIGH defects are parked. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.'
   ) === 'DOMAIN_READY',
-  'unresolved parked items stop the pair pipeline without looking like a crash'
+  'parked-only remaining HIGH defects promote to READY_FOR_APPROVAL without looking like a crash'
+);
+
+assert(
+  countUnparkedBlockingDefects(
+    [
+      { severity: 'HIGH', affectedPairIds: ['B3_AP-B3'] },
+      { severity: 'HIGH', affectedPairIds: ['B1_AP-B1'] }
+    ],
+    new Set(['B3_AP-B3'])
+  ) === 1,
+  'parked pair defects do not count as unparked HIGH blockers'
+);
+assert(
+  countUnparkedBlockingDefects(
+    [{ severity: 'HIGH', affectedPaths: ['pairs[B3_AP-B3].capability.relatedCriteria'] }],
+    new Set(['B3_AP-B3'])
+  ) === 0,
+  'domain path parked pair is not an unparked blocker'
+);
+const deferredDomainReady = nextEligiblePairTask(
+  'B',
+  [
+    { pairId: 'B1_AP-B1', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+    { pairId: 'B2_AP-B2', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+    { pairId: 'B3_AP-B3', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false },
+    { pairId: 'B4_AP-B4', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+    { pairId: 'B5_AP-B5', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true }
+  ],
+  { status: 'COMPLETED', passed: false },
+  1,
+  0
+);
+assert(
+  !('blocked' in deferredDomainReady) && deferredDomainReady.taskType === 'DOMAIN_COHERENCE_REVIEW',
+  'when remaining HIGH domain defects are parked, Continue can promote READY_FOR_APPROVAL'
+);
+const parkedDomainContinue = commandAvailability({
+  databaseReady: true,
+  commandsEnabled: true,
+  modelRoutesConfigured: true,
+  domain: 'B',
+  activeRun: {
+    state: 'REPAIR_REQUIRED',
+    pairs: [
+      { pairId: 'B1_AP-B1', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+      { pairId: 'B2_AP-B2', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+      { pairId: 'B3_AP-B3', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false },
+      { pairId: 'B4_AP-B4', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+      { pairId: 'B5_AP-B5', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true }
+    ],
+    domainCoherence: { status: 'COMPLETED', passed: false },
+    openParkedCount: 1,
+    unparkedBlockingDomainDefects: 0
+  }
+});
+assert(parkedDomainContinue.runNextTask.enabled === true, 'Continue stays enabled after remaining HIGH defects are parked');
+assert(
+  parkedDomainContinue.runNextTask.next?.taskType === 'DOMAIN_COHERENCE_REVIEW',
+  'Continue after parked-only domain defects promotes the next phase'
 );
 
 const readyWithParkedAvailability = commandAvailability({

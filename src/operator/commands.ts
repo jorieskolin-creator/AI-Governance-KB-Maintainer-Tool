@@ -46,6 +46,7 @@ import {
   isOpenDomainState,
   nextEligiblePairTask,
   classifyDomainPipelineStop,
+  countUnparkedBlockingDefects,
   type DomainCoherenceSnapshot,
   type EligiblePairSnapshot,
   type NextEligibleTask
@@ -152,6 +153,57 @@ async function enterDomainValidating(domainRunId: string, state: DomainState): P
   }
   await updateDomainState(domainRunId, 'DOMAIN_VALIDATING');
   return 'DOMAIN_VALIDATING';
+}
+
+function deferredPairIdsOf(pairRuns: readonly PairRunRecord[]): Set<string> {
+  return new Set(pairRuns.filter((item) => item.state === 'DEFERRED').map((item) => item.pairId));
+}
+
+function domainDefectsFromOutput(output: unknown): Array<{
+  severity?: string;
+  affectedPairIds?: string[];
+  affectedPaths?: string[];
+  recommendedRepairPaths?: string[];
+}> {
+  if (!output || typeof output !== 'object' || Array.isArray(output)) return [];
+  const defects = (output as { defects?: unknown }).defects;
+  return Array.isArray(defects) ? defects : [];
+}
+
+/**
+ * Parked pairs wait. They must not keep the domain in REPAIR_REQUIRED.
+ * When every remaining HIGH/BLOCKING domain defect sits on a DEFERRED pair,
+ * promote to READY_FOR_APPROVAL so Continue / the next phase can run.
+ */
+async function promoteDomainReadyWhenOnlyParkedRemain(input: {
+  domain: DomainId;
+  domainRunId: string;
+  state: DomainState;
+  pairRuns: readonly PairRunRecord[];
+  domainOutput: unknown;
+}): Promise<boolean> {
+  if (input.state !== 'REPAIR_REQUIRED' && input.state !== 'DOMAIN_VALIDATING') return false;
+  const expected = expectedDomainPairIds(input.domain);
+  const complete = input.pairRuns.filter(
+    (item) => item.state === 'VALIDATED' || item.state === 'DEFERRED'
+  );
+  if (complete.length !== expected.length) return false;
+  const remaining = countUnparkedBlockingDefects(
+    domainDefectsFromOutput(input.domainOutput),
+    deferredPairIdsOf(input.pairRuns)
+  );
+  if (remaining > 0) return false;
+  const current = await enterDomainValidating(input.domainRunId, input.state);
+  if (current !== 'DOMAIN_VALIDATING') return false;
+  if (!canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'READY_FOR_APPROVAL')) {
+    throw new Error('Illegal domain transition DOMAIN_VALIDATING → READY_FOR_APPROVAL.');
+  }
+  await updateDomainState(input.domainRunId, 'READY_FOR_APPROVAL');
+  operatorLog('operator.domain.ready_after_park', {
+    domain: input.domain,
+    domainRunId: input.domainRunId
+  });
+  return true;
 }
 
 async function runDomainCoherenceReview(input: {
@@ -307,7 +359,18 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     domainReviewPassed(domainArtifact?.output)
   );
   const parkedFindings = await getParkedFindings(run.id);
-  const eligible = nextEligiblePairTask(domain, snapshots, domainCoherence, parkedFindings.length);
+  const deferredIds = deferredPairIdsOf(pairRuns);
+  const unparkedBlocking = countUnparkedBlockingDefects(
+    domainDefectsFromOutput(domainArtifact?.output),
+    deferredIds
+  );
+  const eligible = nextEligiblePairTask(
+    domain,
+    snapshots,
+    domainCoherence,
+    parkedFindings.length,
+    unparkedBlocking
+  );
   if ('blocked' in eligible) throw new Error(eligible.blocked);
   let next: NextEligibleTask = eligible;
   const pairRun = pairRuns.find((item) => item.pairId === next.pairId);
@@ -328,6 +391,19 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
       taskType: next.taskType,
       domainRunId: run.id
     });
+    if (
+      await promoteDomainReadyWhenOnlyParkedRemain({
+        domain,
+        domainRunId: run.id,
+        state: run.state,
+        pairRuns,
+        domainOutput: domainArtifact?.output
+      })
+    ) {
+      throw new Error(
+        `Domain ${domain} remaining HIGH defects are parked. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
+      );
+    }
     try {
       await enterDomainValidating(run.id, run.state);
       const review = await runDomainCoherenceReview({
@@ -480,10 +556,24 @@ export async function dismissBlockingDefects(domain: DomainId): Promise<{
       }
       await updatePairState(pairRun.id, 'DEFERRED');
     }
+    const freshPairs = await getPairRuns(run.id);
+    const hostPairId = expectedDomainPairIds(domain)[0];
+    const hostPair = freshPairs.find((item) => item.pairId === hostPairId);
+    const domainArtifact = hostPair
+      ? await getLatestTaskArtifactWithOutput(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
+      : undefined;
+    const promoted = await promoteDomainReadyWhenOnlyParkedRemain({
+      domain,
+      domainRunId: run.id,
+      state: run.state,
+      pairRuns: freshPairs,
+      domainOutput: domainArtifact?.output
+    });
     operatorLog('operator.defects.parked', {
       domain,
       pairId: pairRun.pairId,
-      parked: blocking.length
+      parked: blocking.length,
+      domainReady: promoted
     });
     return { domain, pairId: pairRun.pairId, parked: blocking.length };
   }
@@ -571,6 +661,7 @@ export async function finalizeLaterForPair(input: {
   status: 'PARKED';
   reason: string;
   alreadyParked?: boolean;
+  domainReady?: boolean;
 }> {
   if (!operatorCommandsEnabled()) {
     throw new Error('Operator commands are disabled on this deployment.');
@@ -587,6 +678,18 @@ export async function finalizeLaterForPair(input: {
   if (!pairRun) throw new Error(`Pair ${input.pairId} is missing.`);
   if (pairRun.state === 'DEFERRED') {
     const parkedFindings = (await getParkedFindings(run.id)).filter((item) => item.pairRunId === pairRun.id);
+    const hostPairId = expectedDomainPairIds(input.domain)[0];
+    const hostPair = pairRuns.find((item) => item.pairId === hostPairId);
+    const domainArtifact = hostPair
+      ? await getLatestTaskArtifactWithOutput(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
+      : undefined;
+    const promoted = await promoteDomainReadyWhenOnlyParkedRemain({
+      domain: input.domain,
+      domainRunId: run.id,
+      state: run.state,
+      pairRuns,
+      domainOutput: domainArtifact?.output
+    });
     return {
       domain: input.domain,
       pairId: input.pairId,
@@ -599,7 +702,8 @@ export async function finalizeLaterForPair(input: {
         parkedFindings[0]?.parkReason ??
         parkedFindings[0]?.issue ??
         reason,
-      alreadyParked: true
+      alreadyParked: true,
+      domainReady: promoted
     };
   }
   const currentState = await reopenValidatedForRepair(pairRun.id, pairRun.state);
@@ -620,11 +724,25 @@ export async function finalizeLaterForPair(input: {
     throw new Error(`Illegal pair transition ${currentState} → DEFERRED.`);
   }
   await updatePairState(pairRun.id, 'DEFERRED');
+  const freshPairs = await getPairRuns(run.id);
+  const hostPairId = expectedDomainPairIds(input.domain)[0];
+  const hostPair = freshPairs.find((item) => item.pairId === hostPairId);
+  const domainArtifact = hostPair
+    ? await getLatestTaskArtifactWithOutput(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
+    : undefined;
+  const promoted = await promoteDomainReadyWhenOnlyParkedRemain({
+    domain: input.domain,
+    domainRunId: run.id,
+    state: run.state,
+    pairRuns: freshPairs,
+    domainOutput: domainArtifact?.output
+  });
   operatorLog('operator.pair.finalize_later', {
     domain: input.domain,
     pairId: input.pairId,
     owner,
-    parked: parked.parked
+    parked: parked.parked,
+    domainReady: promoted
   });
   return {
     domain: input.domain,
@@ -633,7 +751,8 @@ export async function finalizeLaterForPair(input: {
     state: 'DEFERRED',
     persisted: true,
     status: 'PARKED',
-    reason
+    reason,
+    domainReady: promoted
   };
 }
 
@@ -790,11 +909,13 @@ export async function resumeOpenDomainPipelines(): Promise<{ reclaimed: number; 
       ? await getLatestTaskArtifactWithOutput<{ passed?: boolean }>(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
       : undefined;
     const parkedFindings = await getParkedFindings(run.id);
+    const domainOutput = domainArtifact?.output;
     const next = nextEligiblePairTask(
       domain,
       snapshots,
-      readDomainCoherenceSnapshot(domain, pairRuns, taskRuns, domainReviewPassed(domainArtifact?.output)),
-      parkedFindings.length
+      readDomainCoherenceSnapshot(domain, pairRuns, taskRuns, domainReviewPassed(domainOutput)),
+      parkedFindings.length,
+      countUnparkedBlockingDefects(domainDefectsFromOutput(domainOutput), deferredPairIdsOf(pairRuns))
     );
     if ('blocked' in next || next.taskType === 'DOMAIN_COHERENCE_REVIEW') continue;
     resumed.push(domain);

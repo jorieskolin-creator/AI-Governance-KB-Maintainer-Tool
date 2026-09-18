@@ -593,8 +593,8 @@ export function renderPairActions(page: PairReviewPage): string {
 export function renderPairReviewHtml(page: PairReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No open HIGH/BLOCKING defects remain. Fix, save and continue checks the section you touched plus its handles and references. VALIDATED, READY_FOR_APPROVAL, and publication still require complete schemas, locked vocabulary, identity, and no unresolved parked items.'
-      : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically.`;
+      ? 'No open HIGH/BLOCKING defects remain. Fix, save and continue checks the section you touched plus its handles and references. VALIDATED, READY_FOR_APPROVAL, and publication still require complete schemas, locked vocabulary, and identity. Parked pairs do not block Continue or READY_FOR_APPROVAL.'
+      : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
   return `<!doctype html>
 <html lang="en">
 <head>
