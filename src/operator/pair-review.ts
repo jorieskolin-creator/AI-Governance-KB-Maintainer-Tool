@@ -260,7 +260,7 @@ export async function loadPairReviewPage(domain: DomainId, pairId: string, notic
     parked[0]?.parkReason ??
     parked[0]?.issue ??
     DEFAULT_PARK_REASON;
-  const blocking = blockingOpenDefects(review.defects, dispositions);
+  const blocking = pairParked ? [] : blockingOpenDefects(review.defects, dispositions);
   const paths = repairPathsFromDefects(blocking.length ? blocking : review.defects);
   const defects: ReviewDefectView[] = review.defects.map((item) => {
     const path = item.recommendedRepairPaths[0] ?? item.affectedPaths[0] ?? paths[0] ?? '';
@@ -591,10 +591,19 @@ export function renderPairActions(page: PairReviewPage): string {
 }
 
 export function renderPairReviewHtml(page: PairReviewPage): string {
-  const blockingLabel =
-    page.blockingCount === 0
+  const parkedOnly =
+    page.pairState === 'DEFERRED' ||
+    (page.defects.length > 0 && page.defects.every((item) => item.actionStatus === 'PARKED'));
+  const blockingLabel = parkedOnly
+    ? 'This pair is parked. It does not block Continue or READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved.'
+    : page.blockingCount === 0
       ? 'No open HIGH/BLOCKING defects remain. Fix, save and continue checks the section you touched plus its handles and references. VALIDATED, READY_FOR_APPROVAL, and publication still require complete schemas, locked vocabulary, and identity. Parked pairs do not block Continue or READY_FOR_APPROVAL.'
       : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
+  const nextStep = parkedOnly
+    ? `<p><a href="/?domain=${escapeHtml(page.domain)}">Return to the operator board</a> — this parked pair does not block the next phase.
+      · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>`
+    : `<p><a href="/?domain=${escapeHtml(page.domain)}">Operator board</a>
+      · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -636,8 +645,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     ${page.notice ? `<p class="banner">${escapeHtml(page.notice)}</p>` : ''}
     <div id="review-issues" class="banner fail${page.gateIssues.length ? ' is-visible' : ''}"${page.gateIssues.length ? '' : ' hidden'}>${page.gateIssues.map((item) => `<p>${escapeHtml(item)}</p>`).join('')}</div>
     <p class="meta">${escapeHtml(page.coherenceSummary)}</p>
-    <p><a href="/?domain=${escapeHtml(page.domain)}">Operator board</a>
-      · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>
+    ${nextStep}
     <form id="pair-review-form" method="post" action="/api/operator/commands">
       <input type="hidden" name="domain" value="${escapeHtml(page.domain)}">
       <input type="hidden" name="pairId" value="${escapeHtml(page.pairId)}">

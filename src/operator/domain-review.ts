@@ -59,7 +59,7 @@ import {
 } from '../repair/revision-aware-repair.js';
 import { buildPairAuthoringPlan } from './authoring-context.js';
 import type { MaterializedDomainCoherenceDefect, MaterializedDomainCoherenceReview } from '../sir/domain-coherence-materializer.js';
-import { operatorCommandsEnabled } from './commands.js';
+import { operatorCommandsEnabled, promoteDomainReadyWhenOnlyParkedRemain } from './commands.js';
 import { isOpenDomainState } from './eligibility.js';
 import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
@@ -296,9 +296,24 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
       parkReason
     };
   });
+  let domainState = run.state;
+  if (
+    blocking.length === 0 &&
+    defects.some((item) => item.actionStatus === 'PARKED') &&
+    (await promoteDomainReadyWhenOnlyParkedRemain({
+      domain,
+      domainRunId: run.id,
+      state: run.state,
+      pairRuns,
+      domainOutput: artifact.output,
+      parkedObjectIds: new Set(parkedByPairId.keys())
+    }))
+  ) {
+    domainState = 'READY_FOR_APPROVAL';
+  }
   return {
     domain,
-    domainState: run.state,
+    domainState,
     passed: review.passed === true,
     coherenceSummary: review.coherenceSummary,
     defects,
@@ -623,12 +638,24 @@ export async function saveDomainReview(input: {
 }
 
 export function renderDomainReviewHtml(page: DomainReviewPage): string {
-  const blockingLabel =
-    page.blockingCount === 0
-      ? page.defects.some((item) => item.actionStatus === 'PARKED')
-        ? 'Remaining HIGH domain defects are parked. They do not block Continue or READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved. This is not domain APPROVED and not a versioned Knowledge Base release.'
-        : 'No open HIGH/BLOCKING domain defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. Other pairs are not a save gate. READY_FOR_APPROVAL and publication still require complete schemas, locked vocabulary, and identity.'
+  const parkedOnly =
+    page.blockingCount === 0 && page.defects.some((item) => item.actionStatus === 'PARKED');
+  const readyAfterPark = page.domainState === 'READY_FOR_APPROVAL' && parkedOnly;
+  const blockingLabel = parkedOnly
+    ? readyAfterPark
+      ? 'Remaining HIGH domain defects are parked. They do not block the next phase. This domain is READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved. This is not domain APPROVED and not a versioned Knowledge Base release.'
+      : 'Remaining HIGH domain defects are parked. They do not block Continue or READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved. This is not domain APPROVED and not a versioned Knowledge Base release.'
+    : page.blockingCount === 0
+      ? 'No open HIGH/BLOCKING domain defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. Other pairs are not a save gate. READY_FOR_APPROVAL and publication still require complete schemas, locked vocabulary, and identity.'
       : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
+  const nextStep = parkedOnly
+    ? `<p><a href="/?domain=${escapeHtml(page.domain)}">Return to the operator board</a> — parked items wait for later review and do not block the next phase.
+      · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>`
+    : `<p><a href="/?domain=${escapeHtml(page.domain)}">Operator board</a>
+      · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>`;
+  const footer = parkedOnly
+    ? 'Parked items wait for later review. They do not block READY_FOR_APPROVAL. Return to the operator board to continue.'
+    : 'Fix a finding to close it after a focused check, or Park a pair that must wait. Publication still requires complete schemas.';
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -666,8 +693,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
     ${page.notice ? `<p class="banner">${escapeHtml(page.notice)}</p>` : ''}
     <div id="review-issues" class="banner fail${page.gateIssues.length ? ' is-visible' : ''}"${page.gateIssues.length ? '' : ' hidden'}>${page.gateIssues.map((item) => `<p>${escapeHtml(item)}</p>`).join('')}</div>
     <p class="meta">${escapeHtml(page.coherenceSummary)}</p>
-    <p><a href="/?domain=${escapeHtml(page.domain)}">Operator board</a>
-      · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>
+    ${nextStep}
     <form id="domain-review-form" method="post" action="/api/operator/commands">
       <input type="hidden" name="domain" value="${escapeHtml(page.domain)}">
       <input type="hidden" name="action" value="save-domain-review">
@@ -701,7 +727,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
           : '<p class="banner">No domain-coherence findings are listed on this revision. Saving still runs a focused check on any section you edit. Other pairs are not a save gate.</p>'
       }
       <div class="actions">
-        <span class="meta">Fix a finding to close it after a focused check, or Park a pair that must wait. Publication still requires complete schemas.</span>
+        <span class="meta">${escapeHtml(footer)}</span>
       </div>
     </form>
   </main>

@@ -460,6 +460,42 @@ assert(
   readyWithParkedAvailability.recordApproval.reason.includes('fail-closed'),
   'approval closed reason names the parked queue'
 );
+assert(
+  readyWithParkedAvailability.runNextTask.enabled === false,
+  'READY_FOR_APPROVAL after park keeps Continue closed like a passing domain'
+);
+
+const parkedReadyFailedCoherence = commandAvailability({
+  databaseReady: true,
+  commandsEnabled: true,
+  modelRoutesConfigured: true,
+  domain: 'B',
+  activeRun: {
+    state: 'READY_FOR_APPROVAL',
+    pairs: [
+      { pairId: 'B1_AP-B1', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+      { pairId: 'B2_AP-B2', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+      { pairId: 'B3_AP-B3', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false },
+      { pairId: 'B4_AP-B4', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true },
+      { pairId: 'B5_AP-B5', state: 'VALIDATED', tasks: allCompleted, pairCoherencePassed: true }
+    ],
+    domainCoherence: { status: 'COMPLETED', passed: false },
+    openParkedCount: 1,
+    unparkedBlockingDomainDefects: 0
+  }
+});
+assert(
+  parkedReadyFailedCoherence.runNextTask.enabled === false,
+  'parked-only READY_FOR_APPROVAL must not keep Continue as the next action'
+);
+assert(
+  parkedReadyFailedCoherence.runNextTask.reason.includes('READY_FOR_APPROVAL'),
+  'parked-only ready reason names READY_FOR_APPROVAL'
+);
+assert(
+  parkedReadyFailedCoherence.recordApproval.enabled === false,
+  'hash-bound approval stays fail-closed while parked items remain'
+);
 
 const reviewHtml = renderPairReviewHtml({
   domain: 'A',
@@ -602,6 +638,40 @@ assert(
   !domainHtml.includes('<option value="ACCEPTED_RISK"'),
   'ACCEPTED_RISK is not a finding action on domain review'
 );
+
+const parkedOnlyDomainHtml = renderDomainReviewHtml({
+  domain: 'B',
+  domainState: 'READY_FOR_APPROVAL',
+  passed: false,
+  coherenceSummary: 'HIGH related-criteria defect remains.',
+  blockingCount: 0,
+  gateIssues: [],
+  defects: [
+    {
+      defectId: 'defect_001',
+      severity: 'HIGH',
+      coherenceDimension: 'BROKEN_RELATED_CRITERION',
+      issue: 'Related-criterion links between the privacy pair and the intellectual-property pair are incomplete.',
+      coherenceExpectation: 'Related-criterion lists must be reciprocal.',
+      pairId: 'B3_AP-B3',
+      domainPath: 'pairs[B3_AP-B3].capability.relatedCriteria',
+      snapshotPath: 'referenceMappings.capabilityRelatedCriteria',
+      currentValue: [],
+      valueJson: '[]',
+      disposition: 'OPEN',
+      rationale: '',
+      actionStatus: 'PARKED',
+      parkReason: 'This pair waits on an expert. Other pairs can continue.'
+    }
+  ]
+});
+assert(
+  !parkedOnlyDomainHtml.includes('1 open HIGH/BLOCKING domain defect'),
+  'a parked domain finding must not stay listed as an open HIGH blocker'
+);
+assert(parkedOnlyDomainHtml.includes('READY_FOR_APPROVAL'), 'parked-only domain review shows READY_FOR_APPROVAL');
+assert(parkedOnlyDomainHtml.includes('Return to the operator board'), 'parked-only domain review unlocks the board next phase');
+assert(!parkedOnlyDomainHtml.includes('data-finding-action="park"'), 'parked-only domain review has no leftover finding actions');
 
 const domainHigh = {
   defectId: 'defect_001' as const,

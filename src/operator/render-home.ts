@@ -209,7 +209,7 @@ function documentList(card: OperatorDomainCard): string {
   const approval = `<p><a href="${escapeHtml(card.documents.approvalHref)}">${
     card.documents.approvalAvailable
       ? `Open domain ${escapeHtml(card.domain)} hash-bound approval bundle`
-      : `Approval bundle stays closed until READY_FOR_APPROVAL`
+      : `Approval bundle stays closed while parked items remain or until READY_FOR_APPROVAL`
   }</a></p>`;
   return `<section class="defects documents">
       <p class="kicker">DRAFT production candidates</p>

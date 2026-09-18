@@ -88,6 +88,11 @@ const parkedReviewHtml = renderPairReviewHtml({
 assert(parkedReviewHtml.includes('data-finding-status="PARKED"'), 'parked finding shows Parked');
 assert(parkedReviewHtml.includes('Waiting on legal review of the locator.'), 'parked finding shows why');
 assert(!parkedReviewHtml.includes('data-finding-action="park"'), 'parked finding hides the three actions');
+assert(
+  !parkedReviewHtml.includes('1 open HIGH/BLOCKING defect'),
+  'a parked pair must not keep the open HIGH blocker banner'
+);
+assert(parkedReviewHtml.includes('does not block the next phase') || parkedReviewHtml.includes('does not block Continue'), 'parked pair review unlocks the next phase');
 const fixedReviewHtml = renderPairReviewHtml({
   ...defectedPage,
   defects: [
@@ -185,10 +190,10 @@ assert(!domainReviewHtml.includes('Disposition for this revision'), 'domain revi
 assert(!domainReviewHtml.includes('window.alert'), 'domain review does not alert focused-check failures');
 const parkedDomainHtml = renderDomainReviewHtml({
   domain: 'A',
-  domainState: 'REPAIR_REQUIRED',
+  domainState: 'READY_FOR_APPROVAL',
   passed: false,
   coherenceSummary: 'HIGH related-criteria defect remains.',
-  blockingCount: 1,
+  blockingCount: 0,
   gateIssues: [],
   defects: [
     {
@@ -211,6 +216,15 @@ const parkedDomainHtml = renderDomainReviewHtml({
 });
 assert(parkedDomainHtml.includes('data-finding-status="PARKED"'), 'parked domain finding shows Parked');
 assert(!parkedDomainHtml.includes('data-finding-action="park"'), 'parked domain finding hides the three actions');
+assert(
+  !parkedDomainHtml.includes('1 open HIGH/BLOCKING domain defect'),
+  'parked domain findings are not counted as open HIGH blockers'
+);
+assert(
+  parkedDomainHtml.includes('do not block the next phase') || parkedDomainHtml.includes('READY_FOR_APPROVAL'),
+  'parked-only domain review names the unlocked next phase'
+);
+assert(parkedDomainHtml.includes('Return to the operator board'), 'parked-only domain review sends the operator back to the board');
 
 async function liveParkedApprovalCheck(): Promise<'PASS' | 'SKIPPED'> {
   if (!process.env.DATABASE_URL?.trim()) return 'SKIPPED';

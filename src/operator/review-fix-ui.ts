@@ -281,6 +281,12 @@ export function renderReviewClientScript(kind: 'pair' | 'domain'): string {
           findingId: findingId
         }, function (payload) {
           var parkedReason = payload.reason || reason;
+          if (payload.domainReady) {
+            window.location.assign('/?domain=' + encodeURIComponent(domain) + '&notice=' + encodeURIComponent(
+              'Parked ' + pairId + '. Status: Parked. Why: ' + parkedReason + '. Remaining HIGH defects are parked. Domain is READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved.'
+            ));
+            return;
+          }
           var notice = 'Parked ' + pairId + '. Status: Parked. Why: ' + parkedReason + '. Remaining pairs can continue. Approval stays fail-closed until this pair is resolved.';
           var url = ${stayOnDomain ? `'/review/' + encodeURIComponent(domain) + '?notice=' + encodeURIComponent(notice)` : `'/review/' + encodeURIComponent(domain) + '/' + encodeURIComponent(pairId) + '?notice=' + encodeURIComponent(notice)`};
           window.location.assign(url);

@@ -306,6 +306,21 @@ export function commandAvailability(input: {
           reason:
             'Record standalone operator approval against the exact current candidate, approval-bundle, and proposed-manifest hashes. Publication remains a separate operation.'
         };
+    const parkedReady =
+      (input.activeRun.openParkedCount ?? 0) > 0 || input.activeRun.domainCoherence?.passed !== true;
+    return {
+      startDomainRun: {
+        enabled: false,
+        reason: `Domain ${input.domain} already has an open run.`
+      },
+      runNextTask: {
+        enabled: false,
+        reason: parkedReady
+          ? `Domain ${input.domain} remaining HIGH defects are parked. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
+          : `Domain ${input.domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
+      },
+      recordApproval
+    };
   }
 
   if (input.activeRun && isOpenDomainState(input.activeRun.state)) {

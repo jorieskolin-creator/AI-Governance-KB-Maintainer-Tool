@@ -16,7 +16,12 @@ import {
 } from '../orchestration/store.js';
 import { qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
 import { blockingOpenDefects, openDefects } from '../repair/finding-dispositions.js';
-import { pairSnapshots, readDomainCoherenceSnapshot, enrichPairSnapshots } from './commands.js';
+import {
+  pairSnapshots,
+  readDomainCoherenceSnapshot,
+  enrichPairSnapshots,
+  promoteDomainReadyWhenOnlyParkedRemain
+} from './commands.js';
 import { commandAvailability, countUnparkedBlockingDefects, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
 import type { EligiblePairSnapshot } from './eligibility.js';
@@ -143,7 +148,9 @@ export async function loadDomainOverlay(
       });
     }
   }
-  const findings = [...qcFindings, ...openFindings];
+  const findings = [...qcFindings, ...openFindings].filter(
+    (item) => !isParkedObject(item.objectId, item.checkId)
+  );
   const modelCalls = await getRecentModelCalls(pairRuns.map((item) => item.id));
   const taskInFlight = taskRuns.some((task) => task.status === 'STARTED');
   const hostPairId = expectedDomainPairIds(domain)[0];
@@ -232,14 +239,28 @@ export async function loadDomainOverlay(
       dismissBlockers = flag;
     }
   }
+  const parkedPairIds = new Set([...deferredPairIds, ...parkedObjectIds]);
   const unparkedBlockingDomainDefects = countUnparkedBlockingDefects(
     Array.isArray(domainArtifact?.output?.defects) ? domainArtifact.output.defects : [],
-    deferredPairIds
+    parkedPairIds
   );
+  let domainState = run.state;
+  if (
+    await promoteDomainReadyWhenOnlyParkedRemain({
+      domain,
+      domainRunId: run.id,
+      state: run.state,
+      pairRuns,
+      domainOutput: domainArtifact?.output,
+      parkedObjectIds: parkedPairIds
+    })
+  ) {
+    domainState = 'READY_FOR_APPROVAL';
+  }
   return {
     domain,
     runId: run.id,
-    state: run.state,
+    state: domainState,
     baselineSha256: run.baselineSha256,
     pairs,
     findings,
@@ -252,7 +273,7 @@ export async function loadDomainOverlay(
         modelRoutesConfigured: modelRoutesConfigured(),
         domain,
         activeRun: {
-          state: run.state,
+          state: domainState,
           pairs,
           domainCoherence,
           openParkedCount: parkedFindings.length,
@@ -274,9 +295,18 @@ export async function loadDomainOverlay(
           'PUBLISHING',
           'PUBLICATION_FAILED',
           'PUBLISHED'
-        ].includes(run.state)
+        ].includes(domainState)
     },
     review: (() => {
+      if (domainState === 'READY_FOR_APPROVAL') {
+        return {
+          available: false,
+          href: '',
+          pairId: '',
+          kind: '' as const,
+          reason: 'No remaining HIGH blockers to review.'
+        };
+      }
       const unpaid = pairs.find(
         (pair) =>
           pair.state !== 'DEFERRED' &&
@@ -292,8 +322,6 @@ export async function loadDomainOverlay(
           reason: `${unpaid.pairId} Pair Coherence did not pass. On the review page: Fix, save and continue; Maintainer, fix this; or Park this pair. Park is the defer status with a reason. Fix closes the finding after a focused check. There is no Rejected/Resolved picker. BLOCKING findings are not waivable. Illegal locked vocabulary cannot be waived. Saves bind a new candidate revision and are not domain APPROVED.`
         };
       }
-      const domainDefects =
-        domainArtifact?.output && Array.isArray(domainArtifact.output.defects) ? domainArtifact.output.defects : [];
       if (domainPassed === false && unparkedBlockingDomainDefects > 0) {
         return {
           available: true,
