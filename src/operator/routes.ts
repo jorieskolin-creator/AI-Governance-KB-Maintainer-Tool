@@ -12,6 +12,7 @@ import {
   runNextEligibleTask,
   startDomainRun
 } from './commands.js';
+import { maintainerFixFinding } from './maintainer-fix-finding.js';
 import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
 import type { CognitiveTaskType } from '../domain/states.js';
 import { operatorLog } from './log.js';
@@ -452,6 +453,34 @@ export function registerOperatorRoutes(
           );
         }
         return { domain, pairId, queued: true };
+      }
+      if (action === 'maintainer-fix-finding') {
+        const pairId = parsePairId(domain, body.pairId);
+        const findingId = String(body.findingId ?? '').trim();
+        const result = await maintainerFixFinding({ domain, pairId, findingId });
+        operatorLog('operator.command.finished', {
+          action,
+          domain,
+          pairId,
+          findingId,
+          queued: result.queued,
+          coerced: result.coercedPaths.length
+        });
+        if (result.queued) {
+          queueDomainPipeline(domain, request);
+        }
+        if (wantsHtml(request)) {
+          const notice = result.coercedPaths.length
+            ? `Maintainer fix on ${pairId}: illegal minimumTechnicalAssurance was coerced to UNKNOWN. The finding stays open. Park remains available.`
+            : `Maintainer is fixing ${findingId} on ${pairId}. Stay on this defect until the focused check passes, or Park it.`;
+          const reviewPath =
+            request.headers.referer && String(request.headers.referer).includes(`/review/${domain}`) &&
+            !String(request.headers.referer).includes(`/${pairId}`)
+              ? `/review/${domain}`
+              : `/review/${domain}/${pairId}`;
+          return reply.redirect(`${reviewPath}?notice=${encodeURIComponent(notice)}`);
+        }
+        return result;
       }
       if (action === 'close-parked-defect') {
         const findingId = String(body.findingId ?? '').trim();

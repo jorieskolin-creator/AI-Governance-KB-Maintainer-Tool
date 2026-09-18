@@ -542,12 +542,19 @@ async function reopenPairToAuthoring(pairRunId: string, state: PairState): Promi
   await updatePairState(pairRunId, 'AUTHORING');
 }
 
+async function reopenValidatedForRepair(pairRunId: string, state: PairState): Promise<PairState> {
+  if (state !== 'VALIDATED') return state;
+  if (!canTransition(pairTransitions, 'VALIDATED', 'REPAIR_REQUIRED')) {
+    throw new Error('Illegal pair transition VALIDATED → REPAIR_REQUIRED.');
+  }
+  await updatePairState(pairRunId, 'REPAIR_REQUIRED');
+  return 'REPAIR_REQUIRED';
+}
+
 /**
- * "Save & Finalize Later": defer a defected pair with a free-text reason plus an
- * owner/category (e.g. LEGAL_REVIEW) so processing of the other pairs can continue.
- * Available at any open, non-VALIDATED pair stage. This is a defer, not a waiver:
- * the domain stays fail-closed for approval while a pair is parked, and closing a
- * parked item still requires Pair Coherence to actually pass.
+ * Park this pair/object so other pairs can continue. This is a defer, not accepted
+ * risk: the domain stays fail-closed for approval until the parked item is resolved.
+ * VALIDATED pairs on domain review may be parked (reopened to REPAIR_REQUIRED, then DEFERRED).
  */
 export async function finalizeLaterForPair(input: {
   domain: DomainId;
@@ -573,12 +580,10 @@ export async function finalizeLaterForPair(input: {
   const pairRuns = await getPairRuns(run.id);
   const pairRun = pairRuns.find((item) => item.pairId === input.pairId);
   if (!pairRun) throw new Error(`Pair ${input.pairId} is missing.`);
-  if (pairRun.state === 'VALIDATED') {
-    throw new Error(`${input.pairId} is VALIDATED; reopen it from review before finalizing later.`);
-  }
   if (pairRun.state === 'DEFERRED') {
     throw new Error(`${input.pairId} is already parked for later review.`);
   }
+  const currentState = await reopenValidatedForRepair(pairRun.id, pairRun.state);
   const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
   const review = reviewFromUnknown(pairRun.pairId, artifact?.output);
   const contextDefects = review
@@ -592,8 +597,8 @@ export async function finalizeLaterForPair(input: {
     owner,
     contextDefects
   });
-  if (!canTransition(pairTransitions, pairRun.state, 'DEFERRED')) {
-    throw new Error(`Illegal pair transition ${pairRun.state} → DEFERRED.`);
+  if (!canTransition(pairTransitions, currentState, 'DEFERRED')) {
+    throw new Error(`Illegal pair transition ${currentState} → DEFERRED.`);
   }
   await updatePairState(pairRun.id, 'DEFERRED');
   operatorLog('operator.pair.finalize_later', {
@@ -632,9 +637,7 @@ export async function regenerateSection(input: {
   const pairRuns = await getPairRuns(run.id);
   const pairRun = pairRuns.find((item) => item.pairId === input.pairId);
   if (!pairRun) throw new Error(`Pair ${input.pairId} is missing.`);
-  if (pairRun.state === 'VALIDATED') {
-    throw new Error(`${input.pairId} is VALIDATED; reopen it from review before regenerating a section.`);
-  }
+  const currentState = await reopenValidatedForRepair(pairRun.id, pairRun.state);
   const existing = await getLatestCompletedTaskArtifact(pairRun.id, input.taskType);
   if (!existing) {
     throw new Error(`${input.pairId} has no completed ${input.taskType} section to regenerate.`);
@@ -644,7 +647,7 @@ export async function regenerateSection(input: {
   if (coherence) {
     await failLatestCompletedTask(pairRun.id, 'PAIR_COHERENCE_REVIEW');
   }
-  await reopenPairToAuthoring(pairRun.id, pairRun.state);
+  await reopenPairToAuthoring(pairRun.id, currentState);
   operatorLog('operator.section.regenerate', {
     domain: input.domain,
     pairId: input.pairId,

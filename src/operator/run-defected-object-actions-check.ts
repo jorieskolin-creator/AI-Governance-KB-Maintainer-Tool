@@ -1,4 +1,5 @@
 import { renderPairActions, renderPairReviewHtml, type PairReviewPage } from './pair-review.js';
+import { renderDomainReviewHtml } from './domain-review.js';
 import {
   assertReworkWithGenAiAvailable,
   finalizeLaterForPair,
@@ -63,6 +64,14 @@ const reviewHtml = renderPairReviewHtml(defectedPage);
 assert(reviewHtml.includes('data-disposition-finding="defect_001"'), 'coherence disposition form is preserved for Edit');
 assert(reviewHtml.includes(APPROVE_BUTTON), 'Edit + Approve stays available when a coherence review exists');
 assert(reviewHtml.includes('pair-actions'), 'the four-action set renders under the review');
+assert(reviewHtml.includes('Fix, save and continue'), 'finding offers Fix, save and continue');
+assert(reviewHtml.includes('Maintainer, fix this'), 'finding offers Maintainer, fix this');
+assert(reviewHtml.includes('Park, fix after the rest is ready'), 'finding offers Park');
+assert(!reviewHtml.includes('window.alert'), 'failed focused checks stay on the page without alert');
+assert(
+  !reviewHtml.includes('<option value="ACCEPTED_RISK"'),
+  'ACCEPTED_RISK is hidden from the primary disposition list so it is not used as a defer'
+);
 
 const earlyStagePage: PairReviewPage = {
   domain: 'A',
@@ -126,6 +135,36 @@ assert(
   'Edit/Approve must not VALIDATE a pair while FINALIZE_LATER items remain open'
 );
 
+const domainReviewHtml = renderDomainReviewHtml({
+  domain: 'A',
+  domainState: 'REPAIR_REQUIRED',
+  passed: false,
+  coherenceSummary: 'HIGH related-criteria defect remains.',
+  blockingCount: 1,
+  gateIssues: [],
+  defects: [
+    {
+      defectId: 'defect_001',
+      severity: 'HIGH',
+      coherenceDimension: 'BROKEN_RELATED_CRITERION',
+      issue: 'The lifecycle pair omits a reciprocal related-criterion link.',
+      coherenceExpectation: 'Related-criterion lists must be reciprocal.',
+      pairId: 'A2_AP-A2',
+      domainPath: 'pairs[A2_AP-A2].capability.relatedCriteria',
+      snapshotPath: 'referenceMappings.capabilityRelatedCriteria',
+      currentValue: [],
+      valueJson: '[]',
+      disposition: 'OPEN',
+      rationale: ''
+    }
+  ]
+});
+assert(domainReviewHtml.includes('Park, fix after the rest is ready'), 'domain review parks the affected pair so other pairs can move');
+assert(domainReviewHtml.includes('data-finding-action="fix"'), 'domain review finding has Fix, save and continue');
+assert(domainReviewHtml.includes('data-finding-action="maintainer"'), 'domain review finding has Maintainer, fix this');
+assert(domainReviewHtml.includes('data-pair-id="A2_AP-A2"'), 'domain park targets this pair/object');
+assert(!domainReviewHtml.includes('window.alert'), 'domain review does not alert focused-check failures');
+
 async function liveParkedApprovalCheck(): Promise<'PASS' | 'SKIPPED'> {
   if (!process.env.DATABASE_URL?.trim()) return 'SKIPPED';
   const { createHash } = await import('node:crypto');
@@ -188,6 +227,7 @@ console.log(
     {
       status: 'PASS',
       fourActionSetRendered: 'PASS',
+      findingFixLoopRendered: 'PASS',
       editApprovePreserved: 'PASS',
       earlierStageDefectReachable: 'PASS',
       approveHiddenWithoutReview: 'PASS',

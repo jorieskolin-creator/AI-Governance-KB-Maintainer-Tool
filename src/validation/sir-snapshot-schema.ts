@@ -362,7 +362,15 @@ function addUnknownRefs(
   }
 }
 
-function validateReferenceGraph(snapshot: Record<string, unknown>, issues: string[]): void {
+function validateReferenceGraph(
+  snapshot: Record<string, unknown>,
+  issues: string[],
+  roots?: ReadonlySet<string>
+): void {
+  const checkEvidence = !roots || roots.has('evidence');
+  const checkFindings = !roots || roots.has('findings');
+  if (!checkEvidence && !checkFindings) return;
+
   const atomics = snapshot.atomics as { capability?: Array<{ handle?: unknown }>; antipattern?: Array<{ handle?: unknown }> } | undefined;
   const evidence = snapshot.evidence as {
     capability?: Array<{ handle?: unknown; supportsAtomicHandles?: string[] }>;
@@ -377,20 +385,48 @@ function validateReferenceGraph(snapshot: Record<string, unknown>, issues: strin
   const capabilityEvidence = handleSet(evidence?.capability);
   const antipatternEvidence = handleSet(evidence?.antipattern);
 
-  evidence?.capability?.forEach((item, index) => {
-    addUnknownRefs(issues, `evidence.capability[${index}]`, item.supportsAtomicHandles, capabilityAtomics, 'atomic');
-  });
-  evidence?.antipattern?.forEach((item, index) => {
-    addUnknownRefs(issues, `evidence.antipattern[${index}]`, item.supportsAtomicHandles, antipatternAtomics, 'atomic');
-  });
-  findings?.capability?.forEach((item, index) => {
-    addUnknownRefs(issues, `findings.capability[${index}]`, item.atomicHandles, capabilityAtomics, 'atomic');
-    addUnknownRefs(issues, `findings.capability[${index}]`, item.evidenceHandles, capabilityEvidence, 'evidence');
-  });
-  findings?.antipattern?.forEach((item, index) => {
-    addUnknownRefs(issues, `findings.antipattern[${index}]`, item.atomicHandles, antipatternAtomics, 'atomic');
-    addUnknownRefs(issues, `findings.antipattern[${index}]`, item.evidenceHandles, antipatternEvidence, 'evidence');
-  });
+  if (checkEvidence) {
+    evidence?.capability?.forEach((item, index) => {
+      addUnknownRefs(issues, `evidence.capability[${index}]`, item.supportsAtomicHandles, capabilityAtomics, 'atomic');
+    });
+    evidence?.antipattern?.forEach((item, index) => {
+      addUnknownRefs(issues, `evidence.antipattern[${index}]`, item.supportsAtomicHandles, antipatternAtomics, 'atomic');
+    });
+  }
+  if (checkFindings) {
+    findings?.capability?.forEach((item, index) => {
+      addUnknownRefs(issues, `findings.capability[${index}]`, item.atomicHandles, capabilityAtomics, 'atomic');
+      addUnknownRefs(issues, `findings.capability[${index}]`, item.evidenceHandles, capabilityEvidence, 'evidence');
+    });
+    findings?.antipattern?.forEach((item, index) => {
+      addUnknownRefs(issues, `findings.antipattern[${index}]`, item.atomicHandles, antipatternAtomics, 'atomic');
+      addUnknownRefs(issues, `findings.antipattern[${index}]`, item.evidenceHandles, antipatternEvidence, 'evidence');
+    });
+  }
+}
+
+export function schemaGateRootIssues(root: string, value: unknown): string[] {
+  const schema = sectionSchemas[root];
+  if (!schema) return [`Unknown snapshot section: ${root}`];
+  if (value == null) return [`Missing required snapshot section: ${root}`];
+  const parsed = schema.safeParse(value);
+  if (parsed.success) return [];
+  return parsed.error.issues.map((issue) => formatIssue(root, issue));
+}
+
+export function schemaGateTouchedSectionIssues(
+  snapshot: Record<string, unknown>,
+  roots: readonly string[]
+): string[] {
+  const uniqueRoots = [...new Set(roots.filter((root) => root in SNAPSHOT_ROOT_TASK || root in sectionSchemas))];
+  const issues: string[] = [];
+  for (const root of uniqueRoots) {
+    issues.push(...schemaGateRootIssues(root, snapshot[root]));
+  }
+  if (issues.length === 0) {
+    validateReferenceGraph(snapshot, issues, new Set(uniqueRoots));
+  }
+  return issues;
 }
 
 export function schemaGateSnapshotIssues(snapshot: Record<string, unknown>): string[] {

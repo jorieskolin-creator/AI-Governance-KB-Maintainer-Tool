@@ -17,7 +17,7 @@
     "golden:regression": "node dist/golden/run-regression.js",
     "predeploy:verify": "node dist/predeploy/run-verification.js",
     "operator:check": "node dist/operator/run-operator-board-check.js && node dist/operator/run-operator-run-check.js",
-    "defected:check": "node dist/operator/run-defected-object-actions-check.js",
+    "defected:check": "node dist/operator/run-defected-object-actions-check.js && node dist/operator/run-review-fix-loop-check.js",
     "verify:build": "npm run build && npm run predeploy:verify"
   },
   "engines": {
