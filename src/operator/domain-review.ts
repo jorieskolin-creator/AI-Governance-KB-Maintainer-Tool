@@ -9,6 +9,7 @@ import {
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getPairRuns,
+  getParkedFindings,
   latestDomainCandidateRevisionId,
   loadFindingDispositions,
   persistDomainCandidateForHostPair,
@@ -18,6 +19,7 @@ import {
   updateDomainState
 } from '../orchestration/store.js';
 import { domainMayReadyForApproval, staleRevisionIssues } from '../orchestration/named-gates.js';
+import { unresolvedParkedApprovalBlock } from './eligibility.js';
 import {
   applySnapshotPatches,
   patchedSnapshotRoots,
@@ -490,7 +492,10 @@ export async function saveDomainReview(input: {
     await persistFindingDispositions(domainCandidateId, 'DOMAIN', parsed.dispositions);
   }
   if (domainMayReadyForApproval(outcomes)) {
-    await markDomainReady(run.id, run.state);
+    const parked = await getParkedFindings(run.id);
+    if (!unresolvedParkedApprovalBlock(parked.length)) {
+      await markDomainReady(run.id, run.state);
+    }
   }
   operatorLog('operator.domain_review.human_approved', {
     domain: input.domain,

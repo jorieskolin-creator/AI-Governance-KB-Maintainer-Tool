@@ -238,7 +238,12 @@ export async function loadDomainOverlay(
         commandsEnabled: operatorCommandsEnabled(),
         modelRoutesConfigured: modelRoutesConfigured(),
         domain,
-        activeRun: { state: run.state, pairs, domainCoherence }
+        activeRun: {
+          state: run.state,
+          pairs,
+          domainCoherence,
+          openParkedCount: parkedFindings.length
+        }
       }),
       dismissBlockers
     },
@@ -247,13 +252,15 @@ export async function loadDomainOverlay(
       indexHref: `/documents/${domain}`,
       bundleHref: `/api/operator/documents/${domain}`,
       approvalHref: `/approval/${domain}`,
-      approvalAvailable: [
-        'READY_FOR_APPROVAL',
-        'APPROVED',
-        'PUBLISHING',
-        'PUBLICATION_FAILED',
-        'PUBLISHED'
-      ].includes(run.state)
+      approvalAvailable:
+        parkedFindings.length === 0 &&
+        [
+          'READY_FOR_APPROVAL',
+          'APPROVED',
+          'PUBLISHING',
+          'PUBLICATION_FAILED',
+          'PUBLISHED'
+        ].includes(run.state)
     },
     review: (() => {
       const unpaid = pairs.find((pair) => pair.pairCoherencePassed !== true && pair.tasks.some((task) => task.taskType === 'PAIR_COHERENCE_REVIEW' && task.status === 'COMPLETED'));

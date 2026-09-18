@@ -14,7 +14,7 @@ import {
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE, canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
-import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask } from './eligibility.js';
+import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
 import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, parseReviewSaveBody } from './pair-review.js';
@@ -343,6 +343,64 @@ assert(
   'blocked reason names the pair that did not pass pair coherence'
 );
 assert(canTransition(pairTransitions, 'VALIDATED', 'REPAIR_REQUIRED'), 'false VALIDATED can reopen for human review');
+
+assert(
+  reviewSaveMayValidatePair(true, 0) === true,
+  'a passing review with no parked items may VALIDATE the pair'
+);
+assert(
+  reviewSaveMayValidatePair(true, 1) === false,
+  'a passing review cannot VALIDATE a pair while FINALIZE_LATER items are open'
+);
+assert(
+  reviewSaveMayValidatePair(false, 0) === false,
+  'named gates remain the authority when parked items are already closed'
+);
+assert(
+  unresolvedParkedDomainBlock(2) ===
+    '2 parked item(s) remain unresolved. DOMAIN_COHERENCE stays closed.',
+  'unresolved parked items keep domain coherence closed even if every pair looks VALIDATED'
+);
+assert(unresolvedParkedDomainBlock(0) === undefined, 'zero parked items do not invent a domain block');
+assert(
+  unresolvedParkedApprovalBlock(1) ===
+    '1 parked item(s) remain unresolved. Approval stays fail-closed.',
+  'unresolved parked items keep hash-bound approval closed'
+);
+
+const validatedWithParkedQueue = nextEligiblePairTask('A', fiveValidated, undefined, 1);
+assert(
+  'blocked' in validatedWithParkedQueue &&
+    validatedWithParkedQueue.blocked.includes('remain unresolved'),
+  'five VALIDATED pairs with an open parked queue must not admit domain coherence'
+);
+assert(
+  classifyDomainPipelineStop(
+    '1 parked item(s) remain unresolved. DOMAIN_COHERENCE stays closed.'
+  ) === 'DOMAIN_READY',
+  'unresolved parked items stop the pair pipeline without looking like a crash'
+);
+
+const readyWithParkedAvailability = commandAvailability({
+  databaseReady: true,
+  commandsEnabled: true,
+  modelRoutesConfigured: true,
+  domain: 'A',
+  activeRun: {
+    state: 'READY_FOR_APPROVAL',
+    pairs: fiveValidated,
+    domainCoherence: { status: 'COMPLETED', passed: true },
+    openParkedCount: 1
+  }
+});
+assert(
+  readyWithParkedAvailability.recordApproval.enabled === false,
+  'READY_FOR_APPROVAL with parked items must not enable operator approval'
+);
+assert(
+  readyWithParkedAvailability.recordApproval.reason.includes('fail-closed'),
+  'approval closed reason names the parked queue'
+);
 
 const reviewHtml = renderPairReviewHtml({
   domain: 'A',

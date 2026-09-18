@@ -17,10 +17,12 @@ import {
   loadNamedGateResults,
   persistFrozenApprovalBundle,
   recordPairNamedGates,
+  getParkedFindings,
   type PairRunRecord
 } from '../orchestration/store.js';
 import { sha256Utf8 } from '../orchestration/artifact-hash.js';
 import { STALE_REVISION_ISSUE } from '../orchestration/named-gates.js';
+import { unresolvedParkedApprovalBlock } from '../operator/eligibility.js';
 import { buildPairAuthoringPlan } from '../operator/authoring-context.js';
 import {
   APPROVAL_BUNDLE_KIND,
@@ -113,6 +115,11 @@ export async function assembleDomainApprovalBundle(input: {
   const run = await getLatestDomainRun(input.domain);
   if (!run) {
     return { ok: false, current: false, issues: [`No domain ${input.domain} run exists.`] };
+  }
+  const parked = await getParkedFindings(run.id);
+  const parkedBlock = unresolvedParkedApprovalBlock(parked.length);
+  if (parkedBlock) {
+    return { ok: false, current: true, issues: [parkedBlock] };
   }
   const pairRuns = await getPairRuns(run.id);
   const hostPairId = expectedDomainPairIds(input.domain)[0];
