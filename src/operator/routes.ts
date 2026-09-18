@@ -582,9 +582,12 @@ export function registerOperatorRoutes(
           }
           return reply.code(409).send({ error: message, ...result });
         }
-        const notice = result.passed
-          ? `Human approved ${pairId}. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Pair Coherence now passes.`
-          : `Human approved ${pairId} edits. Section schema and reference-graph gate passed. Open HIGH blockers still remain.`;
+        const notice =
+          result.pairValidated === false && result.passed
+            ? `Human approved ${pairId} edits. Named gates pass, but parked items remain unresolved. The pair stays deferred and approval stays fail-closed until those items are closed.`
+            : result.passed
+              ? `Human approved ${pairId}. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Pair Coherence now passes.`
+              : `Human approved ${pairId} edits. Section schema and reference-graph gate passed. Open HIGH blockers still remain.`;
         if (wantsHtml(request)) {
           return reply.redirect(
             `/review/${domain}/${pairId}?notice=${encodeURIComponent(notice)}`

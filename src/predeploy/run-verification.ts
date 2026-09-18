@@ -45,6 +45,7 @@ const gates: Gate[] = [
   { id: 'SIR_DOMAIN_COHERENCE_ARTIFACT', script: 'dist/orchestration/run-domain-coherence-artifact-verifier-check.js' },
   { id: 'OPERATOR_BOARD', script: 'dist/operator/run-operator-board-check.js' },
   { id: 'OPERATOR_RUNS', script: 'dist/operator/run-operator-run-check.js' },
+  { id: 'DEFECTED_OBJECT_ACTIONS', script: 'dist/operator/run-defected-object-actions-check.js' },
   { id: 'QC_LOCAL_REPAIR', script: 'dist/repair/run-qc-repair-check.js' },
   { id: 'REVISION_AWARE_REPAIR', script: 'dist/repair/run-revision-aware-repair-check.js' },
   { id: 'CONTENT_CORRECTION', script: 'dist/repair/run-content-correction-check.js' },

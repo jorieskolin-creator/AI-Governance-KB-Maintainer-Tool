@@ -26,6 +26,7 @@ import {
   persistParkedDefects,
   parkPairForLater,
   closeParkedFinding,
+  getParkedFindings,
   failLatestCompletedTask,
   updatePairState,
   updateDomainState,
@@ -304,7 +305,8 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     taskRuns,
     domainReviewPassed(domainArtifact?.output)
   );
-  const eligible = nextEligiblePairTask(domain, snapshots, domainCoherence);
+  const parkedFindings = await getParkedFindings(run.id);
+  const eligible = nextEligiblePairTask(domain, snapshots, domainCoherence, parkedFindings.length);
   if ('blocked' in eligible) throw new Error(eligible.blocked);
   let next: NextEligibleTask = eligible;
   const pairRun = pairRuns.find((item) => item.pairId === next.pairId);
@@ -757,10 +759,12 @@ export async function resumeOpenDomainPipelines(): Promise<{ reclaimed: number; 
     const domainArtifact = hostPair
       ? await getLatestTaskArtifactWithOutput<{ passed?: boolean }>(hostPair.id, 'DOMAIN_COHERENCE_REVIEW')
       : undefined;
+    const parkedFindings = await getParkedFindings(run.id);
     const next = nextEligiblePairTask(
       domain,
       snapshots,
-      readDomainCoherenceSnapshot(domain, pairRuns, taskRuns, domainReviewPassed(domainArtifact?.output))
+      readDomainCoherenceSnapshot(domain, pairRuns, taskRuns, domainReviewPassed(domainArtifact?.output)),
+      parkedFindings.length
     );
     if ('blocked' in next || next.taskType === 'DOMAIN_COHERENCE_REVIEW') continue;
     resumed.push(domain);

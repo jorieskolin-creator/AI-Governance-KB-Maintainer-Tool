@@ -10,6 +10,7 @@ import {
   getLatestCompletedTaskArtifact,
   getLatestDomainRun,
   getPairRuns,
+  getParkedFindings,
   latestPairCandidateRevisionId,
   loadFindingDispositions,
   persistFindingDispositions,
@@ -19,6 +20,7 @@ import {
   type PairRunRecord
 } from '../orchestration/store.js';
 import { pairMayValidate, staleRevisionIssues } from '../orchestration/named-gates.js';
+import { reviewSaveMayValidatePair } from './eligibility.js';
 import { buildPairAuthoringPlan } from './authoring-context.js';
 import {
   blockingOpenDefects,
@@ -96,6 +98,7 @@ export interface PairReviewSaveResult {
   persisted: boolean;
   humanApproved: boolean;
   passed: boolean;
+  pairValidated: boolean;
   deleted: string[];
   patchCount: number;
   gateIssues: string[];
@@ -339,6 +342,7 @@ export async function savePairReview(input: {
       persisted: false,
       humanApproved: false,
       passed: false,
+      pairValidated: false,
       deleted: parsed.deletedIds,
       patchCount: parsed.patches.length,
       gateIssues: formIssues
@@ -362,6 +366,7 @@ export async function savePairReview(input: {
       persisted: false,
       humanApproved: false,
       passed: false,
+      pairValidated: false,
       deleted: parsed.deletedIds,
       patchCount: parsed.patches.length,
       gateIssues
@@ -393,6 +398,7 @@ export async function savePairReview(input: {
   });
   const nextContract = bindPairCoherenceReviewContract(artifact.taskContract, currentPacket);
 
+  const originalState = pairRun.state;
   const current = await reopenForHumanReview(pairRun);
   const touched = parsed.patches.length ? patchedSnapshotRoots(parsed.patches.map((item) => item.path)) : [];
   for (const taskType of touched) {
@@ -429,8 +435,16 @@ export async function savePairReview(input: {
     targetVersion: pairRun.targetVersion,
     reviewNotes: reviewNotesFromReview(rematerialized)
   });
-  if (pairMayValidate(outcomes)) {
+  const parkedForPair = (await getParkedFindings(run.id)).filter((item) => item.pairRunId === pairRun.id);
+  let pairValidated = false;
+  if (reviewSaveMayValidatePair(pairMayValidate(outcomes), parkedForPair.length)) {
     await markValidated(pairRun.id, current);
+    pairValidated = true;
+  } else if (parkedForPair.length > 0 && originalState === 'DEFERRED' && current !== 'DEFERRED') {
+    if (!canTransition(pairTransitions, current, 'DEFERRED')) {
+      throw new Error(`Illegal pair transition ${current} → DEFERRED.`);
+    }
+    await updatePairState(pairRun.id, 'DEFERRED');
   }
   operatorLog('operator.review.human_approved', {
     domain: input.domain,
@@ -438,6 +452,8 @@ export async function savePairReview(input: {
     dispositions: parsed.dispositions.map((item) => `${item.findingId}=${item.disposition}`),
     patchCount: parsed.patches.length,
     passed: rematerialized.passed,
+    pairValidated,
+    parkedOpen: parkedForPair.length,
     pairCoherencePacketSha256: currentPacket.packetSha256
   });
   return {
@@ -446,6 +462,7 @@ export async function savePairReview(input: {
     persisted: true,
     humanApproved: true,
     passed: rematerialized.passed,
+    pairValidated,
     deleted: parsed.deletedIds,
     patchCount: parsed.patches.length,
     gateIssues: []

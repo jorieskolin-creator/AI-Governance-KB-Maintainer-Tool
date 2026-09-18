@@ -4,6 +4,7 @@ import {
   finalizeLaterForPair,
   regenerateSection
 } from './commands.js';
+import { reviewSaveMayValidatePair } from './eligibility.js';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -119,6 +120,69 @@ await expectThrow(
 if (priorFlag === undefined) delete process.env.OPERATOR_COMMANDS_ENABLED;
 else process.env.OPERATOR_COMMANDS_ENABLED = priorFlag;
 
+assert(reviewSaveMayValidatePair(true, 0), 'Edit/Approve may VALIDATE when parked items are closed');
+assert(
+  !reviewSaveMayValidatePair(true, 1),
+  'Edit/Approve must not VALIDATE a pair while FINALIZE_LATER items remain open'
+);
+
+async function liveParkedApprovalCheck(): Promise<'PASS' | 'SKIPPED'> {
+  if (!process.env.DATABASE_URL?.trim()) return 'SKIPPED';
+  const { createHash } = await import('node:crypto');
+  const { runMigrations } = await import('../db/migrate.js');
+  const { getDbPool, closeDatabase } = await import('../db/client.js');
+  const { getParkedFindings } = await import('../orchestration/store.js');
+  const { assembleDomainApprovalBundle } = await import('../release/assemble-approval-bundle.js');
+  await runMigrations();
+  const db = getDbPool();
+  const marker = `parked-gate-live-${String(Date.now())}`;
+  const sha256 = createHash('sha256').update(marker).digest('hex');
+  let domainRunId: string | undefined;
+  try {
+    const baseline = await db.query<{ id: string }>(
+      `insert into baseline_snapshots(sha256, manifest) values ($1, '{}'::jsonb) returning id`,
+      [sha256]
+    );
+    const domain = await db.query<{ id: string }>(
+      `insert into domain_runs(domain, state, baseline_snapshot_id)
+       values ('F', 'READY_FOR_APPROVAL', $1) returning id`,
+      [baseline.rows[0]?.id]
+    );
+    domainRunId = domain.rows[0]?.id;
+    assert(domainRunId, 'live check must insert a domain run');
+    const pair = await db.query<{ id: string }>(
+      `insert into pair_runs(domain_run_id, pair_id, state, target_version)
+       values ($1, 'F1_AP-F1', 'VALIDATED', '1.0.0') returning id`,
+      [domainRunId]
+    );
+    await db.query(
+      `insert into validation_findings(
+        pair_run_id, domain_run_id, check_id, kind, severity, object_id, object_path, issue,
+        recommended_action, resolved
+      ) values ($1,$2,'FINALIZE_LATER','DEFERRED_QC','HIGH','F1_AP-F1','',
+                'Finalized later: live parked-approval gate', 'PARKED_FOR_LATER_REVIEW', false)`,
+      [pair.rows[0]?.id, domainRunId]
+    );
+    const parked = await getParkedFindings(domainRunId);
+    assert(parked.some((item) => item.checkId === 'FINALIZE_LATER'), 'live check must persist an open FINALIZE_LATER finding');
+    const view = await assembleDomainApprovalBundle({ domain: 'F' });
+    assert(view.ok === false, 'approval bundle must refuse READY_FOR_APPROVAL while parked items are open');
+    assert(
+      view.issues.some((item) => item.includes('remain unresolved')),
+      `live parked refusal must name the queue (got: ${view.issues.join('; ')})`
+    );
+    return 'PASS';
+  } finally {
+    if (domainRunId) {
+      await db.query('delete from domain_runs where id = $1', [domainRunId]);
+    }
+    await db.query('delete from baseline_snapshots where sha256 = $1', [sha256]);
+    await closeDatabase();
+  }
+}
+
+const liveParkedApproval = await liveParkedApprovalCheck();
+
 console.log(
   JSON.stringify(
     {
@@ -132,7 +196,9 @@ console.log(
       finalizeLaterFailClosed: 'PASS',
       regenerateFailClosed: 'PASS',
       reworkFailClosed: 'PASS',
-      finalizeLaterRequiresReasonAndOwner: 'PASS'
+      finalizeLaterRequiresReasonAndOwner: 'PASS',
+      reviewSaveDoesNotValidateWhileParked: 'PASS',
+      liveParkedApproval
     },
     null,
     2

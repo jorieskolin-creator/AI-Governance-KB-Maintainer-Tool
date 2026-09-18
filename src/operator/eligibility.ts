@@ -45,7 +45,7 @@ export function classifyDomainPipelineStop(
   ) {
     return 'DOMAIN_READY';
   }
-  if (errorMessage.includes('parked for later')) {
+  if (errorMessage.includes('parked for later') || errorMessage.includes('remain unresolved')) {
     return 'DOMAIN_READY';
   }
   if (
@@ -104,10 +104,25 @@ function retryableFailedTask(
   return { domain, pairId: pair.pairId, taskType: failed.taskType };
 }
 
+export function unresolvedParkedDomainBlock(openParkedCount: number): string | undefined {
+  if (openParkedCount <= 0) return undefined;
+  return `${String(openParkedCount)} parked item(s) remain unresolved. DOMAIN_COHERENCE stays closed.`;
+}
+
+export function unresolvedParkedApprovalBlock(openParkedCount: number): string | undefined {
+  if (openParkedCount <= 0) return undefined;
+  return `${String(openParkedCount)} parked item(s) remain unresolved. Approval stays fail-closed.`;
+}
+
+export function reviewSaveMayValidatePair(namedGatesAllow: boolean, openParkedForPair: number): boolean {
+  return namedGatesAllow && openParkedForPair <= 0;
+}
+
 export function nextEligiblePairTask(
   domain: DomainId,
   pairs: readonly EligiblePairSnapshot[],
-  domainCoherence?: DomainCoherenceSnapshot
+  domainCoherence?: DomainCoherenceSnapshot,
+  openParkedCount = 0
 ): NextEligibleTask | { blocked: string } {
   for (const pair of pairs) {
     if (pair.state === 'NOT_STARTED' || pair.state === 'VALIDATED' || pair.state === 'DEFERRED') continue;
@@ -153,6 +168,10 @@ export function nextEligiblePairTask(
       return {
         blocked: `${String(deferred)} pair(s) have HIGH blockers parked for later review. DOMAIN_COHERENCE stays closed.`
       };
+    }
+    const parked = unresolvedParkedDomainBlock(openParkedCount);
+    if (parked) {
+      return { blocked: parked };
     }
     const unpaid = pairs.filter((pair) => pair.pairCoherencePassed !== true);
     if (unpaid.length > 0) {
@@ -211,6 +230,7 @@ export function commandAvailability(input: {
     state: DomainState;
     pairs: readonly EligiblePairSnapshot[];
     domainCoherence?: DomainCoherenceSnapshot;
+    openParkedCount?: number;
   };
 }): {
   startDomainRun: CommandFlag;
@@ -240,14 +260,23 @@ export function commandAvailability(input: {
   }
 
   if (input.activeRun?.state === 'READY_FOR_APPROVAL') {
-    recordApproval = {
-      enabled: true,
-      reason: 'Record standalone operator approval against the exact current candidate, approval-bundle, and proposed-manifest hashes. Publication remains a separate operation.'
-    };
+    const parkedApproval = unresolvedParkedApprovalBlock(input.activeRun.openParkedCount ?? 0);
+    recordApproval = parkedApproval
+      ? { enabled: false, reason: parkedApproval }
+      : {
+          enabled: true,
+          reason:
+            'Record standalone operator approval against the exact current candidate, approval-bundle, and proposed-manifest hashes. Publication remains a separate operation.'
+        };
   }
 
   if (input.activeRun && isOpenDomainState(input.activeRun.state)) {
-    const next = nextEligiblePairTask(input.domain, input.activeRun.pairs, input.activeRun.domainCoherence);
+    const next = nextEligiblePairTask(
+      input.domain,
+      input.activeRun.pairs,
+      input.activeRun.domainCoherence,
+      input.activeRun.openParkedCount ?? 0
+    );
     if ('blocked' in next) {
       return {
         startDomainRun: {
