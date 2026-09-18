@@ -18,6 +18,42 @@ export const BLOCKING_NON_WAIVABLE_ISSUE =
 
 export const RATIONALE_REQUIRED_ISSUE = 'A disposition requires rationale of at least 10 characters.';
 
+export const AUTO_FIX_RATIONALE = 'Operator fixed this finding after a passing focused check.';
+
+export function autoResolvedDisposition(findingId: string, path = ''): FindingDispositionDraft {
+  const at = path.trim() ? ` at ${path.trim()}` : '';
+  return {
+    findingId,
+    disposition: 'RESOLVED',
+    authority: 'OPERATOR',
+    rationale: `Operator fixed this finding${at} after a passing focused check.`
+  };
+}
+
+export function dispositionsForReviewFix(input: {
+  body: Record<string, unknown>;
+  defects: ReadonlyArray<{ defectId: string }>;
+  pathFor: (findingId: string) => string;
+  patches: ReadonlyArray<{ path: string }>;
+  existing?: readonly FindingDispositionDraft[];
+}): FindingDispositionDraft[] {
+  const byId = new Map((input.existing ?? []).map((item) => [item.findingId, item]));
+  const focusId = typeof input.body.findingId === 'string' ? input.body.findingId.trim() : '';
+  if ((input.body.findingAction === 'fix' || focusId) && focusId) {
+    byId.set(focusId, autoResolvedDisposition(focusId, input.pathFor(focusId)));
+    return [...byId.values()];
+  }
+  const patched = new Set(input.patches.map((item) => item.path));
+  if (patched.size) {
+    for (const item of input.defects) {
+      if (patched.has(input.pathFor(item.defectId))) {
+        byId.set(item.defectId, autoResolvedDisposition(item.defectId, input.pathFor(item.defectId)));
+      }
+    }
+  }
+  return [...byId.values()];
+}
+
 export function isFindingDisposition(value: unknown): value is FindingDisposition {
   return (
     value === 'RESOLVED' || value === 'WAIVED' || value === 'ACCEPTED_RISK' || value === 'REJECTED'

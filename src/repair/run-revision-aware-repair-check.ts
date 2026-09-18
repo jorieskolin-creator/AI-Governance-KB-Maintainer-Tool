@@ -245,8 +245,9 @@ const reviewHtml = renderPairReviewHtml({
     }
   ]
 });
-assert(reviewHtml.includes('data-disposition-finding="defect_001"'), 'review page records an explicit disposition');
-assert(reviewHtml.includes('findingDispositions'), 'review save posts findingDispositions');
+assert(!reviewHtml.includes('data-disposition-finding='), 'four-way disposition picker is not on the finding');
+assert(reviewHtml.includes('data-finding-status="OPEN"'), 'review page shows Needs action until Fix or Park');
+assert(reviewHtml.includes('data-finding-action="fix"'), 'review save is Fix, save and continue on the finding');
 assert(!reviewHtml.includes('Delete this blocker'), 'review page does not infer resolution from form deletion');
 assert(reviewHtml.includes('expectedCandidateHash'), 'review save still binds the current candidate revision');
 
@@ -274,7 +275,8 @@ const domainHtml = renderDomainReviewHtml({
     }
   ]
 });
-assert(domainHtml.includes('data-disposition-finding="defect_001"'), 'domain review records an explicit disposition');
+assert(!domainHtml.includes('data-disposition-finding='), 'four-way disposition picker is not on domain review');
+assert(domainHtml.includes('data-finding-status="OPEN"'), 'domain review shows Needs action until Fix or Park');
 assert(domainHtml.includes('stale pair snapshot'), 'domain review displays a stale pair snapshot finding');
 assert(!domainHtml.includes('Delete this blocker'), 'domain review does not infer resolution from form deletion');
 

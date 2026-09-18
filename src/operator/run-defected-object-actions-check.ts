@@ -61,17 +61,45 @@ assert(actionsHtml.includes('value="EVIDENCE_ARCHITECTURE"'), 'Regenerate lists 
 
 const APPROVE_BUTTON = '<button type="submit">Approve and save</button>';
 const reviewHtml = renderPairReviewHtml(defectedPage);
-assert(reviewHtml.includes('data-disposition-finding="defect_001"'), 'coherence disposition form is preserved for Edit');
-assert(reviewHtml.includes(APPROVE_BUTTON), 'Edit + Approve stays available when a coherence review exists');
+assert(!reviewHtml.includes('data-disposition-finding='), 'four-way disposition picker is not on the finding');
+assert(!reviewHtml.includes(APPROVE_BUTTON), 'page-level Approve and save is removed; Fix closes the finding');
+assert(reviewHtml.includes('data-finding-status="OPEN"'), 'open finding shows Needs action');
 assert(reviewHtml.includes('pair-actions'), 'the four-action set renders under the review');
 assert(reviewHtml.includes('Fix, save and continue'), 'finding offers Fix, save and continue');
 assert(reviewHtml.includes('Maintainer, fix this'), 'finding offers Maintainer, fix this');
 assert(reviewHtml.includes('Park, fix after the rest is ready'), 'finding offers Park');
+assert(reviewHtml.includes('This pair waits on an expert'), 'park reason is pre-filled so one click parks');
 assert(!reviewHtml.includes('window.alert'), 'failed focused checks stay on the page without alert');
 assert(
   !reviewHtml.includes('<option value="ACCEPTED_RISK"'),
-  'ACCEPTED_RISK is hidden from the primary disposition list so it is not used as a defer'
+  'ACCEPTED_RISK is not a finding action'
 );
+const parkedReviewHtml = renderPairReviewHtml({
+  ...defectedPage,
+  pairState: 'DEFERRED',
+  defects: [
+    {
+      ...defectedPage.defects[0]!,
+      actionStatus: 'PARKED',
+      parkReason: 'Waiting on legal review of the locator.'
+    }
+  ]
+});
+assert(parkedReviewHtml.includes('data-finding-status="PARKED"'), 'parked finding shows Parked');
+assert(parkedReviewHtml.includes('Waiting on legal review of the locator.'), 'parked finding shows why');
+assert(!parkedReviewHtml.includes('data-finding-action="park"'), 'parked finding hides the three actions');
+const fixedReviewHtml = renderPairReviewHtml({
+  ...defectedPage,
+  defects: [
+    {
+      ...defectedPage.defects[0]!,
+      disposition: 'RESOLVED',
+      actionStatus: 'FIXED'
+    }
+  ]
+});
+assert(fixedReviewHtml.includes('data-finding-status="FIXED"'), 'fixed finding shows Fixed');
+assert(!fixedReviewHtml.includes('data-finding-action="fix"'), 'fixed finding hides the three actions');
 
 const earlyStagePage: PairReviewPage = {
   domain: 'A',
@@ -115,17 +143,6 @@ await expectThrow(
   'Rework with GenAI is fail-closed when operator commands are disabled'
 );
 
-process.env.OPERATOR_COMMANDS_ENABLED = 'true';
-await expectThrow(
-  () => finalizeLaterForPair({ domain: 'A', pairId: 'A1_AP-A1', reason: 'x', owner: 'LEGAL_REVIEW' }),
-  'reason of at least 5 characters',
-  'Finalize Later requires a substantive reason'
-);
-await expectThrow(
-  () => finalizeLaterForPair({ domain: 'A', pairId: 'A1_AP-A1', reason: 'Awaiting the delegated act.', owner: '' }),
-  'owner or category',
-  'Finalize Later requires an owner/category'
-);
 if (priorFlag === undefined) delete process.env.OPERATOR_COMMANDS_ENABLED;
 else process.env.OPERATOR_COMMANDS_ENABLED = priorFlag;
 
@@ -163,7 +180,37 @@ assert(domainReviewHtml.includes('Park, fix after the rest is ready'), 'domain r
 assert(domainReviewHtml.includes('data-finding-action="fix"'), 'domain review finding has Fix, save and continue');
 assert(domainReviewHtml.includes('data-finding-action="maintainer"'), 'domain review finding has Maintainer, fix this');
 assert(domainReviewHtml.includes('data-pair-id="A2_AP-A2"'), 'domain park targets this pair/object');
+assert(domainReviewHtml.includes('data-finding-status="OPEN"'), 'open domain finding shows Needs action');
+assert(!domainReviewHtml.includes('Disposition for this revision'), 'domain review has no four-way status picker');
 assert(!domainReviewHtml.includes('window.alert'), 'domain review does not alert focused-check failures');
+const parkedDomainHtml = renderDomainReviewHtml({
+  domain: 'A',
+  domainState: 'REPAIR_REQUIRED',
+  passed: false,
+  coherenceSummary: 'HIGH related-criteria defect remains.',
+  blockingCount: 1,
+  gateIssues: [],
+  defects: [
+    {
+      defectId: 'defect_001',
+      severity: 'HIGH',
+      coherenceDimension: 'BROKEN_RELATED_CRITERION',
+      issue: 'The lifecycle pair omits a reciprocal related-criterion link.',
+      coherenceExpectation: 'Related-criterion lists must be reciprocal.',
+      pairId: 'A2_AP-A2',
+      domainPath: 'pairs[A2_AP-A2].capability.relatedCriteria',
+      snapshotPath: 'referenceMappings.capabilityRelatedCriteria',
+      currentValue: [],
+      valueJson: '[]',
+      disposition: 'OPEN',
+      rationale: '',
+      actionStatus: 'PARKED',
+      parkReason: 'This pair waits on an expert. Other pairs can continue.'
+    }
+  ]
+});
+assert(parkedDomainHtml.includes('data-finding-status="PARKED"'), 'parked domain finding shows Parked');
+assert(!parkedDomainHtml.includes('data-finding-action="park"'), 'parked domain finding hides the three actions');
 
 async function liveParkedApprovalCheck(): Promise<'PASS' | 'SKIPPED'> {
   if (!process.env.DATABASE_URL?.trim()) return 'SKIPPED';
@@ -228,7 +275,9 @@ console.log(
       status: 'PASS',
       fourActionSetRendered: 'PASS',
       findingFixLoopRendered: 'PASS',
-      editApprovePreserved: 'PASS',
+      dispositionPickerRemoved: 'PASS',
+      parkedStatusVisible: 'PASS',
+      fixedStatusVisible: 'PASS',
       earlierStageDefectReachable: 'PASS',
       approveHiddenWithoutReview: 'PASS',
       reworkRequiresCoherenceDefects: 'PASS',
@@ -236,7 +285,7 @@ console.log(
       finalizeLaterFailClosed: 'PASS',
       regenerateFailClosed: 'PASS',
       reworkFailClosed: 'PASS',
-      finalizeLaterRequiresReasonAndOwner: 'PASS',
+      parkReasonPrefill: 'PASS',
       reviewSaveDoesNotValidateWhileParked: 'PASS',
       liveParkedApproval
     },
