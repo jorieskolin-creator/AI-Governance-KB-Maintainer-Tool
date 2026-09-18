@@ -55,6 +55,7 @@ import { operatorLog } from './log.js';
 import { runPairQcRepair } from './qc-repair-command.js';
 import { dismissAvailability } from './dismiss.js';
 import { blockingQcDefects, qcDefectsToFindings, reviewFromUnknown } from '../repair/qc-repair.js';
+import { parkReasonAndOwner } from './review-fix-ui.js';
 
 const TARGET_VERSION = '1.0.0';
 
@@ -561,18 +562,22 @@ export async function finalizeLaterForPair(input: {
   pairId: string;
   reason: string;
   owner: string;
-}): Promise<{ domain: DomainId; pairId: string; parked: number; state: PairState }> {
+}): Promise<{
+  domain: DomainId;
+  pairId: string;
+  parked: number;
+  state: PairState;
+  persisted: true;
+  status: 'PARKED';
+  reason: string;
+  alreadyParked?: boolean;
+}> {
   if (!operatorCommandsEnabled()) {
     throw new Error('Operator commands are disabled on this deployment.');
   }
-  const reason = input.reason.trim();
-  const owner = input.owner.trim();
-  if (reason.length < 5) {
-    throw new Error('Finalize Later needs a reason of at least 5 characters describing the external dependency.');
-  }
-  if (!owner) {
-    throw new Error('Finalize Later needs an owner or category (for example LEGAL_REVIEW or AWAITING_LEGISLATION).');
-  }
+  const parkedMeta = parkReasonAndOwner(input.reason, input.owner);
+  const reason = parkedMeta.reason;
+  const owner = parkedMeta.owner;
   const run = await getLatestDomainRun(input.domain);
   if (!run || !isOpenDomainState(run.state)) {
     throw new Error(`No open domain ${input.domain} run.`);
@@ -581,7 +586,21 @@ export async function finalizeLaterForPair(input: {
   const pairRun = pairRuns.find((item) => item.pairId === input.pairId);
   if (!pairRun) throw new Error(`Pair ${input.pairId} is missing.`);
   if (pairRun.state === 'DEFERRED') {
-    throw new Error(`${input.pairId} is already parked for later review.`);
+    const parkedFindings = (await getParkedFindings(run.id)).filter((item) => item.pairRunId === pairRun.id);
+    return {
+      domain: input.domain,
+      pairId: input.pairId,
+      parked: parkedFindings.length,
+      state: 'DEFERRED',
+      persisted: true,
+      status: 'PARKED',
+      reason:
+        parkedFindings.find((item) => item.checkId === 'FINALIZE_LATER')?.parkReason ??
+        parkedFindings[0]?.parkReason ??
+        parkedFindings[0]?.issue ??
+        reason,
+      alreadyParked: true
+    };
   }
   const currentState = await reopenValidatedForRepair(pairRun.id, pairRun.state);
   const artifact = await getLatestTaskArtifactWithOutput(pairRun.id, 'PAIR_COHERENCE_REVIEW');
@@ -607,7 +626,15 @@ export async function finalizeLaterForPair(input: {
     owner,
     parked: parked.parked
   });
-  return { domain: input.domain, pairId: input.pairId, parked: parked.parked, state: 'DEFERRED' };
+  return {
+    domain: input.domain,
+    pairId: input.pairId,
+    parked: parked.parked,
+    state: 'DEFERRED',
+    persisted: true,
+    status: 'PARKED',
+    reason
+  };
 }
 
 /**

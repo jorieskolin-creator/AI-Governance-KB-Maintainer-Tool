@@ -119,10 +119,10 @@ function runActivity(card: OperatorDomainCard): string {
   }
   if (card.documents.available) {
     if (card.review.available && card.review.kind === 'DOMAIN') {
-      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Record an explicit disposition with authority and rationale. Deleting a finding does not close it. Continue stays closed until no HIGH domain defects remain.</p>`;
+      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Fix, ask the Maintainer to fix, or Park the pair with a reason. Continue stays closed until no HIGH domain defects remain.</p>`;
     }
     if (card.review.available) {
-      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Record an explicit disposition with authority and rationale. Deleting a finding does not close it. Domain Coherence stays closed until every pair actually passed.</p>`;
+      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Fix, ask the Maintainer to fix, or Park with a reason. Domain Coherence stays closed until every pair actually passed or is parked.</p>`;
     }
     if (card.documents.approvalAvailable) {
       return `<p class="activity">Work order OPEN. Domain coherence passed. The hash-bound approval bundle is the exact bytes publication would release. Record operator approval against those hashes. Publication stays a separate operation.</p>`;

@@ -34,6 +34,7 @@ import {
   blockingOpenDefects,
   deletedFindingFormIssues,
   dispositionForFinding,
+  dispositionsForReviewFix,
   isClosingDisposition,
   openDefects,
   parseFindingDispositionDrafts,
@@ -64,10 +65,13 @@ import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
 import { schemaGate, schemaGateFocused } from './schema-gate.js';
 import {
-  renderDispositionSelect,
+  DEFAULT_PARK_REASON,
+  findingActionStatus,
   renderFindingActionButtons,
+  renderFindingStatus,
   renderReviewClientScript,
-  reviewPageSharedStyles
+  reviewPageSharedStyles,
+  type FindingActionStatus
 } from './review-fix-ui.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
 
@@ -97,6 +101,8 @@ export interface DomainReviewDefectView {
   valueJson: string;
   disposition: FindingDispositionOrOpen;
   rationale: string;
+  actionStatus?: FindingActionStatus;
+  parkReason?: string;
 }
 
 export interface DomainReviewPage {
@@ -240,6 +246,20 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
   }
   const candidateId = await latestDomainCandidateRevisionId(run.id);
   const dispositions = candidateId ? await loadFindingDispositions(candidateId, 'DOMAIN') : [];
+  const parkedFindings = await getParkedFindings(run.id);
+  const parkedByPairId = new Map<string, string>();
+  for (const pairRun of pairRuns) {
+    const parked = parkedFindings.filter((item) => item.pairRunId === pairRun.id);
+    if (pairRun.state === 'DEFERRED' || parked.length) {
+      parkedByPairId.set(
+        pairRun.pairId,
+        parked.find((item) => item.checkId === 'FINALIZE_LATER')?.parkReason ??
+          parked[0]?.parkReason ??
+          parked[0]?.issue ??
+          DEFAULT_PARK_REASON
+      );
+    }
+  }
   const stalePairIssues = staleDomainPairSnapshotIssues(
     lockedDomainPacket(artifact.taskContract, domain),
     await currentPairPacketBindings(pairRuns)
@@ -251,19 +271,24 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
     const snapshot = mapped ? snapshots.get(mapped.pairId) : undefined;
     const currentValue = mapped && snapshot ? readSnapshotPath(snapshot, mapped.snapshotPath) : undefined;
     const recorded = dispositionForFinding(dispositions, item.defectId);
+    const pairId = mapped?.pairId ?? item.affectedPairIds[0] ?? '';
+    const disposition = recorded?.disposition ?? 'OPEN';
+    const parkReason = parkedByPairId.get(pairId);
     return {
       defectId: item.defectId,
       severity: item.severity,
       coherenceDimension: item.coherenceDimension,
       issue: item.issue,
       coherenceExpectation: item.coherenceExpectation,
-      pairId: mapped?.pairId ?? item.affectedPairIds[0] ?? '',
+      pairId,
       domainPath,
       snapshotPath: mapped?.snapshotPath ?? '',
       currentValue,
       valueJson: currentValue === undefined ? '' : JSON.stringify(currentValue, null, 2),
-      disposition: recorded?.disposition ?? 'OPEN',
-      rationale: recorded?.rationale ?? ''
+      disposition,
+      rationale: recorded?.rationale ?? '',
+      actionStatus: findingActionStatus({ pairParked: Boolean(parkReason), disposition }),
+      parkReason
     };
   });
   return {
@@ -322,6 +347,43 @@ export async function saveDomainReview(input: {
   }
   const packet = lockedDomainPacket(artifact.taskContract, input.domain);
   const parsed = parseDomainSaveBody(input.body);
+  const pathFor = (findingId: string): string => {
+    const defect = review.defects.find((item) => item.defectId === findingId);
+    const domainPath = defect?.recommendedRepairPaths[0] ?? defect?.affectedPaths[0] ?? '';
+    return domainPath ? snapshotPathFromDomainPath(domainPath)?.snapshotPath ?? '' : '';
+  };
+  const existingCandidateId = await latestDomainCandidateRevisionId(run.id);
+  const existing = existingCandidateId ? await loadFindingDispositions(existingCandidateId, 'DOMAIN') : [];
+  parsed.dispositions = dispositionsForReviewFix({
+    body: input.body,
+    defects: review.defects,
+    pathFor,
+    patches: parsed.patches,
+    existing
+  });
+  parsed.dispositionIssues = [];
+  const focusFindingId =
+    typeof input.body.findingId === 'string' && input.body.findingId.trim()
+      ? input.body.findingId.trim()
+      : undefined;
+  if (focusFindingId) {
+    const defect = review.defects.find((item) => item.defectId === focusFindingId);
+    if (!defect) {
+      return {
+        domain: input.domain,
+        persisted: false,
+        humanApproved: false,
+        passed: false,
+        deleted: parsed.deletedIds,
+        patchCount: parsed.patches.length,
+        gateIssues: [`Disposition refers to unknown finding ${focusFindingId}.`]
+      };
+    }
+    const allowed = pathFor(focusFindingId);
+    parsed.patches = parsed.patches.filter(
+      (item) => !allowed || item.path === allowed || pathIsAllowed(item.path, [allowed])
+    );
+  }
   const currentHash = await currentDomainCandidateHash(input.domain, pairRuns, artifact.outputHash);
   const formIssues = [
     ...staleRevisionIssues(currentHash, parsed.expectedCandidateHash),
@@ -555,7 +617,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
       ? 'No open HIGH/BLOCKING domain defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. Other pairs are not a save gate. READY_FOR_APPROVAL and publication still require complete schemas, locked vocabulary, identity, and no unresolved parked items.'
-      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Fix this finding, ask the Maintainer to fix it, or Park that pair so the rest can continue. Focused check covers the touched section only. Park is a defer of this pair/object, not accepted risk.`;
+      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Park is a defer of this pair/object, not accepted risk.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -603,19 +665,13 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
         page.defects.length
           ? page.defects
               .map((item) => {
-                return `<article class="defect">
+                const parkedClass = item.actionStatus === 'PARKED' ? ' is-parked' : '';
+                return `<article class="defect${parkedClass}">
         <p class="kicker">${escapeHtml(item.severity)} · ${escapeHtml(item.defectId)} · ${escapeHtml(item.pairId)} · ${escapeHtml(item.coherenceDimension)}</p>
+        ${renderFindingStatus({ status: item.actionStatus ?? 'OPEN', parkReason: item.parkReason })}
         <p>${escapeHtml(item.issue)}</p>
         <p class="meta">${escapeHtml(item.coherenceExpectation)}</p>
         <p class="meta">Path <code>${escapeHtml(item.domainPath || 'none')}</code></p>
-        ${renderDispositionSelect({
-          defectId: item.defectId,
-          severity: item.severity,
-          disposition: item.disposition
-        })}
-        <label class="field">Disposition rationale (required unless OPEN)
-          <textarea class="rationale" data-rationale-finding="${escapeHtml(item.defectId)}" name="rationale:${escapeHtml(item.defectId)}">${escapeHtml(item.rationale)}</textarea>
-        </label>
         ${
           item.snapshotPath
             ? `<label class="field">Semantic value at path (JSON)<textarea data-pair-id="${escapeHtml(item.pairId)}" data-path="${escapeHtml(item.snapshotPath)}" name="content:${escapeHtml(item.defectId)}">${escapeHtml(item.valueJson)}</textarea></label>`
@@ -624,7 +680,9 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
         ${renderFindingActionButtons({
           defectId: item.defectId,
           pairId: item.pairId,
-          commandsEnabled: true
+          commandsEnabled: true,
+          status: item.actionStatus ?? 'OPEN',
+          parkReason: item.parkReason
         })}
       </article>`;
               })
@@ -632,8 +690,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
           : '<p class="banner">No domain-coherence findings are listed on this revision. Saving still runs a focused check on any section you edit. Other pairs are not a save gate.</p>'
       }
       <div class="actions">
-        <button type="submit">Approve and save</button>
-        <span class="meta">Saves edits on this page. Checks only touched sections plus their handles and references. Other pairs are not a save gate. Publication still requires complete schemas.</span>
+        <span class="meta">Fix a finding to close it after a focused check, or Park a pair that must wait. Publication still requires complete schemas.</span>
       </div>
     </form>
   </main>

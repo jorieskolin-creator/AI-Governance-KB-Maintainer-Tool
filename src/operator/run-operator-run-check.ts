@@ -425,9 +425,10 @@ const reviewHtml = renderPairReviewHtml({
     }
   ]
 });
-assert(reviewHtml.includes('Approve and save'), 'review page must human-approve through save');
+assert(!reviewHtml.includes('Approve and save'), 'review page closes findings via Fix, not a page-level Approve');
 assert(reviewHtml.includes('expectedCandidateHash'), 'review save binds the current candidate revision');
-assert(reviewHtml.includes('data-disposition-finding="defect_001"'), 'review page must record an explicit disposition');
+assert(!reviewHtml.includes('data-disposition-finding='), 'four-way disposition picker is not on the finding');
+assert(reviewHtml.includes('data-finding-status="OPEN"'), 'open finding shows Needs action');
 assert(reviewHtml.includes('data-path="evidence.capability[evidence_001]"'), 'review page must allow editing the semantic path');
 assert(!reviewHtml.includes('Delete this blocker'), 'review page must not infer resolution from form deletion');
 assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
@@ -438,7 +439,7 @@ assert(reviewHtml.includes('Park, fix after the rest is ready'), 'pair review of
 assert(!reviewHtml.includes('window.alert'), 'pair review must list focused-check issues on the page, not alert');
 assert(
   !reviewHtml.includes('<option value="ACCEPTED_RISK"'),
-  'ACCEPTED_RISK is not a primary defer option on the finding'
+  'ACCEPTED_RISK is not a finding action'
 );
 
 const highDefect = {
@@ -529,16 +530,18 @@ const domainHtml = renderDomainReviewHtml({
     }
   ]
 });
-assert(domainHtml.includes('Approve and save'), 'domain review page must human-approve through save');
+assert(!domainHtml.includes('Approve and save'), 'domain review closes findings via Fix, not a page-level Approve');
 assert(domainHtml.includes('expectedCandidateHash'), 'domain save binds the current candidate revision');
 assert(domainHtml.includes('save-domain-review'), 'domain review posts save-domain-review');
 assert(domainHtml.includes('Human domain approval'), 'domain save is domain-level human approval');
 assert(domainHtml.includes('not domain APPROVED'), 'domain save must not grant domain APPROVED');
 assert(domainHtml.includes('Park, fix after the rest is ready'), 'domain review can park the affected pair');
+assert(domainHtml.includes('data-finding-status="OPEN"'), 'open domain finding shows Needs action');
+assert(!domainHtml.includes('data-disposition-finding='), 'four-way disposition picker is not on domain review');
 assert(!domainHtml.includes('window.alert'), 'domain review must list focused-check issues on the page, not alert');
 assert(
   !domainHtml.includes('<option value="ACCEPTED_RISK"'),
-  'ACCEPTED_RISK is not a primary defer option on domain review'
+  'ACCEPTED_RISK is not a finding action on domain review'
 );
 
 const domainHigh = {

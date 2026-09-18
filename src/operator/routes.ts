@@ -419,7 +419,7 @@ export function registerOperatorRoutes(
         if (wantsHtml(request)) {
           return noticeRedirect(
             reply,
-            `Parked ${result.pairId} for later review. Remaining pairs can continue; the domain stays fail-closed for approval until it is resolved.`,
+            `Parked ${result.pairId}. Status: Parked. Why: ${result.reason}. Remaining pairs can continue; the domain stays fail-closed for approval until it is resolved.`,
             domain
           );
         }

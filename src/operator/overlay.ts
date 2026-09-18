@@ -270,7 +270,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}/${unpaid.pairId}`,
           pairId: unpaid.pairId,
           kind: 'PAIR' as const,
-          reason: `${unpaid.pairId} Pair Coherence did not pass. On the review page: Fix, save and continue; Maintainer, fix this; or Park this pair. Park defers the pair/object; ACCEPTED_RISK is not a defer. BLOCKING findings are not waivable. Illegal locked vocabulary cannot be waived. Saves bind a new candidate revision and are not domain APPROVED.`
+          reason: `${unpaid.pairId} Pair Coherence did not pass. On the review page: Fix, save and continue; Maintainer, fix this; or Park this pair. Park is the defer status with a reason. Fix closes the finding after a focused check. There is no Rejected/Resolved picker. BLOCKING findings are not waivable. Illegal locked vocabulary cannot be waived. Saves bind a new candidate revision and are not domain APPROVED.`
         };
       }
       const domainDefects =
@@ -284,7 +284,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}`,
           pairId: `DOMAIN-${domain}`,
           kind: 'DOMAIN' as const,
-          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. On that page: Fix, save and continue; Maintainer, fix this; or Park the affected pair so other pairs can move. Park is a defer, not accepted risk. Continue stays closed until no HIGH domain defects remain. That save is not domain APPROVED.`
+          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. On that page: Fix, save and continue; Maintainer, fix this; or Park the affected pair so other pairs can move. Park is the defer status with a reason. Fix closes the finding after a focused check. Continue stays closed until no HIGH domain defects remain. That save is not domain APPROVED.`
         };
       }
       // Any other defected pair (an earlier SIR task failed, or the pair is parked/DEFERRED)
