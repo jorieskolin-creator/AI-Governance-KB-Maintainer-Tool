@@ -10,7 +10,7 @@ The Maintainer is the designed solution under validation. Treat it as almost rea
 
 Offline predeploy verification is in place. Remaining work is test-runs, then focused fixes from findings. Cleaning of code, data, and storage comes after those runs hold.
 
-Active line: `feature/initial-authoring-skeleton`.
+Active line: `main`.
 
 ## What the Maintainer does
 
