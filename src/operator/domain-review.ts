@@ -34,6 +34,7 @@ import {
   blockingOpenDefects,
   deletedFindingFormIssues,
   dispositionForFinding,
+  isClosingDisposition,
   openDefects,
   parseFindingDispositionDrafts,
   reviewForNamedGates,
@@ -61,7 +62,13 @@ import { operatorCommandsEnabled } from './commands.js';
 import { isOpenDomainState } from './eligibility.js';
 import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
-import { schemaGate } from './schema-gate.js';
+import { schemaGate, schemaGateFocused } from './schema-gate.js';
+import {
+  renderDispositionSelect,
+  renderFindingActionButtons,
+  renderReviewClientScript,
+  reviewPageSharedStyles
+} from './review-fix-ui.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
 
 const DOMAIN_PATH_TO_SNAPSHOT: Record<string, string> = {
@@ -356,13 +363,35 @@ export async function saveDomainReview(input: {
     patchesByPair.set(patch.pairId, list);
   }
 
+  const focusedPathsByPair = new Map<string, string[]>();
+  function addFocusedPath(pairId: string, path: string): void {
+    if (!pairId || !path) return;
+    const list = focusedPathsByPair.get(pairId) ?? [];
+    if (!list.includes(path)) list.push(path);
+    focusedPathsByPair.set(pairId, list);
+  }
+  for (const patch of parsed.patches) addFocusedPath(patch.pairId, patch.path);
+  for (const draft of parsed.dispositions) {
+    if (!isClosingDisposition(draft.disposition)) continue;
+    const defect = review.defects.find((item) => item.defectId === draft.findingId);
+    const domainPath = defect?.recommendedRepairPaths[0] ?? defect?.affectedPaths[0] ?? '';
+    const mapped = domainPath ? snapshotPathFromDomainPath(domainPath) : undefined;
+    if (mapped) addFocusedPath(mapped.pairId, mapped.snapshotPath);
+  }
+
   const patchedByPair = new Map<string, PairCoherenceSnapshot>();
-  for (const pairRun of pairRuns) {
+  const pairIdsToCheck = new Set([...patchesByPair.keys(), ...focusedPathsByPair.keys()]);
+  for (const pairId of pairIdsToCheck) {
+    const pairRun = pairRuns.find((item) => item.pairId === pairId);
+    if (!pairRun) continue;
     const snapshot = await loadPairCoherenceSnapshot(pairRun.id);
-    const patches = patchesByPair.get(pairRun.pairId) ?? [];
+    const patches = patchesByPair.get(pairId) ?? [];
     const patched = patches.length ? applySnapshotPatches(snapshot, patches) : snapshot;
-    gateIssues.push(...schemaGate(pairRun.pairId, patched).map((item) => `${pairRun.pairId}: ${item}`));
-    if (patches.length) patchedByPair.set(pairRun.pairId, patched);
+    const focusedPaths = focusedPathsByPair.get(pairId) ?? patches.map((item) => item.path);
+    gateIssues.push(
+      ...schemaGateFocused(pairId, patched, focusedPaths).map((item) => `${pairId}: ${item}`)
+    );
+    if (patches.length) patchedByPair.set(pairId, patched);
   }
   if (gateIssues.length) {
     return {
@@ -494,7 +523,14 @@ export async function saveDomainReview(input: {
   if (domainMayReadyForApproval(outcomes)) {
     const parked = await getParkedFindings(run.id);
     if (!unresolvedParkedApprovalBlock(parked.length)) {
-      await markDomainReady(run.id, run.state);
+      const readyIssues: string[] = [];
+      for (const pairRun of pairRuns) {
+        const snapshot = patchedByPair.get(pairRun.pairId) ?? (await loadPairCoherenceSnapshot(pairRun.id));
+        readyIssues.push(...schemaGate(pairRun.pairId, snapshot).map((item) => `${pairRun.pairId}: ${item}`));
+      }
+      if (!readyIssues.length) {
+        await markDomainReady(run.id, run.state);
+      }
     }
   }
   operatorLog('operator.domain_review.human_approved', {
@@ -518,8 +554,8 @@ export async function saveDomainReview(input: {
 export function renderDomainReviewHtml(page: DomainReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No open HIGH/BLOCKING domain defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved. Findings stay listed; closing them requires an explicit disposition.'
-      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Edit semantic content and record RESOLVED, WAIVED, ACCEPTED_RISK, or REJECTED with rationale. Deleting a finding from the form does not close it. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
+      ? 'No open HIGH/BLOCKING domain defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. Other pairs are not a save gate. READY_FOR_APPROVAL and publication still require complete schemas, locked vocabulary, identity, and no unresolved parked items.'
+      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Fix this finding, ask the Maintainer to fix it, or Park that pair so the rest can continue. Focused check covers the touched section only. Park is a defer of this pair/object, not accepted risk.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -537,7 +573,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
     .banner, .defect { border:1px solid var(--line); border-radius:12px; padding:1rem 1.1rem; margin:0 0 1rem; background:var(--panel); }
     .meta, p { color:var(--muted); }
     label.field { display:block; margin:.8rem 0; color:var(--ink); }
-    select, textarea { width:100%; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+    select, textarea, input[type="text"] { width:100%; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
     textarea { min-height:9rem; }
     textarea.rationale { min-height:4.5rem; }
     button {
@@ -546,6 +582,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
     }
     .fail { color:var(--fail); }
     .actions { display:flex; gap:.8rem; align-items:center; flex-wrap:wrap; margin-top:1rem; }
+    ${reviewPageSharedStyles()}
   </style>
 </head>
 <body>
@@ -554,7 +591,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
     <h1>Domain ${escapeHtml(page.domain)} coherence</h1>
     <p class="banner">${escapeHtml(blockingLabel)} This is not domain APPROVED and not a versioned Knowledge Base release.</p>
     ${page.notice ? `<p class="banner">${escapeHtml(page.notice)}</p>` : ''}
-    ${page.gateIssues.length ? `<p class="fail">${page.gateIssues.map((item) => escapeHtml(item)).join('<br>')}</p>` : ''}
+    <div id="review-issues" class="banner fail${page.gateIssues.length ? ' is-visible' : ''}"${page.gateIssues.length ? '' : ' hidden'}>${page.gateIssues.map((item) => `<p>${escapeHtml(item)}</p>`).join('')}</div>
     <p class="meta">${escapeHtml(page.coherenceSummary)}</p>
     <p><a href="/?domain=${escapeHtml(page.domain)}">Operator board</a>
       · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>
@@ -566,25 +603,16 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
         page.defects.length
           ? page.defects
               .map((item) => {
-                const waivable = item.severity !== 'BLOCKING';
                 return `<article class="defect">
         <p class="kicker">${escapeHtml(item.severity)} · ${escapeHtml(item.defectId)} · ${escapeHtml(item.pairId)} · ${escapeHtml(item.coherenceDimension)}</p>
         <p>${escapeHtml(item.issue)}</p>
         <p class="meta">${escapeHtml(item.coherenceExpectation)}</p>
         <p class="meta">Path <code>${escapeHtml(item.domainPath || 'none')}</code></p>
-        <label class="field">Disposition for this revision
-          <select data-disposition-finding="${escapeHtml(item.defectId)}" name="disposition:${escapeHtml(item.defectId)}">
-            <option value="OPEN"${item.disposition === 'OPEN' ? ' selected' : ''}>OPEN — still a finding on this revision</option>
-            <option value="RESOLVED"${item.disposition === 'RESOLVED' ? ' selected' : ''}>RESOLVED</option>
-            ${
-              waivable
-                ? `<option value="WAIVED"${item.disposition === 'WAIVED' ? ' selected' : ''}>WAIVED</option>
-            <option value="ACCEPTED_RISK"${item.disposition === 'ACCEPTED_RISK' ? ' selected' : ''}>ACCEPTED_RISK</option>`
-                : ''
-            }
-            <option value="REJECTED"${item.disposition === 'REJECTED' ? ' selected' : ''}>REJECTED — remains open</option>
-          </select>
-        </label>
+        ${renderDispositionSelect({
+          defectId: item.defectId,
+          severity: item.severity,
+          disposition: item.disposition
+        })}
         <label class="field">Disposition rationale (required unless OPEN)
           <textarea class="rationale" data-rationale-finding="${escapeHtml(item.defectId)}" name="rationale:${escapeHtml(item.defectId)}">${escapeHtml(item.rationale)}</textarea>
         </label>
@@ -593,84 +621,23 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
             ? `<label class="field">Semantic value at path (JSON)<textarea data-pair-id="${escapeHtml(item.pairId)}" data-path="${escapeHtml(item.snapshotPath)}" name="content:${escapeHtml(item.defectId)}">${escapeHtml(item.valueJson)}</textarea></label>`
             : ''
         }
+        ${renderFindingActionButtons({
+          defectId: item.defectId,
+          pairId: item.pairId,
+          commandsEnabled: true
+        })}
       </article>`;
               })
               .join('')
-          : '<p class="banner">No domain-coherence findings are listed on this revision. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
+          : '<p class="banner">No domain-coherence findings are listed on this revision. Saving still runs a focused check on any section you edit. Other pairs are not a save gate.</p>'
       }
       <div class="actions">
         <button type="submit">Approve and save</button>
-        <span class="meta">Human approval of these domain edits and dispositions. Next check is complete section schemas, handles, identity, and the reference graph.</span>
+        <span class="meta">Saves edits on this page. Checks only touched sections plus their handles and references. Other pairs are not a save gate. Publication still requires complete schemas.</span>
       </div>
     </form>
   </main>
-  <script>
-  (function () {
-    var form = document.getElementById('domain-review-form');
-    if (!form) return;
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      var dispositions = [];
-      form.querySelectorAll('select[data-disposition-finding]').forEach(function (select) {
-        var findingId = select.getAttribute('data-disposition-finding');
-        var disposition = select.value;
-        if (!findingId || disposition === 'OPEN') return;
-        var rationaleArea = form.querySelector('textarea[data-rationale-finding="' + findingId + '"]');
-        dispositions.push({
-          findingId: findingId,
-          disposition: disposition,
-          authority: 'OPERATOR',
-          rationale: rationaleArea ? String(rationaleArea.value || '') : ''
-        });
-      });
-      var patches = [];
-      var invalid = '';
-      form.querySelectorAll('textarea[data-path]').forEach(function (area) {
-        var path = area.getAttribute('data-path');
-        var pairId = area.getAttribute('data-pair-id');
-        if (!path || !pairId) return;
-        var raw = String(area.value || '').trim();
-        if (!raw) return;
-        try {
-          patches.push({ pairId: pairId, path: path, value: JSON.parse(raw) });
-        } catch (error) {
-          invalid = 'Content at ' + path + ' is not valid JSON. Keep IDs and sections machine-readable.';
-        }
-      });
-      if (invalid) {
-        window.alert(invalid);
-        return;
-      }
-      var body = {
-        domain: form.querySelector('[name="domain"]').value,
-        action: 'save-domain-review',
-        expectedCandidateHash: form.querySelector('[name="expectedCandidateHash"]').value,
-        findingDispositions: dispositions,
-        patches: patches
-      };
-      fetch('/api/operator/commands', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify(body)
-      }).then(function (res) {
-        return res.json().then(function (payload) {
-          var issues = payload.gateIssues || [];
-          if (!res.ok || payload.persisted === false) {
-            var message = issues.length ? issues.join('\\n') : (payload.error || 'Schema gate rejected the save.');
-            window.alert(message);
-            return;
-          }
-          var notice = payload.passed
-            ? 'Human approved. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Domain Coherence now passes.'
-            : 'Human approved the saved edits. Section schema and reference-graph gate passed. Open HIGH domain blockers still remain.';
-          window.location.assign('/review/' + encodeURIComponent(body.domain) + '?notice=' + encodeURIComponent(notice));
-        });
-      }).catch(function () {
-        window.alert('Save failed. Retry Approve and save.');
-      });
-    });
-  })();
-  </script>
+  ${renderReviewClientScript('domain')}
 </body>
 </html>`;
 }

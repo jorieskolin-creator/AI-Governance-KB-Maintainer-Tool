@@ -17,7 +17,7 @@ import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-conte
 import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
-import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, parseReviewSaveBody } from './pair-review.js';
+import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, schemaGateFocused, parseReviewSaveBody } from './pair-review.js';
 import {
   remainingDomainDefects,
   renderDomainReviewHtml,
@@ -432,6 +432,14 @@ assert(reviewHtml.includes('data-path="evidence.capability[evidence_001]"'), 're
 assert(!reviewHtml.includes('Delete this blocker'), 'review page must not infer resolution from form deletion');
 assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
 assert(reviewHtml.includes('Human pair approval'), 'review save is pair-level human approval');
+assert(reviewHtml.includes('Fix, save and continue'), 'pair review offers Fix, save and continue on the finding');
+assert(reviewHtml.includes('Maintainer, fix this'), 'pair review offers Maintainer, fix this on the finding');
+assert(reviewHtml.includes('Park, fix after the rest is ready'), 'pair review offers Park on the finding');
+assert(!reviewHtml.includes('window.alert'), 'pair review must list focused-check issues on the page, not alert');
+assert(
+  !reviewHtml.includes('<option value="ACCEPTED_RISK"'),
+  'ACCEPTED_RISK is not a primary defer option on the finding'
+);
 
 const highDefect = {
   defectId: 'defect_001' as const,
@@ -526,6 +534,12 @@ assert(domainHtml.includes('expectedCandidateHash'), 'domain save binds the curr
 assert(domainHtml.includes('save-domain-review'), 'domain review posts save-domain-review');
 assert(domainHtml.includes('Human domain approval'), 'domain save is domain-level human approval');
 assert(domainHtml.includes('not domain APPROVED'), 'domain save must not grant domain APPROVED');
+assert(domainHtml.includes('Park, fix after the rest is ready'), 'domain review can park the affected pair');
+assert(!domainHtml.includes('window.alert'), 'domain review must list focused-check issues on the page, not alert');
+assert(
+  !domainHtml.includes('<option value="ACCEPTED_RISK"'),
+  'ACCEPTED_RISK is not a primary defer option on domain review'
+);
 
 const domainHigh = {
   defectId: 'defect_001' as const,
@@ -567,6 +581,23 @@ assert(
     item.includes('pairId drifted')
   ),
   'schema gate rejects identity drift'
+);
+const illegalLifecycle = structuredClone(validSnapshot);
+(illegalLifecycle.lifecycleTargets as { capability: Array<{ minimumTechnicalAssurance: string }> }).capability[0]!.minimumTechnicalAssurance =
+  'MAGIC';
+assert(
+  schemaGate('A2_AP-A2', illegalLifecycle).some((item) => item.includes('minimumTechnicalAssurance')),
+  'full schema gate still rejects an illegal lifecycle assurance value'
+);
+assert(
+  schemaGateFocused('A2_AP-A2', illegalLifecycle, ['evidence.capability[evidence_001]']).length === 0,
+  'focused check of an evidence path does not fail because lifecycle assurance on another section is illegal'
+);
+assert(
+  schemaGateFocused('A2_AP-A2', illegalLifecycle, ['lifecycleTargets.capability[0].minimumTechnicalAssurance']).some((item) =>
+    item.includes('minimumTechnicalAssurance')
+  ),
+  'option 1 cannot save an illegal minimumTechnicalAssurance: focused check requires the locked set'
 );
 assert(
   parseReviewSaveBody({ deletedDefectIds: ['defect_001'], patches: [{ path: 'evidence.capability[evidence_001]', value: { title: 'Fixed' } }] }).deletedIds.join(',') === 'defect_001',

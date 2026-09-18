@@ -26,6 +26,7 @@ import {
   blockingOpenDefects,
   deletedFindingFormIssues,
   dispositionForFinding,
+  isClosingDisposition,
   openDefects,
   parseFindingDispositionDrafts,
   reviewForNamedGates,
@@ -59,8 +60,14 @@ import { operatorLog } from './log.js';
 import { loadPairCoherenceSnapshot } from './qc-repair-command.js';
 import type { PairState } from '../domain/states.js';
 import type { PairCoherenceSnapshot } from '../orchestration/pair-coherence-packet.js';
-import { schemaGate } from './schema-gate.js';
-export { schemaGate };
+import { schemaGate, schemaGateFocused } from './schema-gate.js';
+import {
+  renderDispositionSelect,
+  renderFindingActionButtons,
+  renderReviewClientScript,
+  reviewPageSharedStyles
+} from './review-fix-ui.js';
+export { schemaGate, schemaGateFocused };
 
 export interface ReviewDefectView {
   defectId: string;
@@ -327,6 +334,31 @@ export async function savePairReview(input: {
   }
   const snapshot = await loadPairCoherenceSnapshot(pairRun.id);
   const parsed = parseReviewSaveBody(input.body);
+  const focusFindingId =
+    typeof input.body.findingId === 'string' && input.body.findingId.trim()
+      ? input.body.findingId.trim()
+      : typeof input.body.findingAction === 'string' && input.body.findingAction === 'fix' &&
+          parsed.dispositions.length === 1
+        ? parsed.dispositions[0]?.findingId
+        : undefined;
+  if (focusFindingId) {
+    const defect = review.defects.find((item) => item.defectId === focusFindingId);
+    if (!defect) {
+      return {
+        domain: input.domain,
+        pairId: input.pairId,
+        persisted: false,
+        humanApproved: false,
+        passed: false,
+        pairValidated: false,
+        deleted: parsed.deletedIds,
+        patchCount: parsed.patches.length,
+        gateIssues: [`Disposition refers to unknown finding ${focusFindingId}.`]
+      };
+    }
+    const allowed = defect.recommendedRepairPaths[0] ?? defect.affectedPaths[0] ?? '';
+    parsed.patches = parsed.patches.filter((item) => !allowed || item.path === allowed || pathIsAllowed(item.path, [allowed]));
+  }
   const currentHash = await currentPairCandidateHash(pairRun.id, input.pairId);
   const stale = staleRevisionIssues(currentHash, parsed.expectedCandidateHash);
   const formIssues = [
@@ -358,7 +390,15 @@ export async function savePairReview(input: {
   const patched = parsed.patches.length
     ? applySnapshotPatches(snapshot, parsed.patches)
     : snapshot;
-  const gateIssues = schemaGate(input.pairId, patched);
+  const closingPaths = parsed.dispositions
+    .filter((item) => isClosingDisposition(item.disposition))
+    .flatMap((item) => {
+      const defect = review.defects.find((entry) => entry.defectId === item.findingId);
+      const path = defect?.recommendedRepairPaths[0] ?? defect?.affectedPaths[0] ?? '';
+      return path ? [path] : [];
+    });
+  const focusedPaths = [...parsed.patches.map((item) => item.path), ...closingPaths];
+  const gateIssues = focusedPaths.length ? schemaGateFocused(input.pairId, patched, focusedPaths) : [];
   if (gateIssues.length) {
     return {
       domain: input.domain,
@@ -525,8 +565,8 @@ export function renderPairActions(page: PairReviewPage): string {
 export function renderPairReviewHtml(page: PairReviewPage): string {
   const blockingLabel =
     page.blockingCount === 0
-      ? 'No open HIGH/BLOCKING defects remain. Approve and save still checks complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved. Findings stay listed; closing them requires an explicit disposition.'
-      : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Edit semantic content and record RESOLVED, WAIVED, ACCEPTED_RISK, or REJECTED with rationale. Deleting a finding from the form does not close it. After you approve, the next check is complete section schemas, handles, identity, and the reference graph. Empty sections cannot be saved.`;
+      ? 'No open HIGH/BLOCKING defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. It does not re-validate untouched sections. VALIDATED, READY_FOR_APPROVAL, and publication still require complete schemas, locked vocabulary, identity, and no unresolved parked items. Empty touched sections cannot be saved. Findings stay listed; closing them requires an explicit disposition.'
+      : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Fix this finding, ask the Maintainer to fix it, or Park this pair so other work can continue. Focused check covers the touched section and its handles/references. Park is a defer of this pair/object, not accepted risk.`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -544,7 +584,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     .banner, .defect { border:1px solid var(--line); border-radius:12px; padding:1rem 1.1rem; margin:0 0 1rem; background:var(--panel); }
     .meta, p { color:var(--muted); }
     label.field { display:block; margin:.8rem 0; color:var(--ink); }
-    select, textarea { width:100%; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+    select, textarea, input[type="text"] { width:100%; background:#16130f; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem; font: 13px/1.4 ui-monospace, Menlo, monospace; }
     textarea { min-height:9rem; }
     textarea.rationale { min-height:4.5rem; }
     button {
@@ -557,6 +597,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     .action-form { border:1px solid var(--line); border-radius:12px; padding:1rem 1.1rem; margin:0 0 1rem; background:var(--panel); }
     .action-form h3 { color:var(--ink); margin:0 0 .3rem; font-size:1.05rem; }
     .action-form button[disabled] { opacity:.5; cursor:not-allowed; }
+    ${reviewPageSharedStyles()}
   </style>
 </head>
 <body>
@@ -565,7 +606,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     <h1>${escapeHtml(page.pairId)}</h1>
     <p class="banner">${escapeHtml(blockingLabel)} This is not domain APPROVED and not a versioned Knowledge Base release.</p>
     ${page.notice ? `<p class="banner">${escapeHtml(page.notice)}</p>` : ''}
-    ${page.gateIssues.length ? `<p class="fail">${page.gateIssues.map((item) => escapeHtml(item)).join('<br>')}</p>` : ''}
+    <div id="review-issues" class="banner fail${page.gateIssues.length ? ' is-visible' : ''}"${page.gateIssues.length ? '' : ' hidden'}>${page.gateIssues.map((item) => `<p>${escapeHtml(item)}</p>`).join('')}</div>
     <p class="meta">${escapeHtml(page.coherenceSummary)}</p>
     <p><a href="/?domain=${escapeHtml(page.domain)}">Operator board</a>
       · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>
@@ -578,25 +619,16 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
         page.defects.length
           ? page.defects
               .map((item) => {
-                const waivable = item.severity !== 'BLOCKING';
                 return `<article class="defect">
         <p class="kicker">${escapeHtml(item.severity)} · ${escapeHtml(item.defectId)} · ${escapeHtml(item.coherenceDimension)}</p>
         <p>${escapeHtml(item.issue)}</p>
         <p class="meta">${escapeHtml(item.coherenceExpectation)}</p>
         <p class="meta">Path <code>${escapeHtml(item.path || 'none')}</code></p>
-        <label class="field">Disposition for this revision
-          <select data-disposition-finding="${escapeHtml(item.defectId)}" name="disposition:${escapeHtml(item.defectId)}">
-            <option value="OPEN"${item.disposition === 'OPEN' ? ' selected' : ''}>OPEN — still a finding on this revision</option>
-            <option value="RESOLVED"${item.disposition === 'RESOLVED' ? ' selected' : ''}>RESOLVED</option>
-            ${
-              waivable
-                ? `<option value="WAIVED"${item.disposition === 'WAIVED' ? ' selected' : ''}>WAIVED</option>
-            <option value="ACCEPTED_RISK"${item.disposition === 'ACCEPTED_RISK' ? ' selected' : ''}>ACCEPTED_RISK</option>`
-                : ''
-            }
-            <option value="REJECTED"${item.disposition === 'REJECTED' ? ' selected' : ''}>REJECTED — remains open</option>
-          </select>
-        </label>
+        ${renderDispositionSelect({
+          defectId: item.defectId,
+          severity: item.severity,
+          disposition: item.disposition
+        })}
         <label class="field">Disposition rationale (required unless OPEN)
           <textarea class="rationale" data-rationale-finding="${escapeHtml(item.defectId)}" name="rationale:${escapeHtml(item.defectId)}">${escapeHtml(item.rationale)}</textarea>
         </label>
@@ -605,88 +637,27 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
             ? `<label class="field">Semantic value at path (JSON)<textarea data-path="${escapeHtml(item.path)}" name="content:${escapeHtml(item.defectId)}">${escapeHtml(item.valueJson)}</textarea></label>`
             : ''
         }
+        ${renderFindingActionButtons({
+          defectId: item.defectId,
+          pairId: page.pairId,
+          commandsEnabled: page.commandsEnabled !== false
+        })}
       </article>`;
               })
               .join('')
-          : '<p class="banner">No pair-coherence findings are listed on this revision. Approve and save still checks complete section schemas and the reference graph. Empty sections cannot be saved.</p>'
+          : '<p class="banner">No pair-coherence findings are listed on this revision. Saving still runs a focused check on any section you edit. Empty touched sections cannot be saved. Park remains available below.</p>'
       }
       <div class="actions">
         ${
           page.hasCoherenceReview === false
             ? '<span class="meta">No readable Pair Coherence review yet — edit and Approve is unavailable. Use Regenerate or Save &amp; Finalize Later below.</span>'
-            : '<button type="submit">Approve and save</button><span class="meta">Human approval of these edits and dispositions. Next check is complete section schemas, handles, identity, and the reference graph.</span>'
+            : '<button type="submit">Approve and save</button><span class="meta">Saves edits on this page. Checks only touched sections plus their handles and references. Other sections and pairs are not a save gate. Publication still requires complete schemas.</span>'
         }
       </div>
     </form>
     ${renderPairActions(page)}
   </main>
-  <script>
-  (function () {
-    var form = document.getElementById('pair-review-form');
-    if (!form) return;
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      var dispositions = [];
-      form.querySelectorAll('select[data-disposition-finding]').forEach(function (select) {
-        var findingId = select.getAttribute('data-disposition-finding');
-        var disposition = select.value;
-        if (!findingId || disposition === 'OPEN') return;
-        var rationaleArea = form.querySelector('textarea[data-rationale-finding="' + findingId + '"]');
-        dispositions.push({
-          findingId: findingId,
-          disposition: disposition,
-          authority: 'OPERATOR',
-          rationale: rationaleArea ? String(rationaleArea.value || '') : ''
-        });
-      });
-      var patches = [];
-      var invalid = '';
-      form.querySelectorAll('textarea[data-path]').forEach(function (area) {
-        var path = area.getAttribute('data-path');
-        if (!path) return;
-        var raw = String(area.value || '').trim();
-        if (!raw) return;
-        try {
-          patches.push({ path: path, value: JSON.parse(raw) });
-        } catch (error) {
-          invalid = 'Content at ' + path + ' is not valid JSON. Keep IDs and sections machine-readable.';
-        }
-      });
-      if (invalid) {
-        window.alert(invalid);
-        return;
-      }
-      var body = {
-        domain: form.querySelector('[name="domain"]').value,
-        pairId: form.querySelector('[name="pairId"]').value,
-        action: 'save-pair-review',
-        expectedCandidateHash: form.querySelector('[name="expectedCandidateHash"]').value,
-        findingDispositions: dispositions,
-        patches: patches
-      };
-      fetch('/api/operator/commands', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify(body)
-      }).then(function (res) {
-        return res.json().then(function (payload) {
-          var issues = payload.gateIssues || [];
-          if (!res.ok || payload.persisted === false) {
-            var message = issues.length ? issues.join('\\n') : (payload.error || 'Schema gate rejected the save.');
-            window.alert(message);
-            return;
-          }
-          var notice = payload.passed
-            ? 'Human approved. Section schema and reference-graph gate passed. Recorded dispositions are bound to this candidate revision. Pair Coherence now passes.'
-            : 'Human approved the saved edits. Section schema and reference-graph gate passed. Open HIGH blockers still remain.';
-          window.location.assign('/review/' + encodeURIComponent(body.domain) + '/' + encodeURIComponent(body.pairId) + '?notice=' + encodeURIComponent(notice));
-        });
-      }).catch(function () {
-        window.alert('Save failed. Retry Approve and save.');
-      });
-    });
-  })();
-  </script>
+  ${renderReviewClientScript('pair')}
 </body>
 </html>`;
 }

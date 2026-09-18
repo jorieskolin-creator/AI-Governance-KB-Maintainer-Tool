@@ -1,0 +1,132 @@
+import { coerceLockedTechnicalAssurance, schemaGate, schemaGateFocused } from './schema-gate.js';
+import {
+  FIX_SAVE_CONTINUE,
+  MAINTAINER_FIX_THIS,
+  PARK_FIX_LATER,
+  renderFindingActionButtons,
+  renderReviewClientScript
+} from './review-fix-ui.js';
+import { validMinimalSnapshotFixture } from '../validation/sir-snapshot-schema.js';
+import { maintainerFixFinding } from './maintainer-fix-finding.js';
+
+function assert(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new Error(message);
+}
+
+async function expectThrow(run: () => Promise<unknown>, includes: string, message: string): Promise<void> {
+  try {
+    await run();
+  } catch (error) {
+    const text = error instanceof Error ? error.message : String(error);
+    assert(text.includes(includes), `${message} (got: ${text})`);
+    return;
+  }
+  throw new Error(`${message} (no error thrown)`);
+}
+
+const snapshot = validMinimalSnapshotFixture();
+assert(schemaGate('A1_AP-A1', snapshot).length === 0, 'fixture snapshot is fully schema-valid');
+
+const brokenLifecycle = structuredClone(snapshot);
+(brokenLifecycle.lifecycleTargets as { capability: Array<{ minimumTechnicalAssurance: string }> }).capability[0]!.minimumTechnicalAssurance =
+  'MAGIC';
+const brokenEvidenceGraph = structuredClone(snapshot);
+(
+  brokenEvidenceGraph.evidence as {
+    capability: Array<{ supportsAtomicHandles: string[] }>;
+  }
+).capability[0]!.supportsAtomicHandles = ['atomic_999'];
+
+assert(
+  schemaGate('A1_AP-A1', brokenLifecycle).some((item) => item.includes('minimumTechnicalAssurance')),
+  'whole-snapshot schemaGate still rejects illegal locked vocabulary'
+);
+assert(
+  schemaGateFocused('A1_AP-A1', brokenLifecycle, ['evidence.capability[evidence_001]']).length === 0,
+  'focused check of evidence does not re-validate an illegal lifecycle enum on another section'
+);
+assert(
+  schemaGateFocused('A1_AP-A1', brokenLifecycle, ['lifecycleTargets']).some((item) =>
+    item.includes('minimumTechnicalAssurance')
+  ),
+  'option 1 cannot save illegal minimumTechnicalAssurance: focused check requires the locked set'
+);
+assert(
+  schemaGateFocused('A1_AP-A1', snapshot, ['evidence.capability[evidence_001]']).length === 0,
+  'focused evidence check passes when the touched section and its atomic handles are valid'
+);
+assert(
+  schemaGateFocused('A1_AP-A1', brokenEvidenceGraph, ['evidence.capability[evidence_001]']).some((item) =>
+    item.includes('atomic_999')
+  ),
+  'focused check keeps adjacent graph: evidence may not reference an unknown atomic'
+);
+assert(
+  schemaGateFocused('A1_AP-A1', brokenEvidenceGraph, ['lifecycleTargets']).length === 0,
+  'focused lifecycle check does not re-run the evidence graph'
+);
+
+const coerced = coerceLockedTechnicalAssurance(brokenLifecycle);
+assert(
+  coerced.coercedPaths.some((item) => item.includes('minimumTechnicalAssurance')),
+  'option 2 records the coerced assurance path'
+);
+assert(
+  (coerced.snapshot as { lifecycleTargets: { capability: Array<{ minimumTechnicalAssurance: string }> } })
+    .lifecycleTargets.capability[0]?.minimumTechnicalAssurance === 'UNKNOWN',
+  'option 2 coerces illegal minimumTechnicalAssurance to UNKNOWN'
+);
+assert(
+  schemaGateFocused('A1_AP-A1', coerced.snapshot, ['lifecycleTargets']).length === 0,
+  'after option 2 coerce, focused lifecycle check passes and the finding can remain open'
+);
+const noOp = coerceLockedTechnicalAssurance(snapshot);
+assert(noOp.coercedPaths.length === 0, 'locked values already in the set are not coerced');
+
+const buttons = renderFindingActionButtons({
+  defectId: 'defect_001',
+  pairId: 'A2_AP-A2',
+  commandsEnabled: true
+});
+assert(buttons.includes(FIX_SAVE_CONTINUE), 'finding has Fix, save and continue');
+assert(buttons.includes(MAINTAINER_FIX_THIS), 'finding has Maintainer, fix this');
+assert(buttons.includes(PARK_FIX_LATER), 'finding has Park, fix after the rest is ready');
+assert(buttons.includes('data-finding-action="park"'), 'park is a finding action, not accepted risk');
+assert(buttons.includes('data-pair-id="A2_AP-A2"'), 'park targets this pair/object');
+
+const pairScript = renderReviewClientScript('pair');
+const domainScript = renderReviewClientScript('domain');
+assert(!pairScript.includes('window.alert'), 'pair client lists issues on the page');
+assert(!domainScript.includes('window.alert'), 'domain client lists issues on the page');
+assert(domainScript.includes("action: 'finalize-later'"), 'domain review parks from the finding');
+assert(pairScript.includes("action: 'maintainer-fix-finding'"), 'pair review asks Maintainer to fix this finding');
+assert(domainScript.includes('/review/') && domainScript.includes('?notice='), 'domain park stays on domain review so other findings can move');
+
+const priorFlag = process.env.OPERATOR_COMMANDS_ENABLED;
+process.env.OPERATOR_COMMANDS_ENABLED = 'false';
+await expectThrow(
+  () => maintainerFixFinding({ domain: 'A', pairId: 'A1_AP-A1', findingId: 'defect_001' }),
+  'disabled',
+  'Maintainer fix is fail-closed when operator commands are disabled'
+);
+if (priorFlag === undefined) delete process.env.OPERATOR_COMMANDS_ENABLED;
+else process.env.OPERATOR_COMMANDS_ENABLED = priorFlag;
+
+console.log(
+  JSON.stringify(
+    {
+      status: 'PASS',
+      focusedCheckIgnoresOtherSectionEnum: 'PASS',
+      focusedCheckRejectsIllegalTouchedAssurance: 'PASS',
+      focusedCheckKeepsAdjacentGraph: 'PASS',
+      fullSchemaGateUnchanged: 'PASS',
+      option2CoercesToUnknown: 'PASS',
+      threeFindingActions: 'PASS',
+      noAlert: 'PASS',
+      parkFromDomainReview: 'PASS',
+      maintainerFixFailClosed: 'PASS'
+    },
+    null,
+    2
+  )
+);

@@ -220,11 +220,11 @@ function defectList(card: OperatorDomainCard): string {
   const items = uniqueFindings(card.findings ?? []);
   if (!items.length) return '';
   const reviewLink = card.review.available
-    ? `<p><a href="${escapeHtml(card.review.href)}">Open defected object: Edit, Rework with GenAI, Regenerate, or Finalize Later</a></p>`
+    ? `<p><a href="${escapeHtml(card.review.href)}">Open defected object: Fix, Maintainer fix, or Park</a></p>`
     : '';
   return `<section class="defects">
       <p class="kicker">QC defects</p>
-      <p class="meta">Open the defected object to Edit flagged paths, Rework with GenAI, Regenerate a section fresh, or Save &amp; Finalize Later. QC Approve and save records dispositions on the current candidate revision. It is not domain APPROVED and does not publish.</p>
+      <p class="meta">Open the defected object to Fix the touched section, ask the Maintainer to fix it, or Park that pair. QC save records dispositions on the current candidate revision. It is not domain APPROVED and does not publish.</p>
       <ul>${items
         .map(
           (item) =>
@@ -538,7 +538,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human approval step: record an explicit disposition, then Approve and save. After that complete section schemas, handles, identity, and the reference graph are checked; empty sections cannot be saved. After five pairs actually pass Pair Coherence, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, the approval bundle binds the candidate and proposed manifest hashes. Operator approval finalizes immutable APPROVED bytes; publication is a separate hash-verified operation.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the Maintainer to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, identity, and no unresolved parked items. After five pairs actually pass Pair Coherence, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, the approval bundle binds the candidate and proposed manifest hashes. Operator approval finalizes immutable APPROVED bytes; publication is a separate hash-verified operation.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>
