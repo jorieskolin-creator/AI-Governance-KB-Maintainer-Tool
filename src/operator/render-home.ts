@@ -220,6 +220,7 @@ function parkedList(card: OperatorDomainCard): string {
 }
 
 function documentList(card: OperatorDomainCard): string {
+  if ((card.parkedFindings ?? []).length > 0) return '';
   if (!card.documents.available && !card.documents.approvalAvailable) return '';
   const draft = card.documents.available
     ? `<p><a href="${escapeHtml(card.documents.indexHref)}">Open domain ${escapeHtml(card.domain)} DRAFT documents</a>
