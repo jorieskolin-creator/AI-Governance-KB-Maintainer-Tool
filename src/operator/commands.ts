@@ -44,6 +44,7 @@ import {
 } from './authoring-context.js';
 import {
   isOpenDomainState,
+  mayHealDomainReady,
   nextEligiblePairTask,
   classifyDomainPipelineStop,
   countUnparkedBlockingDefects,
@@ -171,9 +172,10 @@ function domainDefectsFromOutput(output: unknown): Array<{
 }
 
 /**
- * Parked pairs wait. They must not keep the domain in REPAIR_REQUIRED.
- * When every remaining HIGH/BLOCKING domain defect sits on a DEFERRED pair,
- * promote to READY_FOR_APPROVAL so the next phase can run without another click.
+ * Parked pairs wait. They must not keep the domain OPEN after domain coherence.
+ * When DOMAIN_COHERENCE_REVIEW passed, or every remaining HIGH/BLOCKING defect
+ * is parked, promote to READY_FOR_APPROVAL including from IN_PROGRESS so
+ * Continue is not deadlocked on a passed review that never wrote READY.
  */
 export async function promoteDomainReadyWhenOnlyParkedRemain(input: {
   domain: DomainId;
@@ -197,9 +199,23 @@ export async function promoteDomainReadyWhenOnlyParkedRemain(input: {
     parkedCheckIds: input.parkedCheckIds,
     domain: input.domain
   });
-  if (remaining > 0) return false;
+  const passed = domainReviewPassed(input.domainOutput);
+  const hasDomainReviewOutput =
+    input.domainOutput !== null &&
+    input.domainOutput !== undefined &&
+    typeof input.domainOutput === 'object' &&
+    !Array.isArray(input.domainOutput);
+  if (
+    !mayHealDomainReady({
+      state: input.state,
+      remainingUnparkedBlocking: remaining,
+      domainReviewPassed: passed,
+      hasDomainReviewOutput
+    })
+  ) {
+    return false;
+  }
   if (input.state === 'READY_FOR_APPROVAL') return true;
-  if (input.state !== 'REPAIR_REQUIRED' && input.state !== 'DOMAIN_VALIDATING') return false;
   const current = await enterDomainValidating(input.domainRunId, input.state);
   if (current !== 'DOMAIN_VALIDATING') return false;
   if (!canTransition(domainTransitions, 'DOMAIN_VALIDATING', 'READY_FOR_APPROVAL')) {
@@ -211,6 +227,12 @@ export async function promoteDomainReadyWhenOnlyParkedRemain(input: {
     domainRunId: input.domainRunId
   });
   return true;
+}
+
+function domainReadyStopMessage(domain: DomainId, domainOutput: unknown): string {
+  return domainReviewPassed(domainOutput) === true
+    ? `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
+    : `Domain ${domain} remaining HIGH defects are parked. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`;
 }
 
 async function runDomainCoherenceReview(input: {
@@ -376,6 +398,19 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     parkedPairIds,
     { parkedCheckIds, domain }
   );
+  if (
+    await promoteDomainReadyWhenOnlyParkedRemain({
+      domain,
+      domainRunId: run.id,
+      state: run.state,
+      pairRuns,
+      domainOutput: domainArtifact?.output,
+      parkedObjectIds: parkedPairIds,
+      parkedCheckIds
+    })
+  ) {
+    throw new Error(domainReadyStopMessage(domain, domainArtifact?.output));
+  }
   const eligible = nextEligiblePairTask(
     domain,
     snapshots,

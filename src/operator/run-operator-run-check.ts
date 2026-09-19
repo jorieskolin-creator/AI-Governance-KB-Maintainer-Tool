@@ -14,7 +14,7 @@ import {
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE, canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
-import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock, countUnparkedBlockingDefects } from './eligibility.js';
+import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock, countUnparkedBlockingDefects, mayHealDomainReady } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
 import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, schemaGateFocused, parseReviewSaveBody } from './pair-review.js';
@@ -524,6 +524,60 @@ assert(
 assert(
   parkedReadyFailedCoherence.recordApproval.enabled === false,
   'hash-bound approval stays fail-closed while parked items remain'
+);
+
+assert(
+  mayHealDomainReady({
+    state: 'IN_PROGRESS',
+    remainingUnparkedBlocking: 0,
+    domainReviewPassed: true,
+    hasDomainReviewOutput: true
+  }) === true,
+  'passed DOMAIN_COHERENCE_REVIEW must heal IN_PROGRESS to READY_FOR_APPROVAL'
+);
+assert(
+  mayHealDomainReady({
+    state: 'IN_PROGRESS',
+    remainingUnparkedBlocking: 2,
+    domainReviewPassed: true,
+    hasDomainReviewOutput: true
+  }) === true,
+  'a passed domain-coherence artifact heals even if stale HIGH defects remain listed'
+);
+assert(
+  mayHealDomainReady({
+    state: 'IN_PROGRESS',
+    remainingUnparkedBlocking: 0,
+    hasDomainReviewOutput: false
+  }) === false,
+  'five VALIDATED pairs must not skip DOMAIN_COHERENCE_REVIEW from IN_PROGRESS'
+);
+assert(
+  mayHealDomainReady({
+    state: 'IN_PROGRESS',
+    remainingUnparkedBlocking: 0,
+    domainReviewPassed: false,
+    hasDomainReviewOutput: true
+  }) === true,
+  'parked-only remaining HIGH defects heal IN_PROGRESS after domain coherence ran'
+);
+assert(
+  mayHealDomainReady({
+    state: 'REPAIR_REQUIRED',
+    remainingUnparkedBlocking: 0,
+    domainReviewPassed: false,
+    hasDomainReviewOutput: true
+  }) === true,
+  'parked-only remaining HIGH defects still heal REPAIR_REQUIRED'
+);
+assert(
+  mayHealDomainReady({
+    state: 'IN_PROGRESS',
+    remainingUnparkedBlocking: 1,
+    domainReviewPassed: false,
+    hasDomainReviewOutput: true
+  }) === false,
+  'unparked HIGH defects keep IN_PROGRESS closed'
 );
 
 const reviewHtml = renderPairReviewHtml({
