@@ -35,7 +35,8 @@ import {
 } from '../orchestration/store.js';
 import {
   publishApprovedRelease,
-  recordApproval
+  recordApproval,
+  finalizeReadyDocuments
 } from '../release/operator-release.js';
 import { loadPairReviewPage, renderPairReviewHtml, savePairReview } from './pair-review.js';
 import { loadDomainReviewPage, renderDomainReviewHtml, saveDomainReview } from './domain-review.js';
@@ -420,7 +421,7 @@ export function registerOperatorRoutes(
           return noticeRedirect(
             reply,
             result.domainReady
-              ? `Parked ${result.pairId}. Status: Parked. Why: ${result.reason}. Remaining HIGH defects are parked. Domain is READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved.`
+              ? `Parked ${result.pairId}. Status: Parked. Why: ${result.reason}. Remaining HIGH defects are parked. Domain is READY_FOR_APPROVAL. Finalize ready documents for VALIDATED pairs. Parked pairs stay parked for later.`
               : `Parked ${result.pairId}. Status: Parked. Why: ${result.reason}. Remaining pairs can continue; the domain stays fail-closed for approval until it is resolved.`,
             domain
           );
@@ -496,6 +497,34 @@ export function registerOperatorRoutes(
             result.pairValidated
               ? 'Closed the parked item. That pair is VALIDATED only because Pair Coherence actually passed.'
               : 'Closed the parked item. The pair stays deferred until Pair Coherence passes or remaining blockers are reviewed and Saved.',
+            domain
+          );
+        }
+        return result;
+      }
+      if (action === 'finalize-ready-documents') {
+        if (!operatorCommandsEnabled()) {
+          throw new Error('Operator commands are disabled on this deployment.');
+        }
+        const result = await finalizeReadyDocuments(domain);
+        operatorLog('operator.documents.finalized', {
+          domain,
+          pairCount: result.pairCount,
+          omittedPairIds: result.omittedPairIds,
+          published: result.published,
+          releaseManifestSha256: result.releaseManifestSha256
+        });
+        if (wantsHtml(request)) {
+          const parkedNote =
+            result.omittedPairIds.length > 0
+              ? ` Parked pairs ${result.omittedPairIds.join(', ')} stay parked for later.`
+              : '';
+          const publishNote = result.published
+            ? ` Published manifest ${result.releaseManifestSha256}.`
+            : ` Approval is recorded. Publication did not complete: ${result.publicationError ?? 'unknown error'}.`;
+          return noticeRedirect(
+            reply,
+            `Finalized ${String(result.pairCount)} document pair(s) for domain ${domain}.${parkedNote}${publishNote}`,
             domain
           );
         }

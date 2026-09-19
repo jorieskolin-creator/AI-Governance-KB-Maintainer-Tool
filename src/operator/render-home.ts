@@ -125,10 +125,10 @@ function runActivity(card: OperatorDomainCard): string {
       return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Fix, ask the Maintainer to fix, or Park with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
     }
     if (card.documents.approvalAvailable) {
-      return `<p class="activity">Work order READY FOR APPROVAL. Domain coherence passed. The hash-bound approval bundle is the exact bytes publication would release. Record operator approval against those hashes. Publication stays a separate operation.</p>`;
+      return `<p class="activity">Work order READY FOR APPROVAL. Finalize ready documents now. That records hash-bound approval and publishes the VALIDATED pairs. Parked items stay parked for later and are omitted from this release.</p>`;
     }
     if (card.state === 'READY_FOR_APPROVAL') {
-      return `<p class="activity">Work order READY FOR APPROVAL. Remaining HIGH defects are parked. The rest of the domain is READY_FOR_APPROVAL. Open DRAFT documents to continue document creation. Hash-bound operator approval stays closed until parked items are resolved. Publication stays a separate operation.</p>`;
+      return `<p class="activity">Work order READY FOR APPROVAL. No VALIDATED pair is ready to finalize yet. Parked items stay parked for later.</p>`;
     }
       return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts and still show unresolved issues. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. Operator approval and published release stay closed.</p>`;
   }
@@ -167,13 +167,13 @@ function reviewButton(card: OperatorDomainCard): string {
 }
 
 function nextPhaseLink(card: OperatorDomainCard): string {
-  if (card.commands.recordApproval.enabled) {
-    return `<a class="review-link next-phase" href="${escapeHtml(card.documents.approvalHref)}" title="${escapeHtml(card.commands.recordApproval.reason)}">Record operator approval</a>`;
-  }
-  if (card.state === 'READY_FOR_APPROVAL' && card.documents.available) {
-    return `<a class="review-link next-phase" href="${escapeHtml(card.documents.indexHref)}" title="Hash-bound operator approval stays closed while parked items remain. Open DRAFT documents to continue document creation.">Open DRAFT documents</a>`;
-  }
-  return '';
+  if (!card.commands.recordApproval.enabled) return '';
+  return commandButton(
+    'finalize-ready-documents',
+    card.domain,
+    card.commands.recordApproval,
+    'Finalize ready documents'
+  );
 }
 
 function commandReason(card: OperatorDomainCard): string {
@@ -203,7 +203,7 @@ function parkedList(card: OperatorDomainCard): string {
   if (!items.length) return '';
   return `<section class="defects parked">
       <p class="kicker">Parked for later review</p>
-      <p class="meta">Items parked via Park or Save &amp; Finalize Later. They do not stop remaining pairs, Continue, or READY_FOR_APPROVAL. Hash-bound operator approval stays closed until they are resolved. Close removes an item from this queue; schema and IDs stay code-owned.</p>
+      <p class="meta">Items parked via Park or Save &amp; Finalize Later. They do not stop remaining pairs, Continue, or READY_FOR_APPROVAL. They are omitted from Finalize ready documents and stay parked for later. Close removes an item from this queue; schema and IDs stay code-owned.</p>
       <ul>${items
         .map(
           (item) =>
@@ -220,6 +220,7 @@ function parkedList(card: OperatorDomainCard): string {
 }
 
 function documentList(card: OperatorDomainCard): string {
+  if ((card.parkedFindings ?? []).length > 0) return '';
   if (!card.documents.available && !card.documents.approvalAvailable) return '';
   const draft = card.documents.available
     ? `<p><a href="${escapeHtml(card.documents.indexHref)}">Open domain ${escapeHtml(card.domain)} DRAFT documents</a>
@@ -228,7 +229,7 @@ function documentList(card: OperatorDomainCard): string {
   const approval = `<p><a href="${escapeHtml(card.documents.approvalHref)}">${
     card.documents.approvalAvailable
       ? `Open domain ${escapeHtml(card.domain)} hash-bound approval bundle`
-      : `Approval bundle stays closed while parked items remain or until READY_FOR_APPROVAL`
+      : `Approval bundle stays closed until a VALIDATED pair is ready to finalize`
   }</a></p>`;
   return `<section class="defects documents">
       <p class="kicker">DRAFT production candidates</p>
@@ -291,13 +292,13 @@ function domainPanel(card: OperatorDomainCard): string {
           ? 'eligible · Continue runs the five-pair review'
           : card.state === 'READY_FOR_APPROVAL'
             ? card.commands.recordApproval.enabled
-              ? 'passed · hash-bound approval bundle ready for review · not APPROVED'
-              : 'passed or parked · DRAFT documents available · hash-bound approval stays closed while parked items remain'
+              ? 'passed · Finalize ready documents now · parked pairs omitted from this release'
+              : 'passed or parked · no VALIDATED pair is ready to finalize'
             : card.state === 'REPAIR_REQUIRED' && card.pairs.every((pair) => pair.state === 'VALIDATED' || pair.state === 'DEFERRED')
               ? 'HIGH defects listed'
               : 'after five pairs are VALIDATED'
       }</strong></li>
-      <li><span>Operator approval</span><strong>${card.commands.recordApproval.enabled ? 'current hash-bound bundle may be approved' : 'after READY_FOR_APPROVAL'}</strong></li>
+      <li><span>Operator approval</span><strong>${card.commands.recordApproval.enabled ? 'Finalize ready documents now · parked pairs wait' : 'after READY_FOR_APPROVAL'}</strong></li>
       <li><span>Production candidates</span><strong>${
         card.documents.available ? 'DRAFT documents available · unresolved issues remain visible · not APPROVED' : 'after five pairs are VALIDATED'
       }</strong></li>
@@ -563,7 +564,7 @@ export function renderOperatorHome(status: OperatorStatus, notice = '', selected
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
       <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the Maintainer to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. Parked pairs do not block Continue or READY_FOR_APPROVAL. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, and identity. Hash-bound operator approval stays closed while parked items remain. After five pairs actually pass Pair Coherence or are parked, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, the approval bundle binds the candidate and proposed manifest hashes. Operator approval finalizes immutable APPROVED bytes; publication is a separate hash-verified operation.</p>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the Maintainer to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. Parked pairs do not block Continue or READY_FOR_APPROVAL. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, and identity. Parked pairs stay parked and are omitted from this release. After five pairs actually pass Pair Coherence or are parked, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, Finalize ready documents records hash-bound operator approval for VALIDATED pairs and publishes that release. Parked documents wait to be finalized later.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       <section class="status" aria-label="Service health">
         <article><p class="kicker">Live</p><strong class="pass">${escapeHtml(status.health.live)}</strong></article>

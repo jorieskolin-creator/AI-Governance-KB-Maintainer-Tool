@@ -283,11 +283,11 @@ export function renderReviewClientScript(kind: 'pair' | 'domain'): string {
           var parkedReason = payload.reason || reason;
           if (payload.domainReady) {
             window.location.assign('/?domain=' + encodeURIComponent(domain) + '&notice=' + encodeURIComponent(
-              'Parked ' + pairId + '. Status: Parked. Why: ' + parkedReason + '. Remaining HIGH defects are parked. Domain is READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved.'
+              'Parked ' + pairId + '. Status: Parked. Why: ' + parkedReason + '. Remaining HIGH defects are parked. Domain is READY_FOR_APPROVAL. Finalize ready documents for VALIDATED pairs. Parked pairs stay parked for later.'
             ));
             return;
           }
-          var notice = 'Parked ' + pairId + '. Status: Parked. Why: ' + parkedReason + '. Remaining pairs can continue. Approval stays fail-closed until this pair is resolved.';
+          var notice = 'Parked ' + pairId + '. Status: Parked. Why: ' + parkedReason + '. Remaining pairs can continue. Finalize ready documents for VALIDATED pairs. This pair stays parked for later.';
           var url = ${stayOnDomain ? `'/review/' + encodeURIComponent(domain) + '?notice=' + encodeURIComponent(notice)` : `'/review/' + encodeURIComponent(domain) + '/' + encodeURIComponent(pairId) + '?notice=' + encodeURIComponent(notice)`};
           window.location.assign(url);
         }, findingId);

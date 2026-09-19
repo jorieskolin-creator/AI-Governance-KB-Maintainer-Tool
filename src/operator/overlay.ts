@@ -284,7 +284,8 @@ export async function loadDomainOverlay(
           pairs,
           domainCoherence,
           openParkedCount: parkedFindings.length,
-          unparkedBlockingDomainDefects
+          unparkedBlockingDomainDefects,
+          parkedPairIds: [...parkedPairIds]
         }
       }),
       dismissBlockers
@@ -295,14 +296,16 @@ export async function loadDomainOverlay(
       bundleHref: `/api/operator/documents/${domain}`,
       approvalHref: `/approval/${domain}`,
       approvalAvailable:
-        parkedFindings.length === 0 &&
-        [
-          'READY_FOR_APPROVAL',
-          'APPROVED',
-          'PUBLISHING',
-          'PUBLICATION_FAILED',
-          'PUBLISHED'
-        ].includes(domainState)
+        parkedFindings.length === 0
+          ? [
+              'READY_FOR_APPROVAL',
+              'APPROVED',
+              'PUBLISHING',
+              'PUBLICATION_FAILED',
+              'PUBLISHED'
+            ].includes(domainState)
+          : domainState === 'READY_FOR_APPROVAL' &&
+            pairs.some((pair) => pair.state === 'VALIDATED' && !parkedPairIds.has(pair.pairId))
     },
     review: (() => {
       if (domainState === 'READY_FOR_APPROVAL') {
