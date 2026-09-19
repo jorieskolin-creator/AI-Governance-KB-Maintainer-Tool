@@ -125,10 +125,10 @@ function runActivity(card: OperatorDomainCard): string {
       return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Fix, ask the Maintainer to fix, or Park with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
     }
     if (card.documents.approvalAvailable) {
-      return `<p class="activity">Work order OPEN. Domain coherence passed. The hash-bound approval bundle is the exact bytes publication would release. Record operator approval against those hashes. Publication stays a separate operation.</p>`;
+      return `<p class="activity">Work order READY FOR APPROVAL. Domain coherence passed. The hash-bound approval bundle is the exact bytes publication would release. Record operator approval against those hashes. Publication stays a separate operation.</p>`;
     }
     if (card.state === 'READY_FOR_APPROVAL') {
-      return `<p class="activity">Work order OPEN. Remaining HIGH defects are parked. The rest of the domain is READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved. Publication stays a separate operation.</p>`;
+      return `<p class="activity">Work order READY FOR APPROVAL. Remaining HIGH defects are parked. The rest of the domain is READY_FOR_APPROVAL. Open DRAFT documents to continue document creation. Hash-bound operator approval stays closed until parked items are resolved. Publication stays a separate operation.</p>`;
     }
       return `<p class="activity">Work order OPEN. Five pairs are VALIDATED. DRAFT documents are assembled from those artifacts and still show unresolved issues. Continue runs DOMAIN_COHERENCE_REVIEW and then stops. Operator approval and published release stay closed.</p>`;
   }
@@ -164,6 +164,25 @@ function commandButton(action: string, domain: string, command: { enabled: boole
 function reviewButton(card: OperatorDomainCard): string {
   if (!card.review.available) return '';
   return `<a class="review-link" href="${escapeHtml(card.review.href)}" title="${escapeHtml(card.review.reason)}">Review remaining HIGH blockers</a>`;
+}
+
+function nextPhaseLink(card: OperatorDomainCard): string {
+  if (card.commands.recordApproval.enabled) {
+    return `<a class="review-link next-phase" href="${escapeHtml(card.documents.approvalHref)}" title="${escapeHtml(card.commands.recordApproval.reason)}">Record operator approval</a>`;
+  }
+  if (card.state === 'READY_FOR_APPROVAL' && card.documents.available) {
+    return `<a class="review-link next-phase" href="${escapeHtml(card.documents.indexHref)}" title="Hash-bound operator approval stays closed while parked items remain. Open DRAFT documents to continue document creation.">Open DRAFT documents</a>`;
+  }
+  return '';
+}
+
+function commandReason(card: OperatorDomainCard): string {
+  if (card.review.available) return card.review.reason;
+  if (card.commands.startDomainRun.enabled) return card.commands.startDomainRun.reason;
+  if (card.commands.recordApproval.enabled) return card.commands.recordApproval.reason;
+  if (card.state === 'READY_FOR_APPROVAL') return card.commands.runNextTask.reason;
+  if (card.commands.dismissBlockers.enabled) return card.commands.dismissBlockers.reason;
+  return card.commands.runNextTask.reason;
 }
 
 function continueLabel(card: OperatorDomainCard): string {
@@ -258,7 +277,8 @@ function domainPanel(card: OperatorDomainCard): string {
       ${commandButton('run-next-task', card.domain, card.commands.runNextTask, continueLabel(card))}
       ${commandButton('dismiss-blocking-defects', card.domain, card.commands.dismissBlockers, 'Park HIGH blockers for later review')}
       ${reviewButton(card)}
-      <p class="command-reason">${escapeHtml(card.review.available ? card.review.reason : card.commands.startDomainRun.enabled ? card.commands.startDomainRun.reason : card.commands.dismissBlockers.enabled ? card.commands.dismissBlockers.reason : card.commands.runNextTask.reason)}</p>
+      ${nextPhaseLink(card)}
+      <p class="command-reason">${escapeHtml(commandReason(card))}</p>
     </div>
     ${runActivity(card)}
     ${documentList(card)}
@@ -270,7 +290,9 @@ function domainPanel(card: OperatorDomainCard): string {
         card.commands.runNextTask.next?.taskType === 'DOMAIN_COHERENCE_REVIEW'
           ? 'eligible · Continue runs the five-pair review'
           : card.state === 'READY_FOR_APPROVAL'
-            ? 'passed · hash-bound approval bundle ready for review · not APPROVED'
+            ? card.commands.recordApproval.enabled
+              ? 'passed · hash-bound approval bundle ready for review · not APPROVED'
+              : 'passed or parked · DRAFT documents available · hash-bound approval stays closed while parked items remain'
             : card.state === 'REPAIR_REQUIRED' && card.pairs.every((pair) => pair.state === 'VALIDATED' || pair.state === 'DEFERRED')
               ? 'HIGH defects listed'
               : 'after five pairs are VALIDATED'

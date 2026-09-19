@@ -13,6 +13,8 @@ import {
   OPERATOR_SERVICE,
   OPERATOR_SLICE
 } from './board.js';
+import { commandAvailability } from './eligibility.js';
+import type { DomainRunOverlay } from './overlay.js';
 import { renderOperatorHome } from './render-home.js';
 import { registerOperatorRoutes } from './routes.js';
 
@@ -115,6 +117,150 @@ assert(!html.includes('Command accepted. Refresh'), 'home page must not claim a 
 for (const taskType of PAIR_TASK_SEQUENCE) {
   assert(html.includes(taskType), `home page is missing ${taskType}`);
 }
+
+const completedTasks = PAIR_TASK_SEQUENCE.map((taskType) => ({ taskType, status: 'COMPLETED' as const }));
+const fiveValidatedPairs = expectedDomainPairIds('A').map((pairId) => ({
+  pairId,
+  state: 'VALIDATED' as const,
+  tasks: completedTasks,
+  pairCoherencePassed: true
+}));
+const closedDismiss = { enabled: false, reason: 'No HIGH blockers to park.' };
+const readyCommands = {
+  ...commandAvailability({
+    databaseReady: true,
+    commandsEnabled: true,
+    modelRoutesConfigured: true,
+    domain: 'A',
+    activeRun: {
+      state: 'READY_FOR_APPROVAL',
+      pairs: fiveValidatedPairs,
+      domainCoherence: { status: 'COMPLETED', passed: true }
+    }
+  }),
+  dismissBlockers: closedDismiss
+};
+const readyOverlay: DomainRunOverlay = {
+  domain: 'A',
+  runId: 'run-a-ready',
+  state: 'READY_FOR_APPROVAL',
+  baselineSha256: 'abc123',
+  pairs: fiveValidatedPairs,
+  findings: [],
+  parkedFindings: [],
+  modelCalls: [],
+  commands: readyCommands,
+  documents: {
+    available: true,
+    indexHref: '/documents/A',
+    bundleHref: '/api/operator/documents/A',
+    approvalHref: '/approval/A',
+    approvalAvailable: true
+  },
+  review: {
+    available: false,
+    href: '',
+    pairId: '',
+    kind: '',
+    reason: 'No remaining HIGH blockers to review.'
+  }
+};
+const readyHtml = renderOperatorHome(
+  buildOperatorStatus({
+    database: { connected: true, schemaReady: true },
+    overlays: [readyOverlay]
+  }),
+  '',
+  'A'
+);
+assert(readyHtml.includes('READY FOR APPROVAL'), 'passed domain coherence must show READY FOR APPROVAL, not OPEN');
+assert(readyHtml.includes('Record operator approval'), 'READY domain must expose Record operator approval on the command row');
+assert(readyHtml.includes('href="/approval/A"'), 'Record operator approval must link to the hash-bound approval page');
+assert(
+  readyHtml.includes(readyCommands.recordApproval.reason),
+  'command reason prefers hash-bound operator approval once it is enabled'
+);
+assert(readyHtml.includes('Work order READY FOR APPROVAL'), 'activity copy matches the READY FOR APPROVAL work order');
+
+const parkedReadyCommands = {
+  ...commandAvailability({
+    databaseReady: true,
+    commandsEnabled: true,
+    modelRoutesConfigured: true,
+    domain: 'E',
+    activeRun: {
+      state: 'READY_FOR_APPROVAL',
+      pairs: expectedDomainPairIds('E').map((pairId) => ({
+        pairId,
+        state: 'VALIDATED' as const,
+        tasks: completedTasks,
+        pairCoherencePassed: true
+      })),
+      domainCoherence: { status: 'COMPLETED', passed: false },
+      openParkedCount: 1
+    }
+  }),
+  dismissBlockers: closedDismiss
+};
+const parkedReadyHtml = renderOperatorHome(
+  buildOperatorStatus({
+    database: { connected: true, schemaReady: true },
+    overlays: [
+      {
+        domain: 'E',
+        runId: 'run-e-parked',
+        state: 'READY_FOR_APPROVAL',
+        baselineSha256: 'def456',
+        pairs: expectedDomainPairIds('E').map((pairId) => ({
+          pairId,
+          state: 'VALIDATED' as const,
+          tasks: completedTasks,
+          pairCoherencePassed: true
+        })),
+        findings: [],
+        parkedFindings: [
+          {
+            id: 'finding-e',
+            pairRunId: null,
+            checkId: 'defect_001',
+            severity: 'HIGH',
+            objectId: 'E3_AP-E3',
+            objectPath: 'pairs[E3_AP-E3].capability.relatedCriteria',
+            issue: 'Parked HIGH defect.',
+            resolved: false,
+            createdAt: new Date(),
+            parkReason: 'Wait for expert review.'
+          }
+        ],
+        modelCalls: [],
+        commands: parkedReadyCommands,
+        documents: {
+          available: true,
+          indexHref: '/documents/E',
+          bundleHref: '/api/operator/documents/E',
+          approvalHref: '/approval/E',
+          approvalAvailable: false
+        },
+        review: {
+          available: false,
+          href: '',
+          pairId: '',
+          kind: '',
+          reason: 'No remaining HIGH blockers to review.'
+        }
+      }
+    ]
+  }),
+  '',
+  'E'
+);
+assert(parkedReadyHtml.includes('Open DRAFT documents'), 'READY with parked items still continues document creation via DRAFT documents');
+assert(parkedReadyHtml.includes('href="/documents/E"'), 'parked READY next phase opens DRAFT documents');
+assert(
+  !parkedReadyHtml.includes('>Record operator approval<'),
+  'hash-bound Record operator approval stays closed while parked items remain'
+);
+assert(parkedReadyHtml.includes('fail-closed') || parkedReadyHtml.includes('parked'), 'parked READY reason names the parked gate');
 
 const app = Fastify({ logger: false });
 registerOperatorRoutes(app, () => status);

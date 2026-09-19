@@ -72,6 +72,29 @@ export function isOpenDomainState(state: DomainState): boolean {
   return OPEN_DOMAIN_STATES.includes(state);
 }
 
+/**
+ * Parked HIGH defects and a passed domain-coherence artifact must not leave the
+ * work order OPEN. IN_PROGRESS is eligible only after DOMAIN_COHERENCE_REVIEW
+ * actually ran, so five VALIDATED pairs cannot skip that review.
+ */
+export function mayHealDomainReady(input: {
+  state: DomainState;
+  remainingUnparkedBlocking: number;
+  domainReviewPassed?: boolean;
+  hasDomainReviewOutput: boolean;
+}): boolean {
+  if (input.state === 'READY_FOR_APPROVAL') return true;
+  if (input.remainingUnparkedBlocking > 0 && input.domainReviewPassed !== true) return false;
+  if (input.state === 'REPAIR_REQUIRED' || input.state === 'DOMAIN_VALIDATING') return true;
+  if (input.state === 'IN_PROGRESS') {
+    return (
+      input.domainReviewPassed === true ||
+      (input.hasDomainReviewOutput && input.remainingUnparkedBlocking === 0)
+    );
+  }
+  return false;
+}
+
 function authoringTasksCompleted(pair: EligiblePairSnapshot): boolean {
   return PAIR_TASK_SEQUENCE.every((taskType) => {
     if (taskType === 'PAIR_COHERENCE_REVIEW') return true;
