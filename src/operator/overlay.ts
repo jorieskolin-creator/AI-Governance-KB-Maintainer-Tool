@@ -22,7 +22,7 @@ import {
   enrichPairSnapshots,
   promoteDomainReadyWhenOnlyParkedRemain
 } from './commands.js';
-import { commandAvailability, countUnparkedBlockingDefects, type CommandFlag } from './eligibility.js';
+import { commandAvailability, countUnparkedBlockingDefects, pairIdFromDomainDefect, pairIdsFromDomainDefect, type CommandFlag } from './eligibility.js';
 import { modelRoutesConfigured, operatorCommandsEnabled } from './commands.js';
 import type { EligiblePairSnapshot } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
@@ -182,12 +182,16 @@ export async function loadDomainOverlay(
       domainDispositions
     );
     for (const [index, defect] of openDomain.entries()) {
-      const objectId =
-        Array.isArray(defect.affectedPairIds) && typeof defect.affectedPairIds[0] === 'string'
-          ? defect.affectedPairIds[0]
-          : `DOMAIN-${domain}`;
       const checkId = typeof defect.defectId === 'string' ? defect.defectId : `defect_${String(index + 1).padStart(3, '0')}`;
-      if (isParkedObject(objectId, checkId)) continue;
+      const displayPairId = pairIdFromDomainDefect(defect);
+      const namedPairIds = pairIdsFromDomainDefect(defect);
+      const objectId = displayPairId || namedPairIds[0] || `DOMAIN-${domain}`;
+      if (
+        isParkedObject(objectId, checkId) ||
+        namedPairIds.some((pairId) => isParkedObject(pairId, checkId))
+      ) {
+        continue;
+      }
       findings.push({
         id: `${hostPair?.id ?? run.id}:${checkId}`,
         pairRunId: hostPair?.id ?? null,
@@ -240,9 +244,11 @@ export async function loadDomainOverlay(
     }
   }
   const parkedPairIds = new Set([...deferredPairIds, ...parkedObjectIds]);
+  const parkedCheckIds = new Set(parkedFindings.map((item) => item.checkId));
   const unparkedBlockingDomainDefects = countUnparkedBlockingDefects(
     Array.isArray(domainArtifact?.output?.defects) ? domainArtifact.output.defects : [],
-    parkedPairIds
+    parkedPairIds,
+    { parkedCheckIds, domain }
   );
   let domainState = run.state;
   if (
@@ -252,7 +258,8 @@ export async function loadDomainOverlay(
       state: run.state,
       pairRuns,
       domainOutput: domainArtifact?.output,
-      parkedObjectIds: parkedPairIds
+      parkedObjectIds: parkedPairIds,
+      parkedCheckIds
     })
   ) {
     domainState = 'READY_FOR_APPROVAL';

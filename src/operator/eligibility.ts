@@ -1,6 +1,6 @@
 import type { DomainId } from '../authoring/authoring-plan.js';
 import type { CognitiveTaskType, DomainState, PairState } from '../domain/states.js';
-import { PAIR_TASK_SEQUENCE } from '../orchestration/pipeline.js';
+import { PAIR_TASK_SEQUENCE, expectedDomainPairIds } from '../orchestration/pipeline.js';
 
 const OPEN_DOMAIN_STATES: readonly DomainState[] = [
   'IN_PROGRESS',
@@ -109,40 +109,70 @@ export function unresolvedParkedDomainBlock(openParkedCount: number): string | u
   return `${String(openParkedCount)} parked item(s) remain unresolved. They do not block Continue or READY_FOR_APPROVAL.`;
 }
 
-export function pairIdFromDomainDefect(defect: {
+const DOMAIN_PAIR_PATH = /pairs\[([A-F][1-5]_AP-[A-F][1-5])\]/g;
+
+export interface DomainDefectPairRef {
   pairId?: string;
+  defectId?: string;
   affectedPairIds?: readonly string[];
+  recommendedRepairPairIds?: readonly string[];
   affectedPaths?: readonly string[];
   recommendedRepairPaths?: readonly string[];
   domainPath?: string;
-}): string {
-  if (typeof defect.pairId === 'string' && defect.pairId.trim()) return defect.pairId.trim();
-  const listed = defect.affectedPairIds?.[0];
-  if (listed) return listed;
+}
+
+function addPairId(ids: Set<string>, value: string | undefined): void {
+  const trimmed = value?.trim();
+  if (trimmed) ids.add(trimmed);
+}
+
+function pairIdsInPath(path: string | undefined, ids: Set<string>): void {
+  if (!path) return;
+  DOMAIN_PAIR_PATH.lastIndex = 0;
+  for (const match of path.matchAll(DOMAIN_PAIR_PATH)) {
+    if (match[1]) ids.add(match[1]);
+  }
+}
+
+export function pairIdsFromDomainDefect(defect: DomainDefectPairRef): string[] {
+  const ids = new Set<string>();
+  addPairId(ids, defect.pairId);
+  for (const id of defect.affectedPairIds ?? []) addPairId(ids, id);
+  for (const id of defect.recommendedRepairPairIds ?? []) addPairId(ids, id);
+  pairIdsInPath(defect.domainPath, ids);
+  for (const path of defect.affectedPaths ?? []) pairIdsInPath(path, ids);
+  for (const path of defect.recommendedRepairPaths ?? []) pairIdsInPath(path, ids);
+  return [...ids];
+}
+
+export function pairIdFromDomainDefect(defect: DomainDefectPairRef): string {
   const path =
-    defect.domainPath ??
-    defect.recommendedRepairPaths?.[0] ??
-    defect.affectedPaths?.[0] ??
-    '';
-  const match = path.match(/pairs\[([A-F][1-5]_AP-[A-F][1-5])\]/);
-  return match?.[1] ?? '';
+    defect.domainPath ?? defect.recommendedRepairPaths?.[0] ?? defect.affectedPaths?.[0] ?? '';
+  DOMAIN_PAIR_PATH.lastIndex = 0;
+  const fromPath = DOMAIN_PAIR_PATH.exec(path)?.[1];
+  if (fromPath) return fromPath;
+  if (typeof defect.pairId === 'string' && defect.pairId.trim()) return defect.pairId.trim();
+  return defect.affectedPairIds?.[0] ?? defect.recommendedRepairPairIds?.[0] ?? '';
 }
 
 export function countUnparkedBlockingDefects(
-  defects: ReadonlyArray<{
-    severity?: string;
-    pairId?: string;
-    affectedPairIds?: readonly string[];
-    affectedPaths?: readonly string[];
-    recommendedRepairPaths?: readonly string[];
-    domainPath?: string;
-  }>,
-  deferredPairIds: ReadonlySet<string>
+  defects: ReadonlyArray<DomainDefectPairRef & { severity?: string }>,
+  parkedPairIds: ReadonlySet<string>,
+  extras?: { parkedCheckIds?: ReadonlySet<string>; domain?: DomainId }
 ): number {
+  const domainPairsParked =
+    extras?.domain !== undefined &&
+    expectedDomainPairIds(extras.domain).every((id) => parkedPairIds.has(id));
   return defects.filter((item) => {
     if (item.severity !== 'HIGH' && item.severity !== 'BLOCKING') return false;
-    const pairId = pairIdFromDomainDefect(item);
-    return !(pairId && deferredPairIds.has(pairId));
+    const checkId = item.defectId?.trim();
+    if (checkId && extras?.parkedCheckIds?.has(checkId)) return false;
+    const displayPairId = pairIdFromDomainDefect(item);
+    if (displayPairId && parkedPairIds.has(displayPairId)) return false;
+    const pairIds = pairIdsFromDomainDefect(item);
+    if (pairIds.some((id) => parkedPairIds.has(id))) return false;
+    if (pairIds.length === 0 && domainPairsParked) return false;
+    return true;
   }).length;
 }
 
