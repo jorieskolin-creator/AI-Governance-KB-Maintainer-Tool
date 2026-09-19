@@ -1,4 +1,5 @@
 import type { DomainId } from '../authoring/authoring-plan.js';
+import { expectedDomainPairIds } from '../orchestration/pipeline.js';
 import {
   beginPublicationJob,
   completePublicationJob,
@@ -164,6 +165,73 @@ export async function recordApproval(
     approvedOn: approval.approvedOn,
     idempotent: false
   };
+}
+
+export interface FinalizeReadyDocumentsResult {
+  domain: DomainId;
+  pairCount: number;
+  omittedPairIds: string[];
+  domainCandidateHash: string;
+  approvalBundleSha256: string;
+  releaseManifestSha256: string;
+  approvalReference: string;
+  published: boolean;
+  publicationError?: string;
+}
+
+export async function finalizeReadyDocuments(
+  domain: DomainId,
+  now = () => new Date().toISOString()
+): Promise<FinalizeReadyDocumentsResult> {
+  const view = await assembleDomainApprovalBundle({ domain });
+  if (!view.ok) throw new Error(view.issues.join(' '));
+  const effectiveFrom = now().slice(0, 10);
+  const approvalReference = `operator-board:${domain}:${effectiveFrom}`;
+  const approval = await recordApproval(
+    {
+      domain,
+      domainCandidateHash: view.domainCandidateHash,
+      approvalBundleSha256: view.bundleSha256,
+      proposedManifestSha256: view.bundle.proposedManifestSha256,
+      approvalReference,
+      effectiveFrom
+    },
+    now
+  );
+  const omittedPairIds = expectedDomainPairIds(domain).filter(
+    (pairId) => !Object.prototype.hasOwnProperty.call(view.bundle.pairCandidateHashes, pairId)
+  );
+  const pairCount = Object.keys(view.bundle.pairCandidateHashes).length;
+  try {
+    await publishApprovedRelease({
+      domain,
+      domainCandidateHash: approval.domainCandidateHash,
+      approvalBundleSha256: view.bundleSha256,
+      releaseManifestSha256: approval.releaseManifestSha256
+    });
+    return {
+      domain,
+      pairCount,
+      omittedPairIds,
+      domainCandidateHash: approval.domainCandidateHash,
+      approvalBundleSha256: view.bundleSha256,
+      releaseManifestSha256: approval.releaseManifestSha256,
+      approvalReference: approval.approvalReference,
+      published: true
+    };
+  } catch (error) {
+    return {
+      domain,
+      pairCount,
+      omittedPairIds,
+      domainCandidateHash: approval.domainCandidateHash,
+      approvalBundleSha256: view.bundleSha256,
+      releaseManifestSha256: approval.releaseManifestSha256,
+      approvalReference: approval.approvalReference,
+      published: false,
+      publicationError: error instanceof Error ? error.message : String(error)
+    };
+  }
 }
 
 export async function publishApprovedRelease(

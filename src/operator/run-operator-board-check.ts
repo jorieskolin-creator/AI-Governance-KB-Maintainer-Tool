@@ -174,11 +174,14 @@ const readyHtml = renderOperatorHome(
   'A'
 );
 assert(readyHtml.includes('READY FOR APPROVAL'), 'passed domain coherence must show READY FOR APPROVAL, not OPEN');
-assert(readyHtml.includes('Record operator approval'), 'READY domain must expose Record operator approval on the command row');
-assert(readyHtml.includes('href="/approval/A"'), 'Record operator approval must link to the hash-bound approval page');
+assert(readyHtml.includes('Finalize ready documents'), 'READY domain must expose Finalize ready documents on the command row');
+assert(
+  readyHtml.includes('name="action" value="finalize-ready-documents"'),
+  'Finalize ready documents must post the finalize command'
+);
 assert(
   readyHtml.includes(readyCommands.recordApproval.reason),
-  'command reason prefers hash-bound operator approval once it is enabled'
+  'command reason prefers finalize ready documents once it is enabled'
 );
 assert(readyHtml.includes('Work order READY FOR APPROVAL'), 'activity copy matches the READY FOR APPROVAL work order');
 
@@ -197,7 +200,8 @@ const parkedReadyCommands = {
         pairCoherencePassed: true
       })),
       domainCoherence: { status: 'COMPLETED', passed: false },
-      openParkedCount: 1
+      openParkedCount: 1,
+      parkedPairIds: ['E3_AP-E3']
     }
   }),
   dismissBlockers: closedDismiss
@@ -239,7 +243,7 @@ const parkedReadyHtml = renderOperatorHome(
           indexHref: '/documents/E',
           bundleHref: '/api/operator/documents/E',
           approvalHref: '/approval/E',
-          approvalAvailable: false
+          approvalAvailable: true
         },
         review: {
           available: false,
@@ -254,13 +258,14 @@ const parkedReadyHtml = renderOperatorHome(
   '',
   'E'
 );
-assert(parkedReadyHtml.includes('Open DRAFT documents'), 'READY with parked items still continues document creation via DRAFT documents');
-assert(parkedReadyHtml.includes('href="/documents/E"'), 'parked READY next phase opens DRAFT documents');
+assert(parkedReadyCommands.recordApproval.enabled === true, 'parked READY still enables Finalize ready documents');
+assert(parkedReadyHtml.includes('Finalize ready documents'), 'READY with parked items finalizes VALIDATED documents from the command row');
 assert(
-  !parkedReadyHtml.includes('>Record operator approval<'),
-  'hash-bound Record operator approval stays closed while parked items remain'
+  parkedReadyHtml.includes('name="action" value="finalize-ready-documents"'),
+  'parked READY posts finalize-ready-documents'
 );
-assert(parkedReadyHtml.includes('fail-closed') || parkedReadyHtml.includes('parked'), 'parked READY reason names the parked gate');
+assert(!parkedReadyHtml.includes('Open DRAFT documents'), 'parked READY does not send the operator back to DRAFT documents');
+assert(parkedReadyHtml.includes('stay parked'), 'parked READY reason keeps parked pairs waiting');
 
 const app = Fastify({ logger: false });
 registerOperatorRoutes(app, () => status);

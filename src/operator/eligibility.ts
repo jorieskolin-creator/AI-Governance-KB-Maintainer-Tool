@@ -199,9 +199,33 @@ export function countUnparkedBlockingDefects(
   }).length;
 }
 
-export function unresolvedParkedApprovalBlock(openParkedCount: number): string | undefined {
+export function parkedPairIdsOf(
+  pairs: readonly EligiblePairSnapshot[],
+  parkedObjectIds: ReadonlySet<string> | readonly string[] = []
+): Set<string> {
+  const parked = parkedObjectIds instanceof Set ? parkedObjectIds : new Set(parkedObjectIds);
+  const ids = new Set<string>();
+  for (const pair of pairs) {
+    if (pair.state === 'DEFERRED' || parked.has(pair.pairId)) ids.add(pair.pairId);
+  }
+  return ids;
+}
+
+export function countFinalizablePairs(
+  pairs: readonly EligiblePairSnapshot[],
+  parkedObjectIds: ReadonlySet<string> | readonly string[] = []
+): number {
+  const parked = parkedPairIdsOf(pairs, parkedObjectIds);
+  return pairs.filter((pair) => pair.state === 'VALIDATED' && !parked.has(pair.pairId)).length;
+}
+
+export function unresolvedParkedApprovalBlock(
+  openParkedCount: number,
+  finalizablePairCount = 0
+): string | undefined {
+  if (finalizablePairCount > 0) return undefined;
   if (openParkedCount <= 0) return undefined;
-  return `${String(openParkedCount)} parked item(s) remain unresolved. Approval stays fail-closed.`;
+  return `${String(openParkedCount)} parked item(s) remain unresolved and no VALIDATED pair is ready to finalize. Approval stays fail-closed.`;
 }
 
 export function reviewSaveMayValidatePair(namedGatesAllow: boolean, openParkedForPair: number): boolean {
@@ -322,6 +346,7 @@ export function commandAvailability(input: {
     domainCoherence?: DomainCoherenceSnapshot;
     openParkedCount?: number;
     unparkedBlockingDomainDefects?: number;
+    parkedPairIds?: readonly string[];
   };
 }): {
   startDomainRun: CommandFlag;
@@ -351,13 +376,22 @@ export function commandAvailability(input: {
   }
 
   if (input.activeRun?.state === 'READY_FOR_APPROVAL') {
-    const parkedApproval = unresolvedParkedApprovalBlock(input.activeRun.openParkedCount ?? 0);
+    const finalizable = countFinalizablePairs(
+      input.activeRun.pairs,
+      input.activeRun.parkedPairIds ?? []
+    );
+    const parkedApproval = unresolvedParkedApprovalBlock(
+      input.activeRun.openParkedCount ?? 0,
+      finalizable
+    );
     recordApproval = parkedApproval
       ? { enabled: false, reason: parkedApproval }
       : {
           enabled: true,
           reason:
-            'Record standalone operator approval against the exact current candidate, approval-bundle, and proposed-manifest hashes. Publication remains a separate operation.'
+            finalizable < input.activeRun.pairs.length
+              ? `Finalize ${String(finalizable)} VALIDATED document pair(s) now. Parked pairs stay parked for later and are omitted from this release. Approval and publication are one board action.`
+              : 'Finalize ready documents now. Records hash-bound operator approval against the current candidate, approval-bundle, and proposed-manifest hashes, then publishes that release.'
         };
     const parkedReady =
       (input.activeRun.openParkedCount ?? 0) > 0 || input.activeRun.domainCoherence?.passed !== true;
@@ -369,8 +403,8 @@ export function commandAvailability(input: {
       runNextTask: {
         enabled: false,
         reason: parkedReady
-          ? `Domain ${input.domain} remaining HIGH defects are parked. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
-          : `Domain ${input.domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
+          ? `Domain ${input.domain} remaining HIGH defects are parked. READY_FOR_APPROVAL. Finalize ready documents now. Parked pairs stay parked for later.`
+          : `Domain ${input.domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Finalize ready documents now. Publication is included in that command.`
       },
       recordApproval
     };

@@ -694,7 +694,7 @@ async function reopenValidatedForRepair(pairRunId: string, state: PairState): Pr
 
 /**
  * Park this pair/object so other pairs can continue. This is a defer, not accepted
- * risk: the domain stays fail-closed for approval until the parked item is resolved.
+ * risk: parked pairs are omitted from Finalize ready documents and wait for later.
  * VALIDATED pairs on domain review may be parked (reopened to REPAIR_REQUIRED, then DEFERRED).
  */
 export async function finalizeLaterForPair(input: {
