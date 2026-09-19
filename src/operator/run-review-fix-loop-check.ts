@@ -135,6 +135,8 @@ const domainScript = renderReviewClientScript('domain');
 assert(!pairScript.includes('window.alert'), 'pair client lists issues on the page');
 assert(!domainScript.includes('window.alert'), 'domain client lists issues on the page');
 assert(domainScript.includes("action: 'finalize-later'"), 'domain review parks from the finding');
+assert(domainScript.includes("payload.domainReady"), 'domain park returns to the board when the next phase is unlocked');
+assert(domainScript.includes('/?domain='), 'domain park with no remaining blockers leaves the dead-end review page');
 assert(pairScript.includes("action: 'maintainer-fix-finding'"), 'pair review asks Maintainer to fix this finding');
 assert(pairScript.includes('/review/') && pairScript.includes("encodeURIComponent(pairId)"), 'pair park stays on the pair review so Parked is visible');
 assert(domainScript.includes('/review/') && domainScript.includes('?notice='), 'domain park stays on domain review so other findings can move');

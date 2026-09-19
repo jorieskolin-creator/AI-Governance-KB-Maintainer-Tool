@@ -419,7 +419,9 @@ export function registerOperatorRoutes(
         if (wantsHtml(request)) {
           return noticeRedirect(
             reply,
-            `Parked ${result.pairId}. Status: Parked. Why: ${result.reason}. Remaining pairs can continue; the domain stays fail-closed for approval until it is resolved.`,
+            result.domainReady
+              ? `Parked ${result.pairId}. Status: Parked. Why: ${result.reason}. Remaining HIGH defects are parked. Domain is READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved.`
+              : `Parked ${result.pairId}. Status: Parked. Why: ${result.reason}. Remaining pairs can continue; the domain stays fail-closed for approval until it is resolved.`,
             domain
           );
         }

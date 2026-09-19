@@ -106,7 +106,44 @@ function retryableFailedTask(
 
 export function unresolvedParkedDomainBlock(openParkedCount: number): string | undefined {
   if (openParkedCount <= 0) return undefined;
-  return `${String(openParkedCount)} parked item(s) remain unresolved. DOMAIN_COHERENCE stays closed.`;
+  return `${String(openParkedCount)} parked item(s) remain unresolved. They do not block Continue or READY_FOR_APPROVAL.`;
+}
+
+export function pairIdFromDomainDefect(defect: {
+  pairId?: string;
+  affectedPairIds?: readonly string[];
+  affectedPaths?: readonly string[];
+  recommendedRepairPaths?: readonly string[];
+  domainPath?: string;
+}): string {
+  if (typeof defect.pairId === 'string' && defect.pairId.trim()) return defect.pairId.trim();
+  const listed = defect.affectedPairIds?.[0];
+  if (listed) return listed;
+  const path =
+    defect.domainPath ??
+    defect.recommendedRepairPaths?.[0] ??
+    defect.affectedPaths?.[0] ??
+    '';
+  const match = path.match(/pairs\[([A-F][1-5]_AP-[A-F][1-5])\]/);
+  return match?.[1] ?? '';
+}
+
+export function countUnparkedBlockingDefects(
+  defects: ReadonlyArray<{
+    severity?: string;
+    pairId?: string;
+    affectedPairIds?: readonly string[];
+    affectedPaths?: readonly string[];
+    recommendedRepairPaths?: readonly string[];
+    domainPath?: string;
+  }>,
+  deferredPairIds: ReadonlySet<string>
+): number {
+  return defects.filter((item) => {
+    if (item.severity !== 'HIGH' && item.severity !== 'BLOCKING') return false;
+    const pairId = pairIdFromDomainDefect(item);
+    return !(pairId && deferredPairIds.has(pairId));
+  }).length;
 }
 
 export function unresolvedParkedApprovalBlock(openParkedCount: number): string | undefined {
@@ -122,7 +159,8 @@ export function nextEligiblePairTask(
   domain: DomainId,
   pairs: readonly EligiblePairSnapshot[],
   domainCoherence?: DomainCoherenceSnapshot,
-  openParkedCount = 0
+  openParkedCount = 0,
+  unparkedBlockingDomainDefects?: number
 ): NextEligibleTask | { blocked: string } {
   for (const pair of pairs) {
     if (pair.state === 'NOT_STARTED' || pair.state === 'VALIDATED' || pair.state === 'DEFERRED') continue;
@@ -163,17 +201,11 @@ export function nextEligiblePairTask(
 
   const validated = pairs.filter((pair) => pair.state === 'VALIDATED').length;
   const deferred = pairs.filter((pair) => pair.state === 'DEFERRED').length;
+  void openParkedCount;
   if (validated + deferred === pairs.length && pairs.length === 5) {
-    if (deferred > 0) {
-      return {
-        blocked: `${String(deferred)} pair(s) have HIGH blockers parked for later review. DOMAIN_COHERENCE stays closed.`
-      };
-    }
-    const parked = unresolvedParkedDomainBlock(openParkedCount);
-    if (parked) {
-      return { blocked: parked };
-    }
-    const unpaid = pairs.filter((pair) => pair.pairCoherencePassed !== true);
+    const unpaid = pairs.filter(
+      (pair) => pair.state !== 'DEFERRED' && pair.pairCoherencePassed !== true
+    );
     if (unpaid.length > 0) {
       const pairId = unpaid[0]?.pairId ?? `domain ${domain}`;
       return {
@@ -197,6 +229,11 @@ export function nextEligiblePairTask(
       return {
         blocked: `Domain ${domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
       };
+    }
+    const remaining =
+      unparkedBlockingDomainDefects ?? (deferred > 0 ? 0 : Number.POSITIVE_INFINITY);
+    if (remaining === 0) {
+      return { domain, pairId: hostPairId, taskType: 'DOMAIN_COHERENCE_REVIEW' };
     }
     return {
       blocked: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. Domain stays REPAIR_REQUIRED.`
@@ -231,6 +268,7 @@ export function commandAvailability(input: {
     pairs: readonly EligiblePairSnapshot[];
     domainCoherence?: DomainCoherenceSnapshot;
     openParkedCount?: number;
+    unparkedBlockingDomainDefects?: number;
   };
 }): {
   startDomainRun: CommandFlag;
@@ -268,6 +306,21 @@ export function commandAvailability(input: {
           reason:
             'Record standalone operator approval against the exact current candidate, approval-bundle, and proposed-manifest hashes. Publication remains a separate operation.'
         };
+    const parkedReady =
+      (input.activeRun.openParkedCount ?? 0) > 0 || input.activeRun.domainCoherence?.passed !== true;
+    return {
+      startDomainRun: {
+        enabled: false,
+        reason: `Domain ${input.domain} already has an open run.`
+      },
+      runNextTask: {
+        enabled: false,
+        reason: parkedReady
+          ? `Domain ${input.domain} remaining HIGH defects are parked. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
+          : `Domain ${input.domain} DOMAIN_COHERENCE_REVIEW passed. READY_FOR_APPROVAL. Record operator approval against the hash-bound bundle. Publication stays a separate operation.`
+      },
+      recordApproval
+    };
   }
 
   if (input.activeRun && isOpenDomainState(input.activeRun.state)) {
@@ -275,7 +328,8 @@ export function commandAvailability(input: {
       input.domain,
       input.activeRun.pairs,
       input.activeRun.domainCoherence,
-      input.activeRun.openParkedCount ?? 0
+      input.activeRun.openParkedCount ?? 0,
+      input.activeRun.unparkedBlockingDomainDefects
     );
     if ('blocked' in next) {
       return {
