@@ -19,7 +19,7 @@ import {
   updateDomainState
 } from '../orchestration/store.js';
 import { domainMayReadyForApproval, staleRevisionIssues } from '../orchestration/named-gates.js';
-import { countUnparkedBlockingDefects } from './eligibility.js';
+import { countUnparkedBlockingDefects, pairIdFromDomainDefect, pairIdsFromDomainDefect } from './eligibility.js';
 import {
   applySnapshotPatches,
   patchedSnapshotRoots,
@@ -267,8 +267,9 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
   const blocking = blockingOpenDefects(review.defects, dispositions).filter((item) => {
     const domainPath = item.recommendedRepairPaths[0] ?? item.affectedPaths[0] ?? '';
     const mapped = domainPath ? snapshotPathFromDomainPath(domainPath) : undefined;
-    const pairId = mapped?.pairId ?? item.affectedPairIds[0] ?? '';
-    return !parkedByPairId.has(pairId);
+    const displayPairId = mapped?.pairId ?? pairIdFromDomainDefect(item);
+    if (displayPairId && parkedByPairId.has(displayPairId)) return false;
+    return !pairIdsFromDomainDefect({ ...item, domainPath }).some((pairId) => parkedByPairId.has(pairId));
   });
   const defects: DomainReviewDefectView[] = review.defects.map((item) => {
     const domainPath = item.recommendedRepairPaths[0] ?? item.affectedPaths[0] ?? '';
@@ -276,9 +277,13 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
     const snapshot = mapped ? snapshots.get(mapped.pairId) : undefined;
     const currentValue = mapped && snapshot ? readSnapshotPath(snapshot, mapped.snapshotPath) : undefined;
     const recorded = dispositionForFinding(dispositions, item.defectId);
-    const pairId = mapped?.pairId ?? item.affectedPairIds[0] ?? '';
+    const pairId = mapped?.pairId ?? pairIdFromDomainDefect({ ...item, domainPath });
     const disposition = recorded?.disposition ?? 'OPEN';
-    const parkReason = parkedByPairId.get(pairId);
+    const parkReason =
+      parkedByPairId.get(pairId) ??
+      pairIdsFromDomainDefect({ ...item, domainPath })
+        .map((id) => parkedByPairId.get(id))
+        .find((reason): reason is string => Boolean(reason));
     return {
       defectId: item.defectId,
       severity: item.severity,
@@ -306,7 +311,8 @@ export async function loadDomainReviewPage(domain: DomainId, notice?: string): P
       state: run.state,
       pairRuns,
       domainOutput: artifact.output,
-      parkedObjectIds: new Set(parkedByPairId.keys())
+      parkedObjectIds: new Set(parkedByPairId.keys()),
+      parkedCheckIds: new Set(parkedFindings.map((item) => item.checkId))
     }))
   ) {
     domainState = 'READY_FOR_APPROVAL';
@@ -605,7 +611,8 @@ export async function saveDomainReview(input: {
   if (domainMayReadyForApproval(outcomes)) {
     const remainingUnparked = countUnparkedBlockingDefects(
       rematerialized.defects,
-      new Set(pairRuns.filter((item) => item.state === 'DEFERRED').map((item) => item.pairId))
+      new Set(pairRuns.filter((item) => item.state === 'DEFERRED').map((item) => item.pairId)),
+      { domain: input.domain }
     );
     if (remainingUnparked === 0) {
       const readyIssues: string[] = [];

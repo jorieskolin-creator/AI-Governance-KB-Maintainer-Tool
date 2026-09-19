@@ -182,6 +182,7 @@ export async function promoteDomainReadyWhenOnlyParkedRemain(input: {
   pairRuns: readonly PairRunRecord[];
   domainOutput: unknown;
   parkedObjectIds?: ReadonlySet<string>;
+  parkedCheckIds?: ReadonlySet<string>;
 }): Promise<boolean> {
   const expected = expectedDomainPairIds(input.domain);
   const complete = input.pairRuns.filter(
@@ -192,7 +193,10 @@ export async function promoteDomainReadyWhenOnlyParkedRemain(input: {
     ...deferredPairIdsOf(input.pairRuns),
     ...(input.parkedObjectIds ?? [])
   ]);
-  const remaining = countUnparkedBlockingDefects(domainDefectsFromOutput(input.domainOutput), parkedPairIds);
+  const remaining = countUnparkedBlockingDefects(domainDefectsFromOutput(input.domainOutput), parkedPairIds, {
+    parkedCheckIds: input.parkedCheckIds,
+    domain: input.domain
+  });
   if (remaining > 0) return false;
   if (input.state === 'READY_FOR_APPROVAL') return true;
   if (input.state !== 'REPAIR_REQUIRED' && input.state !== 'DOMAIN_VALIDATING') return false;
@@ -362,10 +366,15 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
     domainReviewPassed(domainArtifact?.output)
   );
   const parkedFindings = await getParkedFindings(run.id);
-  const deferredIds = deferredPairIdsOf(pairRuns);
+  const parkedPairIds = new Set([
+    ...deferredPairIdsOf(pairRuns),
+    ...parkedFindings.map((item) => item.objectId)
+  ]);
+  const parkedCheckIds = new Set(parkedFindings.map((item) => item.checkId));
   const unparkedBlocking = countUnparkedBlockingDefects(
     domainDefectsFromOutput(domainArtifact?.output),
-    deferredIds
+    parkedPairIds,
+    { parkedCheckIds, domain }
   );
   const eligible = nextEligiblePairTask(
     domain,
@@ -401,7 +410,8 @@ export async function runNextEligibleTask(domain: DomainId): Promise<{
         state: run.state,
         pairRuns,
         domainOutput: domainArtifact?.output,
-        parkedObjectIds: new Set(parkedFindings.map((item) => item.objectId))
+        parkedObjectIds: parkedPairIds,
+        parkedCheckIds
       })
     ) {
       throw new Error(
@@ -921,9 +931,11 @@ export async function resumeOpenDomainPipelines(): Promise<{ reclaimed: number; 
       ...deferredPairIdsOf(pairRuns),
       ...parkedFindings.map((item) => item.objectId)
     ]);
+    const parkedCheckIds = new Set(parkedFindings.map((item) => item.checkId));
     const unparkedBlocking = countUnparkedBlockingDefects(
       domainDefectsFromOutput(domainOutput),
-      parkedPairIds
+      parkedPairIds,
+      { parkedCheckIds, domain }
     );
     if (
       await promoteDomainReadyWhenOnlyParkedRemain({
@@ -932,7 +944,8 @@ export async function resumeOpenDomainPipelines(): Promise<{ reclaimed: number; 
         state: run.state,
         pairRuns,
         domainOutput,
-        parkedObjectIds: parkedPairIds
+        parkedObjectIds: parkedPairIds,
+        parkedCheckIds
       })
     ) {
       continue;

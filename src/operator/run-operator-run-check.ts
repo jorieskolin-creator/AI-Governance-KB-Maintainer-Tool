@@ -398,6 +398,35 @@ assert(
   ) === 0,
   'domain path parked pair is not an unparked blocker'
 );
+assert(
+  countUnparkedBlockingDefects(
+    [
+      {
+        severity: 'HIGH',
+        affectedPairIds: ['E1_AP-E1', 'E3_AP-E3'],
+        affectedPaths: ['pairs[E3_AP-E3].capability.relatedCriteria']
+      }
+    ],
+    new Set(['E3_AP-E3'])
+  ) === 0,
+  'parking the path pair of a cross-pair Domain E defect unblocks the next phase'
+);
+assert(
+  countUnparkedBlockingDefects(
+    [{ severity: 'HIGH', defectId: 'defect_001' }],
+    new Set(['E1_AP-E1', 'E2_AP-E2', 'E3_AP-E3', 'E4_AP-E4', 'E5_AP-E5']),
+    { domain: 'E' }
+  ) === 0,
+  'unmapped Domain E HIGH defects do not block when every pair is parked'
+);
+assert(
+  countUnparkedBlockingDefects(
+    [{ severity: 'HIGH', defectId: 'defect_001' }],
+    new Set(['E1_AP-E1']),
+    { parkedCheckIds: new Set(['defect_001']), domain: 'E' }
+  ) === 0,
+  'a parked finding checkId is not an unparked HIGH blocker'
+);
 const deferredDomainReady = nextEligiblePairTask(
   'B',
   [
