@@ -595,7 +595,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     page.pairState === 'DEFERRED' ||
     (page.defects.length > 0 && page.defects.every((item) => item.actionStatus === 'PARKED'));
   const blockingLabel = parkedOnly
-    ? 'This pair is parked. It does not block Continue or READY_FOR_APPROVAL. Hash-bound operator approval stays closed until parked items are resolved.'
+    ? 'This pair is parked. It does not block Continue or READY_FOR_APPROVAL. Finalize ready documents for VALIDATED pairs. This pair stays parked for later.'
     : page.blockingCount === 0
       ? 'No open HIGH/BLOCKING defects remain. Fix, save and continue checks the section you touched plus its handles and references. VALIDATED, READY_FOR_APPROVAL, and publication still require complete schemas, locked vocabulary, and identity. Parked pairs do not block Continue or READY_FOR_APPROVAL.'
       : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;

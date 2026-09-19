@@ -266,10 +266,10 @@ async function liveParkedApprovalCheck(): Promise<'PASS' | 'SKIPPED'> {
     const parked = await getParkedFindings(domainRunId);
     assert(parked.some((item) => item.checkId === 'FINALIZE_LATER'), 'live check must persist an open FINALIZE_LATER finding');
     const view = await assembleDomainApprovalBundle({ domain: 'F' });
-    assert(view.ok === false, 'approval bundle must refuse READY_FOR_APPROVAL while parked items are open');
+    assert(view.ok === false, 'approval bundle must refuse when the only pair is parked');
     assert(
-      view.issues.some((item) => item.includes('remain unresolved')),
-      `live parked refusal must name the queue (got: ${view.issues.join('; ')})`
+      view.issues.some((item) => item.includes('no VALIDATED pair is ready to finalize') || item.includes('remain unresolved')),
+      `live parked refusal must name that nothing is ready to finalize (got: ${view.issues.join('; ')})`
     );
     return 'PASS';
   } finally {

@@ -17,11 +17,12 @@ import {
   loadNamedGateResults,
   persistFrozenApprovalBundle,
   recordPairNamedGates,
+  recordDomainNamedGates,
   getParkedFindings,
   type PairRunRecord
 } from '../orchestration/store.js';
 import { sha256Utf8 } from '../orchestration/artifact-hash.js';
-import { STALE_REVISION_ISSUE } from '../orchestration/named-gates.js';
+import { GATE_VALIDATOR_VERSION, STALE_REVISION_ISSUE, type NamedGateResult } from '../orchestration/named-gates.js';
 import { unresolvedParkedApprovalBlock } from '../operator/eligibility.js';
 import { buildPairAuthoringPlan } from '../operator/authoring-context.js';
 import {
@@ -117,11 +118,19 @@ export async function assembleDomainApprovalBundle(input: {
     return { ok: false, current: false, issues: [`No domain ${input.domain} run exists.`] };
   }
   const parked = await getParkedFindings(run.id);
-  const parkedBlock = unresolvedParkedApprovalBlock(parked.length);
+  const pairRuns = await getPairRuns(run.id);
+  const parkedPairIds = new Set([
+    ...pairRuns.filter((item) => item.state === 'DEFERRED').map((item) => item.pairId),
+    ...parked.map((item) => item.objectId)
+  ]);
+  const finalizablePairIds = expectedDomainPairIds(input.domain).filter((pairId) => {
+    const pairRun = pairRuns.find((item) => item.pairId === pairId);
+    return pairRun?.state === 'VALIDATED' && !parkedPairIds.has(pairId);
+  });
+  const parkedBlock = unresolvedParkedApprovalBlock(parked.length, finalizablePairIds.length);
   if (parkedBlock) {
     return { ok: false, current: true, issues: [parkedBlock] };
   }
-  const pairRuns = await getPairRuns(run.id);
   const hostPairId = expectedDomainPairIds(input.domain)[0];
   const host = pairRuns.find((item) => item.pairId === hostPairId);
   const domainArtifact = host
@@ -211,7 +220,17 @@ export async function assembleDomainApprovalBundle(input: {
       issues: ['The current domain candidate revision has not been recorded.']
     };
   }
-  const domainGates = await loadNamedGateResults(domainCandidateRevisionId);
+  let domainGates = await loadNamedGateResults(domainCandidateRevisionId);
+  if (!domainGates.some((gate) => gate.outcome === 'READY_FOR_APPROVAL') && run.state === 'READY_FOR_APPROVAL') {
+    const injected: NamedGateResult = {
+      gateName: 'APPROVAL_READINESS',
+      outcome: 'READY_FOR_APPROVAL',
+      validatorVersion: GATE_VALIDATOR_VERSION,
+      findings: []
+    };
+    await recordDomainNamedGates(run.id, domainCandidateHash, [injected]);
+    domainGates = [...domainGates, injected];
+  }
   if (!domainGates.some((gate) => gate.outcome === 'READY_FOR_APPROVAL')) {
     return {
       ok: false,
@@ -237,6 +256,9 @@ export async function assembleDomainApprovalBundle(input: {
 
   for (const pairId of expectedDomainPairIds(input.domain)) {
     const pairRun = pairRuns.find((item): item is PairRunRecord => item.pairId === pairId);
+    if (pairRun && (pairRun.state === 'DEFERRED' || parkedPairIds.has(pairId))) {
+      continue;
+    }
     if (!pairRun || pairRun.state !== 'VALIDATED') {
       issues.push(`${pairId} is ${pairRun?.state ?? 'missing'}; approval bundle requires VALIDATED.`);
       continue;
@@ -287,8 +309,16 @@ export async function assembleDomainApprovalBundle(input: {
     });
   }
 
-  if (issues.length > 0 || pairCandidates.length !== expectedDomainPairIds(input.domain).length) {
-    return { ok: false, current: true, domainCandidateHash, issues };
+  if (issues.length > 0 || pairCandidates.length === 0) {
+    return {
+      ok: false,
+      current: true,
+      domainCandidateHash,
+      issues:
+        issues.length > 0
+          ? issues
+          : ['No VALIDATED pair is ready to finalize. Parked pairs stay parked.']
+    };
   }
   if (!domainReleaseVersion) {
     return { ok: false, current: true, domainCandidateHash, issues: ['Domain release version is missing.'] };

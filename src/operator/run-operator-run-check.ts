@@ -14,7 +14,7 @@ import {
 import { canReopenTaskRun } from '../orchestration/store.js';
 import { PAIR_TASK_SEQUENCE, canTransition, pairTransitions } from '../orchestration/pipeline.js';
 import { buildPairAuthoringPlan, goldenReferenceRecord } from './authoring-context.js';
-import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock, countUnparkedBlockingDefects, mayHealDomainReady } from './eligibility.js';
+import { commandAvailability, nextEligiblePairTask, classifyDomainPipelineStop, shouldReclaimStartedTask, reviewSaveMayValidatePair, unresolvedParkedApprovalBlock, unresolvedParkedDomainBlock, countUnparkedBlockingDefects, mayHealDomainReady, countFinalizablePairs } from './eligibility.js';
 import { dismissAvailability } from './dismiss.js';
 import { relatedCriterionIds } from '../compiler/production-candidate.js';
 import { remainingDefects, rematerializeHumanReview, renderPairReviewHtml, schemaGate, schemaGateFocused, parseReviewSaveBody } from './pair-review.js';
@@ -364,8 +364,25 @@ assert(
 assert(unresolvedParkedDomainBlock(0) === undefined, 'zero parked items do not invent a domain block');
 assert(
   unresolvedParkedApprovalBlock(1) ===
-    '1 parked item(s) remain unresolved. Approval stays fail-closed.',
-  'unresolved parked items keep hash-bound approval closed'
+    '1 parked item(s) remain unresolved and no VALIDATED pair is ready to finalize. Approval stays fail-closed.',
+  'parked items keep approval closed only when nothing is ready to finalize'
+);
+assert(
+  unresolvedParkedApprovalBlock(1, 4) === undefined,
+  'parked items do not close approval while VALIDATED pairs remain finalizable'
+);
+assert(
+  countFinalizablePairs(
+    [
+      { pairId: 'E1_AP-E1', state: 'VALIDATED', tasks: allCompleted },
+      { pairId: 'E2_AP-E2', state: 'VALIDATED', tasks: allCompleted },
+      { pairId: 'E3_AP-E3', state: 'DEFERRED', tasks: allCompleted },
+      { pairId: 'E4_AP-E4', state: 'VALIDATED', tasks: allCompleted },
+      { pairId: 'E5_AP-E5', state: 'VALIDATED', tasks: allCompleted }
+    ],
+    ['E3_AP-E3']
+  ) === 4,
+  'DEFERRED and parked pairs are omitted from the finalize set'
 );
 
 const validatedWithParkedQueue = nextEligiblePairTask('A', fiveValidated, undefined, 1);
@@ -478,16 +495,17 @@ const readyWithParkedAvailability = commandAvailability({
     state: 'READY_FOR_APPROVAL',
     pairs: fiveValidated,
     domainCoherence: { status: 'COMPLETED', passed: true },
-    openParkedCount: 1
+    openParkedCount: 1,
+    parkedPairIds: ['A1_AP-A1']
   }
 });
 assert(
-  readyWithParkedAvailability.recordApproval.enabled === false,
-  'READY_FOR_APPROVAL with parked items must not enable operator approval'
+  readyWithParkedAvailability.recordApproval.enabled === true,
+  'READY_FOR_APPROVAL with parked items still finalizes VALIDATED pairs'
 );
 assert(
-  readyWithParkedAvailability.recordApproval.reason.includes('fail-closed'),
-  'approval closed reason names the parked queue'
+  readyWithParkedAvailability.recordApproval.reason.includes('Parked pairs stay parked'),
+  'finalize reason keeps parked pairs waiting'
 );
 assert(
   readyWithParkedAvailability.runNextTask.enabled === false,
@@ -522,8 +540,36 @@ assert(
   'parked-only ready reason names READY_FOR_APPROVAL'
 );
 assert(
-  parkedReadyFailedCoherence.recordApproval.enabled === false,
-  'hash-bound approval stays fail-closed while parked items remain'
+  parkedReadyFailedCoherence.recordApproval.enabled === true,
+  'parked-only READY_FOR_APPROVAL still finalizes VALIDATED pairs'
+);
+
+const noneFinalizable = commandAvailability({
+  databaseReady: true,
+  commandsEnabled: true,
+  modelRoutesConfigured: true,
+  domain: 'F',
+  activeRun: {
+    state: 'READY_FOR_APPROVAL',
+    pairs: [
+      { pairId: 'F1_AP-F1', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false },
+      { pairId: 'F2_AP-F2', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false },
+      { pairId: 'F3_AP-F3', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false },
+      { pairId: 'F4_AP-F4', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false },
+      { pairId: 'F5_AP-F5', state: 'DEFERRED', tasks: allCompleted, pairCoherencePassed: false }
+    ],
+    domainCoherence: { status: 'COMPLETED', passed: false },
+    openParkedCount: 5,
+    parkedPairIds: ['F1_AP-F1', 'F2_AP-F2', 'F3_AP-F3', 'F4_AP-F4', 'F5_AP-F5']
+  }
+});
+assert(
+  noneFinalizable.recordApproval.enabled === false,
+  'approval stays fail-closed when every pair is parked'
+);
+assert(
+  noneFinalizable.recordApproval.reason.includes('no VALIDATED pair is ready to finalize'),
+  'all-parked reason names that nothing is ready to finalize'
 );
 
 assert(
