@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import { loadSourceRegister } from './assets/load.js';
 import { checkDatabaseReady, closeDatabase } from './db/client.js';
 import { runMigrations } from './db/migrate.js';
 import { buildOperatorStatus } from './operator/board.js';
@@ -8,9 +9,16 @@ import { OPERATOR_DOMAINS } from './operator/board.js';
 import { resumeOpenDomainPipelines } from './operator/commands.js';
 import { failOrphanedStartedTasks } from './orchestration/store.js';
 import { operatorLog } from './operator/log.js';
+import { checkRegisterDriftOnBoot } from './register/drift.js';
+import { registerRegisterRoutes } from './register/routes.js';
 
 export async function buildApp() {
+  const loadedRegister = loadSourceRegister();
   const app = Fastify({ logger: true });
+  app.log.info(
+    { version: loadedRegister.version, sha256: loadedRegister.sha256 },
+    'source register loaded'
+  );
 
   if (process.env.DATABASE_URL?.trim()) {
     await runMigrations();
@@ -61,6 +69,8 @@ export async function buildApp() {
     });
   });
 
+  registerRegisterRoutes(app);
+
   app.addHook('onClose', async () => {
     try {
       const reclaimed = await failOrphanedStartedTasks();
@@ -72,6 +82,12 @@ export async function buildApp() {
     }
     await closeDatabase();
   });
+
+  try {
+    await checkRegisterDriftOnBoot(app.log);
+  } catch (error) {
+    app.log.warn(error, 'source register drift check failed');
+  }
 
   return app;
 }

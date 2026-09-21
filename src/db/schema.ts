@@ -179,6 +179,25 @@ export const domainApprovals = pgTable('domain_approvals', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 });
 
+export const registerRevisions = pgTable('register_revisions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  version: text('version').notNull(),
+  sha256: text('sha256').notNull(),
+  approvedAt: timestamp('approved_at', { withTimezone: true }).defaultNow().notNull(),
+  gitCommitSha: text('git_commit_sha'),
+  driveFileId: text('drive_file_id'),
+  status: text('status').notNull()
+});
+
+export const syncEvents = pgTable('sync_events', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  revisionId: uuid('revision_id').notNull(),
+  destination: text('destination').notNull(),
+  status: text('status').notNull(),
+  attemptedAt: timestamp('attempted_at', { withTimezone: true }).defaultNow().notNull(),
+  detail: text('detail')
+});
+
 export const publicationJobs = pgTable('publication_jobs', {
   id: uuid('id').defaultRandom().primaryKey(),
   domainRunId: uuid('domain_run_id').notNull().unique(),

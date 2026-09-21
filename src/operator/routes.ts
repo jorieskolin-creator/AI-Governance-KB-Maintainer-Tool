@@ -40,6 +40,7 @@ import {
 } from '../release/operator-release.js';
 import { loadPairReviewPage, renderPairReviewHtml, savePairReview } from './pair-review.js';
 import { loadDomainReviewPage, renderDomainReviewHtml, saveDomainReview } from './domain-review.js';
+import { loadHomeDrift } from '../register/drift.js';
 
 function wantsHtml(request: FastifyRequest): boolean {
   const accept = request.headers.accept ?? '';
@@ -123,10 +124,16 @@ export function registerOperatorRoutes(
     const query = request.query as { notice?: unknown; domain?: unknown };
     const notice = typeof query.notice === 'string' ? query.notice : '';
     const domain = typeof query.domain === 'string' ? query.domain : 'A';
+    let drift: Awaited<ReturnType<typeof loadHomeDrift>> | null = null;
+    try {
+      drift = await loadHomeDrift();
+    } catch {
+      drift = null;
+    }
     return reply
       .type('text/html; charset=utf-8')
       .header('cache-control', 'no-store')
-      .send(renderOperatorHome(status, notice, domain));
+      .send(renderOperatorHome(status, notice, domain, drift));
   });
 
   app.get('/api/operator/status', async (_request, reply) => {
