@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
     "architecture:check": "node dist/architecture/run-responsibility-check.js",
     "authoring-plan:check": "node dist/authoring/run-authoring-plan-check.js",
     "sir:foundation-check": "node dist/sir/run-sir-foundation-check.js",
@@ -34,7 +35,9 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@types/pg": "^8.15.5",
+    "ajv-formats": "^3.0.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^5.0.1"
   }
 }

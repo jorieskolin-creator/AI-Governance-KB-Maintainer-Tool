@@ -1,3 +1,8 @@
+> **SUPERSEDED — 2026-09-21.** This document describes the original 14-task design and is
+> kept for historical reference only. The current binding plan is
+> `docs/MAINTAINER_IMPLEMENTATION_PLAN.md`; working rules are in `AGENTS.md`.
+> Do not implement from this document.
+
 # Cognitive Contracts
 
 ## Principle
