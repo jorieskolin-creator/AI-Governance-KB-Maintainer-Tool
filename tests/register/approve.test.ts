@@ -13,6 +13,10 @@ class FakeGitHub implements GitHubClient {
     return this.blobSha;
   }
 
+  async readFileContent(_path: string): Promise<string> {
+    return this.commits.at(-1)?.content ?? '';
+  }
+
   async commitFile(
     path: string,
     content: string,
@@ -29,7 +33,33 @@ class FakeDrive implements DriveClient {
   failNextUpload = false;
   uploads: Array<{ folderId: string; name: string; content: string }> = [];
   manifest: Record<string, unknown> = {
-    source_register: { version: '1.5.0', sha256: '0'.repeat(64) }
+    manifest_version: '2.0.0',
+    golden_standard: { id: 'GOLDEN', version: '1.0.0' },
+    machine_authority: [
+      {
+        canonical_identity: 'AI-GOV-PLAYBOOK',
+        logical_path: '04 Global Registers/playbook.json',
+        role: 'TACTIC_PLAYBOOK',
+        sha256: 'a'.repeat(64),
+        version: '1.0.0'
+      },
+      {
+        canonical_identity: 'AI-GOV-SOURCE-REGISTER',
+        logical_path: '04 Global Registers/AI_Governance_Global_Source_Register_v1.5.0.json',
+        release_status: 'APPROVED',
+        role: 'SOURCE_REGISTER',
+        schema_version: '2.1.0',
+        sha256: '0'.repeat(64),
+        version: '1.5.0'
+      },
+      {
+        canonical_identity: 'AI-GOV-VALIDATION-REPORT',
+        logical_path: '04 Global Registers/validation.json',
+        role: 'VALIDATION_REPORT',
+        sha256: 'b'.repeat(64),
+        version: '1.0.0'
+      }
+    ]
   };
 
   async uploadVersionedFile(folderId: string, name: string, content: string): Promise<{ fileId: string }> {

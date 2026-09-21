@@ -1,3 +1,4 @@
+import type { DriftReport } from '../register/drift.js';
 import type { OperatorDomainCard, OperatorStatus } from './board.js';
 import { flowLabel, OPERATOR_DOMAINS, taskDisplayStatus, taskLabel, workOrderLabel } from './board.js';
 import { operatorTaskBoundaryWording } from '../orchestration/task-boundaries.js';
@@ -317,7 +318,7 @@ export function renderOperatorHome(
   status: OperatorStatus,
   notice = '',
   selectedDomain = 'A',
-  drift?: { match: boolean; gitSha256: string; manifestSha256: string | null; detail?: string } | null
+  drift?: DriftReport | null
 ): string {
   const dbReady = status.health.database.connected && status.health.database.schemaReady;
   const flow = status.pipeline.domainFlow
@@ -572,10 +573,14 @@ export function renderOperatorHome(
       <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the Maintainer to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. Parked pairs do not block Continue or READY_FOR_APPROVAL. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, and identity. Parked pairs stay parked and are omitted from this release. After five pairs actually pass Pair Coherence or are parked, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, Finalize ready documents records hash-bound operator approval for VALIDATED pairs and publishes that release. Parked documents wait to be finalized later.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       ${
-        drift && !drift.match
-          ? `<section class="notice" data-register-drift="mismatch">
+        drift && drift.state !== 'IN_SYNC'
+          ? `<section class="notice" data-register-drift="${drift.state === 'UNKNOWN' ? 'unknown' : 'mismatch'}">
         <p class="kicker">Source register drift</p>
-        <p>Git sha256 <code>${escapeHtml(drift.gitSha256 || 'unavailable')}</code> does not match Drive manifest sha256 <code>${escapeHtml(drift.manifestSha256 ?? 'unavailable')}</code>. ${escapeHtml(drift.detail ?? '')} <a href="/operator/register">Open Source Register</a></p>
+        <p>Git sha256 <code>${escapeHtml(drift.gitSha256 || 'unavailable')}</code> ${
+            drift.state === 'UNKNOWN'
+              ? `could not be compared with Drive manifest sha256 <code>${escapeHtml(drift.manifestSha256 ?? 'unavailable')}</code> (state UNKNOWN).`
+              : `does not match Drive manifest sha256 <code>${escapeHtml(drift.manifestSha256 ?? 'unavailable')}</code>.`
+          } ${escapeHtml(drift.detail ?? '')} <a href="/operator/register">Open Source Register</a></p>
       </section>`
           : ''
       }

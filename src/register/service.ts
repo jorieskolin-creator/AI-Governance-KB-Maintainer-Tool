@@ -1,6 +1,7 @@
 import { loadSourceRegister, serializeRegister, sha256Hex, SOURCE_REGISTER_FILENAME, type SourceRecord, type SourceRegister } from '../assets/load.js';
 import { validateRegister, type Finding } from '../assets/validate.js';
 import { getDbPool } from '../db/client.js';
+import { findSourceRegisterManifestEntry } from './drift.js';
 import { driveAuthoritiesFolderId } from './drive.js';
 import type { DriveClient, GitHubClient } from './ports.js';
 
@@ -158,24 +159,50 @@ function bumpAndSeal(base: SourceRegister, draft: SourceRegister, today: string)
   return next;
 }
 
+function asObject(value: unknown): Record<string, unknown> | null {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return null;
+}
+
+export function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortKeysDeep);
+  const record = asObject(value);
+  if (!record) return value;
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(record).sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))) {
+    sorted[key] = sortKeysDeep(record[key]);
+  }
+  return sorted;
+}
+
+export function serializeManifest(manifest: Record<string, unknown>): string {
+  return `${JSON.stringify(sortKeysDeep(manifest))}\n`;
+}
+
+function deriveRegisterLogicalPath(existingPath: string, version: string): string {
+  if (typeof existingPath !== 'string' || existingPath.length === 0) {
+    throw new Error('manifest entry not found');
+  }
+  const filename = `AI_Governance_Global_Source_Register_v${version}.json`;
+  const slash = existingPath.lastIndexOf('/');
+  if (slash === -1) return filename;
+  return `${existingPath.slice(0, slash + 1)}${filename}`;
+}
+
 export function upsertSourceRegisterManifest(
   manifest: Record<string, unknown>,
-  entry: { version: string; sha256: string; fileId: string; name: string }
+  entry: { version: string; sha256: string }
 ): Record<string, unknown> {
-  const previous =
-    manifest.source_register && typeof manifest.source_register === 'object'
-      ? (manifest.source_register as Record<string, unknown>)
-      : {};
-  return {
-    ...manifest,
-    source_register: {
-      ...previous,
-      version: entry.version,
-      sha256: entry.sha256,
-      file_id: entry.fileId,
-      filename: entry.name
-    }
-  };
+  const next = JSON.parse(JSON.stringify(manifest)) as Record<string, unknown>;
+  const current = findSourceRegisterManifestEntry(next);
+  const logicalPath = typeof current.logical_path === 'string' ? current.logical_path : '';
+  current.version = entry.version;
+  current.sha256 = entry.sha256.toLowerCase();
+  current.logical_path = deriveRegisterLogicalPath(logicalPath, entry.version);
+  delete next.source_register;
+  return sortKeysDeep(next) as Record<string, unknown>;
 }
 
 async function insertRevision(row: {
@@ -428,9 +455,7 @@ export function createRegisterService(options: {
         await options.drive.writeManifest(
           upsertSourceRegisterManifest(manifest, {
             version: pending.version,
-            sha256: pending.sha256,
-            fileId: uploaded.fileId,
-            name
+            sha256: pending.sha256
           })
         );
         await updateRevision(revision.id, { status: 'SYNCED', driveFileId: uploaded.fileId });
