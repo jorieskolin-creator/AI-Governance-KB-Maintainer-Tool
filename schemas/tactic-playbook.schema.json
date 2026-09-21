@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai-governance:schema:tactic-playbook:1.0.0",
+  "title": "AI Governance Tactic Playbook",
+  "description": "Schema for the AI Governance Tactic Playbook (catalog_id AI-GOV-TACTIC-CATALOG). Describes the approved playbook v1.0.0 exactly as authored from the source snapshot. Replaces the archived tactic-catalog.schema.json (2.1.0), which described a richer tactic shape that was never produced. Fields excluded by the playbook's approval scope (exact KB finding/question activation mappings, operational enrichment) MUST remain empty until a separately approved mapping release exists.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "catalog_id",
+    "title",
+    "version",
+    "release_status",
+    "approval_record",
+    "source_document",
+    "mapping_source_of_truth",
+    "authority_boundary",
+    "catalog_rules",
+    "tactics"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "catalog_id": {
+      "const": "AI-GOV-TACTIC-CATALOG"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "release_status": {
+      "type": "string",
+      "enum": ["DRAFT", "APPROVED", "SUPERSEDED"],
+      "$comment": "Lifecycle states for the playbook document itself. Playbook v1.0.0 is APPROVED."
+    },
+    "approval_record": {
+      "$ref": "#/$defs/approvalRecord"
+    },
+    "source_document": {
+      "type": "object",
+      "required": ["filename", "sha256", "snapshot_date", "definition_authority"],
+      "properties": {
+        "filename": { "type": "string", "minLength": 5 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "snapshot_date": { "type": "string", "format": "date" },
+        "definition_authority": { "type": "string", "minLength": 5 }
+      },
+      "additionalProperties": false
+    },
+    "mapping_source_of_truth": {
+      "const": "TACTIC_CATALOG"
+    },
+    "authority_boundary": {
+      "type": "string",
+      "minLength": 20,
+      "$comment": "MUST state that tactics are advisory: no tactic directly closes a finding, clears a hard gate, establishes legal compliance, accepts residual risk, or authorizes lifecycle progression."
+    },
+    "catalog_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 10 }
+    },
+    "tactics": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/tactic" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "approvalRecord": {
+      "type": "object",
+      "required": [
+        "approved_by_role",
+        "approved_on",
+        "approval_scope",
+        "approved_version",
+        "supersedes_version"
+      ],
+      "properties": {
+        "approved_by_role": { "type": "string", "minLength": 3 },
+        "approved_on": { "type": "string", "format": "date" },
+        "approval_scope": { "type": "string", "minLength": 20 },
+        "approved_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "supersedes_version": {
+          "oneOf": [
+            { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "objectId": {
+      "type": "string",
+      "pattern": "^(AP-)?[A-F][1-5]$",
+      "$comment": "Capability (A1..F5) or anti-pattern (AP-A1..AP-F5) object identifier."
+    },
+    "tactic": {
+      "type": "object",
+      "required": [
+        "id",
+        "version",
+        "release_status",
+        "approval_record",
+        "title",
+        "primary_mapping_text",
+        "primary_object_mappings",
+        "function",
+        "control_purpose",
+        "principal_outputs",
+        "reassessment_text",
+        "reassessment_targets",
+        "completion_effect",
+        "activation_mapping_status",
+        "operationalization_status",
+        "assessment_mappings",
+        "eligible_finding_ids",
+        "trigger_states",
+        "prerequisite_tactic_ids",
+        "normative_source_mappings"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^TAC-(PURPOSE|DATA|MODELS|ARCHITECTURE|HUMAN|ACCOUNTABILITY)-(AP-)?[A-F][1-5]-[0-9]{2}$",
+          "$comment": "Playbook-native tactic ID format, e.g. TAC-PURPOSE-A1-01. Supersedes the GOV-XXX-000 pattern in id-register v2.0.0."
+        },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "release_status": {
+          "type": "string",
+          "enum": ["DRAFT", "APPROVED", "SUPERSEDED"]
+        },
+        "approval_record": { "$ref": "#/$defs/approvalRecord" },
+        "title": { "type": "string", "minLength": 10 },
+        "primary_mapping_text": {
+          "type": "string",
+          "minLength": 5,
+          "$comment": "Human-readable rendering of the primary object mapping, e.g. 'A1 / AP-A1'."
+        },
+        "primary_object_mappings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/objectId" }
+        },
+        "function": { "type": "string", "minLength": 10 },
+        "control_purpose": { "type": "string", "minLength": 50 },
+        "principal_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 3 }
+        },
+        "reassessment_text": { "type": "string", "minLength": 5 },
+        "reassessment_targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/objectId" }
+        },
+        "completion_effect": {
+          "const": "NEW_EVIDENCE_AND_REASSESSMENT_REQUIRED",
+          "$comment": "Advisory-only invariant: tactic completion creates new evidence and requires reassessment. It never closes a finding, clears a gate, or authorizes progression."
+        },
+        "activation_mapping_status": {
+          "type": "string",
+          "enum": ["PENDING_KB_FINDING_MAPPING"],
+          "$comment": "Extend this enum only when exact KB finding/question activation mappings are separately approved."
+        },
+        "operationalization_status": {
+          "type": "string",
+          "enum": ["SOURCE_FIELDS_ONLY"],
+          "$comment": "Extend this enum only when operational enrichment is separately approved."
+        },
+        "assessment_mappings": {
+          "type": "object",
+          "required": ["capabilities", "antipatterns", "question_ids"],
+          "properties": {
+            "capabilities": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^[A-F][1-5]$" }
+            },
+            "antipatterns": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^AP-[A-F][1-5]$" }
+            },
+            "question_ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "$comment": "Empty in v1.0.0; populated only by a separately approved activation-mapping release."
+            }
+          },
+          "additionalProperties": false
+        },
+        "eligible_finding_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "$comment": "Empty in v1.0.0 by approval scope."
+        },
+        "trigger_states": {
+          "type": "array",
+          "items": { "type": "string" },
+          "$comment": "Empty in v1.0.0 by approval scope."
+        },
+        "prerequisite_tactic_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^TAC-(PURPOSE|DATA|MODELS|ARCHITECTURE|HUMAN|ACCOUNTABILITY)-(AP-)?[A-F][1-5]-[0-9]{2}$"
+          }
+        },
+        "normative_source_mappings": {
+          "type": "array",
+          "$comment": "Always empty in v1.0.0. Item shape to be defined when normative source mappings are approved; do not invent a shape before then."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

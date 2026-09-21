@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai-governance:schema:validation-report:2.1.0",
+  "type": "object",
+  "required": [
+    "package_id",
+    "schema_validation",
+    "identifier_validation",
+    "internal_reference_validation",
+    "semantic_evidence_validation",
+    "finding_validation",
+    "source_mapping_validation",
+    "tactic_validation",
+    "lifecycle_validation",
+    "approval_validation",
+    "document_parity_validation",
+    "issues",
+    "human_review_required"
+  ],
+  "properties": {
+    "package_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "identifier_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "internal_reference_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "semantic_evidence_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "finding_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "source_mapping_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "tactic_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "lifecycle_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "approval_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "document_parity_validation": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_VERIFIED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "severity",
+          "message",
+          "object_ids"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]+$"
+          },
+          "severity": {
+            "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/severity"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1
+          },
+          "object_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "human_review_required": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

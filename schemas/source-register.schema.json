@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai-governance:schema:source-register:2.1.0",
+  "title": "AI Governance Global Source Register",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "register_id",
+    "version",
+    "release_status",
+    "approval_record",
+    "authority_boundary",
+    "authority_tiers",
+    "admission_policy",
+    "domain_coverage",
+    "sources"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "#/$defs/semver"
+    },
+    "register_id": {
+      "const": "AI-GOV-SOURCE-REGISTER"
+    },
+    "version": {
+      "$ref": "#/$defs/semver"
+    },
+    "release_status": {
+      "const": "APPROVED"
+    },
+    "approval_record": {
+      "$ref": "#/$defs/approvalRecord"
+    },
+    "authority_boundary": {
+      "type": "string",
+      "minLength": 20
+    },
+    "authority_tiers": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "meaning"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/authorityTier"
+          },
+          "meaning": {
+            "type": "string",
+            "minLength": 20
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "admission_policy": {
+      "type": "object",
+      "required": [
+        "decision_eligible_requirements",
+        "category_mapping_requirements"
+      ],
+      "properties": {
+        "decision_eligible_requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5
+          }
+        },
+        "category_mapping_requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "domain_coverage": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "domain",
+          "title",
+          "minimum_source_ids",
+          "coverage_statement"
+        ],
+        "properties": {
+          "domain": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3
+          },
+          "minimum_source_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/sourceId"
+            }
+          },
+          "coverage_statement": {
+            "type": "string",
+            "minLength": 20
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/sourceRecord"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^SRC-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+    },
+    "authorityTier": {
+      "enum": [
+        "TIER_1_NORMATIVE",
+        "TIER_2_AUTHORITATIVE",
+        "TIER_3_SUPPORTING"
+      ]
+    },
+    "approvalRecord": {
+      "type": "object",
+      "required": [
+        "approval_status",
+        "approval_scope",
+        "approved_by_role",
+        "approved_on",
+        "effective_from",
+        "review_due_on",
+        "release_version",
+        "supersedes",
+        "authority_statement",
+        "change_control"
+      ],
+      "properties": {
+        "approval_status": {
+          "const": "APPROVED"
+        },
+        "approval_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approved_by_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approved_on": {
+          "$ref": "#/$defs/date"
+        },
+        "effective_from": {
+          "$ref": "#/$defs/date"
+        },
+        "review_due_on": {
+          "$ref": "#/$defs/date"
+        },
+        "release_version": {
+          "$ref": "#/$defs/semver"
+        },
+        "supersedes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authority_statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "change_control": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "sourceRecord": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "authority_tier",
+        "authority_type",
+        "jurisdictions",
+        "roles_or_applicability_conditions",
+        "version_or_date",
+        "official_location",
+        "effective_status",
+        "verification_status",
+        "last_verified_date",
+        "licensing_storage_boundary",
+        "domain_coverage",
+        "supersedes_source_id"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 3
+        },
+        "authority_tier": {
+          "$ref": "#/$defs/authorityTier"
+        },
+        "authority_type": {
+          "enum": [
+            "LEGISLATION",
+            "PRIMARY_RIGHTS_SOURCE",
+            "INTERNATIONAL_TREATY",
+            "OFFICIAL_NON_BINDING_GUIDANCE",
+            "GOVERNMENT_GUIDANCE",
+            "GOVERNMENT_VOLUNTARY_GUIDANCE",
+            "MULTI_AGENCY_GOVERNMENT_GUIDANCE",
+            "EU_AGENCY_GUIDANCE",
+            "INTERGOVERNMENTAL_POLICY_GUIDANCE",
+            "PUBLISHED_STANDARD",
+            "COMMUNITY_TECHNICAL_GUIDANCE"
+          ]
+        },
+        "jurisdictions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "roles_or_applicability_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5
+          }
+        },
+        "version_or_date": {
+          "type": "string",
+          "minLength": 1
+        },
+        "official_location": {
+          "type": "string",
+          "format": "uri"
+        },
+        "effective_status": {
+          "enum": [
+            "IN_FORCE",
+            "PUBLISHED"
+          ]
+        },
+        "verification_status": {
+          "const": "VERIFIED"
+        },
+        "last_verified_date": {
+          "$ref": "#/$defs/date"
+        },
+        "licensing_storage_boundary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain_coverage": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ]
+          }
+        },
+        "supersedes_source_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sourceId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
