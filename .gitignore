@@ -9,6 +9,13 @@ dist/
 .env.local
 .env.*.local
 
+# Credential / key files
+credentials.json
+*-credentials.json
+*service-account*.json
+client_secret*.json
+*.pem
+
 # Logs
 *.log
 npm-debug.log*
