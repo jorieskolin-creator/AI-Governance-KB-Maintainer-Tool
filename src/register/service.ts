@@ -380,26 +380,41 @@ export function createRegisterService(options: {
 
       let revision = existing;
       if (!revision) {
-        const fileSha = await options.github.getFileSha(SOURCE_REGISTER_FILENAME);
-        const committed = await options.github.commitFile(
-          SOURCE_REGISTER_FILENAME,
-          pending.content,
-          pending.message,
-          fileSha
-        );
-        revision = await insertRevision({
-          version: pending.version,
-          sha256: pending.sha256,
-          gitCommitSha: committed.commitSha,
-          driveFileId: null,
-          status: 'COMMITTED'
-        });
-        await insertSyncEvent({
-          revisionId: revision.id,
-          destination: 'GITHUB',
-          status: 'SUCCESS',
-          detail: committed.commitSha
-        });
+        try {
+          const fileSha = await options.github.getFileSha(SOURCE_REGISTER_FILENAME);
+          const committed = await options.github.commitFile(
+            SOURCE_REGISTER_FILENAME,
+            pending.content,
+            pending.message,
+            fileSha
+          );
+          revision = await insertRevision({
+            version: pending.version,
+            sha256: pending.sha256,
+            gitCommitSha: committed.commitSha,
+            driveFileId: null,
+            status: 'COMMITTED'
+          });
+          await insertSyncEvent({
+            revisionId: revision.id,
+            destination: 'GITHUB',
+            status: 'SUCCESS',
+            detail: committed.commitSha
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return {
+            ok: false,
+            status: 'COMMITTED',
+            version: pending.version,
+            sha256: pending.sha256,
+            gitCommitSha: null,
+            driveFileId: null,
+            revisionId: '',
+            findings: [{ code: 'GITHUB', path: '/', message }],
+            error: message
+          };
+        }
       }
 
       displayed = pending.register;

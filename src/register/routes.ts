@@ -384,14 +384,15 @@ export function registerRegisterRoutes(app: FastifyInstance, service: RegisterSe
   app.post('/operator/register/approve', async (request, reply) => {
     const result = await service.approve();
     if (result.findings.length && result.status !== 'SYNC_FAILED') {
+      const code = result.findings.some((finding) => finding.code === 'GITHUB') ? 503 : 422;
       if (wantsHtml(request)) {
         return page(request, reply, {
           findings: result.findings,
-          notice: 'Approve blocked. Validation is not clean.',
-          code: 422
+          notice: code === 503 ? result.error ?? 'GitHub commit failed.' : 'Approve blocked. Validation is not clean.',
+          code
         });
       }
-      return reply.code(422).send({ ok: false, findings: result.findings });
+      return reply.code(code).send({ ok: false, findings: result.findings, error: result.error });
     }
     if (result.status === 'SYNC_FAILED') {
       if (wantsHtml(request)) {

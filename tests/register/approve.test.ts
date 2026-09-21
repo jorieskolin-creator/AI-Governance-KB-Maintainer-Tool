@@ -70,6 +70,9 @@ describe('register approve', () => {
   });
 
   afterAll(async () => {
+    const db = getDbPool();
+    await db.query('delete from sync_events');
+    await db.query('delete from register_revisions');
     await closeDatabase();
   });
 
