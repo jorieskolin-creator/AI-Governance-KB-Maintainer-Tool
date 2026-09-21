@@ -40,7 +40,7 @@ import {
 } from '../release/operator-release.js';
 import { loadPairReviewPage, renderPairReviewHtml, savePairReview } from './pair-review.js';
 import { loadDomainReviewPage, renderDomainReviewHtml, saveDomainReview } from './domain-review.js';
-import { loadHomeDrift } from '../register/drift.js';
+import { loadHomeDrift, type DriftReport } from '../register/drift.js';
 
 function wantsHtml(request: FastifyRequest): boolean {
   const accept = request.headers.accept ?? '';
@@ -124,11 +124,19 @@ export function registerOperatorRoutes(
     const query = request.query as { notice?: unknown; domain?: unknown };
     const notice = typeof query.notice === 'string' ? query.notice : '';
     const domain = typeof query.domain === 'string' ? query.domain : 'A';
-    let drift: Awaited<ReturnType<typeof loadHomeDrift>> | null = null;
+    let drift: DriftReport;
     try {
       drift = await loadHomeDrift();
-    } catch {
-      drift = null;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      drift = {
+        state: 'UNKNOWN',
+        match: false,
+        gitSha256: '',
+        manifestSha256: null,
+        manifestVersion: null,
+        detail: message
+      };
     }
     return reply
       .type('text/html; charset=utf-8')

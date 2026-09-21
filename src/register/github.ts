@@ -25,9 +25,11 @@ async function githubRequest(
   env: { token: string; owner: string; repo: string },
   method: string,
   path: string,
-  body?: unknown
+  body?: unknown,
+  query?: Record<string, string>
 ): Promise<{ status: number; json: Record<string, unknown> | null }> {
-  const response = await fetch(`${GITHUB_API}/repos/${env.owner}/${env.repo}/contents/${path}`, {
+  const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+  const response = await fetch(`${GITHUB_API}/repos/${env.owner}/${env.repo}/contents/${path}${qs}`, {
     method,
     headers: {
       accept: 'application/vnd.github+json',
@@ -65,6 +67,25 @@ export function createGitHubClient(): GitHubClient {
       }
       const sha = json && typeof json.sha === 'string' ? json.sha : null;
       return sha;
+    },
+
+    async readFileContent(path: string): Promise<string> {
+      const env = requiredGitHubEnv();
+      const encodedPath = path
+        .split('/')
+        .map((segment) => encodeURIComponent(segment))
+        .join('/');
+      const { status, json } = await githubRequest(env, 'GET', encodedPath, undefined, { ref: env.branch });
+      if (status >= 400) {
+        const message = typeof json?.message === 'string' ? json.message : `GitHub GET failed (${status})`;
+        throw new Error(message);
+      }
+      const content = json && typeof json.content === 'string' ? json.content : null;
+      const encoding = json && typeof json.encoding === 'string' ? json.encoding : null;
+      if (!content || encoding !== 'base64') {
+        throw new Error('GitHub GET did not return base64 file content.');
+      }
+      return Buffer.from(content.replaceAll('\n', ''), 'base64').toString('utf8');
     },
 
     async commitFile(

@@ -1,5 +1,6 @@
 export interface GitHubClient {
   getFileSha(path: string): Promise<string | null>;
+  readFileContent(path: string): Promise<string>;
   commitFile(
     path: string,
     content: string,
