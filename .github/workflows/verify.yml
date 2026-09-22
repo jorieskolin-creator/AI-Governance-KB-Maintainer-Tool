@@ -1,0 +1,49 @@
+# Node 20 is the package.json engines floor (">=20").
+# Railway's deployed Node major is not declared in this repo
+# (no railway.toml, nixpacks.toml, or application Dockerfile), so CI stays on that floor.
+name: verify
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    name: npm run verify
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: kb_maintainer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d kb_maintainer"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # Non-secret stub for the CI Postgres service. Not a deployment credential.
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/kb_maintainer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Verify
+        run: npm run verify
