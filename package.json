@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
+    "verify": "npm run typecheck && npm test && npm run build && npm run golden:regression",
     "architecture:check": "node dist/architecture/run-responsibility-check.js",
     "authoring-plan:check": "node dist/authoring/run-authoring-plan-check.js",
     "sir:foundation-check": "node dist/sir/run-sir-foundation-check.js",
