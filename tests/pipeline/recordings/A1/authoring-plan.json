@@ -1,0 +1,209 @@
+{
+  "planVersion": "1.0.0",
+  "planId": "A1_AP-A1:authoring-plan:1.0.0",
+  "identity": {
+    "capabilityId": "A1",
+    "antipatternId": "AP-A1",
+    "pairId": "A1_AP-A1",
+    "domain": "A",
+    "domainTitle": "Purpose, value, context, roles and classification",
+    "capabilityTitle": "Intended purpose and use boundaries",
+    "antipatternTitle": "Undefined or elastic intended purpose"
+  },
+  "targetVersion": "1.0.0",
+  "schemaVersion": "2.1.0",
+  "baseline": {
+    "baselineSnapshotId": "golden-a1-ap-a1-v1.0.0",
+    "baselineSha256": "f0216e576a230eafbc6ea01245ee73cb33ec2c550852ddd5311c9a7c42eb972d",
+    "productionContractVersion": "2.1.0",
+    "productionContractSha256": "b5d2c2e2704f8af2699bc5a868d67b15f2747c4a88a22078f1878585e38fbc53",
+    "capabilitySchemaVersion": "2.1.0",
+    "capabilitySchemaSha256": "b5d2c2e2704f8af2699bc5a868d67b15f2747c4a88a22078f1878585e38fbc53",
+    "antipatternSchemaVersion": "2.1.0",
+    "antipatternSchemaSha256": "19330f068f9a2ce31ef1980c0d64e8adf7a3b7e129132fc5ef797bf4c75ffab2",
+    "sharedDefinitionsVersion": "2.1.0",
+    "sharedDefinitionsSha256": "42f385bc1e591d1e3f01c2b7cdbdf3e8f83564f4925b124a08d4bf2ed3b03e1f",
+    "sourceRegisterVersion": "1.5.0",
+    "sourceRegisterSha256": "0c1d154dc9774d7e2976b637aa865c6bf932b2fd4ae9ac546b7fb8de092fe764",
+    "tacticCatalogVersion": null,
+    "tacticCatalogSha256": null,
+    "goldenReferenceId": "A1_AP-A1",
+    "goldenReferenceVersion": "1.0.0",
+    "goldenReferenceSha256": "f0216e576a230eafbc6ea01245ee73cb33ec2c550852ddd5311c9a7c42eb972d"
+  },
+  "fixedQuestionSlots": [
+    {
+      "slot": 1,
+      "dimension": "DEFINITION_AND_INTENT"
+    },
+    {
+      "slot": 2,
+      "dimension": "IMPLEMENTATION_AND_OPERATION"
+    },
+    {
+      "slot": 3,
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS"
+    }
+  ],
+  "vocabulary": {
+    "technicalAssurance": [
+      "UNKNOWN",
+      "DECLARED",
+      "IMPLEMENTED",
+      "TESTED",
+      "OPERATIONALLY_OBSERVED"
+    ],
+    "humanAssurance": [
+      "PENDING",
+      "HUMAN_VALIDATED",
+      "FORMALLY_APPROVED"
+    ],
+    "capabilityConclusionStates": [
+      "SATISFIED",
+      "PARTIALLY_SATISFIED",
+      "NOT_SATISFIED",
+      "UNKNOWN",
+      "NOT_APPLICABLE"
+    ],
+    "antipatternConclusionStates": [
+      "CONFIRMED_PRESENT",
+      "PARTIALLY_PRESENT",
+      "TESTED_ABSENT",
+      "UNKNOWN",
+      "NOT_APPLICABLE"
+    ],
+    "hardGateEffects": [
+      "NONE",
+      "WARN",
+      "BLOCK",
+      "CONSTRAIN"
+    ],
+    "lifecycleStages": [
+      "QUALIFICATION_AND_REGISTRATION",
+      "DESIGN_AND_DEVELOPMENT",
+      "VERIFICATION_AND_VALIDATION",
+      "DEPLOYMENT",
+      "OPERATION_AND_MONITORING",
+      "REVIEW_AND_EVALUATION",
+      "RETIREMENT"
+    ]
+  },
+  "sourceUniverse": [
+    {
+      "sourceHandle": "source_001",
+      "sourceId": "SRC-EU-AIA",
+      "versionOrDate": "Regulation (EU) 2024/1689",
+      "verificationStatus": "VERIFIED",
+      "lastVerifiedDate": "2026-08-02"
+    },
+    {
+      "sourceHandle": "source_002",
+      "sourceId": "SRC-NIST-AI-RMF",
+      "versionOrDate": "NIST AI 100-1 (2023); Playbook current 2026-08-02",
+      "verificationStatus": "VERIFIED",
+      "lastVerifiedDate": "2026-08-02"
+    }
+  ],
+  "tacticUniverse": [],
+  "adjacentCriteria": [
+    {
+      "criterionHandle": "criterion_001",
+      "criterionId": "AP-A1",
+      "boundarySummary": "Golden-attested related criterion: AP-A1"
+    },
+    {
+      "criterionHandle": "criterion_002",
+      "criterionId": "A2",
+      "boundarySummary": "Golden-attested related criterion: A2"
+    },
+    {
+      "criterionHandle": "criterion_003",
+      "criterionId": "A3",
+      "boundarySummary": "Golden-attested related criterion: A3"
+    },
+    {
+      "criterionHandle": "criterion_004",
+      "criterionId": "A4",
+      "boundarySummary": "Golden-attested related criterion: A4"
+    },
+    {
+      "criterionHandle": "criterion_005",
+      "criterionId": "A5",
+      "boundarySummary": "Golden-attested related criterion: A5"
+    },
+    {
+      "criterionHandle": "criterion_006",
+      "criterionId": "B2",
+      "boundarySummary": "Golden-attested related criterion: B2"
+    },
+    {
+      "criterionHandle": "criterion_007",
+      "criterionId": "C3",
+      "boundarySummary": "Golden-attested related criterion: C3"
+    },
+    {
+      "criterionHandle": "criterion_008",
+      "criterionId": "D2",
+      "boundarySummary": "Golden-attested related criterion: D2"
+    },
+    {
+      "criterionHandle": "criterion_009",
+      "criterionId": "E1",
+      "boundarySummary": "Golden-attested related criterion: E1"
+    },
+    {
+      "criterionHandle": "criterion_010",
+      "criterionId": "E3",
+      "boundarySummary": "Golden-attested related criterion: E3"
+    },
+    {
+      "criterionHandle": "criterion_011",
+      "criterionId": "E4",
+      "boundarySummary": "Golden-attested related criterion: E4"
+    },
+    {
+      "criterionHandle": "criterion_012",
+      "criterionId": "F4",
+      "boundarySummary": "Golden-attested related criterion: F4"
+    },
+    {
+      "criterionHandle": "criterion_013",
+      "criterionId": "F5",
+      "boundarySummary": "Golden-attested related criterion: F5"
+    },
+    {
+      "criterionHandle": "criterion_014",
+      "criterionId": "A1",
+      "boundarySummary": "Golden-attested related criterion: A1"
+    },
+    {
+      "criterionHandle": "criterion_015",
+      "criterionId": "AP-A2",
+      "boundarySummary": "Golden-attested related criterion: AP-A2"
+    },
+    {
+      "criterionHandle": "criterion_016",
+      "criterionId": "AP-A3",
+      "boundarySummary": "Golden-attested related criterion: AP-A3"
+    },
+    {
+      "criterionHandle": "criterion_017",
+      "criterionId": "AP-A4",
+      "boundarySummary": "Golden-attested related criterion: AP-A4"
+    },
+    {
+      "criterionHandle": "criterion_018",
+      "criterionId": "AP-A5",
+      "boundarySummary": "Golden-attested related criterion: AP-A5"
+    }
+  ],
+  "compilerPolicies": {
+    "canonicalIdsFromModelOutputAllowed": false,
+    "canonicalReferencesFromModelOutputAllowed": false,
+    "canonicalRootMetadataFromModelOutputAllowed": false,
+    "semanticCollectionDepthMayBeDynamic": true,
+    "canonicalSerializationOwnedByCompiler": true,
+    "approvalFactsOwnedByExternalHuman": true
+  },
+  "planSha256": "d68706c1bb013f9e7889f08a6f1a5405845d008112204e32e2e0d1e6bff753e9"
+}
