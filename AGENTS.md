@@ -51,9 +51,11 @@ supersedes notice at the top.
   bundle, dual-write parity.
 - Every new gate MUST declare its tier. Default: DRAFT.
 
-## Current phase boundary (Phases 0–1)
+## Current phase boundary (Phase 2 underway)
 
 Work is executed from approved task briefs in `docs/task-briefs/`. Work on ONE brief at a time.
+
+Phase 2 is underway. `npm run verify` exists and must be green: typecheck, vitest, build, and golden regression. A red verify result is a failed gate, not a skipped check.
 
 **DO NOT touch unless the active task brief explicitly says so:**
 
