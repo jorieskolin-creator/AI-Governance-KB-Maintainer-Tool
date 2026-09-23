@@ -1,5 +1,6 @@
 import { createSign } from 'node:crypto';
 import { sha256Hex } from '../assets/load.js';
+import { serializeManifest } from './manifest-format.js';
 import type { DriveClient } from './ports.js';
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
@@ -201,7 +202,7 @@ export function createDriveClient(): DriveClient {
     async writeManifest(manifest: Record<string, unknown>): Promise<void> {
       const env = requiredDriveEnv();
       const accessToken = await serviceAccountAccessToken(env.credentials);
-      await updateFileMedia(accessToken, env.manifestFileId, `${JSON.stringify(manifest, null, 2)}\n`);
+      await updateFileMedia(accessToken, env.manifestFileId, serializeManifest(manifest));
     }
   };
 }
