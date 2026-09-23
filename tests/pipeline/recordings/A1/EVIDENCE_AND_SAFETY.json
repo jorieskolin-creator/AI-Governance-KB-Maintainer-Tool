@@ -1,0 +1,423 @@
+{
+  "atomicDecomposition": {
+    "capabilitySubcriteria": [
+      {
+        "questionSlot": 1,
+        "criterion": "The business problem, intended task or decision and operating context are defined independently of model capability or product branding.",
+        "evidenceNeed": "Approved purpose and use-boundary statement"
+      },
+      {
+        "questionSlot": 1,
+        "criterion": "Expected outputs, outcomes, downstream use and decision authority are measurable, including effects the system must not authorize.",
+        "evidenceNeed": "Output, outcome and decision-authority specification"
+      },
+      {
+        "questionSlot": 1,
+        "criterion": "Intended users, operators and directly or indirectly affected persons are identified with explicit inclusions, exclusions and review triggers.",
+        "evidenceNeed": "User, operator and affected-person boundary"
+      },
+      {
+        "questionSlot": 1,
+        "criterion": "Permitted uses, prohibited uses and reasonably foreseeable misuse are expressed as system-specific conditions that can drive controls and tests.",
+        "evidenceNeed": "Permitted, prohibited and foreseeable-use specification"
+      },
+      {
+        "questionSlot": 2,
+        "criterion": "Access, data routing, functionality, interfaces and workflow placement restrict the system to the approved users, contexts and purposes.",
+        "evidenceNeed": "Implemented boundary controls"
+      },
+      {
+        "questionSlot": 2,
+        "criterion": "Tools, integrations, output consumers, administrative paths and fallback behavior cannot create unapproved effects or silently expand use.",
+        "evidenceNeed": "Implemented boundary controls"
+      },
+      {
+        "questionSlot": 3,
+        "criterion": "Representative evaluation covers intended use, prohibited use and foreseeable misuse for the current system version and operating conditions.",
+        "evidenceNeed": "Purpose-aligned evaluation results"
+      },
+      {
+        "questionSlot": 3,
+        "criterion": "Operational records provide current, scoped evidence of actual users, use cases, outputs, escalations and boundary drift.",
+        "evidenceNeed": "Operational use and drift records"
+      },
+      {
+        "questionSlot": 3,
+        "criterion": "A material-change mechanism detects scope expansion and requires impact review, reassessment and authorization before continued use.",
+        "evidenceNeed": "Material-change and requalification record"
+      }
+    ],
+    "antipatternTests": [
+      {
+        "questionSlot": 1,
+        "test": "Compare authoritative purpose statements and determine whether the problem, intended task or decision and operating context are materially specific and mutually consistent.",
+        "evidenceNeed": "Purpose statement corpus and inconsistency analysis"
+      },
+      {
+        "questionSlot": 1,
+        "test": "Test whether purpose wording is merely a technical capability, product category or generic business aspiration rather than a bounded socio-technical use.",
+        "evidenceNeed": "Purpose statement corpus and inconsistency analysis"
+      },
+      {
+        "questionSlot": 1,
+        "test": "Determine whether intended users, operators and affected persons, including indirect groups, are explicit and complete for the reachable use.",
+        "evidenceNeed": "Affected-person and downstream-impact review"
+      },
+      {
+        "questionSlot": 1,
+        "test": "Determine whether permitted uses, prohibited uses and foreseeable misuse are concrete enough to distinguish compliant and non-compliant behavior.",
+        "evidenceNeed": "Purpose statement corpus and inconsistency analysis; Permitted/prohibited-use enforceability test"
+      },
+      {
+        "questionSlot": 1,
+        "test": "Determine whether expected outputs, downstream decision use and non-authorized effects are absent, conflicting or materially open-ended.",
+        "evidenceNeed": "Purpose statement corpus and inconsistency analysis"
+      },
+      {
+        "questionSlot": 2,
+        "test": "Compare reachable access, features, data, tools, integrations, administrative paths and fallback behavior with the approved purpose boundary.",
+        "evidenceNeed": "Reachable-use and audience comparison"
+      },
+      {
+        "questionSlot": 2,
+        "test": "Execute representative permitted-use, prohibited-use and misuse cases to determine whether the system prevents, constrains or observes boundary violations.",
+        "evidenceNeed": "Permitted/prohibited-use enforceability test"
+      },
+      {
+        "questionSlot": 3,
+        "test": "Trace material changes and actual use to determine whether prototype, feature, audience, data or decision scope expanded before requalification and authorization.",
+        "evidenceNeed": "Purpose-change and scope-expansion history"
+      },
+      {
+        "questionSlot": 3,
+        "test": "Execute and independently review a complete scoped absence test covering every material AP-A1 mechanism for the current system version and operating boundary.",
+        "evidenceNeed": "Scoped absence-test package"
+      }
+    ],
+    "coverageNotes": []
+  },
+  "evidenceArchitecture": {
+    "capabilityEvidence": [
+      {
+        "title": "Approved purpose and use-boundary statement",
+        "claimSupported": "The system has a specific, bounded and testable intended purpose, decision context and operating scope.",
+        "evidenceClass": "DOCUMENT",
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Identifies the business problem, intended decision or task, system boundary, operating context and target lifecycle stage.",
+          "Uses the same system/version identity as the assessed implementation."
+        ],
+        "limitations": [
+          "A statement alone does not prove implementation or effectiveness."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_001"
+        ]
+      },
+      {
+        "title": "User, operator and affected-person boundary",
+        "claimSupported": "Intended users, operators, affected persons and excluded audiences are explicitly identified.",
+        "evidenceClass": "DOCUMENT",
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Names user/operator roles and affected-person groups, including indirect or downstream exposure.",
+          "Records exclusions and review triggers for new audiences."
+        ],
+        "limitations": [
+          "Generic stakeholder lists do not establish exposure or affected-person analysis."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_003"
+        ]
+      },
+      {
+        "title": "Permitted, prohibited and foreseeable-use specification",
+        "claimSupported": "Permitted uses, prohibited uses and reasonably foreseeable misuse are concrete enough to guide controls and testing.",
+        "evidenceClass": "DOCUMENT",
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Includes examples or decision rules that distinguish permitted from prohibited use.",
+          "Connects misuse scenarios to control and evaluation obligations."
+        ],
+        "limitations": [
+          "Policy wording without system-specific conditions cannot exceed DECLARED assurance."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_004"
+        ]
+      },
+      {
+        "title": "Output, outcome and decision-authority specification",
+        "claimSupported": "Expected outputs, outcome expectations, decision role and non-authorized effects are measurable and bounded.",
+        "evidenceClass": "DOCUMENT",
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Defines output types, quality thresholds, intended downstream use and decision authority.",
+          "Identifies effects that require human authorization or are prohibited."
+        ],
+        "limitations": [
+          "Performance metrics alone do not establish appropriate decision use."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_002"
+        ]
+      },
+      {
+        "title": "Implemented boundary controls",
+        "claimSupported": "Workflows, interfaces, access, data routing, tools and product behavior enforce the declared purpose and use boundaries.",
+        "evidenceClass": "IMPLEMENTATION",
+        "minimumTechnicalAssurance": "IMPLEMENTED",
+        "requiredHumanAssurance": "PENDING",
+        "acceptanceConditions": [
+          "Traceable controls exist at each material boundary, including access, data, functionality, tool/action and output use.",
+          "Bypass, fallback and administrative paths are included."
+        ],
+        "limitations": [
+          "Design diagrams or code fragments do not prove deployed enforcement."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_005",
+          "atomic_006"
+        ]
+      },
+      {
+        "title": "Purpose-aligned evaluation results",
+        "claimSupported": "Evaluation demonstrates performance, misuse resistance and boundary behavior in representative intended and foreseeable-use conditions.",
+        "evidenceClass": "TEST_RESULT",
+        "minimumTechnicalAssurance": "TESTED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Test scope traces to the declared purpose, prohibited uses, affected persons and operating conditions.",
+          "Results identify system version, data, thresholds, failures and unresolved limitations."
+        ],
+        "limitations": [
+          "A test plan or synthetic demo without executed results cannot establish TESTED assurance."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_007"
+        ]
+      },
+      {
+        "title": "Operational use and drift records",
+        "claimSupported": "Current operating evidence shows actual use remains within the declared boundary and material drift is detected.",
+        "evidenceClass": "OPERATIONAL_RECORD",
+        "minimumTechnicalAssurance": "OPERATIONALLY_OBSERVED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Telemetry, review records or case samples cover actual users, use cases, outputs, escalations and prohibited-use signals.",
+          "The observation period and coverage are representative for the assessed operation."
+        ],
+        "limitations": [
+          "Absence of reported incidents does not prove boundary conformance."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_008"
+        ]
+      },
+      {
+        "title": "Material-change and requalification record",
+        "claimSupported": "Scope expansion, new users, functions, data, integrations or effects trigger documented requalification before continued use.",
+        "evidenceClass": "HUMAN_DECISION",
+        "minimumTechnicalAssurance": "IMPLEMENTED",
+        "requiredHumanAssurance": "FORMALLY_APPROVED",
+        "acceptanceConditions": [
+          "Decision record identifies the change, impact on intended purpose, required reassessment and authorization outcome.",
+          "Unapproved expansion is prevented or constrained pending decision."
+        ],
+        "limitations": [
+          "A backlog item or informal acknowledgement is not authorization."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_009"
+        ]
+      }
+    ],
+    "antipatternEvidence": [
+      {
+        "title": "Purpose statement corpus and inconsistency analysis",
+        "claimSupported": "The system purpose is vague, technically framed, conflicting or materially incomplete.",
+        "evidenceClass": "DOCUMENT",
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Collects current authoritative purpose statements across registration, product, contract, design and operational records.",
+          "Identifies contradictions, undefined terms and missing decision context."
+        ],
+        "limitations": [
+          "A wording difference is not a finding unless it changes material scope or authority."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_001",
+          "atomic_002",
+          "atomic_004",
+          "atomic_005"
+        ]
+      },
+      {
+        "title": "Reachable-use and audience comparison",
+        "claimSupported": "Reachable users, functions or effects exceed the declared purpose or omit affected-person boundaries.",
+        "evidenceClass": "IMPLEMENTATION",
+        "minimumTechnicalAssurance": "IMPLEMENTED",
+        "requiredHumanAssurance": "PENDING",
+        "acceptanceConditions": [
+          "Compares interfaces, access, features, integrations and workflows with declared users and uses.",
+          "Includes administrative, fallback and indirect-use paths."
+        ],
+        "limitations": [
+          "A technically possible but inaccessible function is not automatically reachable use."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_006"
+        ]
+      },
+      {
+        "title": "Permitted/prohibited-use enforceability test",
+        "claimSupported": "Declared boundaries are too generic or unenforced to distinguish allowed, disallowed and misuse conditions.",
+        "evidenceClass": "TEST_RESULT",
+        "minimumTechnicalAssurance": "TESTED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Executes representative boundary and misuse cases.",
+          "Records expected and actual control behavior for the current system version."
+        ],
+        "limitations": [
+          "A policy review without executed tests cannot establish tested absence."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_004",
+          "atomic_007"
+        ]
+      },
+      {
+        "title": "Purpose-change and scope-expansion history",
+        "claimSupported": "Prototype, feature, audience, data or decision scope expanded without requalification.",
+        "evidenceClass": "OPERATIONAL_RECORD",
+        "minimumTechnicalAssurance": "OPERATIONALLY_OBSERVED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Traces material changes to impact analysis, reassessment and authorization records.",
+          "Identifies continued use before or without the required decision."
+        ],
+        "limitations": [
+          "Normal maintenance inside an already approved boundary is not scope expansion."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_008"
+        ]
+      },
+      {
+        "title": "Affected-person and downstream-impact review",
+        "claimSupported": "Material affected persons or downstream uses are absent from the purpose boundary.",
+        "evidenceClass": "HUMAN_DECISION",
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Uses accountable domain, legal, risk and affected-person expertise.",
+          "Records exclusions and uncertainties explicitly."
+        ],
+        "limitations": [
+          "A generic impact assessment not tied to the assessed system cannot resolve this claim."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_003"
+        ]
+      },
+      {
+        "title": "Scoped absence-test package",
+        "claimSupported": "A current, executed and independently reviewed test covers all material AP-A1 failure mechanisms.",
+        "evidenceClass": "TEST_RESULT",
+        "minimumTechnicalAssurance": "TESTED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED",
+        "acceptanceConditions": [
+          "Covers vague purpose, conflicting statements, missing users/affected persons, unenforced use boundaries and unauthorized scope expansion.",
+          "Identifies system version, scope, test cases, results, residual limitations and independent reviewer."
+        ],
+        "limitations": [
+          "Silence, missing incidents, document presence or unsuccessful discovery is never TESTED_ABSENT."
+        ],
+        "supportsAtomicHandles": [
+          "atomic_009"
+        ]
+      }
+    ],
+    "sufficiencyNotes": []
+  },
+  "evidenceSafety": {
+    "capabilityRules": {
+      "evidenceCeilings": [
+        "Purpose documentation can establish DECLARED intent but not implemented control or operational conformance.",
+        "Implementation or configuration evidence can establish boundary controls but not their effectiveness in representative use.",
+        "Executed evaluation can establish TESTED assurance only for the assessed version, scope and conditions.",
+        "Operational records can establish OPERATIONALLY_OBSERVED assurance only for covered users, functions, time periods and environments."
+      ],
+      "falsePositiveGuards": [
+        "Do not treat a product name, model card or marketing description as a system-specific purpose statement.",
+        "Do not treat access restriction alone as evidence that permitted and prohibited uses are defined.",
+        "Do not treat high model accuracy as evidence that downstream use and decision authority are appropriate.",
+        "Do not treat a generic acceptable-use policy as proof of system-specific enforcement."
+      ],
+      "prohibitedInferences": [
+        "Do not infer affected-person coverage from a list of direct users.",
+        "Do not infer implementation from policy approval.",
+        "Do not infer operational conformance from missing complaints, incidents or prohibited-use detections.",
+        "Do not infer authorization for a new use from technical capability or prototype availability.",
+        "Do not infer legal compliance from satisfaction of this capability."
+      ],
+      "contradictionHandling": [
+        "Conflicting purpose statements, interfaces, contracts, telemetry or stakeholder accounts keep the affected conclusion UNKNOWN until resolved.",
+        "Where implementation enables a broader use than the approved statement, assess the broader reachable use and record the divergence.",
+        "A more recent approved record supersedes older intent only when system identity, scope and change authority are explicit."
+      ],
+      "freshnessRules": [
+        "Purpose and boundary evidence must match the assessed system and release version.",
+        "Operational evidence must be recent enough to represent the current model, workflow, user population and integrations.",
+        "Material changes invalidate prior boundary assurance until impact review and targeted reassessment are complete."
+      ]
+    },
+    "antipatternRules": {
+      "evidenceCeilings": [
+        "Document inconsistency can establish a declaration gap but not the complete reachable-use surface.",
+        "Implementation comparison can establish reachable divergence but not frequency or operational consequence.",
+        "Operational history can establish observed scope expansion only for covered periods and change records.",
+        "TESTED_ABSENT requires the complete absence-test contract; no lower assurance state can be interpreted as absence."
+      ],
+      "falsePositiveGuards": [
+        "Do not treat concise wording as vague when the controlled definitions and linked boundaries are precise.",
+        "Do not treat a general-purpose model as an undefined-purpose system when the deployed use is system-specifically bounded.",
+        "Do not treat every feature change as scope expansion; test whether users, decisions, data, effects or risk materially changed.",
+        "Do not infer a missing affected-person boundary solely from absence of direct end users."
+      ],
+      "prohibitedInferences": [
+        "Do not infer absence from no reported misuse, no complaint, no incident or no detected contradiction.",
+        "Do not infer an approved scope change from release, backlog, technical enablement or stakeholder demand.",
+        "Do not infer legal non-compliance solely from AP-A1 presence.",
+        "Do not infer a broad purpose is acceptable because the underlying model is marketed as general-purpose."
+      ],
+      "contradictionHandling": [
+        "Conflicting authoritative statements establish at least UNKNOWN and may support presence when the conflict changes material scope.",
+        "Where declared and reachable use conflict, preserve both evidence paths and assess the broader reachable boundary.",
+        "Human adjudication is required where business, legal and technical authorities disagree about the operative purpose."
+      ],
+      "freshnessRules": [
+        "Use the current production, pilot or evaluation version and current authoritative statements.",
+        "Repeat absence testing after any material change.",
+        "Operational and change records must cover the period in which the alleged expansion could have occurred."
+      ]
+    },
+    "crossPairSafetyNotes": []
+  },
+  "apAbsenceContract": {
+    "requiredArtifacts": [
+      "Authoritative purpose-statement corpus and reconciliation",
+      "Reachable-use and audience comparison",
+      "Executed permitted/prohibited/misuse boundary test results",
+      "Material-change and scope-expansion trace",
+      "Independent review record and residual limitation statement"
+    ],
+    "interpretationBoundary": "Authoritative purpose-statement corpus and reconciliation; Reachable-use and audience comparison; Executed permitted/prohibited/misuse boundary test results; Material-change and scope-expansion trace; Independent review record and residual limitation statement"
+  }
+}

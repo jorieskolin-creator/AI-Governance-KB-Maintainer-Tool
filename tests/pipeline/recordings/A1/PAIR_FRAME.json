@@ -1,0 +1,103 @@
+{
+  "pairBoundary": {
+    "capability": {
+      "canonicalDefinition": "The intended purpose, users, affected persons, operating context, expected outputs, permitted uses, prohibited uses and foreseeable misuse are precise enough to govern design, implementation, evaluation, operation and change.",
+      "governancePurpose": "Ensure the system is designed, evaluated, operated and changed against one explicit socio-technical purpose and enforceable use boundary rather than against unconstrained technical capability.",
+      "distinctClaim": "A1 owns the definition and maintained alignment of the system-specific purpose, users, affected persons, operating context, permitted and prohibited uses, expected outputs and foreseeable misuse. A2 owns whether AI is proportionate and valuable; A3 owns role allocation; A4 owns classification; A5 owns lifecycle transition control.",
+      "ownedTopics": [
+        "Intended purpose and use boundaries"
+      ],
+      "excludedTopics": []
+    },
+    "antipattern": {
+      "canonicalDefinition": "The system purpose is vague, technically framed, inconsistent or capable of expanding through features, users, data, workflows or decisions without explicit requalification and authorization.",
+      "pairedRelationship": "AP-A1 is the paired anti-pattern of A1: Undefined or elastic intended purpose."
+    },
+    "boundaryRationale": "A1 owns the definition and maintained alignment of the system-specific purpose, users, affected persons, operating context, permitted and prohibited uses, expected outputs and foreseeable misuse. A2 owns whether AI is proportionate and valuable; A3 owns role allocation; A4 owns classification; A5 owns lifecycle transition control."
+  },
+  "apFailureModel": {
+    "failureMechanism": "Ambiguous or inconsistent intent allows technical capability, stakeholder demand, prototypes and incremental features to redefine accepted use without corresponding control design, evaluation, affected-person analysis, risk review or accountable authorization.",
+    "triggeringConditions": [
+      "Ambiguous or inconsistent intent allows technical capability, stakeholder demand, prototypes and incremental features to redefine accepted use without corresponding control design, evaluation, affected-person analysis, risk review or accountable authorization."
+    ],
+    "observableFailureSurfaces": [
+      "Ambiguous or inconsistent intent allows technical capability, stakeholder demand, prototypes and incremental features to redefine accepted use without corresponding control design, evaluation, affected-person analysis, risk review or accountable authorization."
+    ],
+    "nonExamples": [
+      "Ambiguous or inconsistent intent allows technical capability, stakeholder demand, prototypes and incremental features to redefine accepted use without corresponding control design, evaluation, affected-person analysis, risk review or accountable authorization."
+    ],
+    "distinctionFromCapabilityGap": "A1 owns the definition and maintained alignment of the system-specific purpose, users, affected persons, operating context, permitted and prohibited uses, expected outputs and foreseeable misuse. A2 owns whether AI is proportionate and valuable; A3 owns role allocation; A4 owns classification; A5 owns lifecycle transition control."
+  },
+  "applicability": {
+    "capability": {
+      "statement": "Applicable to every AI system or AI-enabled function; assessment depth increases with autonomy, exposure, scale, affected-person impact and consequence.",
+      "conditions": [
+        "Assess the complete socio-technical system, not only the model.",
+        "Apply to proposed use, deployed use and materially changed use.",
+        "Resolve provider, deployer and internal-use perspectives where they differ."
+      ],
+      "exclusions": [
+        "No blanket exclusion is permitted solely because the model is general-purpose, externally supplied, low-code or experimental.",
+        "A component may be out of scope only when the assessed system boundary and responsibility allocation are evidenced."
+      ],
+      "reassessmentTriggers": [
+        "New user or affected-person group",
+        "New decision, task or business process",
+        "New data category, model, tool, integration or external effect",
+        "Expansion from pilot to production or from internal to external use",
+        "Material performance, risk, legal or organizational change",
+        "Observed use outside the declared boundary"
+      ]
+    },
+    "antipattern": {
+      "statement": "Applicable wherever an AI system or AI-enabled function has a declared or implied purpose, including experiments, internal tools, externally supplied systems and general-purpose components used in a specific context.",
+      "conditions": [
+        "Assess both written purpose and reachable use.",
+        "Test scope expansion across lifecycle changes and operational practice.",
+        "Include indirect affected persons and downstream decision uses."
+      ],
+      "exclusions": [
+        "Not applicable only when the component has no independent use context and its boundaries are fully assessed within a parent system."
+      ],
+      "reassessmentTriggers": [
+        "New purpose statement or product positioning",
+        "New audience, feature, data source, integration or decision role",
+        "Pilot-to-production or internal-to-external transition",
+        "Observed off-label or prohibited use",
+        "Organizational transfer or provider change"
+      ]
+    },
+    "consistencyNotes": []
+  },
+  "primaryQuestions": {
+    "capabilityQuestions": [
+      {
+        "slot": 1,
+        "question": "Is the intended purpose and decision context specific, bounded and testable?"
+      },
+      {
+        "slot": 2,
+        "question": "Are purpose and use boundaries implemented consistently in workflows, data use, access, tools and product behavior?"
+      },
+      {
+        "slot": 3,
+        "question": "Does current evidence show that actual and foreseeable use remains within the declared boundary?"
+      }
+    ],
+    "antipatternQuestions": [
+      {
+        "slot": 1,
+        "question": "Is the purpose vague, technically framed, conflicting or missing material users, affected persons, uses or decision boundaries?"
+      },
+      {
+        "slot": 2,
+        "question": "Can workflows, access, data, features, tools or product behavior enable broader or different use than the approved purpose?"
+      },
+      {
+        "slot": 3,
+        "question": "Does evidence show unauthorized scope expansion, or does a current scoped test establish the anti-pattern is absent?"
+      }
+    ],
+    "coverageRationale": "Is the intended purpose and decision context specific, bounded and testable? Are purpose and use boundaries implemented consistently in workflows, data use, access, tools and product behavior? Does current evidence show that actual and foreseeable use remains within the declared boundary?"
+  }
+}

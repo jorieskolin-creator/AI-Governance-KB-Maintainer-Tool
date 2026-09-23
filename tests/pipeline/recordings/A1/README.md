@@ -1,22 +1,43 @@
-# A1 recordings — not emitted (P2A-FIX, 2026-09-22)
+# A1 recordings — golden-projection derivation (P2A-FIX2, 2026-09-23)
 
-`npm run recordings:derive` (`tests/pipeline/derive-a1-recordings.ts`) reads `golden/fixtures/A1_v1.0.0.json`, `golden/fixtures/AP-A1_v1.0.0.json`, and the unmodified `compileSirPair` contract. It writes none of the seven recording files. These files are not captured model runs, and they were not derived, because a faithful derivation cannot pass the parity test.
+`npm run recordings:derive` (`tests/pipeline/derive-a1-recordings.ts`) reads `golden/fixtures/A1_v1.0.0.json` and `golden/fixtures/AP-A1_v1.0.0.json` and writes these seven files. Re-running the script overwrites them with byte-identical JSON. These files are not captured model runs. No model-authored content is added.
 
-## What the parity test asks for
+## What is copied verbatim
 
-`tests/pipeline/golden-parity.test.ts` calls `authorOfflineA1()`, which RELEASE-validates five task recordings and then calls `compileSirPair` with `mode: 'RELEASE'`. It expects `compile.ok === true` and deep equality with the two golden fixtures.
+Canonical definitions, applicability, primary questions, evidence, evidence rules, findings, hard gates, runtime boundaries, lifecycle targets, related-criterion IDs, the anti-pattern failure mechanism, and the absence-contract required artifacts are copied from the golden fixtures. Handles (`atomic_NNN`, `evidence_NNN`, `finding_NNN`, `criterion_NNN`, `source_NNN`, `locator_NNN`) are assigned from golden ordinals and encounter order. Question-slot dimensions come from `primary_questions[].dimension`. Lifecycle stage order comes from `target_assurance_by_lifecycle_stage[].lifecycle_stage`.
 
-## Why derivation stopped
+## Slots the 2.0.0 fixtures do not attest
 
-1. `compileSirPair` in RELEASE mode always records defect `APPROVAL_RECORD` at `/approval_record` and returns `capability` / `antipattern` only when `defects.length === 0`. Clearing `sourceMappings.unmappedClaims` on the complete A2 control snapshot removes the fixture-specific `SOURCE_UNMAPPED_CLAIM` defect. `APPROVAL_RECORD`, `CANONICAL_SCHEMA`, and `APPROVAL_VERSION_MATCH` remain, and both documents are still omitted. `compile.ok` cannot be true.
-2. Even a DRAFT compile cannot deep-equal the fixtures. The compiler sets `schema_version` from the plan (active family 2.1.0; fixtures are historical schema 2.0.0), hardcodes `release_status` to `DRAFT` (fixtures are `APPROVED`), omits `approval_record`, and hardcodes `candidate_tactic_refs` to `[]` (A1 has five APPROVED tactic mappings; AP-A1 has six).
-3. Source-mapping ids cannot match. `sourceMappingId` emits `SRCMAP-<objectId>-<ordinal>` (`SRCMAP-A1-001`). The fixtures use `SRCMAP-A1-EU-AIA-001`, `SRCMAP-A1-NIST-AI-RMF-002`, `SRCMAP-AP-A1-EU-AIA-001`, and `SRCMAP-AP-A1-NIST-AI-RMF-002`.
-4. Compiler inputs are missing from both fixtures, so they cannot be recovered: `supportedClaim`, `applicabilityConditions`, and `exclusions` on capability and anti-pattern source mappings. The compiler emits those as `supported_claim`, `applicability_conditions`, and `exclusions`. The fixtures' `normative_source_mappings` objects do not contain those keys. Inventing them would synthesize semantics.
+The pair-frame, failure-model, and note schemas require strings the fixtures do not carry as separate fields. Those slots are filled only as follows:
 
-## What this does not prove
+- `ownedTopics` is the golden capability title.
+- `excludedTopics` is empty.
+- `boundaryRationale` and `distinctionFromCapabilityGap` repeat the golden `distinct_claim`.
+- `pairedRelationship` is the golden anti-pattern id and title: `AP-A1 is the paired anti-pattern of A1: <title>.`
+- `triggeringConditions`, `observableFailureSurfaces`, and `nonExamples` each repeat the golden `failure_mechanism`. They are not new failure claims.
+- `coverageRationale` is the three golden capability questions joined in slot order.
+- `evidenceNeed` is the titles of the golden evidence items that atomic already cites.
+- `interpretationBoundary` is the golden absence-contract `required_artifacts` joined with `; `.
+- Related-criterion `boundarySummary` is `Golden-attested related criterion: <id>`.
+- Schema-required note arrays that have no golden note say that the fixtures attest no separate note for that slot.
 
-Semantic parity with live model output remains P3's first live pair. This directory does not provide a compiler + validator regression anchor, because no recording was honest to emit.
+## unmappedClaims composition rule
 
-## Proposed test-contract change
+`supportedClaim` is required on a mapped source mapping and is absent from both 2.0.0 fixtures. No other legitimate source exists, so the derivation does not invent one. Each golden mapping becomes an `unmappedClaims` entry:
 
-Do not edit `golden-parity.test.ts`, `src/compiler/`, or `golden/` to force a pass. A follow-up brief should replace deep equality against the schema 2.0.0 APPROVED bytes with a DRAFT-mode regression against a 2.1.0 image the unmodified compiler can emit, and keep these fixtures as the semantic calibration reference.
+- `reason`: `INSUFFICIENT_SOURCE_CONTEXT`
+- `claim`: `Golden-attested mapping without recorded supported claim: <source_id> — <exact_locator verbatim>`
+
+`MAPPINGS.json` therefore has empty `capabilityMappings` and `antipatternMappings`, those unmapped claims, and `mappingNotes` stating this rule. The snapshot `sourceMappings` mirror that. Compiled `normative_source_mappings` stay empty.
+
+Source-context authority metadata (tier, type, official location, applicability boundary, licensing boundary, effective status) is joined from the sealed source register record for each golden `source_id`. Version, verification status, verification date, and exact locator stay the golden mapping values. Locator context is metadata only (`METADATA_LOCATOR_ONLY`, `contextText: null`) because the register record has no snippet-rights field. The live register version string and verification date have drifted from the golden attestation and are not substituted.
+
+## What the parity test proves
+
+`tests/pipeline/golden-parity.test.ts` (brief P2A-FIX2) RELEASE-validates the five task recordings through `authorOfflineA1()`, compiles the snapshot in **DRAFT** mode, and deep-equals the compiled objects to the golden fixtures after five declared projections: schema 2.1.0, `release_status: DRAFT`, no `approval_record`, empty `candidate_tactic_refs`, empty `normative_source_mappings`. A separate test threads a synthetic `supportedClaim` into `normative_source_mappings[].supported_claim`.
+
+That is a compiler, validator, and field-threading regression anchor over golden-attested semantics in a DRAFT 2.1.0 image.
+
+## What it does not prove
+
+It does not prove release-tier fields, approval records, tactic mappings, source-mapping claim semantics, or live model parity. `compileSirPair` in RELEASE mode still requires the release finalizer (P3) and is not asserted. Live model parity remains P3's first live pair.

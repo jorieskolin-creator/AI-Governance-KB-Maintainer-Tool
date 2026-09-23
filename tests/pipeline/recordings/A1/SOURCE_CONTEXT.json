@@ -1,0 +1,80 @@
+{
+  "packetVersion": "1.0.0",
+  "pairId": "A1_AP-A1",
+  "authoringPlanSha256": "d68706c1bb013f9e7889f08a6f1a5405845d008112204e32e2e0d1e6bff753e9",
+  "sourceRegisterVersion": "1.5.0",
+  "sourceRegisterSha256": "0c1d154dc9774d7e2976b637aa865c6bf932b2fd4ae9ac546b7fb8de092fe764",
+  "sources": [
+    {
+      "sourceHandle": "source_001",
+      "sourceId": "SRC-EU-AIA",
+      "versionOrDate": "Regulation (EU) 2024/1689",
+      "verificationStatus": "VERIFIED",
+      "lastVerifiedDate": "2026-08-02",
+      "effectiveStatus": "IN_FORCE",
+      "authorityTier": "TIER_1_NORMATIVE",
+      "authorityType": "LEGISLATION",
+      "officialLocation": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+      "applicabilityBoundary": "Apply the Act article-by-article according to the actor role, AI-system or general-purpose-AI-model classification, jurisdiction, use and applicable transition date. Registration does not establish that a particular system is high-risk, prohibited, compliant or within territorial scope.",
+      "licensingBoundary": "Public legal source; store citation metadata and exact locators.",
+      "modelContextPolicy": "METADATA_LOCATOR_ONLY",
+      "usageRightsReference": null,
+      "locatorContexts": [
+        {
+          "locatorHandle": "locator_001",
+          "exactLocator": "Article 3(12) intended purpose; Article 3(13) reasonably foreseeable misuse; Article 9(2) risk-management scope; Article 11 and Annex IV technical documentation; Article 13 instructions for use",
+          "locatorLabel": null,
+          "contextMode": "LOCATOR_METADATA_ONLY",
+          "contextText": null,
+          "contextSha256": "273916de5a982aa67daaa6567716e0d94b971cbbf64aac0042b748df2ad91253"
+        },
+        {
+          "locatorHandle": "locator_003",
+          "exactLocator": "Article 3(12) intended purpose; Article 3(13) reasonably foreseeable misuse; Article 11 and Annex IV; Article 13",
+          "locatorLabel": null,
+          "contextMode": "LOCATOR_METADATA_ONLY",
+          "contextText": null,
+          "contextSha256": "f08bc4f051cc9894270fd7e2c07f67cfaab05b8ee53373164636f222cf6acd4b"
+        }
+      ],
+      "mappingContextAvailable": true
+    },
+    {
+      "sourceHandle": "source_002",
+      "sourceId": "SRC-NIST-AI-RMF",
+      "versionOrDate": "NIST AI 100-1 (2023); Playbook current 2026-08-02",
+      "verificationStatus": "VERIFIED",
+      "lastVerifiedDate": "2026-08-02",
+      "effectiveStatus": "PUBLISHED",
+      "authorityTier": "TIER_2_AUTHORITATIVE",
+      "authorityType": "GOVERNMENT_VOLUNTARY_GUIDANCE",
+      "officialLocation": "https://doi.org/10.6028/NIST.AI.100-1",
+      "applicabilityBoundary": "Voluntary risk-management guidance organized around GOVERN, MAP, MEASURE and MANAGE; it does not establish legal compliance or certification.",
+      "licensingBoundary": "Store official metadata and permitted content subject to publisher terms.",
+      "modelContextPolicy": "METADATA_LOCATOR_ONLY",
+      "usageRightsReference": null,
+      "locatorContexts": [
+        {
+          "locatorHandle": "locator_002",
+          "exactLocator": "AI RMF Core MAP 1.1, MAP 1.3, MAP 2.2, MAP 3.3 and MANAGE 1.1; NIST AI RMF Playbook MAP 1.1",
+          "locatorLabel": null,
+          "contextMode": "LOCATOR_METADATA_ONLY",
+          "contextText": null,
+          "contextSha256": "fb3db415906b6aea1994dc24976a3dfe04cd87b47ec4a510227ef3e26ce47bde"
+        },
+        {
+          "locatorHandle": "locator_004",
+          "exactLocator": "AI RMF Core MAP 1.1, MAP 1.3, MAP 2.2, MAP 3.3 and MANAGE 1.1; Playbook MAP 1.1",
+          "locatorLabel": null,
+          "contextMode": "LOCATOR_METADATA_ONLY",
+          "contextText": null,
+          "contextSha256": "b3ef957370100fe5b45197e943b207d110c1b8538483d6220e95f9e0a62247ea"
+        }
+      ],
+      "mappingContextAvailable": true
+    }
+  ],
+  "missingContextSourceHandles": [],
+  "mappingContextAvailable": true,
+  "packetSha256": "6bc9c916305beda02bac19d6ce15c613e5329397392c5ab45b9b5fd30b197526"
+}

@@ -1,0 +1,402 @@
+{
+  "sourceMapping": {
+    "capabilityMappings": [],
+    "antipatternMappings": [],
+    "unmappedClaims": [
+      {
+        "objectKind": "CAPABILITY",
+        "claim": "Golden-attested mapping without recorded supported claim: SRC-EU-AIA — Article 3(12) intended purpose; Article 3(13) reasonably foreseeable misuse; Article 9(2) risk-management scope; Article 11 and Annex IV technical documentation; Article 13 instructions for use",
+        "reason": "INSUFFICIENT_SOURCE_CONTEXT",
+        "consideredSourceHandles": [
+          "source_001"
+        ]
+      },
+      {
+        "objectKind": "CAPABILITY",
+        "claim": "Golden-attested mapping without recorded supported claim: SRC-NIST-AI-RMF — AI RMF Core MAP 1.1, MAP 1.3, MAP 2.2, MAP 3.3 and MANAGE 1.1; NIST AI RMF Playbook MAP 1.1",
+        "reason": "INSUFFICIENT_SOURCE_CONTEXT",
+        "consideredSourceHandles": [
+          "source_002"
+        ]
+      },
+      {
+        "objectKind": "ANTIPATTERN",
+        "claim": "Golden-attested mapping without recorded supported claim: SRC-EU-AIA — Article 3(12) intended purpose; Article 3(13) reasonably foreseeable misuse; Article 11 and Annex IV; Article 13",
+        "reason": "INSUFFICIENT_SOURCE_CONTEXT",
+        "consideredSourceHandles": [
+          "source_001"
+        ]
+      },
+      {
+        "objectKind": "ANTIPATTERN",
+        "claim": "Golden-attested mapping without recorded supported claim: SRC-NIST-AI-RMF — AI RMF Core MAP 1.1, MAP 1.3, MAP 2.2, MAP 3.3 and MANAGE 1.1; Playbook MAP 1.1",
+        "reason": "INSUFFICIENT_SOURCE_CONTEXT",
+        "consideredSourceHandles": [
+          "source_002"
+        ]
+      }
+    ],
+    "mappingNotes": [
+      "Golden normative_source_mappings have no supported_claim. Each golden mapping is an unmappedClaims entry with reason INSUFFICIENT_SOURCE_CONTEXT. The claim string is the golden source_id and exact_locator only."
+    ]
+  },
+  "findingArchitecture": {
+    "capabilityFindings": [
+      {
+        "title": "Intended purpose or decision context is not specific, bounded and testable",
+        "eligibleConclusionStates": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_001",
+          "atomic_002"
+        ],
+        "evidenceHandles": [
+          "evidence_001",
+          "evidence_004"
+        ],
+        "defaultSeverity": "BLOCKING",
+        "lifecycleConsequence": "Do not progress to consequential verification, deployment or expansion until the purpose and decision role are bounded and human-validated.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "User, affected-person or permitted/prohibited-use boundary is incomplete",
+        "eligibleConclusionStates": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_003",
+          "atomic_004"
+        ],
+        "evidenceHandles": [
+          "evidence_002",
+          "evidence_003"
+        ],
+        "defaultSeverity": "HIGH",
+        "lifecycleConsequence": "Constrain scope to evidenced users and uses; require boundary completion before deployment to unassessed groups or contexts.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "Implemented system behavior diverges from the approved purpose boundary",
+        "eligibleConclusionStates": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED"
+        ],
+        "atomicHandles": [
+          "atomic_005",
+          "atomic_006"
+        ],
+        "evidenceHandles": [
+          "evidence_005"
+        ],
+        "defaultSeverity": "BLOCKING",
+        "lifecycleConsequence": "Stop or constrain the divergent path until deterministic controls and accountable authorization align implementation with the approved boundary.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "Evaluation or operating evidence does not establish boundary effectiveness",
+        "eligibleConclusionStates": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_007",
+          "atomic_008"
+        ],
+        "evidenceHandles": [
+          "evidence_006",
+          "evidence_007"
+        ],
+        "defaultSeverity": "HIGH",
+        "lifecycleConsequence": "Do not claim effective boundary control; require representative testing and current operating evidence before the target transition.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "Material scope change has not been requalified and authorized",
+        "eligibleConclusionStates": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_009"
+        ],
+        "evidenceHandles": [
+          "evidence_008"
+        ],
+        "defaultSeverity": "BLOCKING",
+        "lifecycleConsequence": "Prevent or suspend the expanded use pending impact analysis, reassessment and formal authorization.",
+        "humanLockRequired": true
+      }
+    ],
+    "antipatternFindings": [
+      {
+        "title": "Purpose is vague, general-purpose or technically framed without a testable decision context",
+        "eligibleConclusionStates": [
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_001",
+          "atomic_002"
+        ],
+        "evidenceHandles": [
+          "evidence_001"
+        ],
+        "defaultSeverity": "BLOCKING",
+        "lifecycleConsequence": "Prevent consequential progression until a system-specific purpose and decision context are approved.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "Purpose statements conflict or omit material users, affected persons, permitted or prohibited uses",
+        "eligibleConclusionStates": [
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_003",
+          "atomic_004",
+          "atomic_005"
+        ],
+        "evidenceHandles": [
+          "evidence_001",
+          "evidence_005"
+        ],
+        "defaultSeverity": "HIGH",
+        "lifecycleConsequence": "Constrain the system to the narrowest evidenced boundary and require authoritative reconciliation.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "Reachable implementation or operations exceed the approved purpose boundary",
+        "eligibleConclusionStates": [
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_006",
+          "atomic_007"
+        ],
+        "evidenceHandles": [
+          "evidence_002",
+          "evidence_003"
+        ],
+        "defaultSeverity": "BLOCKING",
+        "lifecycleConsequence": "Stop or disable the divergent path until controls and authorization restore alignment.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "Purpose or use scope expanded without requalification and authorization",
+        "eligibleConclusionStates": [
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT",
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_008"
+        ],
+        "evidenceHandles": [
+          "evidence_004"
+        ],
+        "defaultSeverity": "BLOCKING",
+        "lifecycleConsequence": "Suspend the expanded use and require material-change reassessment and formal decision.",
+        "humanLockRequired": true
+      },
+      {
+        "title": "Absence of undefined or elastic purpose is not established by a scoped current test",
+        "eligibleConclusionStates": [
+          "UNKNOWN"
+        ],
+        "atomicHandles": [
+          "atomic_009"
+        ],
+        "evidenceHandles": [
+          "evidence_006"
+        ],
+        "defaultSeverity": "MEDIUM",
+        "lifecycleConsequence": "Do not report TESTED_ABSENT; retain UNKNOWN until the complete absence-test contract is satisfied.",
+        "humanLockRequired": true
+      }
+    ],
+    "findingLogicNotes": [
+      "Derived from golden fixtures A1_v1.0.0.json and AP-A1_v1.0.0.json; those fixtures attest no separate note for this slot."
+    ]
+  },
+  "controlBoundary": {
+    "capabilityHardGate": {
+      "effect": "BLOCK",
+      "conditions": [
+        "Block deployment or material expansion when intended purpose, prohibited uses, affected persons or decision authority are materially undefined.",
+        "Block when reachable implementation materially exceeds the approved boundary and no authorized constrained operating envelope exists.",
+        "Constrain operation when current evidence cannot establish boundary conformance for a consequential use."
+      ],
+      "overrideAuthority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_BUSINESS_AND_RISK_OWNER"
+    },
+    "antipatternHardGate": {
+      "effect": "BLOCK",
+      "conditions": [
+        "Block consequential deployment when the anti-pattern is confirmed or materially present.",
+        "Constrain operation to an evidenced narrow scope when purpose or reachable-use boundaries remain UNKNOWN.",
+        "Block material expansion when requalification or authorization is missing."
+      ],
+      "overrideAuthority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_BUSINESS_AND_RISK_OWNER"
+    },
+    "capabilityRuntimeBoundary": {
+      "machineMay": [
+        "Extract and compare purpose statements, system behavior, use records and change evidence.",
+        "Identify missing, conflicting, stale or scope-mismatched evidence.",
+        "Apply deterministic evidence ceilings and propose eligible conclusion states for human lock.",
+        "Test exact approved tactic mappings after a finding is locked."
+      ],
+      "machineMustNot": [
+        "Define the organization's purpose or risk appetite.",
+        "Treat legal vocabulary as a legal-applicability conclusion.",
+        "Raise assurance beyond the evidence ceiling.",
+        "Clear the hard gate, accept residual risk, authorize a new use or lifecycle transition.",
+        "Change or close a locked finding because a tactic was selected or completed."
+      ],
+      "humanAuthorityRequiredFor": [
+        "Approve intended purpose and use boundaries.",
+        "Determine legal and regulatory applicability.",
+        "Adjudicate material evidence conflicts.",
+        "Lock findings and accept residual risk.",
+        "Authorize constrained operation, deployment, expansion, requalification or retirement."
+      ]
+    },
+    "antipatternRuntimeBoundary": {
+      "machineMay": [
+        "Extract and compare purpose statements, system behavior, use records and change evidence.",
+        "Identify missing, conflicting, stale or scope-mismatched evidence.",
+        "Apply deterministic evidence ceilings and propose eligible conclusion states for human lock.",
+        "Test exact approved tactic mappings after a finding is locked."
+      ],
+      "machineMustNot": [
+        "Define the organization's purpose or risk appetite.",
+        "Treat legal vocabulary as a legal-applicability conclusion.",
+        "Raise assurance beyond the evidence ceiling.",
+        "Clear the hard gate, accept residual risk, authorize a new use or lifecycle transition.",
+        "Change or close a locked finding because a tactic was selected or completed."
+      ],
+      "humanAuthorityRequiredFor": [
+        "Approve intended purpose and use boundaries.",
+        "Determine legal and regulatory applicability.",
+        "Adjudicate material evidence conflicts.",
+        "Lock findings and accept residual risk.",
+        "Authorize constrained operation, deployment, expansion, requalification or retirement."
+      ]
+    },
+    "controlNotes": [
+      "Derived from golden fixtures A1_v1.0.0.json and AP-A1_v1.0.0.json; those fixtures attest no separate note for this slot."
+    ]
+  },
+  "lifecycleAssurance": {
+    "capabilityTargets": [
+      {
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "IMPLEMENTED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "TESTED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "TESTED",
+        "requiredHumanAssurance": "FORMALLY_APPROVED"
+      },
+      {
+        "minimumTechnicalAssurance": "OPERATIONALLY_OBSERVED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "OPERATIONALLY_OBSERVED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "IMPLEMENTED",
+        "requiredHumanAssurance": "FORMALLY_APPROVED"
+      }
+    ],
+    "antipatternTargets": [
+      {
+        "minimumTechnicalAssurance": "DECLARED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "IMPLEMENTED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "TESTED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "TESTED",
+        "requiredHumanAssurance": "FORMALLY_APPROVED"
+      },
+      {
+        "minimumTechnicalAssurance": "OPERATIONALLY_OBSERVED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "OPERATIONALLY_OBSERVED",
+        "requiredHumanAssurance": "HUMAN_VALIDATED"
+      },
+      {
+        "minimumTechnicalAssurance": "IMPLEMENTED",
+        "requiredHumanAssurance": "FORMALLY_APPROVED"
+      }
+    ],
+    "rationaleNotes": [
+      "Derived from golden fixtures A1_v1.0.0.json and AP-A1_v1.0.0.json; those fixtures attest no separate note for this slot."
+    ]
+  },
+  "referenceMapping": {
+    "capabilityRelatedCriterionHandles": [
+      "criterion_001",
+      "criterion_002",
+      "criterion_003",
+      "criterion_004",
+      "criterion_005",
+      "criterion_006",
+      "criterion_007",
+      "criterion_008",
+      "criterion_009",
+      "criterion_010",
+      "criterion_011",
+      "criterion_012",
+      "criterion_013"
+    ],
+    "antipatternRelatedCriterionHandles": [
+      "criterion_014",
+      "criterion_002",
+      "criterion_003",
+      "criterion_004",
+      "criterion_005",
+      "criterion_015",
+      "criterion_016",
+      "criterion_017",
+      "criterion_018",
+      "criterion_006",
+      "criterion_007",
+      "criterion_008",
+      "criterion_009",
+      "criterion_010",
+      "criterion_012",
+      "criterion_013"
+    ],
+    "referenceNotes": [
+      "Derived from golden fixtures A1_v1.0.0.json and AP-A1_v1.0.0.json; those fixtures attest no separate note for this slot."
+    ]
+  }
+}
