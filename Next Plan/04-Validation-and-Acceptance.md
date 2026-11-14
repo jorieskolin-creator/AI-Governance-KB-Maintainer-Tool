@@ -13,12 +13,15 @@ During transition, retain existing verification and add the Creator tests to it.
 | ID | Scenario | Required result | Task |
 | --- | --- | --- | --- |
 | I-01 | All specified inputs available with valid versions | Pinned input set and exact output plan | DC-01 |
-| I-02 | Cognitive model, template, or required Golden role missing | Specific missing-input finding; no claim of readiness | DC-01 |
+| I-02 | Required Vercel cognitive model, schema, or either Golden Reference pair member missing | Precise missing-object finding; no generation starts | DC-01 |
 | I-03 | Same ID appears twice or points to missing domain/criterion | Validation fails with exact object/path | DC-01 |
 | I-04 | Same local object ID appears in two different KBs | Separate namespaces; no collisions | DC-01 |
 | I-05 | Profile uses domains outside A–F and different object counts | Correct enumeration without code changes | DC-01/06 |
 | I-06 | Cognitive model and taxonomy/schema disagree | Conflict surfaced; affected delivery blocked | DC-01 |
-| I-07 | Input bytes change while run is active | Existing run stays pinned; new input set required | DC-01/04 |
+| I-07 | Input bytes change while run is active | Existing run uses verified pinned bytes; otherwise pauses without mixing versions | DC-01/04 |
+| I-08 | Local samples exist but corresponding Vercel inputs are unavailable | Development tests may run; production generation remains unready; no fallback | DC-01 |
+| I-09 | Vercel input objects exist but an output prefix has no folder marker | Validate permissions/path configuration; do not falsely reject an empty logical prefix | DC-01/05 |
+| I-10 | Supplied sample format differs from an assumed JSON schema | Adapter follows documented sample contract; no forced source-document rewrite | DC-01 |
 | S-01 | Real registered text/PDF passage available | Actual content and exact locator retained in authoring input | DC-02 |
 | S-02 | Register contains title/URL but no readable source content | Unsupported claims remain unresolved | DC-02/03 |
 | S-03 | Source is scanned, truncated, inaccessible, or unsupported | Accurate extraction status and affected coverage gaps | DC-02 |
@@ -32,8 +35,8 @@ During transition, retain existing verification and add the Creator tests to it.
 | D-05 | Example/proposal is presented as a measured outcome | Semantic review flags claim and source mismatch | DC-04 |
 | D-06 | Sample has unrelated domain-specific wording | Golden guidance does not contaminate new document | DC-03/07 |
 | D-07 | Required section is absent or an optional omission is explicit | Required absence blocks readiness; optional omission follows profile | DC-03 |
-| T-01 | Object association exists but activation mapping is pending | No allowed/activated tactic claim; status accurately disclosed | DC-01/03 |
-| T-02 | Approved mapping points to a different criterion/version | Reference rejected or flagged as incompatible | DC-03 |
+| T-01 | Owner-confirmed final SAE playbook contains older incomplete-approval wording | Version-bound owner decision is honored; explicit links retained; no repeat approval/block | DC-01/03 |
+| T-02 | Final playbook has a genuinely missing, ambiguous, or incompatible target link | Exact data issue reported; no fabricated link or customer activation claim | DC-03 |
 | T-03 | No tactic requested in output plan | No unsolicited tactic document generated | DC-03/06 |
 | R-01 | Contradiction between draft and cited passage | Defect includes source, locator, and affected section | DC-04 |
 | R-02 | Targeted repair requested | Scoped diff and dependency review; unrelated content preserved | DC-04 |
@@ -48,7 +51,7 @@ During transition, retain existing verification and add the Creator tests to it.
 | O-04 | Different content targets an existing version | Conflict; previous bytes unchanged | DC-05 |
 | O-05 | Path traversal or write outside configured root | Rejected before storage write | DC-05 |
 | O-06 | Drafts/inputs/Golden files coexist with ready documents | Handoff explicitly excludes non-document prefixes | DC-05/06 |
-| O-07 | Input cannot legally/policy-wise be copied to destination | Reference/provenance retained without prohibited copy | DC-05 |
+| O-07 | Generation and delivery complete | Input/schema/Golden bytes unchanged; writes restricted to Vercel output/operations | DC-05 |
 | O-08 | Delivered set is observed by a later tool | No Creator-issued Hub approval or Master Table mutation | DC-05/07 |
 | B-01 | Domain batch contains one failed pair | Accurate per-document progress; batch incomplete, good work retained | DC-06 |
 | B-02 | New input baseline used for regeneration | New draft/version with diff and provenance; old documents intact | DC-06 |
@@ -60,7 +63,7 @@ Deterministic tests can validate mechanics and known negative cases; they do not
 
 ## 3. First live evaluation
 
-Use one fresh pair such as A2/AP-A2 if the owner-supplied inputs and usable sources support it. The selection is illustrative, not authorization to manufacture missing source support. Do not use A1/AP-A1 as the sole demonstration because its existing fixtures can mask replay.
+Select one fresh pair from the supplied SAE taxonomy that differs from the owner-supplied Golden Reference pair. Use the exact Vercel input set and its actual source content. Do not assume particular sample IDs or replay the reference text as newly generated content. The first live run requires the owner-prepared storage and input materials to be ready.
 
 Record:
 
@@ -74,7 +77,7 @@ Run at least three independent generations of the same confirmed input set to ex
 
 Initial acceptance is qualitative plus explicit hard failures: zero unresolved blocking identity/reference/support errors in the final delivered documents; no fabricated approval; all requested outputs accounted for; and reviewer/owner agreement that the content matches the supplied inputs. Do not publish an invented accuracy percentage or claim all future content is correct.
 
-Deliberately inject at least an unsupported claim and a pending-as-approved tactic mapping. Confirm they cannot pass through to a ready document unnoticed in the acceptance fixtures. Independently inspect the reviewer findings rather than accepting its pass label.
+Deliberately inject an unsupported claim and a tactic link to a nonexistent criterion. Confirm these are detected. Separately verify that the final SAE playbook’s older approval wording does not create a false blocker when the owner’s decision applies to that version. Preserve the raw wording/provenance and record the effective usage decision. Independently inspect reviewer findings rather than accepting its pass label.
 
 ## 4. Output inspection
 

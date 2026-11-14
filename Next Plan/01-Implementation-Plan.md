@@ -4,12 +4,12 @@
 
 Document Creator turns an explicitly selected input baseline into reviewed, source-supported knowledge documents and delivers those documents to a configured destination. An operator selects a KB profile, confirms inputs and requested outputs, reviews the result, fixes defects, and delivers a version.
 
-It must work for Solution Assurance first and support a second profile without copying the application. Reusability comes from configurable taxonomy, document requirements, and storage, not a universal workflow designer.
+The first real KB is the owner’s Solution Assessment Engine reference case (SAE); supplied materials may retain the Solution Assurance Engine name. Use the actual IDs and titles from the owner’s input set. A small second profile should prove reuse without copying the application. Reusability comes from configurable taxonomy, document requirements, and storage, not a universal workflow designer.
 
 ### In scope
 
-- Import and validate the input set; expose missing inputs, contradictory versions, and coverage gaps.
-- Prepare source passages from permitted uploads or registered source locations.
+- Read and validate the owner-prepared Vercel input set; expose missing files, contradictory versions, and coverage gaps before starting generation.
+- Prepare source passages from the configured Vercel source-content files or registered source-publication locations.
 - Create a deterministic output checklist from taxonomy and requested scope.
 - Author capability, anti-pattern, and optionally tactic documents.
 - Check structure and references deterministically; review meaning against available source content.
@@ -25,10 +25,11 @@ It must work for Solution Assurance first and support a second profile without c
 - Search/MCP endpoints or knowledge Packages for analysis solutions.
 - Monitoring all published KB content or synchronizing multiple masters.
 - Customer assessment, scoring, finding lock, risk acceptance, or remediation execution.
-- Mandatory Git + Google Drive + Vercel dual/triple publication.
+- Google Drive input/output, mirroring, or synchronization; repository-bundled production input defaults.
+- Creating, reorganizing, or populating the owner’s input folders automatically.
 - Automatic modification of a Knowledge Hub's statuses or catalog.
 
-Input correction is allowed in a temporary working copy, but governed identity or meaning changes must be presented as a proposed replacement input version and explicitly confirmed. Never silently rewrite an input authority to make generation pass.
+Creator reads source inputs, schemas, and the Golden Reference from Vercel without modifying them. Report a concrete input problem and, if useful, export a proposed correction for the owner; the owner supplies a replacement version. Never silently repair an input authority. Honor the owner’s already-confirmed final SAE playbook decision; do not repeatedly request approval because of older labels.
 
 ## 2. Current code and the practical starting point
 
@@ -39,14 +40,12 @@ The baseline reviewed on 14 November is `b02a4bc9ad8507295505134cad42d20dc592fa6
 | Live UI still calls the 14-task sequence | `src/operator/commands.ts`; `src/orchestration/pipeline.ts` | Do not bolt more authoring modes onto this sequence. |
 | Consolidated task modules exist | `src/pipeline/` | Reuse useful contracts and prompts after reviewing their assumptions. |
 | Offline authoring validates packets but compiles a separately loaded snapshot | `src/pipeline/author-offline.ts` | Implement and test actual transformation of fresh task outputs. |
-| A1 recordings are Golden-derived, not captured live runs | `tests/pipeline/recordings/A1/README.md`; `tests/pipeline/golden-parity.test.ts` | Existing parity is useful regression evidence, not proof of generation quality. |
 | Default source context uses metadata-only policy and no supplied locators | `src/orchestration/source-context-acquisition.ts`; calls in `src/operator/commands.ts` | Source content acquisition must precede new authoring. |
 | Domains and slots are fixed in several layers | `src/orchestration/pipeline.ts`; `src/operator/commands.ts`; `schemas/` | Move Creator identity and domain enumeration into the selected profile. |
-| All 119 tactics have pending finding-level activation mappings | `baseline/AI_Governance_Tactic_Playbook_v1.0.0.json` | Do not manufacture approvals or allowed-tactic claims. |
 | Change-impact lookup is a placeholder | `src/register/service.ts`, `affectedPairsForSources()` | Do not present it as implemented maintenance capability; maintenance is out of scope. |
 | Immutable storage operations already exist | `src/storage/artifact-store.ts`; `src/storage/vercel-blob.ts` | Adapt rather than replace sound idempotency and integrity logic. |
 
-The earlier review ran typecheck, build, and Golden regression successfully. Tests reported 31 passing tests; the database-dependent suite failed for missing `DATABASE_URL` and its two tests were skipped. This is a historical observation, not a current green baseline. CI config includes Postgres. DC-00 must establish a fresh complete baseline.
+These are code-migration observations, not assertions about the documentation the owner will supply. DC-00 establishes a fresh complete test baseline with disposable Postgres. Design production input adapters from the owner’s supplied samples and Vercel files, not from assumptions about old repository assets.
 
 ## 3. Output-format decision
 
@@ -60,13 +59,13 @@ Generate Markdown from one validated internal document model. Do not independent
 
 Content correctness and clear structure take priority over visual styling. Use short sections, explicit headings, simple tables, and text explanations for relationships. No essential meaning should depend on an image, color, hover text, or browser execution.
 
-The existing Knowledge Hub implementation needs Markdown support before it can retrieve these documents directly. This is an external integration dependency, not permission to build Hub functionality here. Verify it with an exported sample. If the target Hub cannot yet ingest Markdown, retain the documents and use a reviewed derived PDF or arrange the separate Hub change; do not report successful Hub integration without a test.
+The target Knowledge Hub must support Markdown before it can retrieve these documents directly; verify the actual target during integration. This is an external integration dependency, not permission to build Hub functionality here. Verify it with an exported sample. If the target Hub cannot yet ingest Markdown, retain the documents and use a reviewed derived PDF or arrange the separate Hub change; do not report successful Hub integration without a test.
 
 ## 4. Product workflow
 
 ### 4.1 Select and confirm inputs
 
-Select a named KB profile and input-set version. The UI displays the taxonomy, source register, cognitive model, playbook, schemas, Golden Samples, and destination. It shows hashes and versions in a details panel, not as the main task flow.
+Select the configured Vercel connection and a named KB input set. Before generation, check the owner-prepared prefixes, permissions, schemas, Source Register, taxonomy/criteria, cognitive model, playbook, and Golden Reference pair. The UI displays the resolved versions and output destination. A missing input leaves the workspace available with an exact readiness finding, but no model authoring starts. Pin the loaded versions and hashes for the run; show technical details in a secondary panel. See `06-Storage-and-Sample-Onboarding.md`.
 
 Validate identities and relationships first. Build a coverage matrix linking each requested object to taxonomy criteria, relevant cognitive requirements, supporting registered sources, sample roles, and tactic links. Missing source coverage is an authoring gap, not an invitation to invent a source.
 
@@ -82,7 +81,7 @@ Optional tactic rendering creates one document per requested tactic. It preserve
 
 ### 4.3 Prepare the source material
 
-Read approved uploads or fetch registered locations through a bounded acquisition adapter. Preserve original source version, exact locator, extraction result, and usage policy. Provide source context from the beginning of authoring, not only during a later mapping task.
+Read the input documents and available source-content files from the configured Vercel locations. If the Source Register points to external normative publications, acquire permitted content from those registered locations through a bounded adapter; this does not make external locations alternative stores for the Creator’s input baseline or generated documents. Preserve original source version, exact locator, extraction result, and usage policy. Provide source context from the beginning of authoring, not only during a later mapping task.
 
 A source title, URL, or `VERIFIED` register flag does not prove a claim. A metadata-only source can identify a reference, but it cannot supply unseen substantive requirements. If usable source material is unavailable, show the gap and keep affected claims unresolved. Human-supplied verified excerpts are an explicit alternative with provenance.
 
@@ -96,7 +95,7 @@ Code owns identity, versions, locators, paths, state, hashes, and delivery. The 
 
 Deterministic validation covers schema, required sections, vocabulary, identity/reference existence, mapping status, source version bindings, and output completeness. Semantic review examines interpretation, unsupported claims, contradictions, false-positive guards, and whether source passages actually support the text. Hash checks cannot prove semantic truth.
 
-Golden Samples guide specificity, structure, and quality. They are neither universal wording requirements nor sources of new normative claims. Never force every domain to copy A1's evidence counts or content.
+Golden Samples guide specificity, structure, and quality. They are neither universal wording requirements nor sources of new normative claims. Use the supplied Golden Reference pair to learn expected structure and depth without forcing every domain to copy its counts or domain-specific content.
 
 ### 4.5 Correct and deliver
 
@@ -128,7 +127,7 @@ Create a self-contained `src/document-creator/` entry path with these logical mo
 
 | Module | Responsibility |
 | --- | --- |
-| `profile` and `inputs` | Typed profile, input import, validation, pinned input set |
+| `profile` and `inputs` | Sample-derived adapters, Vercel reads, readiness validation, pinned input set |
 | `sources` | Permitted acquisition, extraction, source units and locators |
 | `plan` | Deterministic document list and coverage matrix |
 | `author` | Bounded provider call using prepared content |
@@ -152,7 +151,7 @@ Keep existing tables and applied migrations intact during migration. Add new tab
 
 | Existing area | Action | Boundary |
 | --- | --- | --- |
-| `baseline/`, root Source Register, `schemas/`, `golden/` | Read-only import sources | New profile contracts live separately; no rewriting historical fixtures. |
+| `baseline/`, root Source Register, `schemas/`, `golden/` | Development/history references only; preserve existing regression fixtures | Production uses the owner-selected Vercel versions; no bundled-input fallback. |
 | `src/assets/` | Reuse validation/loading concepts | Remove hardcoded default file dependence from the new path. |
 | `src/pipeline/` | Selectively reuse prompts and checks | Avoid inheriting the offline snapshot dependency. |
 | `src/compiler/` | Extract small identity/reference utilities if useful | New output must not require full legacy SIR compilation. |
@@ -166,7 +165,7 @@ Keep existing tables and applied migrations intact during migration. Add new tab
 
 Use `CREATOR_MODE=legacy|document` (or an equivalently explicit configuration) during migration. Do not allow both modes to write the same logical output version. Keep new storage paths separate. In document mode, legacy pipeline resume, register drift, and mandatory Drive sync must not start. Disabling legacy boot side effects is part of integration, not merely a navigation change.
 
-After DC-07 passes, use document mode as the default. Archive old code after a documented rollback checkpoint. Reusing Vercel as output storage does not require moving the running backend to Vercel; retain the existing suitable hosting arrangement.
+After DC-07 passes, use document mode as the default. Archive old code after a documented rollback checkpoint. Using Vercel as input and output storage does not require moving the running backend to Vercel; retain the existing suitable hosting arrangement.
 
 ## 8. Completion and handoff
 
