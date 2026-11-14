@@ -3,6 +3,27 @@
 Instructions for AI coding agents (Cursor and others) working in this repository.
 These rules are binding. If a task conflicts with them, stop and ask the owner.
 
+## Document Creator transition — owner direction, 14 November 2026
+
+For work converting this Maintainer into **Document Creator**, start with
+[`Next Plan/README.md`](Next%20Plan/README.md) and follow the DC task briefs in
+that folder. This is the owner's revised scope: create reviewed PDF/Markdown
+knowledge documents from supplied inputs and deliver them to agreed storage;
+Master Table Creator and Knowledge Hub are separate tools. Markdown is the
+primary output; PDF is an optional derived rendition, and HTML is preview only.
+
+For these transition tasks, `Next Plan/` takes precedence over the legacy
+product scope, September implementation-plan priority, old phase boundaries,
+and mandatory Git/Drive/JSON publication obligations below. Each DC task states
+which modules it may change. Retain the applicable invariants: no fabricated
+source support or approval, no secrets in Git, immutable historical Golden
+fixtures, no edits to applied migrations, and honest verification results.
+Use one branch/PR per DC task. This note and the plan do not themselves implement
+or deploy the new application. Unrelated legacy maintenance still follows the
+instructions below.
+
+---
+
 ## What this project is
 
 The Maintainer is the **lifecycle control plane** for the AI Governance Knowledge Base:
