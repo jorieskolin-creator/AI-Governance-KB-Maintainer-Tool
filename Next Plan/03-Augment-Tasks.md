@@ -16,7 +16,7 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 - Run the existing verification command with a disposable Postgres database equivalent to CI. Never run test cleanup against production.
 - Record the actual current baseline, including environment failures and tests not executed.
 - Identify deployment/startup side effects, active routes, database migrations, and writes that must be isolated from document mode.
-- Confirm required input files are present. The current repository has no automatically authoritative, profile-neutral cognitive-model contract; identify the exact supplied model or record it as required input. Do not manufacture it from prompts.
+- Inspect the owner-supplied SAE samples and map their actual structures, fields, identifiers, and relationships. Prepare the sample-to-contract matrix in `06-Storage-and-Sample-Onboarding.md`. Inspect Vercel readiness when configured; distinguish development samples received from runtime files available. Do not assume the repository contains the current input documentation or infer its status from older copies.
 - Create a short transition decision record and map useful assertions to their future tests. Preserve existing behavior at this stage.
 
 **Allowed changes:** planning/decision documentation and test-environment setup needed to run the existing checks. No baseline edits, deletes, or application cutover.
@@ -30,15 +30,15 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 **Work:**
 
 - Implement the minimal profile/input schemas from `02-Contracts.md` in a new Creator-owned schema namespace. Do not edit legacy schemas in place.
-- Add loaders for permitted local/repository/registered storage inputs with versions and hashes.
-- Adapt existing Solution Assurance register, taxonomy, playbook, and legacy Golden fixtures into a profile without modifying their bytes. Require an explicit cognitive-model input.
+- Add production loaders for the configured Vercel input/schema/Golden prefixes, with versions, hashes, read permissions, and output-scope readiness checks. Local samples support development/tests only; production has no bundled repository fallback.
+- Build the first profile from the owner-supplied SAE samples: Source Register, taxonomy/criteria, cognitive model, final linked Tactic Playbook, schemas, and one Golden Reference capability/anti-pattern pair. Preserve actual formats and IDs. Bind the already-confirmed final-playbook decision to its selected version/hash without requesting approval again.
 - Implement conflict reporting, source-coverage matrix, tactic association versus activation distinction, and deterministic requested-document enumeration.
 - Build a small synthetic second profile with non-A–F domain IDs and non-five object counts for tests. Clearly label its content synthetic; do not pass it off as approved domain knowledge.
 - Add Input and Document Plan UI/API operations. Display precise missing-input findings.
 
 **Allowed changes:** `src/document-creator/` profile/input/plan/UI modules, new schema/profile fixtures, tests; narrowly scoped server registration for isolated Creator routes. No model calls or production delivery.
 
-**Acceptance:** exact output IDs and folder paths derive from profiles; duplicate/orphan IDs fail; existing pending tactic mappings remain pending; changing one input version invalidates the input-set identity; no domain constants leaked into generic code.
+**Acceptance:** exact output IDs and folder paths derive from profiles; duplicate/orphan IDs fail; the final SAE playbook and explicit links are accepted despite obsolete approval wording, while genuinely missing links are reported; changing one input version invalidates the input-set identity; no domain constants leaked into generic code.
 
 ## DC-02 — Make source preparation real
 
@@ -46,7 +46,7 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 
 **Work:**
 
-- Implement bounded upload and registered-URL acquisition for text/Markdown, JSON, static HTML, and text-based PDF as needed by the first profile.
+- Implement Vercel input reads and bounded registered-source URL acquisition for the formats demonstrated by the owner’s samples. A runtime upload workflow for authoritative inputs is not required; the owner places them in Vercel before a run.
 - Preserve versions, locators, hashes, extraction warnings, and model-use boundaries.
 - Add the source-unit contract and cache/checkpoint policy scoped to a run/input set.
 - Reject unsupported/scanned sources explicitly or accept a separately attributed human-verified extraction.
@@ -102,7 +102,7 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 - Generate taxonomy-derived paths, immutable version reservations, write/readback verification, and completion receipts.
 - Support partial failure and idempotent retry. Store operations metadata outside KB documents.
 - Add Delivery and History UI. Make creation review and Hub approval visibly distinct.
-- Permit input/schema/Golden mirroring only under configured rights/access policy; externally referenced inputs remain valid where copying is prohibited.
+- Verify input/schema/Golden prefixes remain read-only and unmodified. Write generated documents and receipts only within the owner-configured Vercel output/operations prefixes. Do not introduce Google Drive credentials, mirrors, or sync jobs.
 
 **Allowed changes:** `src/storage/` where appropriate, Creator delivery modules/UI/tests, additive persistence fields if required.
 
@@ -132,8 +132,8 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 **Work:**
 
 - Run the full acceptance matrix and live evaluation in `04-Validation-and-Acceptance.md`.
-- Produce a fresh pair other than A1/AP-A1 from real permitted sources. Have the content reviewed against source passages.
-- Test deliberate missing support, an invalid mapping, interrupted generation, and partial delivery.
+- Produce a fresh pair different from the owner-supplied Golden Reference pair, using the prepared Vercel input set and real permitted source content. Have the content reviewed against source passages.
+- Test deliberate missing support, a genuinely invalid link, interrupted generation, partial delivery, and absent/unreadable required Vercel inputs. Also test that obsolete approval wording does not block the owner-confirmed final playbook.
 - Verify standalone Markdown can be inspected/extracted by an independent reader. Where available, test a sample with the actual separate Master Table Creator/Hub. Document external Markdown support gaps honestly.
 - Capture rollback point and database/storage inventory. Change default application mode only after new-path success.
 - Remove old register-maintenance UI, old pipeline routes and boot hooks, and legacy task machinery no longer referenced.

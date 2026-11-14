@@ -10,14 +10,15 @@ A profile describes one solution's knowledge-document requirements. A run pins a
 | --- | --- |
 | `profile_id`, `profile_version`, `kb_id`, `kb_title` | Stable profile and KB identity; namespace all object IDs by KB. |
 | `language` | Output language; preserve original-language source locators and quotes where used. |
-| `input_refs` | References for taxonomy, cognitive model, source register, tactic playbook, document schemas, Golden Samples. Each has kind, ID, version, URI/path, content SHA-256, media type, and declared approval/provenance. |
+| `input_refs` | Vercel object references for taxonomy/criteria, cognitive model, Source Register, Tactic Playbook, schemas, and the Golden Reference pair. Each has kind, ID, version where available, store/path, verified SHA-256, media type, and provenance. |
+| `owner_input_decisions` | Explicit, scoped owner decisions bound to input versions/hashes. Includes use of the supplied final SAE Tactic Playbook despite older incomplete-approval wording; never a global override for unrelated inputs. |
 | `output_spec` | Requested document types; required sections and applicability; primary format `markdown`; optional PDF flag; paired work-unit policy. |
-| `source_policy` | Permitted sources/hosts, upload policy, usage boundaries, extraction limits, and model-egress constraints. |
+| `source_policy` | Permitted Vercel prefixes/source-publication hosts, usage boundaries, extraction limits, and model-egress constraints. |
 | `model_config_ref` | Reference to deployed author/reviewer configuration; never API keys. |
-| `storage_ref` | Named connection and approved root prefix; no credentials or signed URLs embedded in documents. |
+| `storage_ref` | Vercel connection, owner-prepared input/schema/Golden/output prefixes, allowed operations per prefix, and secret references; no credentials or signed URLs in documents. |
 | `limits` | Maximum objects per run, provider concurrency, request timeout, token/cost budget, repair iterations, and extraction bounds. |
 
-Input resolution produces `input_set_id`, resolved versions/hashes, validation findings, a coverage matrix, and explicit operator confirmation of the set. A hash establishes identity, not approval or correctness. Store declared approval separately from verification of the bytes.
+Input resolution reads the selected Vercel files and produces `input_set_id`, resolved versions/hashes, readiness findings, a coverage matrix, and the selected owner decisions. A hash establishes byte identity, not semantic correctness. The owner’s confirmed final SAE playbook status is already an input decision: record its application to the supplied file/version without asking for the same approval again. Keep original document wording and effective owner-confirmed usage status separately traceable.
 
 ### Input precedence and disagreement
 
@@ -32,11 +33,11 @@ If two inputs contradict each other, produce a concrete conflict report. These r
 
 ## 2. Accepted input forms
 
-MVP structured profiles, taxonomy, register, and playbook use JSON conforming to versioned contracts. Markdown is the preferred cognitive-model and Golden-document input; supplied PDF and static HTML can also be extracted. Existing legacy JSON Golden fixtures are read through an adapter and never mutated.
+Inspect the owner-supplied SAE samples before fixing input serialization. The samples demonstrate the actual schema files, Source Register, cognitive model, taxonomy/criteria, linked playbook, and Golden Reference pair. Implement adapters for their actual formats (for example JSON, Markdown, PDF, or static HTML), then document the reusable contracts. Do not require the owner to rewrite all input materials into a new JSON-only format. Internal normalized data may use JSON, independently of original file format. Production resolves the corresponding files from Vercel; local sample copies are test fixtures only.
 
-When an authority is supplied only as PDF/HTML/Markdown, extract a proposed structured interpretation with source locators, show it for confirmation, and pin that confirmation before it controls identities or relationships. A model may suggest extraction; it cannot silently establish the governing taxonomy. Unsupported/scanned content is reported as partial or unreadable. OCR is a later optional capability or an explicit manually verified extraction path; do not fabricate readable text.
+Prefer deterministic parsing and schema validation using the structures established from the supplied samples, including PDF/HTML/Markdown inputs. Do not require repeated confirmation for unambiguous fields read by a validated adapter. If extraction requires a model to interpret ambiguous identity or relationship meaning, show the proposed interpretation with source locators for confirmation before using it. A model cannot silently establish the governing taxonomy. Unsupported/scanned content is reported as partial or unreadable; add OCR only where the supplied inputs actually require it and verify the extracted meaning.
 
-Excel input parsing is not a first-release requirement for Creator. The separate Master Table Creator and Knowledge Hub own broad-format ingestion of manually added KB documents. A later explicit Creator input need may add a reviewed Excel adapter.
+The Creator needs only the input-format adapters demonstrated by the supplied reference set. If a required sample is Excel, implement that bounded input adapter; otherwise defer it. Broad-format ingestion of arbitrary manually added KB documents belongs to the separate Master Table Creator and Knowledge Hub.
 
 ### 2.1 Taxonomy, criteria, capabilities, and anti-patterns
 
@@ -64,9 +65,9 @@ The Creator documents these rules. It does not execute a customer assessment or 
 
 Require tactic ID/version/title, purpose, supplied activities/outputs, prerequisites, limitations, verification/acceptance content, and explicit capability/anti-pattern relationships. Preserve source support and ownership information when supplied.
 
-For each relationship, retain `mapping_id`, target object/criterion, relationship type, scope (`OBJECT_ASSOCIATION` or `FINDING_ACTIVATION`), mapping version, and status (`APPROVED`, `PENDING`, `REJECTED`, `RETIRED`), or equivalent faithfully imported values.
+For each supplied relationship, preserve the mapping identifier where present, target capability/anti-pattern/criterion, relationship type, scope, version, and original status text. Normalize only what is demonstrated by the actual samples. Do not impose an invented finding-level mapping schema if the supplied playbook defines object-level links. Record owner-confirmed effective usage separately when historical status wording differs.
 
-Object-level association is not finding-level activation permission. The existing playbook's pending activation mappings must remain pending. An object document may disclose a pending association in an unresolved-mappings section when the profile permits it, but must never call that tactic allowed or activated. Pending-only associations are excluded from approved actionable mapping sections. If an output requires an approved mapping, its absence blocks that output's readiness; if not, the explicit omission is acceptable.
+The owner has confirmed that the supplied SAE Tactic Playbook is final and usable for this reference case, even if it contains older incomplete-approval wording. Apply that decision to the selected version/hash; do not block generation, suppress its explicit links, or require a new approval exercise solely because of that wording. Preserve the original text for traceability, but do not propagate an obsolete status as an unresolved defect in generated documents. Validate that the actual linked IDs exist and preserve the relationship meaning. A genuinely missing/ambiguous link remains a data issue: final document status does not invent a relationship. Customer-specific tactic activation is outside Creator’s scope.
 
 Do not infer links from names, embedding similarity, or a shared domain. A source-grounded draft mapping may be proposed outside final content for upstream review, never auto-approved. Completing a tactic cannot be represented as changing a customer finding.
 
@@ -76,7 +77,7 @@ Use separate versioned contracts for profile, input set, internal document, sour
 
 The document contract has common metadata and type-specific required sections. Different profiles can require different evidence dimensions without changing the engine. Mandatory missing sections produce findings; optional sections may be omitted with explicit template rules.
 
-Each Golden Sample has ID, version, role, compatible template/profile, location, hash, and provenance. Roles are `STRUCTURE_EXAMPLE`, `CONTENT_QUALITY_EXAMPLE`, or `NEGATIVE_TEST`. Samples must not become assessable KB documents accidentally. Legacy A1/AP-A1 remain unchanged; new sample versions live in a separate profile-owned location.
+The minimum Golden Reference is exactly one owner-supplied capability document and its paired anti-pattern document in Vercel. Record their IDs, versions where present, pair relationship, compatible templates, paths, hashes, and provenance. Use this pair for structure and content-quality expectations. Do not require additional Golden roles or samples to start production. Optional synthetic negative tests belong in the test suite, not the owner’s required input folders. Golden Reference files are excluded from generated KB source inventory unless separately admitted by the Hub. Preserve historical repository fixtures independently; they do not substitute for the supplied Vercel reference.
 
 ## 3. Source-unit contract
 
@@ -93,7 +94,7 @@ Prepared source units need stable identity and auditable attribution:
 | `usage_policy`, `model_eligible` | Whether and how the content may enter provider requests. |
 | `retrieved_at`, `extractor_version`, `text_sha256` | Acquisition and transformation provenance. |
 
-Acquire metadata first, then permitted bytes. Fetch only registered locations or explicitly confirmed uploads. Apply time/size/type limits, restrict redirects, and reject local-network/metadata-service destinations for server-side URL fetches. Never execute macros, document scripts, or embedded instructions. Apply access control to uploads and prepared excerpts.
+Acquire metadata first, then permitted bytes. Read only configured Vercel objects and registered source-publication locations. Apply time/size/type limits, restrict redirects, and reject local-network/metadata-service destinations for server-side URL fetches. Never execute macros, document scripts, or embedded instructions. Apply access control to source reads and prepared excerpts.
 
 Source ingestion may be incomplete. Show truncation and the exact affected claims; a truncated page must not be labeled complete. Hashing the selected excerpt does not prove completeness of the original. Retain only permitted source material under a configurable retention policy; output documents contain permitted citations and necessary text, not entire licensed publications by default.
 
@@ -155,17 +156,17 @@ Identity/version, intended outcome, related capability/anti-pattern IDs, exact m
 
 ## 5. Storage contract and taxonomy-based structure
 
-First production adapter: Vercel Blob, reusing current code where suitable. Local filesystem adapter supports development/tests. Add other production destinations only on an actual need. Storage is independent of backend hosting.
+Vercel Blob is the production store for both input materials and generated documents. Google Drive is excluded, with no mirror or synchronization job. A local filesystem adapter is for development/tests only and never a silent production fallback. Storage is independent of backend hosting. The owner prepares the input/schema/Golden and output prefixes; Creator checks the configuration and writes only within the agreed output/operations scope.
 
 Connection settings: named connection ID, provider, credential-secret reference, expected store/account identity, access class, allowed root prefix, and path policy. A pasted link does not grant write access. Connection validation checks identity and access without enumerating unrelated stores. A write probe, if needed, uses a documented disposable prefix, confirms its exact path, and cleans up.
 
-Recommended layout, where each row is a path template:
+Recommended logical layout, mapped to the owner’s actual prepared prefixes rather than imposed or automatically reorganized. Each row is a path template:
 
 | Prefix | Content | Eligible as generated KB source? |
 | --- | --- | --- |
-| `<root>/<kb-id>/inputs/<input-set-id>/` | Permitted pinned input files and input manifest | No, unless separately admitted by Hub |
-| `<root>/<kb-id>/schemas/<schema-id>/<version>/` | Document/profile contract copies used for the run | No |
-| `<root>/<kb-id>/golden-samples/<sample-id>/<version>/` | Permitted quality examples and negative examples | No |
+| `<root>/<kb-id>/inputs/<input-set-id>/` | Owner-prepared Source Register, taxonomy/criteria, cognitive model, playbook, and input manifest | No, unless separately admitted by Hub |
+| `<root>/<kb-id>/schemas/<schema-id>/<version>/` | Owner-prepared schemas used for the run; read-only to Creator | No |
+| `<root>/<kb-id>/golden-reference/<pair-id>/<version>/` | Owner-prepared capability + anti-pattern Golden Reference pair; read-only to Creator | No |
 | `<root>/<kb-id>/drafts/<run-id>/` | Optional incomplete drafts; private working storage | No |
 | `<root>/<kb-id>/documents/<domain-id>/<type>/<object-id>/<version>/document.md` | Reviewed human-readable object | Candidate for later catalog review |
 | Same object/version path, `document.pdf` | Optional derived rendition | Same logical document, not independent evidence |
@@ -173,7 +174,7 @@ Recommended layout, where each row is a path template:
 
 Here `<type>` is `capabilities`, `antipatterns`, or `tactics`. Cross-domain tactics have one declared owning domain (or configured `shared` partition) and explicit related-domain metadata; do not duplicate the same tactic into multiple authoritative files. Taxonomy profile maps IDs to safe folder tokens. Do not hardcode A–F or infer identity from folder labels.
 
-Input manifests may reference externally hosted inputs when copying is not permitted. Preserve provenance and verified hashes where possible; report the limitation. Never copy private/limited-use source inputs into a public storage area. Input/schemas/Golden folders are optional physical mirrors according to policy, but their logical references are required in the input set.
+Input materials, schemas, and the Golden Reference pair must be present at the configured Vercel locations before generation begins. They are primary runtime inputs, not optional mirrors. The input manifest/configuration resolves their exact object paths. Do not populate, overwrite, rename, or synchronize these inputs automatically. External source-publication URLs in the Source Register may be followed under source policy; missing licensed content is reported without inventing it or copying it into public storage. Blob “folders” are logical prefixes: validate actual input objects and output path permissions, not the existence of an empty directory object.
 
 Path handling rejects traversal, absolute paths, unexpected separators, unsafe tokens, collisions, and writing outside the configured prefix. Unicode titles are content; normalized safe IDs drive paths. Reserve destination versions before writing to avoid concurrent collisions.
 
@@ -189,7 +190,7 @@ Delivery review is separate from Knowledge Hub eligibility. Hub imports new docu
 
 ## 6. Examples and limits of examples
 
-For a Solution Assurance A2 pair, two illustrative target paths are:
+For an SAE pair, two illustrative target paths are (use the owner’s selected KB identifier and folder mappings):
 
 - `kb/solution-assurance/documents/A/capabilities/A2/1.0.0/document.md`
 - `kb/solution-assurance/documents/A/antipatterns/AP-A2/1.0.0/document.md`

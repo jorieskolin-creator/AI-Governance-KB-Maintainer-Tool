@@ -12,6 +12,16 @@ knowledge documents from supplied inputs and deliver them to agreed storage;
 Master Table Creator and Knowledge Hub are separate tools. Markdown is the
 primary output; PDF is an optional derived rendition, and HTML is preview only.
 
+The owner prepares Vercel input/schema/Golden Reference and output prefixes.
+Production reads the selected Vercel inputs and writes generated documents there;
+Google Drive is excluded. The first profile uses the owner-supplied SAE materials
+and one Golden Reference capability/anti-pattern pair. Develop adapters from those
+samples, not assumptions about older repository documents. The owner has confirmed
+the supplied SAE Tactic Playbook is final despite older incomplete-approval wording.
+Record that decision against the selected version/hash; the legacy pending-mapping
+statement below does not block this input set. Validate actual links without
+inventing relationships or applying the override to unrelated input versions.
+
 For these transition tasks, `Next Plan/` takes precedence over the legacy
 product scope, September implementation-plan priority, old phase boundaries,
 and mandatory Git/Drive/JSON publication obligations below. Each DC task states
