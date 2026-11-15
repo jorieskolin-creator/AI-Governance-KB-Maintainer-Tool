@@ -137,7 +137,7 @@ function coerceAssuranceList(items: unknown, prefix: string, coercedPaths: strin
 }
 
 /**
- * Option 2 (Maintainer fix): illegal locked-vocabulary values become UNKNOWN.
+ * Option 2 (KB Document Creator fix): illegal locked-vocabulary values become UNKNOWN.
  * The finding stays open. Option 1 cannot use this; it may only save when the
  * focused check says the new value is already in the locked set.
  */

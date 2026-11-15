@@ -33,20 +33,20 @@ export async function buildApp() {
       if (!database.connected || !database.schemaReady) {
         return reply.code(503).send({
           status: 'not_ready',
-          service: 'ai-governance-kb-maintainer-tool',
+          service: 'kb-document-creator',
           database
         });
       }
       return {
         status: 'ready',
-        service: 'ai-governance-kb-maintainer-tool',
+        service: 'kb-document-creator',
         database
       };
     } catch (error) {
       app.log.error(error);
       return reply.code(503).send({
         status: 'not_ready',
-        service: 'ai-governance-kb-maintainer-tool',
+        service: 'kb-document-creator',
         database: { connected: false, schemaReady: false }
       });
     }

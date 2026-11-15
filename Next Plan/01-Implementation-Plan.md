@@ -1,8 +1,8 @@
-# Document Creator implementation plan
+# KB Document Creator implementation plan
 
 ## 1. Outcome and boundary
 
-Document Creator turns an explicitly selected input baseline into reviewed, source-supported knowledge documents and delivers those documents to a configured destination. An operator selects a KB profile, confirms inputs and requested outputs, reviews the result, fixes defects, and delivers a version.
+KB Document Creator turns an explicitly selected input baseline into reviewed, source-supported knowledge documents and delivers those documents to a configured destination. An operator selects a KB profile, confirms inputs and requested outputs, reviews the result, fixes defects, and delivers a version.
 
 The first real KB is the owner’s Solution Assessment Engine reference case (SAE); supplied materials may retain the Solution Assurance Engine name. Use the actual IDs and titles from the owner’s input set. A small second profile should prove reuse without copying the application. Reusability comes from configurable taxonomy, document requirements, and storage, not a universal workflow designer.
 
@@ -171,6 +171,6 @@ After DC-07 passes, use document mode as the default. Archive old code after a d
 
 The MVP is complete when a fresh non-Golden pair is created from real permitted source material, reviewed, corrected, delivered, and read back from the destination with matching bytes; an independent reader can recover its meaning and source references from the Markdown alone. A second, small non-A–F profile proves configurable identity and folders without generating a full second KB.
 
-Document Creator hands off a completed document set, not a catalog. Master Table Creator may later inspect the documents using read-only storage access. Knowledge Hub decides what is approved and retrievable. Neither is called automatically by Document Creator.
+KB Document Creator hands off a completed document set, not a catalog. Master Table Creator may later inspect the documents using read-only storage access. Knowledge Hub decides what is approved and retrievable. Neither is called automatically by KB Document Creator.
 
 The authoritative implementation sequence is [03-Augment-Tasks.md](03-Augment-Tasks.md); acceptance evidence is specified in [04-Validation-and-Acceptance.md](04-Validation-and-Acceptance.md).

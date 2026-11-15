@@ -8,7 +8,7 @@ Postgres available in the dev/cloud environment.
 
 ## Purpose
 
-Prove the entire Maintainer skeleton with **zero AI**: a Source Register change flows
+Prove the entire KB Document Creator skeleton with **zero AI**: a Source Register change flows
 UI → deterministic schema validation → operator approval → GitHub commit → Drive sync →
 hash-verified drift check. Everything in later phases reuses this skeleton.
 

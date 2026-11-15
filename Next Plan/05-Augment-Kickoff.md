@@ -4,9 +4,9 @@ Copy the following prompt into Augment Code after opening this repository. It st
 
 ---
 
-Refine this existing AI-Governance-KB-Maintainer-Tool repository into **Document Creator**, following the owner's new plan in `Next Plan/`.
+Refine **KB Document Creator** to its document-only scope, following the owner's new plan in `Next Plan/`.
 
-Read root `AGENTS.md`, then `Next Plan/README.md`, `01-Implementation-Plan.md`, `02-Contracts.md`, `03-Augment-Tasks.md`, `04-Validation-and-Acceptance.md`, and `06-Storage-and-Sample-Onboarding.md`. The revised Document Creator scope replaces the old Maintainer lifecycle-control scope for this work. Keep the applicable safety, provenance, testing, and historical-data invariants.
+Read root `AGENTS.md`, then `Next Plan/README.md`, `01-Implementation-Plan.md`, `02-Contracts.md`, `03-Augment-Tasks.md`, `04-Validation-and-Acceptance.md`, and `06-Storage-and-Sample-Onboarding.md`. The revised KB Document Creator scope replaces the legacy lifecycle-control scope for this work. Keep the applicable safety, provenance, testing, and historical-data invariants.
 
 Begin with **DC-00 only**. Inspect the actual current repository; compare it to the reviewed baseline commit named in the plan. Establish a fresh verification baseline with a disposable Postgres test database. Report the active runtime path, any intervening changes, actual missing input materials, and proposed file changes. Offline fixture parity does not establish fresh live generation from the prepared Vercel input set.
 
@@ -14,7 +14,7 @@ The first reference case is the owner’s Solution Assessment Engine KB, using s
 
 Markdown is the primary document output. HTML is preview only. PDF is optional and derived from the same reviewed content. Internal JSON contracts and operational receipts are allowed; canonical JSON KB publication is not a requirement.
 
-Do not implement Master Table Creator or Knowledge Hub here. Do not build consumer retrieval APIs, Source Register maintenance, automatic catalog approval, or a new fourteen-stage control plane. Document Creator must be independently usable. The separate Master Table Creator reads the resulting document collection and generates Master Table JSON; the separate Knowledge Hub imports and maintains that table and supplies Packages to the consuming solution.
+Do not implement Master Table Creator or Knowledge Hub here. Do not build consumer retrieval APIs, Source Register maintenance, automatic catalog approval, or a new fourteen-stage control plane. KB Document Creator must be independently usable. The separate Master Table Creator reads the resulting document collection and generates Master Table JSON; the separate Knowledge Hub imports and maintains that table and supplies Packages to the consuming solution.
 
 Use one task per branch/PR. Make the smallest end-to-end implementation that meets the current DC brief and its acceptance checks. Preserve historical Golden fixtures and applied migrations. Reuse valuable existing functions, but do not require the new authoring path to compile a prebuilt legacy SIR snapshot. No source passage means no substantive source-grounding claim. The owner has confirmed the supplied SAE Tactic Playbook is final despite older incomplete-approval wording. Honor that decision for its selected version/hash without asking again, preserve its explicit links, and report only actual missing or incompatible relationships. Do not infer the status of the supplied documentation from older repository copies.
 

@@ -3,7 +3,7 @@
 > `docs/MAINTAINER_IMPLEMENTATION_PLAN.md`; working rules are in `AGENTS.md`.
 > Do not implement from this document.
 
-# AI Governance KB Maintainer Tool
+# KB Document Creator
 
 Standalone operator tool that authors, validates, versions, and publishes AI Governance Knowledge Base category-pair documents.
 
@@ -11,13 +11,13 @@ It is a Knowledge Base production tool. It does not grant governance approval, l
 
 ## Status
 
-The Maintainer is the designed solution under validation. Treat it as almost ready: run it, observe it, and fix what the runs show. Do not treat built pipeline steps as pending features, and do not wait for an external approval layer.
+The KB Document Creator is the designed solution under validation. Treat it as almost ready: run it, observe it, and fix what the runs show. Do not treat built pipeline steps as pending features, and do not wait for an external approval layer.
 
 Offline predeploy verification is in place. Remaining work is test-runs, then focused fixes from findings. Cleaning of code, data, and storage comes after those runs hold.
 
 Active line: `main`.
 
-## What the Maintainer does
+## What the KB Document Creator does
 
 `source support → SIR authoring → typed compilation → revision-bound review and repair → rendering → hash-bound operator approval → publication`
 

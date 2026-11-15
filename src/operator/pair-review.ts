@@ -557,7 +557,7 @@ export function renderPairActions(page: PairReviewPage): string {
         <input type="hidden" name="pairId" value="${escapeHtml(page.pairId)}">
         <input type="hidden" name="action" value="regenerate-section">
         <h3>Regenerate a section</h3>
-        <p class="meta">Discard one section's authored content and ask the Maintainer for a fresh attempt. A new revision is authored, then the gates re-run. The model never owns IDs, hashes, or references.</p>
+        <p class="meta">Discard one section's authored content and ask the KB Document Creator for a fresh attempt. A new revision is authored, then the gates re-run. The model never owns IDs, hashes, or references.</p>
         <label class="field">Section
           <select name="taskType">
             ${sections
@@ -598,7 +598,7 @@ export function renderPairReviewHtml(page: PairReviewPage): string {
     ? 'This pair is parked. It does not block Continue or READY_FOR_APPROVAL. Finalize ready documents for VALIDATED pairs. This pair stays parked for later.'
     : page.blockingCount === 0
       ? 'No open HIGH/BLOCKING defects remain. Fix, save and continue checks the section you touched plus its handles and references. VALIDATED, READY_FOR_APPROVAL, and publication still require complete schemas, locked vocabulary, and identity. Parked pairs do not block Continue or READY_FOR_APPROVAL.'
-      : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
+      : `${String(page.blockingCount)} open HIGH/BLOCKING defect(s). Use Fix, KB Document Creator, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
   const nextStep = parkedOnly
     ? `<p><a href="/?domain=${escapeHtml(page.domain)}">Return to the operator board</a> — this parked pair does not block the next phase.
       · <a href="/documents/${escapeHtml(page.domain)}">DRAFT documents</a></p>`

@@ -1,5 +1,5 @@
 {
-  "name": "ai-governance-kb-maintainer-tool",
+  "name": "kb-document-creator",
   "version": "0.1.0",
   "private": true,
   "type": "module",

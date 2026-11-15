@@ -6,7 +6,7 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 
 ## DC-00 — Establish the new baseline and scope
 
-**Purpose:** prevent implementation from continuing the old Maintainer plan by accident.
+**Purpose:** prevent implementation from continuing the legacy lifecycle-control plan by accident.
 
 **Read:** root `AGENTS.md`, this folder, `package.json`, `.github/workflows/verify.yml`, `src/server.ts`, `src/operator/commands.ts`, `src/orchestration/pipeline.ts`, `src/pipeline/author-offline.ts`, and the Golden-recordings README.
 
@@ -138,7 +138,7 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 - Capture rollback point and database/storage inventory. Change default application mode only after new-path success.
 - Remove old register-maintenance UI, old pipeline routes and boot hooks, and legacy task machinery no longer referenced.
 - Migrate valuable legacy test assertions before deleting redundant harnesses. Keep immutable Golden files and historical migrations/data.
-- Update root instructions, README, deployment configuration, scripts, and archived-plan labels so no active document directs new work to the old Maintainer workflow.
+- Update root instructions, README, deployment configuration, scripts, and archived-plan labels so no active document directs new work to the legacy lifecycle-control workflow.
 
 **Allowed changes:** explicitly includes retiring obsolete portions of `src/operator/`, `src/register/`, `src/cognitive/`, `src/sir/`, `src/orchestration/`, `src/release/`, `src/compiler/`, `src/validation/`, and old check scripts after dependency/coverage verification. This permission does not allow deleting retained helpers, governed assets, or stored data indiscriminately.
 

@@ -489,8 +489,8 @@ export function registerOperatorRoutes(
         }
         if (wantsHtml(request)) {
           const notice = result.coercedPaths.length
-            ? `Maintainer fix on ${pairId}: illegal minimumTechnicalAssurance was coerced to UNKNOWN. The finding stays open. Park remains available.`
-            : `Maintainer is fixing ${findingId} on ${pairId}. Stay on this defect until the focused check passes, or Park it.`;
+            ? `KB Document Creator fix on ${pairId}: illegal minimumTechnicalAssurance was coerced to UNKNOWN. The finding stays open. Park remains available.`
+            : `KB Document Creator is fixing ${findingId} on ${pairId}. Stay on this defect until the focused check passes, or Park it.`;
           const reviewPath =
             request.headers.referer && String(request.headers.referer).includes(`/review/${domain}`) &&
             !String(request.headers.referer).includes(`/${pairId}`)

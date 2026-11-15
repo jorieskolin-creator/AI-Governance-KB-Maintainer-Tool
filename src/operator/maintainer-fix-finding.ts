@@ -52,7 +52,7 @@ function isRegenerable(taskType: CognitiveTaskType | undefined): taskType is Cog
 }
 
 /**
- * Option 2: Maintainer fixes this finding. Illegal locked technical-assurance
+ * Option 2: KB Document Creator fixes this finding. Illegal locked technical-assurance
  * values are coerced to UNKNOWN and the finding stays open. Semantic defects
  * use the existing rework or regenerate loop. Failed focused checks stay on
  * the page; Park remains available. Locked vocabulary is not waived.
@@ -182,6 +182,6 @@ export async function maintainerFixFinding(input: {
   }
 
   throw new Error(
-    'Maintainer cannot fix this finding from here. Stay on this defect, edit and Fix, save and continue, or Park it for an expert.'
+    'KB Document Creator cannot fix this finding from here. Stay on this defect, edit and Fix, save and continue, or Park it for an expert.'
   );
 }
