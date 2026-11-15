@@ -17,7 +17,7 @@ import type { OperatorTaskStatus } from './eligibility.js';
 import type { DomainRunOverlay } from './overlay.js';
 
 export const OPERATOR_SLICE = 'operator-run-v2' as const;
-export const OPERATOR_SERVICE = 'ai-governance-kb-maintainer-tool' as const;
+export const OPERATOR_SERVICE = 'kb-document-creator' as const;
 
 export const OPERATOR_DOMAINS: readonly DomainId[] = ['A', 'B', 'C', 'D', 'E', 'F'];
 

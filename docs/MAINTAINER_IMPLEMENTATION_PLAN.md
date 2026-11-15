@@ -1,4 +1,4 @@
-# Maintainer Implementation Plan
+# KB Document Creator Implementation Plan
 
 **Date:** 2026-09-21
 **Status:** Proposed, based on confirmed decisions D1–D7 (see `Maintainer_Discussion_Summary_2026-09-21.md`)
@@ -8,7 +8,7 @@
 
 ## 1. Goal
 
-Make the Maintainer a working, simple, trustworthy tool that:
+Make the KB Document Creator a working, simple, trustworthy tool that:
 
 1. **Maintains governed assets through the UI** — starting with the Source Register: edit → deterministic schema validation → approve → commit to GitHub → sync approved version to Google Drive, hash-verified.
 2. **Authors pair documents** (capability + anti-pattern, domains A–F) from the Source Register only, per the active schemas and the Golden Standard.
@@ -153,4 +153,4 @@ source context → author (4 tasks) → deterministic QC → inject a real defec
 | 4 — Domain A + rollout | ~2–3 weeks | All 6 domains published |
 | 5 — Maintenance mode | ongoing | The tool's actual purpose, running |
 
-**Total to a working Maintainer: roughly 5–7 focused weeks**, with the first genuinely useful capability (register maintenance) live after week 2.
+**Total to a working KB Document Creator: roughly 5–7 focused weeks**, with the first genuinely useful capability (register maintenance) live after week 2.

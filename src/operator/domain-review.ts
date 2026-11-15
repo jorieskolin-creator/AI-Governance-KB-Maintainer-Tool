@@ -654,7 +654,7 @@ export function renderDomainReviewHtml(page: DomainReviewPage): string {
       : 'Remaining HIGH domain defects are parked. They do not block Continue or READY_FOR_APPROVAL. Return to the operator board and Finalize ready documents for VALIDATED pairs. Parked pairs stay parked for later.'
     : page.blockingCount === 0
       ? 'No open HIGH/BLOCKING domain defects remain. Fix, save and continue checks the section you touched plus the handles and references that section uses. Other pairs are not a save gate. READY_FOR_APPROVAL and publication still require complete schemas, locked vocabulary, and identity.'
-      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Use Fix, Maintainer, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
+      : `${String(page.blockingCount)} open HIGH/BLOCKING domain defect(s). Use Fix, KB Document Creator, or Park. Park is the defer status, with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`;
   const nextStep = parkedOnly
     ? `<p><a href="/?domain=${escapeHtml(page.domain)}">Return to the operator board</a> — Finalize ready documents for VALIDATED pairs. Parked items stay parked for later.</p>`
     : `<p><a href="/?domain=${escapeHtml(page.domain)}">Operator board</a>

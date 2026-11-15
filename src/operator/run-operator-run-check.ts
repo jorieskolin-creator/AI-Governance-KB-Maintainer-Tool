@@ -658,7 +658,7 @@ assert(!reviewHtml.includes('Delete this blocker'), 'review page must not infer 
 assert(reviewHtml.includes('not domain APPROVED'), 'review save must not grant domain approval');
 assert(reviewHtml.includes('Human pair approval'), 'review save is pair-level human approval');
 assert(reviewHtml.includes('Fix, save and continue'), 'pair review offers Fix, save and continue on the finding');
-assert(reviewHtml.includes('Maintainer, fix this'), 'pair review offers Maintainer, fix this on the finding');
+assert(reviewHtml.includes('KB Document Creator, fix this'), 'pair review offers KB Document Creator, fix this on the finding');
 assert(reviewHtml.includes('Park, fix after the rest is ready'), 'pair review offers Park on the finding');
 assert(!reviewHtml.includes('window.alert'), 'pair review must list focused-check issues on the page, not alert');
 assert(

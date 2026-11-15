@@ -120,10 +120,10 @@ function runActivity(card: OperatorDomainCard): string {
   }
   if (card.documents.available) {
     if (card.review.available && card.review.kind === 'DOMAIN') {
-      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Fix, ask the Maintainer to fix, or Park the pair with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
+      return `<p class="activity">Work order OPEN. Five pairs are VALIDATED, but Domain Coherence listed HIGH defects. Review remaining domain blockers. Fix, ask the KB Document Creator to fix, or Park the pair with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
     }
     if (card.review.available) {
-      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Fix, ask the Maintainer to fix, or Park with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
+      return `<p class="activity">Work order OPEN. Pair artifacts exist, but ${escapeHtml(card.review.pairId)} Pair Coherence did not pass. Review remaining HIGH blockers. Fix, ask the KB Document Creator to fix, or Park with a reason. Parked pairs do not block Continue or READY_FOR_APPROVAL.</p>`;
     }
     if (card.documents.approvalAvailable) {
       return `<p class="activity">Work order READY FOR APPROVAL. Finalize ready documents now. That records hash-bound approval and publishes the VALIDATED pairs. Parked items stay parked for later and are omitted from this release.</p>`;
@@ -244,11 +244,11 @@ function defectList(card: OperatorDomainCard): string {
   const items = uniqueFindings(card.findings ?? []);
   if (!items.length) return '';
   const reviewLink = card.review.available
-    ? `<p><a href="${escapeHtml(card.review.href)}">Open defected object: Fix, Maintainer fix, or Park</a></p>`
+    ? `<p><a href="${escapeHtml(card.review.href)}">Open defected object: Fix, KB Document Creator fix, or Park</a></p>`
     : '';
   return `<section class="defects">
       <p class="kicker">QC defects</p>
-      <p class="meta">Open the defected object to Fix the touched section, ask the Maintainer to fix it, or Park that pair. QC save records dispositions on the current candidate revision. It is not domain APPROVED and does not publish.</p>
+      <p class="meta">Open the defected object to Fix the touched section, ask the KB Document Creator to fix it, or Park that pair. QC save records dispositions on the current candidate revision. It is not domain APPROVED and does not publish.</p>
       <ul>${items
         .map(
           (item) =>
@@ -335,7 +335,7 @@ export function renderOperatorHome(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Governance KB Maintainer</title>
+  <title>KB Document Creator</title>
   <style>
     :root {
       --ink: #16130f;
@@ -569,8 +569,8 @@ export function renderOperatorHome(
   <main class="wrap">
     <header class="hero">
       <p class="kicker">Knowledge production control plane · ${escapeHtml(status.slice)} · ${escapeHtml(status.mode)}</p>
-      <h1>AI Governance KB Maintainer</h1>
-      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the Maintainer to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. Parked pairs do not block Continue or READY_FOR_APPROVAL. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, and identity. Parked pairs stay parked and are omitted from this release. After five pairs actually pass Pair Coherence or are parked, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, Finalize ready documents records hash-bound operator approval for VALIDATED pairs and publishes that release. Parked documents wait to be finalized later.</p>
+      <h1>KB Document Creator</h1>
+      <p class="lede">Models author semantic content only. Code owns structure, IDs, canonical references, validation and persistence identity. Remaining HIGH blockers are a human review/fix loop on the same page: Fix the touched section, ask the KB Document Creator to fix it, or Park that pair. Focused checks cover the section you touched plus its handles and references. Parked pairs do not block Continue or READY_FOR_APPROVAL. VALIDATED, READY_FOR_APPROVAL, and publication still require complete section schemas, locked vocabulary, and identity. Parked pairs stay parked and are omitted from this release. After five pairs actually pass Pair Coherence or are parked, DRAFT documents stay visible with unresolved issues and Continue runs DOMAIN_COHERENCE_REVIEW. When the domain is READY_FOR_APPROVAL, Finalize ready documents records hash-bound operator approval for VALIDATED pairs and publishes that release. Parked documents wait to be finalized later.</p>
       ${notice ? `<p class="notice">${escapeHtml(notice)}</p>` : ''}
       ${
         drift && drift.state !== 'IN_SYNC'

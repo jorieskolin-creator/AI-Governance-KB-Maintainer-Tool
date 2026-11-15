@@ -1,11 +1,11 @@
-# AGENTS.md — AI Governance KB Maintainer
+# AGENTS.md — KB Document Creator
 
 Instructions for AI coding agents (Cursor and others) working in this repository.
 These rules are binding. If a task conflicts with them, stop and ask the owner.
 
-## Document Creator transition — owner direction, 14 November 2026
+## KB Document Creator transition — owner direction, 14 November 2026
 
-For work converting this Maintainer into **Document Creator**, start with
+For work refining **KB Document Creator** to the document-only scope, start with
 [`Next Plan/README.md`](Next%20Plan/README.md) and follow the DC task briefs in
 that folder. This is the owner's revised scope: create reviewed PDF/Markdown
 knowledge documents from supplied inputs and deliver them to agreed storage;
@@ -36,7 +36,7 @@ instructions below.
 
 ## What this project is
 
-The Maintainer is the **lifecycle control plane** for the AI Governance Knowledge Base:
+The legacy implementation is the **lifecycle control plane** for the AI Governance Knowledge Base:
 6 domains (A–F) × 5 capability/anti-pattern pairs = 30 pairs. It maintains governed
 assets (starting with the Source Register) and authors, validates, repairs, approves,
 and publishes pair documents.

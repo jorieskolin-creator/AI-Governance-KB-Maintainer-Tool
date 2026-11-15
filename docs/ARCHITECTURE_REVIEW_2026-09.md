@@ -1,4 +1,4 @@
-# Architecture Review: AI-Governance-KB-Maintainer-Tool
+# Architecture Review: KB Document Creator
 
 **Review date:** 2026-09-21
 **Reviewer role:** Solution Architect assessment (codebase: `main`, as uploaded)
@@ -24,7 +24,7 @@ Your description (condensed): **(1)** author content per capability/anti-pattern
 | 5a. Machine-readable docs → Vercel | ✅ Yes | `src/storage/vercel-blob.ts`, idempotent put-if-absent-or-verify-hash publisher. |
 | 5b. Other documents → **Google Drive** | ❌ Missing | **Zero Google Drive code or config anywhere** (no mention in `src/`, `.env.example`, docs). A stated core requirement is simply absent. |
 | UI: read/validate/fix/update documents | ⚠️ Partially | Server-rendered HTML operator UI (`src/operator/`, 8.7k LOC) with board, candidate documents, pair/domain review, approval review. |
-| UI: **focused** re-verification of only the change | ⚠️ Partially | "Focused check" exists for maintainer fixes, but every edit also creates a new immutable revision that invalidates downstream gates and rebuilds coherence packets — the ceremony is much heavier than "only the change is verified." |
+| UI: **focused** re-verification of only the change | ⚠️ Partially | "Focused check" exists for KB Document Creator fixes, but every edit also creates a new immutable revision that invalidates downstream gates and rebuilds coherence packets — the ceremony is much heavier than "only the change is verified." |
 | Repeat / production-proven | ❌ Not yet | README: *"Treat it as almost ready: run it… Remaining work is test-runs."* The pipeline has never completed a live end-to-end domain run. |
 
 **Net:** the conceptual match to your description is real — this is not the wrong architecture. The problem is the *cost structure* of the implementation, plus one outright gap (Google Drive delivery).
@@ -149,7 +149,7 @@ These were decided in the follow-up discussion and are now fixed inputs to the p
    - **Google Drive = approved mirror + human layer.** Approved asset versions sync to `02 Authorities/`; human-readable pair content publishes to `04 Knowledge Base/A–F/`; reports/manifests go to `05 Operations/`.
    - **Vercel Blob = machine-consumable published content** (canonical JSON, immutable, content-addressed).
    - Operating rules: one-way flow Git → Drive; the tool is the only writer on Drive; append-only versions; hash-bound sync with drift detection; release = dual-write with one manifest; the tool never reads Drive at runtime.
-3. **The Maintainer is the control plane for the whole knowledge base lifecycle** — not just pair authoring. This includes maintaining the **Source Register through the UI** (edit → validate against `source-register.schema.json` → approve → commit to GitHub → sync to Drive). Frozen assets (schemas, ID register, taxonomy) stay Git-PR-only; the Source Register and pair documents are UI-maintainable because they genuinely evolve.
+3. **The KB Document Creator is the control plane for the whole knowledge base lifecycle** — not just pair authoring. This includes maintaining the **Source Register through the UI** (edit → validate against `source-register.schema.json` → approve → commit to GitHub → sync to Drive). Frozen assets (schemas, ID register, taxonomy) stay Git-PR-only; the Source Register and pair documents are UI-maintainable because they genuinely evolve.
 4. **GitHub write-back is easy by design:** one API call per file commit (Contents API), token or GitHub App stored as a deployment secret. The commit history doubles as change history.
 5. **The Source-Register-maintenance slice is the first vertical slice** — it proves the whole skeleton (UI edit → deterministic validation → approval → Git commit → Drive sync → hash verification) with zero AI involvement, before the authoring pipeline is rebuilt on the same bones.
 

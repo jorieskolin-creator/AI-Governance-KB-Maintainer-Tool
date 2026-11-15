@@ -1,5 +1,5 @@
 export const FIX_SAVE_CONTINUE = 'Fix, save and continue';
-export const MAINTAINER_FIX_THIS = 'Maintainer, fix this';
+export const MAINTAINER_FIX_THIS = 'KB Document Creator, fix this';
 export const PARK_FIX_LATER = 'Park, fix after the rest is ready';
 export const DEFAULT_PARK_OWNER = 'EXPERT_REVIEW';
 export const DEFAULT_PARK_REASON = 'This pair waits on an expert. Other pairs can continue.';
@@ -50,7 +50,7 @@ export function renderFindingStatus(input: {
         <p class="meta">Focused check passed. This finding is closed. VALIDATED, READY_FOR_APPROVAL, and publication still require complete schemas, locked vocabulary, identity, and no unresolved parked items.</p>`;
   }
   return `<p class="status-pill open" data-finding-status="OPEN">Needs action</p>
-        <p class="meta">Fix it here, ask the Maintainer to fix it, or Park this pair with a reason. There is no separate Rejected/Resolved status to pick.</p>`;
+        <p class="meta">Fix it here, ask the KB Document Creator to fix it, or Park this pair with a reason. There is no separate Rejected/Resolved status to pick.</p>`;
 }
 
 export function renderFindingActionButtons(input: {
@@ -206,7 +206,7 @@ export function renderReviewClientScript(kind: 'pair' | 'domain'): string {
         var domain = body.domain;
         var pairId = body.pairId;
         var notice = payload.passed
-          ? 'Fixed. Focused check passed. Remaining open findings still need Fix, Maintainer, or Park.'
+          ? 'Fixed. Focused check passed. Remaining open findings still need Fix, KB Document Creator, or Park.'
           : 'Saved. Focused check passed for the touched section. Remaining findings stay open until they are fixed or parked.';
         var url = ${stayOnDomain ? `'/review/' + encodeURIComponent(domain) + '?notice=' + encodeURIComponent(notice)` : `'/review/' + encodeURIComponent(domain) + '/' + encodeURIComponent(pairId) + '?notice=' + encodeURIComponent(notice)`};
         window.location.assign(url);
@@ -256,8 +256,8 @@ export function renderReviewClientScript(kind: 'pair' | 'domain'): string {
           findingId: findingId
         }, function (payload) {
           var notice = payload.coercedPaths && payload.coercedPaths.length
-            ? 'Maintainer fix started on ' + findingId + '. Illegal minimumTechnicalAssurance was coerced to UNKNOWN. Status: Needs action until the focused check passes, or Park it.'
-            : 'Maintainer is fixing ' + findingId + '. Status: Needs action until that fix passes the focused check, or Park it.';
+            ? 'KB Document Creator fix started on ' + findingId + '. Illegal minimumTechnicalAssurance was coerced to UNKNOWN. Status: Needs action until the focused check passes, or Park it.'
+            : 'KB Document Creator is fixing ' + findingId + '. Status: Needs action until that fix passes the focused check, or Park it.';
           var url = ${stayOnDomain ? `'/review/' + encodeURIComponent(domain) + '?notice=' + encodeURIComponent(notice)` : `'/review/' + encodeURIComponent(domain) + '/' + encodeURIComponent(pairId) + '?notice=' + encodeURIComponent(notice)`};
           window.location.assign(url);
         }, findingId);

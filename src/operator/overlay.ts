@@ -329,7 +329,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}/${unpaid.pairId}`,
           pairId: unpaid.pairId,
           kind: 'PAIR' as const,
-          reason: `${unpaid.pairId} Pair Coherence did not pass. On the review page: Fix, save and continue; Maintainer, fix this; or Park this pair. Park is the defer status with a reason. Fix closes the finding after a focused check. There is no Rejected/Resolved picker. BLOCKING findings are not waivable. Illegal locked vocabulary cannot be waived. Saves bind a new candidate revision and are not domain APPROVED.`
+          reason: `${unpaid.pairId} Pair Coherence did not pass. On the review page: Fix, save and continue; KB Document Creator, fix this; or Park this pair. Park is the defer status with a reason. Fix closes the finding after a focused check. There is no Rejected/Resolved picker. BLOCKING findings are not waivable. Illegal locked vocabulary cannot be waived. Saves bind a new candidate revision and are not domain APPROVED.`
         };
       }
       if (domainPassed === false && unparkedBlockingDomainDefects > 0) {
@@ -338,7 +338,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}`,
           pairId: `DOMAIN-${domain}`,
           kind: 'DOMAIN' as const,
-          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. On that page: Fix, save and continue; Maintainer, fix this; or Park the affected pair so other pairs can move. Park is the defer status with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`
+          reason: `Domain ${domain} DOMAIN_COHERENCE_REVIEW has HIGH defects listed. On that page: Fix, save and continue; KB Document Creator, fix this; or Park the affected pair so other pairs can move. Park is the defer status with a reason. A passing Fix closes the finding automatically. Parked pairs do not block Continue or READY_FOR_APPROVAL.`
         };
       }
       const defected = pairs.find((pair) => pair.state === 'REPAIR_REQUIRED');
@@ -348,7 +348,7 @@ export async function loadDomainOverlay(
           href: `/review/${domain}/${defected.pairId}`,
           pairId: defected.pairId,
           kind: 'PAIR' as const,
-          reason: `${defected.pairId} is ${defected.state}. Open the object to Fix, ask the Maintainer to fix it, or Park this pair so the rest can continue.`
+          reason: `${defected.pairId} is ${defected.state}. Open the object to Fix, ask the KB Document Creator to fix it, or Park this pair so the rest can continue.`
         };
       }
       return {

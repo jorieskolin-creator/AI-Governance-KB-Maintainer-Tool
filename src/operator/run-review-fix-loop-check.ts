@@ -95,13 +95,13 @@ const buttons = renderFindingActionButtons({
   commandsEnabled: true
 });
 assert(buttons.includes(FIX_SAVE_CONTINUE), 'finding has Fix, save and continue');
-assert(buttons.includes(MAINTAINER_FIX_THIS), 'finding has Maintainer, fix this');
+assert(buttons.includes(MAINTAINER_FIX_THIS), 'finding has KB Document Creator, fix this');
 assert(buttons.includes(PARK_FIX_LATER), 'finding has Park, fix after the rest is ready');
 assert(buttons.includes('data-finding-action="park"'), 'park is a finding action, not accepted risk');
 assert(buttons.includes('data-pair-id="A2_AP-A2"'), 'park targets this pair/object');
 assert(buttons.includes(DEFAULT_PARK_REASON), 'park reason is pre-filled so one click parks');
-assert(renderFindingActionButtons({ defectId: 'defect_001', pairId: 'A2_AP-A2', commandsEnabled: true, status: 'PARKED' }) === '', 'parked finding hides Fix/Maintainer/Park');
-assert(renderFindingActionButtons({ defectId: 'defect_001', pairId: 'A2_AP-A2', commandsEnabled: true, status: 'FIXED' }) === '', 'fixed finding hides Fix/Maintainer/Park');
+assert(renderFindingActionButtons({ defectId: 'defect_001', pairId: 'A2_AP-A2', commandsEnabled: true, status: 'PARKED' }) === '', 'parked finding hides Fix/KB Document Creator/Park');
+assert(renderFindingActionButtons({ defectId: 'defect_001', pairId: 'A2_AP-A2', commandsEnabled: true, status: 'FIXED' }) === '', 'fixed finding hides Fix/KB Document Creator/Park');
 assert(renderFindingStatus({ status: 'PARKED', parkReason: 'Waiting on legal.' }).includes('data-finding-status="PARKED"'), 'parked status is visible on the finding');
 assert(renderFindingStatus({ status: 'PARKED', parkReason: 'Waiting on legal.' }).includes('Waiting on legal.'), 'parked status shows why');
 assert(renderFindingStatus({ status: 'FIXED' }).includes('data-finding-status="FIXED"'), 'fixed status is visible on the finding');
@@ -137,7 +137,7 @@ assert(!domainScript.includes('window.alert'), 'domain client lists issues on th
 assert(domainScript.includes("action: 'finalize-later'"), 'domain review parks from the finding');
 assert(domainScript.includes("payload.domainReady"), 'domain park returns to the board when the next phase is unlocked');
 assert(domainScript.includes('/?domain='), 'domain park with no remaining blockers leaves the dead-end review page');
-assert(pairScript.includes("action: 'maintainer-fix-finding'"), 'pair review asks Maintainer to fix this finding');
+assert(pairScript.includes("action: 'maintainer-fix-finding'"), 'pair review asks KB Document Creator to fix this finding');
 assert(pairScript.includes('/review/') && pairScript.includes("encodeURIComponent(pairId)"), 'pair park stays on the pair review so Parked is visible');
 assert(domainScript.includes('/review/') && domainScript.includes('?notice='), 'domain park stays on domain review so other findings can move');
 
@@ -146,7 +146,7 @@ process.env.OPERATOR_COMMANDS_ENABLED = 'false';
 await expectThrow(
   () => maintainerFixFinding({ domain: 'A', pairId: 'A1_AP-A1', findingId: 'defect_001' }),
   'disabled',
-  'Maintainer fix is fail-closed when operator commands are disabled'
+  'KB Document Creator fix is fail-closed when operator commands are disabled'
 );
 if (priorFlag === undefined) delete process.env.OPERATOR_COMMANDS_ENABLED;
 else process.env.OPERATOR_COMMANDS_ENABLED = priorFlag;

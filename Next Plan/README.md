@@ -1,4 +1,4 @@
-# Next Plan: Maintainer to Document Creator
+# Next Plan: KB Document Creator scope refinement
 
 Date: 14 November 2026  
 Plan version: 1.1 — Vercel inputs and owner-supplied reference case
@@ -8,17 +8,17 @@ Reviewed starting point: `b02a4bc9ad8507295505134cad42d20dc592fa69`
 
 ## Start here
 
-Refine this repository into **Document Creator**: a focused application that creates source-supported, human-readable knowledge-base documents from a supplied input baseline and stores them in an agreed taxonomy-based structure.
+Refine this repository into **KB Document Creator**: a focused application that creates source-supported, human-readable knowledge-base documents from a supplied input baseline and stores them in an agreed taxonomy-based structure.
 
 The owner has selected a three-tool architecture:
 
 | Tool | Owns | Does not own |
 | --- | --- | --- |
-| Document Creator — this repository | Input validation, source preparation, authoring, document review, targeted correction, rendering, and delivery | Source Register authoring/maintenance, Master Table creation or maintenance, consumer retrieval |
+| KB Document Creator — this repository | Input validation, source preparation, authoring, document review, targeted correction, rendering, and delivery | Source Register authoring/maintenance, Master Table creation or maintenance, consumer retrieval |
 | Master Table Creator — separate tool | Reading an existing document collection and producing a proposed Master Table JSON | Authoring the source documents or silently approving their use |
-| Solution Knowledge Hub — separate tool | Importing and maintaining Master Table JSON, document eligibility, retrieval, Package delivery | Running Document Creator as a prerequisite for retrieval |
+| Solution Knowledge Hub — separate tool | Importing and maintaining Master Table JSON, document eligibility, retrieval, Package delivery | Running KB Document Creator as a prerequisite for retrieval |
 
-The consuming analysis solution reads Packages from its Knowledge Hub. It does not read Document Creator's database or storage directly. These are independent tools with explicit handoffs, not one mandatory execution pipeline.
+The consuming analysis solution reads Packages from its Knowledge Hub. It does not read KB Document Creator's database or storage directly. These are independent tools with explicit handoffs, not one mandatory execution pipeline.
 
 ## Decisions in this plan
 
@@ -46,7 +46,7 @@ The consuming analysis solution reads Packages from its Knowledge Hub. It does n
 
 ## Authority and legacy instructions
 
-This folder records the owner's revised product scope and is the implementation reference for the Document Creator transition. The September Maintainer plan remains historical context, not the specification for this transition. Root `AGENTS.md` contains the routing note that makes this distinction explicit.
+This folder records the owner's revised product scope and is the implementation reference for the KB Document Creator transition. The September lifecycle-control plan remains historical context, not the specification for this transition. Root `AGENTS.md` contains the routing note that makes this distinction explicit.
 
 For Creator tasks, use this README, the contracts, the current DC task brief, and the acceptance matrix together. Where these files conflict, record the discrepancy and resolve it before dependent work; do not silently pick the easier interpretation. User decisions take precedence.
 
@@ -56,6 +56,6 @@ Retain the useful legacy safeguards: no fabricated source support, no model-owne
 
 ## What has and has not happened
 
-This commit supplies a plan and agent routing only. It does not implement Document Creator, migrate production, create a Master Table, or approve any KB content. Proposed filenames, commands, API routes, and data contracts in these documents are implementation targets unless explicitly described as existing.
+This commit supplies a plan and agent routing only. It does not implement KB Document Creator, migrate production, create a Master Table, or approve any KB content. Proposed filenames, commands, API routes, and data contracts in these documents are implementation targets unless explicitly described as existing.
 
 No fixed delivery date is promised. Measure the first fresh pair end to end before estimating the remaining work or scaling the corpus.

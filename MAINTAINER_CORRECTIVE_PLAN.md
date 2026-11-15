@@ -3,7 +3,7 @@
 > `docs/MAINTAINER_IMPLEMENTATION_PLAN.md`; working rules are in `AGENTS.md`.
 > Do not implement from this document.
 
-# Maintainer Corrective Plan
+# KB Document Creator Corrective Plan
 
 ## Objective
 
@@ -146,7 +146,7 @@ Acceptance: approval review presents exactly the bytes and hashes that publicati
 
 ### 8. Separate operator approval from publication
 
-The Maintainer is a standalone operator tool. Standalone operator approval bound to artifact hashes is enough. Do not add enterprise authentication, SSO, or a separate approver identity now.
+The KB Document Creator is a standalone operator tool. Standalone operator approval bound to artifact hashes is enough. Do not add enterprise authentication, SSO, or a separate approver identity now.
 
 Keep two internal operations even if the operator UI uses one button:
 
@@ -228,7 +228,7 @@ Repository-managed Cloud Agent setup should remain deterministic and secret-free
 
 ## Definition of trustworthy
 
-The Maintainer is trustworthy when one complete domain proves:
+The KB Document Creator is trustworthy when one complete domain proves:
 
 1. Source context is sealed and hashed before substantive drafting.
 2. SIR validates without model-authored canonical IDs.

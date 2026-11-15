@@ -2,7 +2,7 @@
 
 ## 1. Owner decisions
 
-- The owner prepares the Vercel storage layout and places input materials there before Document Creator starts generation.
+- The owner prepares the Vercel storage layout and places input materials there before KB Document Creator starts generation.
 - Vercel holds both the runtime inputs and generated documents. Google Drive has no role in this implementation.
 - The first real KB is the owner's Solution Assessment Engine reference case. Supplied materials may use the name Solution Assurance Engine; preserve their actual names, object IDs, and relationships in the configured SAE profile.
 - The owner will share representative materials with Augment Code. Those samples establish the expected input structure and reading behavior. They are development references; the operational application reads the selected Vercel objects.
@@ -13,7 +13,7 @@ This plan does not inventory or judge previously created documentation. Inspect 
 
 ## 2. Responsibility split
 
-| Owner prepares | Augment implements | Document Creator does at runtime |
+| Owner prepares | Augment implements | KB Document Creator does at runtime |
 | --- | --- | --- |
 | Vercel store, access policy, and logical folder/prefix layout | Named connection configuration and scoped adapters | Checks the configured store identity and access |
 | Schemas and document requirements | Schema readers and internal validation | Loads the selected schemas; reports missing or incompatible inputs |

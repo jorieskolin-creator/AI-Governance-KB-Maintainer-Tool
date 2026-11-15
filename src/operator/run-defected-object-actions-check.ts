@@ -66,7 +66,7 @@ assert(!reviewHtml.includes(APPROVE_BUTTON), 'page-level Approve and save is rem
 assert(reviewHtml.includes('data-finding-status="OPEN"'), 'open finding shows Needs action');
 assert(reviewHtml.includes('pair-actions'), 'the four-action set renders under the review');
 assert(reviewHtml.includes('Fix, save and continue'), 'finding offers Fix, save and continue');
-assert(reviewHtml.includes('Maintainer, fix this'), 'finding offers Maintainer, fix this');
+assert(reviewHtml.includes('KB Document Creator, fix this'), 'finding offers KB Document Creator, fix this');
 assert(reviewHtml.includes('Park, fix after the rest is ready'), 'finding offers Park');
 assert(reviewHtml.includes('This pair waits on an expert'), 'park reason is pre-filled so one click parks');
 assert(!reviewHtml.includes('window.alert'), 'failed focused checks stay on the page without alert');
@@ -183,7 +183,7 @@ const domainReviewHtml = renderDomainReviewHtml({
 });
 assert(domainReviewHtml.includes('Park, fix after the rest is ready'), 'domain review parks the affected pair so other pairs can move');
 assert(domainReviewHtml.includes('data-finding-action="fix"'), 'domain review finding has Fix, save and continue');
-assert(domainReviewHtml.includes('data-finding-action="maintainer"'), 'domain review finding has Maintainer, fix this');
+assert(domainReviewHtml.includes('data-finding-action="maintainer"'), 'domain review finding has KB Document Creator, fix this');
 assert(domainReviewHtml.includes('data-pair-id="A2_AP-A2"'), 'domain park targets this pair/object');
 assert(domainReviewHtml.includes('data-finding-status="OPEN"'), 'open domain finding shows Needs action');
 assert(!domainReviewHtml.includes('Disposition for this revision'), 'domain review has no four-way status picker');
