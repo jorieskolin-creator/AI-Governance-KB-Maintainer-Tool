@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai-governance:schema:tactic-catalog:2.1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "catalog_id",
+    "version",
+    "release_status",
+    "approval_record",
+    "mapping_source_of_truth",
+    "authority_boundary",
+    "catalog_rules",
+    "tactics"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/semver"
+    },
+    "catalog_id": {
+      "const": "AI-GOV-TACTIC-CATALOG"
+    },
+    "version": {
+      "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/semver"
+    },
+    "release_status": {
+      "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/releaseStatus"
+    },
+    "approval_record": {
+      "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/approvalRecord"
+    },
+    "mapping_source_of_truth": {
+      "const": "TACTIC_CATALOG"
+    },
+    "authority_boundary": {
+      "type": "string",
+      "minLength": 20
+    },
+    "catalog_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "tactics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "title",
+          "objective",
+          "owners",
+          "activities",
+          "artifacts",
+          "acceptance_criteria",
+          "verification",
+          "eligibility",
+          "do_not_use_when",
+          "reassessment_targets",
+          "completion_rule",
+          "mapping_details",
+          "duplicate_prevention_fingerprint",
+          "release_status",
+          "approval_record"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^GOV-[A-Z]{3}-[0-9]{3}$"
+          },
+          "version": {
+            "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/semver"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 5
+          },
+          "objective": {
+            "type": "string",
+            "minLength": 20
+          },
+          "owners": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "activities": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 10
+            }
+          },
+          "artifacts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 10
+            }
+          },
+          "verification": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "eligibility": {
+            "type": "object",
+            "required": [
+              "lifecycle_stages",
+              "required_context",
+              "runtime_human_authorization_required"
+            ],
+            "properties": {
+              "lifecycle_stages": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/lifecycleStage"
+                }
+              },
+              "required_context": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "runtime_human_authorization_required": {
+                "const": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "do_not_use_when": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "reassessment_targets": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^(AP-)?[A-F][1-5]$"
+            }
+          },
+          "completion_rule": {
+            "type": "string",
+            "pattern": "never|NEVER"
+          },
+          "mapping_details": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/tacticRef"
+            }
+          },
+          "duplicate_prevention_fingerprint": {
+            "type": "object",
+            "required": [
+              "objective",
+              "mechanism_terms",
+              "artifact_classes",
+              "acceptance_signature"
+            ],
+            "properties": {
+              "objective": {
+                "type": "string"
+              },
+              "mechanism_terms": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "artifact_classes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "acceptance_signature": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "release_status": {
+            "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/releaseStatus"
+          },
+          "approval_record": {
+            "$ref": "urn:ai-governance:schema:shared-definitions:2.1.0#/$defs/approvalRecord"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

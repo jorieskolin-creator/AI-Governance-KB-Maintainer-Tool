@@ -1,0 +1,623 @@
+{
+  "schema_version": "2.0.0",
+  "id": "AP-A5",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "AP-A5_ANTIPATTERN_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "ANTIPATTERN",
+  "title": "Prototype-to-production drift",
+  "canonical_definition": "An experiment, pilot or development system accumulates real users, production data or credentials, live integrations, persistent availability or business-critical dependency without a formal lifecycle transition, reassessment and accountable authorization.",
+  "applicability": {
+    "statement": "Applicable to every AI system and to every requested or de facto lifecycle transition, including qualification, development, validation, deployment, operation, material expansion, suspension, rollback and retirement.",
+    "conditions": [
+      "Identify the current lifecycle stage, requested target stage, system scope, environment, users, data, credentials, integrations, autonomy and permitted activities before relying on a stage label.",
+      "Define stage-specific acceptance criteria, required evidence, accountable owners, transition authority, expiry and rollback conditions before progression begins.",
+      "Enforce technical and operational separation between experiments and production, including data, credentials, access, integrations, infrastructure, users and decision consequences.",
+      "Treat accumulated real users, production data, persistent integrations, operational dependency or business-critical reliance as potential de facto progression requiring reassessment and authorization.",
+      "Maintain transition traceability, monitoring, rollback, suspension and retirement capability throughout the lifecycle."
+    ],
+    "exclusions": [
+      "A project-management label, repository branch, environment name or vendor release label does not by itself establish the governed lifecycle stage.",
+      "Completion of development work, a successful demonstration or a model-quality result does not authorize deployment or production operation.",
+      "A temporary exception does not redefine the lifecycle stage unless its scope, authority, expiry, controls and reassessment route are formally approved."
+    ],
+    "reassessment_triggers": [
+      "A new or expanded user group, affected population, customer, decision consequence or business dependency",
+      "Use of production, personal, confidential, regulated or representative operational data in an experiment or test environment",
+      "Introduction of production credentials, privileged access, live integrations, external APIs, automation or autonomous action",
+      "Material scale, availability, performance, cost, security, legal, provider, model, data or architecture change",
+      "Transition criteria, assumptions, evidence or approval expires, is contradicted or is bypassed",
+      "Incident, complaint, monitoring result or audit indicates boundary drift, hidden production use or loss of rollback capability",
+      "Suspension, rollback, redeployment, retirement or transfer to another owner or operating context"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "AP-A5-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Has an experiment or earlier-stage system crossed or obscured its permitted boundary through real users, production data, credentials, integrations, scale, duration or operational dependency?"
+    },
+    {
+      "id": "AP-A5-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Have technical or governance controls allowed a transition, exception or continuing use without predefined criteria, correct authorization, expiry, monitoring or rollback?"
+    },
+    {
+      "id": "AP-A5-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence confirm prototype-to-production drift, or establish tested absence across representative users, data, credentials, integrations, dependencies and lifecycle changes?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-A5-001",
+      "title": "Declared stage compared with observed use and dependency",
+      "claim_supported": "Declared lifecycle status is compared with actual users, data, credentials, integrations, availability, scale, decisions and business reliance.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Uses telemetry, access, data-flow, deployment, integration, service and dependency evidence across the relevant period.",
+        "Identifies every material mismatch between declared stage and observed operation."
+      ],
+      "limitations": [
+        "A project label, owner statement or absence of a formal launch does not establish that the system remains a prototype."
+      ]
+    },
+    {
+      "id": "EVD-AP-A5-002",
+      "title": "Environment, data, credential and access boundary test",
+      "claim_supported": "The experiment-to-production separation is tested for technical and operational bypass paths.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers production data and credentials, privileged access, secrets, live integrations, external users, consequential actions and deployment paths.",
+        "Records successful and failed attempts, configuration evidence and unresolved exposure."
+      ],
+      "limitations": [
+        "A documented policy or nominal environment separation is insufficient without representative control testing."
+      ]
+    },
+    {
+      "id": "EVD-AP-A5-003",
+      "title": "Transition provenance, criteria and approval comparison",
+      "claim_supported": "The actual progression path is compared with predefined acceptance criteria, evidence and the authority assigned to the target stage.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Establishes whether criteria existed before progression and whether every material result and exception was visible to the decision authority.",
+        "Separates development approval, validation sign-off, business sponsorship and deployment authorization."
+      ],
+      "limitations": [
+        "A later ratification does not erase the period of unauthorized progression or establish that the original gate operated effectively."
+      ]
+    },
+    {
+      "id": "EVD-AP-A5-004",
+      "title": "Prototype duration, exception and shadow-dependency history",
+      "claim_supported": "Duration, temporary exceptions, infrastructure ownership, support arrangements and downstream business dependency are traced over time.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Identifies expired exceptions, indefinite pilots, unsupported shadow infrastructure, manual workarounds and systems that became operationally critical.",
+        "Records owners, users, service commitments, incident burden and consequences of withdrawal."
+      ],
+      "limitations": [
+        "Long duration alone is not sufficient when the bounded stage remains current, authorized and effectively controlled."
+      ]
+    },
+    {
+      "id": "EVD-AP-A5-005",
+      "title": "Rollback, suspension and retirement dependency test",
+      "claim_supported": "The system and dependent processes can be suspended, rolled back or retired within approved tolerances.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Exercises representative technical, data, user, integration, continuity and communication dependencies.",
+        "Identifies irreversible reliance, missing alternatives, evidence loss and unacceptable recovery or retirement consequences."
+      ],
+      "limitations": [
+        "Backups, version control or a theoretical manual process do not establish tested reversibility."
+      ]
+    },
+    {
+      "id": "EVD-AP-A5-006",
+      "title": "Independent tested-absence assessment",
+      "claim_supported": "A scoped, current and independently reviewed test covers every AP-A5 failure mechanism and representative de facto progression scenario.",
+      "evidence_class": "EXTERNAL_ATTESTATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Covers observed use, environment and credential separation, transition provenance, duration and exceptions, shadow dependency and rollback or retirement.",
+        "Documents scope, methods, evidence period, negative cases, limitations and reviewer independence."
+      ],
+      "limitations": [
+        "Silence, absence of incident or a single clean sample cannot establish TESTED_ABSENT."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "AP-A5 cannot be confirmed from labels, duration, anecdotes or a single production-like indicator without establishing actual boundary crossing or dependency.",
+      "Observed production data, credentials, users, integrations or consequential actions can support presence findings only when attributable to the assessed system and period.",
+      "TESTED_ABSENT requires the complete absence-test contract; declarations and policy documents alone cannot establish absence.",
+      "A later approval or remediation does not remove historical evidence of drift; it creates new evidence for reassessment."
+    ],
+    "false_positive_guards": [
+      "Do not treat a formally approved bounded pilot with real users as drift when users, data, consequences, duration, monitoring and exit conditions remain within the approved boundary.",
+      "Do not treat non-production infrastructure as production solely because it is persistent or cloud-hosted.",
+      "Do not treat a long-running experiment as drift when the stage, controls, users, data, dependency, review cadence and retirement path remain current and bounded.",
+      "Do not treat emergency constrained use as drift when authority, necessity, scope, expiry, monitoring, rollback and post-event review are demonstrably effective."
+    ],
+    "prohibited_inferences": [
+      "Do not infer drift solely from the words pilot, beta, sandbox, proof of concept, production-like or temporary.",
+      "Do not infer absence because no formal production release, incident or customer complaint exists.",
+      "Do not infer valid authorization from a sponsor, developer, product owner or technical approver unless that role owns the target lifecycle decision.",
+      "Do not infer rollback capability from backups or source control without a dependency-aware exercise.",
+      "Do not clear a finding because a transition dossier or remediation plan is being prepared."
+    ],
+    "contradiction_handling": [
+      "Observed real users, production data or credentials, live integrations, availability or business dependency override a stale prototype declaration.",
+      "Conflicting evidence about users, data, credentials or approvals keeps the affected mechanism UNKNOWN until reconciled; apply the more restrictive operating boundary meanwhile.",
+      "A post-hoc approval is recorded separately from the unauthorized period and does not erase the original control failure.",
+      "When production dependency exists but formal ownership is absent, assess both drift and responsibility ambiguity without collapsing their distinct findings."
+    ],
+    "freshness_rules": [
+      "Use telemetry, access, integration and dependency evidence current for the assessed period and target lifecycle decision.",
+      "Repeat the absence test after material changes to users, data, credentials, integrations, availability, scale, ownership or business dependency.",
+      "Expired exceptions or approvals are not current evidence of a bounded stage.",
+      "Rollback and retirement evidence must be refreshed after downstream dependency or continuity arrangements change."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block or isolate an experiment that uses production data, credentials, live integrations, real consequential users or autonomous actions outside an approved controlled path.",
+      "Block continued expansion when an indefinite prototype or shadow service has become operationally or business critical without reassessment, ownership and transition authorization.",
+      "Block reliance on development, validation or sponsor approval as a substitute for the target-stage authority.",
+      "Block or constrain operation when transition criteria were bypassed, retrofitted or remain failed, conflicting or UNKNOWN.",
+      "Require controlled suspension, rollback, formal transition or retirement when drift is confirmed and the current boundary cannot be restored."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_SYSTEM_RISK_BUSINESS_CHANGE_AND_COMPLIANCE_AUTHORITIES"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-AP-A5-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Recital 65; Articles 9, 17, 25, 43 and 72",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Continuous lifecycle risk management, quality and change control, substantial-modification responsibilities, conformity decisions and post-market monitoring provide authoritative tests against unreviewed progression and stale lifecycle assumptions.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-A5-NIST-AI-RMF-001",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023",
+      "exact_locator": "AI RMF Core GOVERN 1.4-1.7 and 2.3; MAP 1.1; MANAGE 1.1 and 4.1; Effectiveness section on explicit go/no-go commissioning and deployment decisions",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Provides lifecycle-wide governance, inventory, monitoring, accountable go/no-go decisions, decommissioning and change-response expectations that expose de facto production drift and missing transition control.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-A5-NCSC-CISA-001",
+      "source_id": "SRC-NCSC-CISA-SECURE-AI",
+      "source_version_or_date": "November 2023",
+      "exact_locator": "Secure development; Secure deployment - secure infrastructure and release AI responsibly; Secure operation and maintenance - monitor system behaviour and inputs and follow secure update practices",
+      "relationship": "GOVERNMENT_TECHNICAL_GUIDANCE",
+      "category_rationale": "Supports testing of environment segregation, access controls, responsible release, operational monitoring and update management when an experiment acquires production-like exposure or dependency.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-A5-001",
+      "title": "Experiment has acquired unapproved production users, data, credentials, integrations or consequential actions",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A5-AT-001",
+        "AP-A5-AT-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A5-001",
+        "EVD-AP-A5-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Immediately isolate or constrain the affected paths and require accountable lifecycle reassessment before continued use.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A5-002",
+      "title": "Temporary prototype or shadow service has become indefinite or business critical without formal transition",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A5-AT-003",
+        "AP-A5-AT-004"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A5-001",
+        "EVD-AP-A5-004"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Require formal ownership, transition decision, support and continuity controls or controlled retirement; block further dependency growth.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A5-003",
+      "title": "Development, validation or sponsor approval is being used as deployment or operation authorization",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A5-AT-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A5-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Treat progression as unauthorized until the correct authority reviews the exact version, scope, evidence, conditions and residual risk.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A5-004",
+      "title": "Transition criteria or evidence were bypassed, retrofitted, waived or left unresolved",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A5-AT-006",
+        "AP-A5-AT-007"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A5-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block or constrain the target-stage use and require criterion-level reassessment, exception governance and independent challenge.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A5-005",
+      "title": "Prototype-to-production dependency cannot be safely suspended, rolled back or retired",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A5-AT-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A5-004",
+        "EVD-AP-A5-005"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain continued reliance, reduce irreversible dependency and establish tested continuity, rollback or retirement before expansion.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A5-006",
+      "title": "Absence of prototype-to-production drift is not established by a scoped current test",
+      "eligible_conclusion_states": [
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A5-AT-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A5-006"
+      ],
+      "default_severity": "MEDIUM",
+      "lifecycle_consequence": "Retain UNKNOWN and do not claim TESTED_ABSENT until the complete absence-test contract passes.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-001-FND-AP-A5-002-003",
+      "tactic_id": "GOV-LIF-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-001-FND-AP-A5-003-004",
+      "tactic_id": "GOV-LIF-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-002-FND-AP-A5-001-002",
+      "tactic_id": "GOV-LIF-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-003-FND-AP-A5-003-003",
+      "tactic_id": "GOV-LIF-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-003-FND-AP-A5-004-004",
+      "tactic_id": "GOV-LIF-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-004-FND-AP-A5-002-002",
+      "tactic_id": "GOV-LIF-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-004-FND-AP-A5-005-003",
+      "tactic_id": "GOV-LIF-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A5-GOV-LIF-004-FND-AP-A5-006-004",
+      "tactic_id": "GOV-LIF-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A5-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract declared stage, users, data, credentials, integrations, availability, scale, approvals, exceptions, telemetry, dependencies and rollback evidence.",
+      "Compare declared and observed operation, identify mismatch and apply deterministic evidence ceilings.",
+      "Propose eligible presence or UNKNOWN states for accountable human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Declare a system production, non-production, authorized or safe to continue solely from labels or automated evidence.",
+      "Treat later remediation or approval as erasing historical drift.",
+      "Approve an exception, waive criteria, accept residual risk or select a target lifecycle stage.",
+      "Clear a hard gate, lock a finding or authorize suspension, rollback, transition, continued operation or retirement."
+    ],
+    "human_authority_required_for": [
+      "Determine whether observed use constitutes de facto progression or a controlled bounded pilot.",
+      "Adjudicate conflicting operational, approval and dependency evidence.",
+      "Lock presence or absence findings and decide immediate containment, transition, rollback or retirement.",
+      "Approve bounded exceptions, expiry, monitoring and residual risk.",
+      "Authorize the exact lifecycle transition and operating scope."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "AP-A1",
+    "AP-A2",
+    "AP-A3",
+    "AP-A4",
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "E1",
+    "E3",
+    "E4",
+    "F1",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "failure_mechanism": "A system is still described as an experiment while its actual users, data, credentials, integrations, availability, duration or business dependency cross the approved stage boundary. AP-A1 concerns elastic purpose; AP-A2 concerns unsupported value or proportionality; AP-A3 concerns responsibility displacement; AP-A4 concerns superficial or stale classification. AP-A5 specifically owns unauthorized or de facto lifecycle progression and loss of transition, rollback or retirement control.",
+  "atomic_tests": [
+    {
+      "id": "AP-A5-AT-001",
+      "question_id": "AP-A5-Q1",
+      "test": "Test whether real external or consequential internal users rely on an experiment beyond the approved pilot population, scope or decision consequence.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-001"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-002",
+      "question_id": "AP-A5-Q1",
+      "test": "Test whether production, personal, confidential or regulated data, production credentials, privileged access, live integrations or consequential actions enter an earlier-stage environment without an approved controlled path.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-001",
+        "EVD-AP-A5-002"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-003",
+      "question_id": "AP-A5-Q1",
+      "test": "Test whether a temporary prototype, pilot or exception continues beyond its approved duration, scope, owner, review date or exit condition.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-004",
+      "question_id": "AP-A5-Q1",
+      "test": "Test whether shadow infrastructure, manual support or downstream process dependency has made the system operationally or business critical without formal ownership and transition.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-001",
+        "EVD-AP-A5-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-005",
+      "question_id": "AP-A5-Q2",
+      "test": "Test whether development completion, technical validation, funding, sponsorship, customer interest or another lower-authority decision is treated as authorization for deployment or operation.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-A5-AT-006",
+      "question_id": "AP-A5-Q2",
+      "test": "Test whether transition acceptance criteria were absent, changed retrospectively, selectively evidenced or waived after progression began.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-007",
+      "question_id": "AP-A5-Q2",
+      "test": "Test whether failed, conflicting or unknown transition criteria, expired exceptions or missing independent review failed to constrain progression or continued use.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-A5-AT-008",
+      "question_id": "AP-A5-Q3",
+      "test": "Test whether business or technical dependency prevents safe suspension, rollback, bypass or retirement within approved tolerances.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-004",
+        "EVD-AP-A5-005"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-009",
+      "question_id": "AP-A5-Q3",
+      "test": "Test whether a current, scoped, successful and independently verified absence assessment covers every AP-A5 failure mechanism and representative de facto progression scenario.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Current declared-stage and observed-use comparison",
+      "Environment, data, credential, access and integration boundary test",
+      "Transition criteria, evidence and approval provenance sample",
+      "Prototype duration, exception and shadow-dependency history",
+      "Rollback, suspension and retirement dependency test",
+      "Representative de facto progression negative cases",
+      "Independent absence-test review and approval"
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

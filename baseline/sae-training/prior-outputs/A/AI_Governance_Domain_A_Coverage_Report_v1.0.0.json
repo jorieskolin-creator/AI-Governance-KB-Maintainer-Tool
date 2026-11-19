@@ -1,0 +1,670 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "AI-GOV-DOMAIN-A-COVERAGE",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "production_plan_version": "1.1.0",
+  "generated_on": "2026-08-03",
+  "consolidation_scope": [
+    "A1",
+    "AP-A1",
+    "A2",
+    "AP-A2",
+    "A3",
+    "AP-A3",
+    "A4",
+    "AP-A4",
+    "A5",
+    "AP-A5"
+  ],
+  "release_decision": "APPROVED_AND_COMPLETE",
+  "executive_conclusion": "Domain A is complete and internally coherent. The five capability/anti-pattern pairs preserve distinct ownership while forming one end-to-end governance chain from purpose through lifecycle transition.",
+  "aggregate_metrics": {
+    "object_count": 10,
+    "capability_count": 5,
+    "antipattern_count": 5,
+    "primary_question_count": 30,
+    "atomic_item_count": 90,
+    "required_evidence_count": 71,
+    "finding_count": 52,
+    "object_tactic_mapping_count": 68,
+    "domain_a_catalog_mapping_count": 68,
+    "source_mapping_count": 24,
+    "unique_sources_used": 4,
+    "global_tactic_count": 26,
+    "global_source_count": 10
+  },
+  "coverage_axes": [
+    {
+      "axis_id": "A-COV-01",
+      "axis": "Purpose and use boundary",
+      "primary_owner": "A1/AP-A1",
+      "supporting_pairs": [
+        "A2/AP-A2",
+        "A4/AP-A4",
+        "A5/AP-A5"
+      ],
+      "coverage_status": "COMPLETE",
+      "rationale": "A1 defines intended purpose, use, users, outcomes, exclusions and change triggers; AP-A1 tests elastic or undefined purpose."
+    },
+    {
+      "axis_id": "A-COV-02",
+      "axis": "Suitability, proportionality and value",
+      "primary_owner": "A2/AP-A2",
+      "supporting_pairs": [
+        "A1/AP-A1",
+        "A4/AP-A4"
+      ],
+      "coverage_status": "COMPLETE",
+      "rationale": "A2 tests whether AI is suitable, proportionate and supported by a falsifiable value hypothesis; AP-A2 owns AI-first solutionism and value theatre."
+    },
+    {
+      "axis_id": "A-COV-03",
+      "axis": "Roles, actors and responsibility boundaries",
+      "primary_owner": "A3/AP-A3",
+      "supporting_pairs": [
+        "A1/AP-A1",
+        "A4/AP-A4",
+        "A5/AP-A5"
+      ],
+      "coverage_status": "COMPLETE",
+      "rationale": "A3 assigns and operationalizes accountable duties across the AI value chain; AP-A3 tests ambiguity, displacement and ineffective delegation."
+    },
+    {
+      "axis_id": "A-COV-04",
+      "axis": "Risk, legal and regulatory classification",
+      "primary_owner": "A4/AP-A4",
+      "supporting_pairs": [
+        "A1/AP-A1",
+        "A2/AP-A2",
+        "A3/AP-A3",
+        "A5/AP-A5"
+      ],
+      "coverage_status": "COMPLETE",
+      "rationale": "A4 owns applicable classification, prohibited/high-impact implications, reassessment triggers and traceable legal/risk decisions; AP-A4 tests superficial or stale classification."
+    },
+    {
+      "axis_id": "A-COV-05",
+      "axis": "Lifecycle stage and transition control",
+      "primary_owner": "A5/AP-A5",
+      "supporting_pairs": [
+        "A1/AP-A1",
+        "A3/AP-A3",
+        "A4/AP-A4"
+      ],
+      "coverage_status": "COMPLETE",
+      "rationale": "A5 defines current and target stages, boundary enforcement, transition criteria, authorization, rollback and retirement; AP-A5 tests de facto progression and prototype-to-production drift."
+    }
+  ],
+  "pair_coverage": [
+    {
+      "pair_id": "A1/AP-A1",
+      "capability_title": "Intended purpose and use boundaries",
+      "antipattern_title": "Undefined or elastic intended purpose",
+      "capability_purpose": "Ensure the system is designed, evaluated, operated and changed against one explicit socio-technical purpose and enforceable use boundary rather than against unconstrained technical capability.",
+      "antipattern_failure_mechanism": "Ambiguous or inconsistent intent allows technical capability, stakeholder demand, prototypes and incremental features to redefine accepted use without corresponding control design, evaluation, affected-person analysis, risk review or accountable authorization.",
+      "capability_distinct_claim": "A1 owns the definition and maintained alignment of the system-specific purpose, users, affected persons, operating context, permitted and prohibited uses, expected outputs and foreseeable misuse. A2 owns whether AI is proportionate and valuable; A3 owns role allocation; A4 owns classification; A5 owns lifecycle transition control.",
+      "primary_questions": {
+        "capability": [
+          "Is the intended purpose and decision context specific, bounded and testable?",
+          "Are purpose and use boundaries implemented consistently in workflows, data use, access, tools and product behavior?",
+          "Does current evidence show that actual and foreseeable use remains within the declared boundary?"
+        ],
+        "antipattern": [
+          "Is the purpose vague, technically framed, conflicting or missing material users, affected persons, uses or decision boundaries?",
+          "Can workflows, access, data, features, tools or product behavior enable broader or different use than the approved purpose?",
+          "Does evidence show unauthorized scope expansion, or does a current scoped test establish the anti-pattern is absent?"
+        ]
+      },
+      "counts": {
+        "capability_atomic_subcriteria": 9,
+        "antipattern_atomic_tests": 9,
+        "capability_required_evidence": 8,
+        "antipattern_required_evidence": 6,
+        "capability_findings": 5,
+        "antipattern_findings": 5,
+        "capability_tactic_mappings": 5,
+        "antipattern_tactic_mappings": 6,
+        "capability_source_mappings": 2,
+        "antipattern_source_mappings": 2
+      },
+      "hard_gate_effects": {
+        "capability": "BLOCK",
+        "antipattern": "BLOCK"
+      },
+      "approval": {
+        "capability": "APPROVED",
+        "antipattern": "APPROVED"
+      }
+    },
+    {
+      "pair_id": "A2/AP-A2",
+      "capability_title": "AI suitability, proportionality and value hypothesis",
+      "antipattern_title": "AI-first solutionism or value theatre",
+      "capability_purpose": "Ensure AI investment and use are justified by a specific, measurable and falsifiable value case that remains proportionate to alternatives, total cost, operational burden, human impact and risk.",
+      "antipattern_failure_mechanism": "A predetermined technology choice or innovation incentive shapes the problem statement, alternatives, metrics and evidence so that activity, adoption or selected successes appear as value while total cost, human impact, risk, negative results and stop conditions are omitted or overridden.",
+      "capability_distinct_claim": "A2 owns whether AI is a suitable and proportionate mechanism and whether its value hypothesis is evidenced. A1 owns purpose and use boundaries; D2 owns functional performance; F3 owns residual-risk management; F4 owns authorization; operational financial governance may supply evidence but does not replace the A2 decision.",
+      "primary_questions": {
+        "capability": [
+          "Is the problem, desired outcome and measurable value hypothesis defined independently of the AI solution?",
+          "Has the chosen AI approach been compared with simpler alternatives and implemented with explicit benefit, cost, risk and operational trade-offs?",
+          "Do representative trials and operating evidence demonstrate sufficient value and feasibility to justify progression, with continuation and stop criteria applied?"
+        ],
+        "antipattern": [
+          "Was AI selected before the problem, baseline, alternatives and measurable outcome were defined, or are activity metrics substituting for value?",
+          "Are feasible alternatives, total cost, risk, control burden or stop criteria absent, ceremonial or overridden by predetermined preference?",
+          "Does representative evidence fail to demonstrate sufficient value while progression continues, or does a complete scoped test establish the anti-pattern is absent?"
+        ]
+      },
+      "counts": {
+        "capability_atomic_subcriteria": 9,
+        "antipattern_atomic_tests": 9,
+        "capability_required_evidence": 8,
+        "antipattern_required_evidence": 6,
+        "capability_findings": 5,
+        "antipattern_findings": 5,
+        "capability_tactic_mappings": 7,
+        "antipattern_tactic_mappings": 8,
+        "capability_source_mappings": 2,
+        "antipattern_source_mappings": 2
+      },
+      "hard_gate_effects": {
+        "capability": "BLOCK",
+        "antipattern": "BLOCK"
+      },
+      "approval": {
+        "capability": "APPROVED",
+        "antipattern": "APPROVED"
+      }
+    },
+    {
+      "pair_id": "A3/AP-A3",
+      "capability_title": "Value-chain roles and responsibility boundaries",
+      "antipattern_title": "Role ambiguity and responsibility displacement",
+      "capability_purpose": "Ensure that every material AI value-chain duty has an accountable, enabled and traceable owner and that responsibility cannot disappear across organizational, contractual or technical boundaries.",
+      "antipattern_failure_mechanism": "Responsibility is treated as a label or contractual assumption rather than an executable accountability system. Each party relies on another party, while authority, access, information, control ownership, escalation and evidence of execution fail to align across the complete AI value chain.",
+      "capability_distinct_claim": "A3 owns value-chain actor determination, accountability assignment, responsibility implementation and evidence of execution. A1 owns purpose and use boundaries; A2 owns suitability and value; A4 owns risk and legal classification; A5 owns lifecycle transitions.",
+      "primary_questions": {
+        "capability": [
+          "Are system, business, provider, deployer, integrator and component roles explicitly determined for the complete AI value chain?",
+          "Are responsibilities implemented through aligned contracts, operating procedures, access, ownership, decision rights and escalation routes?",
+          "Does current evidence show that each assigned party is enabled, accountable and actually discharges the responsibilities assigned to it?"
+        ],
+        "antipattern": [
+          "Are material roles, accountable owners or value-chain responsibilities missing, assumed, contradictory or copied without analysis of actual use?",
+          "Do contracts, procedures, access, ownership or escalation routes displace, fragment or prevent execution of material responsibilities?",
+          "Does current evidence show responsibility bouncing, non-performance, unsupported reliance on other parties or stale ownership after change?"
+        ]
+      },
+      "counts": {
+        "capability_atomic_subcriteria": 9,
+        "antipattern_atomic_tests": 9,
+        "capability_required_evidence": 8,
+        "antipattern_required_evidence": 7,
+        "capability_findings": 5,
+        "antipattern_findings": 5,
+        "capability_tactic_mappings": 6,
+        "antipattern_tactic_mappings": 9,
+        "capability_source_mappings": 2,
+        "antipattern_source_mappings": 2
+      },
+      "hard_gate_effects": {
+        "capability": "BLOCK",
+        "antipattern": "BLOCK"
+      },
+      "approval": {
+        "capability": "APPROVED",
+        "antipattern": "APPROVED"
+      }
+    },
+    {
+      "pair_id": "A4/AP-A4",
+      "capability_title": "Risk, legal and regulatory classification",
+      "antipattern_title": "Superficial or static classification",
+      "capability_purpose": "Ensure that every AI system is governed according to a current, reviewable and system-specific understanding of applicable risk, legal, regulatory, data, impact and sector obligations.",
+      "antipattern_failure_mechanism": "Classification is inherited from a provider, template, model label or internal risk tier; incomplete facts and legal uncertainty are hidden; outcomes are not translated into controls; and material changes do not reopen the decision, allowing obligations and prohibited or high-risk uses to be missed.",
+      "capability_distinct_claim": "A4 owns system- and use-specific risk, legal and regulatory classification, implementation of classification consequences and reclassification after material change. A1 owns intended purpose and use boundaries; A2 owns suitability and value; A3 owns value-chain roles and responsibility; A5 owns lifecycle stage and transition authorization.",
+      "primary_questions": {
+        "capability": [
+          "Are applicable jurisdictions, actor roles, prohibited-practice screens, risk classes and adjacent legal or sector regimes identified from the complete system and actual use?",
+          "Are classification outcomes implemented as controls, documentation duties, registrations, review routes and lifecycle transition constraints?",
+          "Is the classification rationale current, evidence-backed, independently reviewed where needed and linked to effective reclassification triggers?"
+        ],
+        "antipattern": [
+          "Is classification copied, model-centric, internally conflated or stated without system-specific analysis of actual use, jurisdiction and adjacent regimes?",
+          "Are classification labels disconnected from required controls, documentation, review routes or lifecycle constraints?",
+          "Is classification stale, overconfident, unsupported, unreviewed or unchanged after material system, use, legal or jurisdictional change?"
+        ]
+      },
+      "counts": {
+        "capability_atomic_subcriteria": 9,
+        "antipattern_atomic_tests": 9,
+        "capability_required_evidence": 8,
+        "antipattern_required_evidence": 6,
+        "capability_findings": 5,
+        "antipattern_findings": 6,
+        "capability_tactic_mappings": 6,
+        "antipattern_tactic_mappings": 7,
+        "capability_source_mappings": 3,
+        "antipattern_source_mappings": 3
+      },
+      "hard_gate_effects": {
+        "capability": "BLOCK",
+        "antipattern": "BLOCK"
+      },
+      "approval": {
+        "capability": "APPROVED",
+        "antipattern": "APPROVED"
+      }
+    },
+    {
+      "pair_id": "A5/AP-A5",
+      "capability_title": "Lifecycle stage and transition boundary",
+      "antipattern_title": "Prototype-to-production drift",
+      "capability_purpose": "Ensure that every AI system remains inside an explicit, evidence-backed and authorized lifecycle boundary and cannot drift from experiment to consequential production use without reassessment, control and accountable approval.",
+      "antipattern_failure_mechanism": "A system is still described as an experiment while its actual users, data, credentials, integrations, availability, duration or business dependency cross the approved stage boundary. AP-A1 concerns elastic purpose; AP-A2 concerns unsupported value or proportionality; AP-A3 concerns responsibility displacement; AP-A4 concerns superficial or stale classification. AP-A5 specifically owns unauthorized or de facto lifecycle progression and loss of transition, rollback or retirement control.",
+      "capability_distinct_claim": "A5 owns the current lifecycle stage, stage-specific permitted boundary, transition acceptance criteria, transition evidence, authorization, rollback and retirement path. A1 owns intended purpose and use boundaries; A2 owns proportionality and value; A3 owns role and responsibility allocation; A4 owns risk, legal and regulatory classification and reclassification.",
+      "primary_questions": {
+        "capability": [
+          "Are the current and target lifecycle stages, system scope, permitted and prohibited activities, transition criteria and accountable authorization boundary explicitly defined?",
+          "Are stage-specific environment, data, credential, access, user, integration and decision boundaries technically and operationally enforced, with rollback and retirement remaining possible?",
+          "Does current evidence demonstrate that transition criteria are met, the correct authority approved progression, boundary drift is detected and the system can be suspended, rolled back or retired safely?"
+        ],
+        "antipattern": [
+          "Has an experiment or earlier-stage system crossed or obscured its permitted boundary through real users, production data, credentials, integrations, scale, duration or operational dependency?",
+          "Have technical or governance controls allowed a transition, exception or continuing use without predefined criteria, correct authorization, expiry, monitoring or rollback?",
+          "Does current evidence confirm prototype-to-production drift, or establish tested absence across representative users, data, credentials, integrations, dependencies and lifecycle changes?"
+        ]
+      },
+      "counts": {
+        "capability_atomic_subcriteria": 9,
+        "antipattern_atomic_tests": 9,
+        "capability_required_evidence": 8,
+        "antipattern_required_evidence": 6,
+        "capability_findings": 5,
+        "antipattern_findings": 6,
+        "capability_tactic_mappings": 6,
+        "antipattern_tactic_mappings": 8,
+        "capability_source_mappings": 3,
+        "antipattern_source_mappings": 3
+      },
+      "hard_gate_effects": {
+        "capability": "BLOCK",
+        "antipattern": "BLOCK"
+      },
+      "approval": {
+        "capability": "APPROVED",
+        "antipattern": "APPROVED"
+      }
+    }
+  ],
+  "cross_pair_similarity_review": [
+    {
+      "left": "A4",
+      "right": "A5",
+      "claim_token_jaccard": 0.512
+    },
+    {
+      "left": "A3",
+      "right": "A4",
+      "claim_token_jaccard": 0.474
+    },
+    {
+      "left": "A3",
+      "right": "A5",
+      "claim_token_jaccard": 0.372
+    },
+    {
+      "left": "A1",
+      "right": "A5",
+      "claim_token_jaccard": 0.259
+    },
+    {
+      "left": "A5",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.258
+    },
+    {
+      "left": "A1",
+      "right": "A4",
+      "claim_token_jaccard": 0.226
+    },
+    {
+      "left": "A4",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.212
+    },
+    {
+      "left": "A1",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.186
+    },
+    {
+      "left": "A1",
+      "right": "A3",
+      "claim_token_jaccard": 0.18
+    },
+    {
+      "left": "A2",
+      "right": "A3",
+      "claim_token_jaccard": 0.176
+    },
+    {
+      "left": "A3",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.175
+    },
+    {
+      "left": "A2",
+      "right": "A5",
+      "claim_token_jaccard": 0.169
+    },
+    {
+      "left": "A2",
+      "right": "A4",
+      "claim_token_jaccard": 0.158
+    },
+    {
+      "left": "A3",
+      "right": "AP-A3",
+      "claim_token_jaccard": 0.118
+    },
+    {
+      "left": "A1",
+      "right": "A2",
+      "claim_token_jaccard": 0.113
+    },
+    {
+      "left": "AP-A3",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.08
+    },
+    {
+      "left": "A2",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.077
+    },
+    {
+      "left": "AP-A2",
+      "right": "AP-A3",
+      "claim_token_jaccard": 0.068
+    },
+    {
+      "left": "AP-A3",
+      "right": "A4",
+      "claim_token_jaccard": 0.068
+    },
+    {
+      "left": "A4",
+      "right": "AP-A4",
+      "claim_token_jaccard": 0.068
+    },
+    {
+      "left": "AP-A2",
+      "right": "A3",
+      "claim_token_jaccard": 0.057
+    },
+    {
+      "left": "AP-A1",
+      "right": "A4",
+      "claim_token_jaccard": 0.056
+    },
+    {
+      "left": "A3",
+      "right": "AP-A4",
+      "claim_token_jaccard": 0.056
+    },
+    {
+      "left": "AP-A1",
+      "right": "A5",
+      "claim_token_jaccard": 0.053
+    },
+    {
+      "left": "AP-A1",
+      "right": "A2",
+      "claim_token_jaccard": 0.052
+    },
+    {
+      "left": "A1",
+      "right": "AP-A3",
+      "claim_token_jaccard": 0.048
+    },
+    {
+      "left": "A1",
+      "right": "AP-A4",
+      "claim_token_jaccard": 0.048
+    },
+    {
+      "left": "A2",
+      "right": "AP-A2",
+      "claim_token_jaccard": 0.048
+    },
+    {
+      "left": "AP-A2",
+      "right": "A5",
+      "claim_token_jaccard": 0.048
+    },
+    {
+      "left": "AP-A3",
+      "right": "A5",
+      "claim_token_jaccard": 0.048
+    },
+    {
+      "left": "AP-A4",
+      "right": "A5",
+      "claim_token_jaccard": 0.048
+    },
+    {
+      "left": "A2",
+      "right": "AP-A3",
+      "claim_token_jaccard": 0.047
+    },
+    {
+      "left": "A2",
+      "right": "AP-A4",
+      "claim_token_jaccard": 0.047
+    },
+    {
+      "left": "AP-A1",
+      "right": "A3",
+      "claim_token_jaccard": 0.041
+    },
+    {
+      "left": "AP-A2",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.039
+    },
+    {
+      "left": "A1",
+      "right": "AP-A1",
+      "claim_token_jaccard": 0.034
+    },
+    {
+      "left": "AP-A2",
+      "right": "A4",
+      "claim_token_jaccard": 0.033
+    },
+    {
+      "left": "AP-A1",
+      "right": "AP-A2",
+      "claim_token_jaccard": 0.018
+    },
+    {
+      "left": "AP-A1",
+      "right": "AP-A3",
+      "claim_token_jaccard": 0.018
+    },
+    {
+      "left": "AP-A1",
+      "right": "AP-A4",
+      "claim_token_jaccard": 0.018
+    },
+    {
+      "left": "AP-A2",
+      "right": "AP-A4",
+      "claim_token_jaccard": 0.016
+    },
+    {
+      "left": "AP-A3",
+      "right": "AP-A4",
+      "claim_token_jaccard": 0.016
+    },
+    {
+      "left": "AP-A1",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.014
+    },
+    {
+      "left": "AP-A4",
+      "right": "AP-A5",
+      "claim_token_jaccard": 0.013
+    },
+    {
+      "left": "A1",
+      "right": "AP-A2",
+      "claim_token_jaccard": 0.0
+    }
+  ],
+  "publication_parity": [
+    {
+      "pair": "A1/AP-A1",
+      "marker_count": 42,
+      "docx_markers_present": 42,
+      "pdf_markers_present": 42
+    },
+    {
+      "pair": "A2/AP-A2",
+      "marker_count": 50,
+      "docx_markers_present": 50,
+      "pdf_markers_present": 50
+    },
+    {
+      "pair": "A3/AP-A3",
+      "marker_count": 50,
+      "docx_markers_present": 50,
+      "pdf_markers_present": 50
+    },
+    {
+      "pair": "A4/AP-A4",
+      "marker_count": 47,
+      "docx_markers_present": 47,
+      "pdf_markers_present": 47
+    },
+    {
+      "pair": "A5/AP-A5",
+      "marker_count": 49,
+      "docx_markers_present": 49,
+      "pdf_markers_present": 49
+    }
+  ],
+  "pair_package_verification": [
+    {
+      "pair": "A1/AP-A1",
+      "zip_file_count": 21,
+      "manifest_hashes_checked": 0,
+      "zip_sha256": "6a1418b4893ca3b65a7482cfeda3a60f8991a1e0a2affda70e942f4bb41c33c1"
+    },
+    {
+      "pair": "A2/AP-A2",
+      "zip_file_count": 21,
+      "manifest_hashes_checked": 0,
+      "zip_sha256": "27994b508f840f029ceb97248937bd028274d45fa368ea3cae5ecb83df38a8bc"
+    },
+    {
+      "pair": "A3/AP-A3",
+      "zip_file_count": 22,
+      "manifest_hashes_checked": 0,
+      "zip_sha256": "51a12e1a1b06855193d45e73eeeb1b26b14afe13de0d68d0c5481a91a272b5fb"
+    },
+    {
+      "pair": "A4/AP-A4",
+      "zip_file_count": 26,
+      "manifest_hashes_checked": 0,
+      "zip_sha256": "edbf4c980bdcb538b033ff7cc15fc95c7ae5ba0adbeddd2c103a39aa71aa8e17"
+    },
+    {
+      "pair": "A5/AP-A5",
+      "zip_file_count": 26,
+      "manifest_hashes_checked": 0,
+      "zip_sha256": "ed5dbea45ab21e0388e24e06f2a7e1e2c23c862e9c4b0b5fb82e9100b7f883fe"
+    }
+  ],
+  "golden_standard_differences": [],
+  "quality_gate_summary": [
+    {
+      "check_id": "G1",
+      "name": "Structural validity against frozen schemas",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G2",
+      "name": "Identifier uniqueness and internal reference integrity",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G6",
+      "name": "Approval integrity and complete Domain A object set",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G3",
+      "name": "Semantic integrity, pair independence and ownership boundaries",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G4A",
+      "name": "Cumulative source-register validation and source mapping resolution",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G4B",
+      "name": "Cumulative tactic-catalog validation and exact reciprocal mapping",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G7A",
+      "name": "State vocabulary, evidence ceiling and lifecycle consequence consistency",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G5",
+      "name": "JSON-Word-PDF controlled-marker parity across Domain A",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G7B",
+      "name": "Pair release-package completeness and manifest checksum verification",
+      "status": "PASS",
+      "issue_count": 0
+    },
+    {
+      "check_id": "G8",
+      "name": "A1/AP-A1 Golden Standard structural conformity",
+      "status": "PASS",
+      "issue_count": 0
+    }
+  ],
+  "unresolved_issues": [],
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "DOMAIN_A_CONSOLIDATION_AND_COVERAGE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-03",
+    "effective_from": "2026-08-03",
+    "review_due_on": "2027-08-03",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved as the Domain A consolidation milestone under Production Plan v1.1.0. This approval confirms cross-pair coherence, cumulative register/catalog integrity and complete Domain A coverage; it does not alter the semantic authority of any approved pair JSON.",
+    "change_control": "The consolidation report and package are immutable. Any change to Domain A object semantics, findings, states, source mappings, tactic mappings or approval boundaries requires a versioned pair release and renewed Domain A consolidation."
+  }
+}

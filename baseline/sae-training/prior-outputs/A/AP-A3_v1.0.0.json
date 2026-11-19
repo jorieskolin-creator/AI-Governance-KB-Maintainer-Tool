@@ -1,0 +1,604 @@
+{
+  "schema_version": "2.0.0",
+  "id": "AP-A3",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "AP-A3_ANTIPATTERN_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Legal interpretation, evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "ANTIPATTERN",
+  "title": "Role ambiguity and responsibility displacement",
+  "canonical_definition": "Governance, compliance, control or operational responsibility is ambiguous, contradictory, nominally assigned, contractually displaced or assumed to belong to another party, causing duties to disappear across the AI value chain.",
+  "applicability": {
+    "statement": "Applicable to every AI system involving internal teams, business owners, providers, deployers, integrators, component suppliers, data suppliers, customers, operators or other third parties.",
+    "conditions": [
+      "Assess the complete socio-technical system and every material upstream, internal and downstream actor.",
+      "Separate legal or regulatory role classification from internal accountability, while ensuring the two are reconciled.",
+      "Assign responsibility only to parties with sufficient authority, access, information, competence and resources to discharge it.",
+      "Map component, control, decision, monitoring, incident, change and retirement responsibilities end to end."
+    ],
+    "exclusions": [
+      "A generic corporate RACI does not replace a system-specific value-chain and control responsibility map.",
+      "Provider documentation or assurance does not remove the deployer or integrating organization responsibilities that remain applicable to actual use."
+    ],
+    "reassessment_triggers": [
+      "New provider, model, data source, tool, component, subcontractor or integration",
+      "Change in branding, substantial modification, intended purpose, deployment role or contractual allocation",
+      "Organizational restructuring, ownership transfer or material personnel change",
+      "Incident, audit, complaint or test reveals an unowned duty or ineffective escalation path",
+      "Lifecycle transition, expansion to new users or jurisdictions, or retirement dependency change"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "AP-A3-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are material roles, accountable owners or value-chain responsibilities missing, assumed, contradictory or copied without analysis of actual use?"
+    },
+    {
+      "id": "AP-A3-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do contracts, procedures, access, ownership or escalation routes displace, fragment or prevent execution of material responsibilities?"
+    },
+    {
+      "id": "AP-A3-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence show responsibility bouncing, non-performance, unsupported reliance on other parties or stale ownership after change?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-A3-001",
+      "title": "Role-definition and accountability conflict evidence",
+      "claim_supported": "Material actors or roles are absent, inferred, duplicated, contradictory or lack a final accountable authority.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Compares system inventories, role determinations, governance records and accountable-owner assignments for the same scope.",
+        "Preserves unresolved or contested classifications rather than normalizing them."
+      ],
+      "limitations": [
+        "Silence in one document does not prove displacement unless the scoped responsibility set and evidence search are complete."
+      ]
+    },
+    {
+      "id": "EVD-AP-A3-002",
+      "title": "Provider-deployer assurance substitution evidence",
+      "claim_supported": "The organization relies on provider, integrator or supplier statements as if they discharged local deployer, use-context or operational responsibilities.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Identifies the precise assurance claim, applicable party, local responsibility and unsupported substitution.",
+        "Distinguishes useful supplier evidence from duties that remain with the deploying or integrating organization."
+      ],
+      "limitations": [
+        "Use of provider evidence is not itself an anti-pattern when the local responsibility and limitations are explicit."
+      ]
+    },
+    {
+      "id": "EVD-AP-A3-003",
+      "title": "Orphaned component and subcontracting responsibility evidence",
+      "claim_supported": "A material component, control, handoff or subcontracted duty lacks an accountable and enabled owner.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Traces the duty across suppliers, contracts, integrations, internal teams and downstream consumers.",
+        "Identifies where responsibility terminates, overlaps or becomes non-executable."
+      ],
+      "limitations": [
+        "A named supplier does not establish ownership of internal integration, monitoring or use-context duties."
+      ]
+    },
+    {
+      "id": "EVD-AP-A3-004",
+      "title": "Contract-operation-control mismatch evidence",
+      "claim_supported": "Contractual language, operating procedures, access rights or control ownership assign incompatible or impossible responsibilities.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Shows a concrete conflict between assigned duty and actual authority, access, process or control.",
+        "Covers escalation, incident, change, monitoring, documentation and exit obligations where relevant."
+      ],
+      "limitations": [
+        "A drafting imperfection without material effect on duty execution is not sufficient."
+      ]
+    },
+    {
+      "id": "EVD-AP-A3-005",
+      "title": "Responsibility execution and bounce records",
+      "claim_supported": "Executed cases show delay, non-performance, repeated reassignment, escalation loops or unresolved decisions because ownership is ambiguous or displaced.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Contains attributable case histories, timestamps, handoffs and outcomes for representative material events.",
+        "Distinguishes isolated human error from a structural responsibility failure."
+      ],
+      "limitations": [
+        "A single delayed ticket does not establish systemic responsibility displacement without scope and causal evidence."
+      ]
+    },
+    {
+      "id": "EVD-AP-A3-006",
+      "title": "Role-change and stale-ownership evidence",
+      "claim_supported": "Provider, component, contract, organizational or lifecycle change occurred without timely responsibility requalification.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Shows the change date, affected duties, previous assignment, required review and current unresolved state.",
+        "Includes departed owners, expired contracts, transferred services and new integrations."
+      ],
+      "limitations": [
+        "A pending administrative update is not material when actual authority, access and execution remain current and evidenced."
+      ]
+    },
+    {
+      "id": "EVD-AP-A3-007",
+      "title": "Scoped anti-pattern absence-test record",
+      "claim_supported": "A current, independently verified test found no material role ambiguity or responsibility displacement across the defined system and value-chain scope.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers all required AP-A3 tests, material actors, duties, contracts, components, controls, executed cases and changes.",
+        "Records negative results, sampling boundaries, unresolved limitations and independent review."
+      ],
+      "limitations": [
+        "No reported issue, a complete RACI or successful audit sample does not alone establish TESTED_ABSENT."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "Role ambiguity cannot be confirmed solely from missing documentation without a scoped responsibility and source search.",
+      "A contract conflict cannot exceed DECLARED until its operational effect or non-executable responsibility is demonstrated.",
+      "TESTED_ABSENT requires the complete current absence-test contract and cannot be inferred from no incidents."
+    ],
+    "false_positive_guards": [
+      "Do not classify distributed responsibility as ambiguity when decision rights, handoffs and final accountability are explicit.",
+      "Do not classify provider evidence use as displacement when deployer obligations and limitations are separately addressed.",
+      "Do not treat temporary delegation as displacement when scope, duration, authority, oversight and fallback are approved.",
+      "Do not treat every overlap as harmful; independent review and segregation of duties may intentionally create shared participation."
+    ],
+    "prohibited_inferences": [
+      "Do not infer legal role, duty transfer or liability from a RACI or contract title.",
+      "Do not infer tested absence from silence, no incident or one successful workflow.",
+      "Do not infer that a task owner is the accountable risk or lifecycle authority.",
+      "Do not close a finding because a new role matrix or contract change is planned."
+    ],
+    "contradiction_handling": [
+      "Conflicting actor statements, contracts, procedures, access rights or case records retain UNKNOWN or support a partial/present finding pending human adjudication.",
+      "Operational responsibility bounce overrides nominally complete documentation for effectiveness conclusions.",
+      "Where role assignment changed during the evidence period, separate historical and current conclusions."
+    ],
+    "freshness_rules": [
+      "Use only current role, contract, access and owner records for present-state conclusions.",
+      "Re-run the anti-pattern test after material provider, component, contract, organization or lifecycle change.",
+      "Operational samples must cover the current responsibility model and representative material event types."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block consequential deployment when system or business accountability is absent or contradictory.",
+      "Block or constrain operation when a critical component, control, human-oversight, incident or change duty has no executable owner.",
+      "Block reliance on a third party when responsibility is contractually displaced but required information, access or assistance is unavailable.",
+      "Do not report TESTED_ABSENT unless the complete scoped, current and independently verified absence-test contract passes."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_SYSTEM_BUSINESS_LEGAL_AND_RISK_OWNER"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-AP-A3-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 3(3)-(8); Articles 16, 23-26; Article 25 responsibilities along the AI value chain",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Role ambiguity and displaced responsibility can conflict with the role-dependent duties and value-chain cooperation required by the Regulation where applicable.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-A3-NIST-AI-RMF-001",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023",
+      "exact_locator": "AI RMF Core GOVERN 1.4, 1.5, 2.1, 2.2 and 2.3",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "NIST identifies clear roles, communication, empowerment, training and executive accountability as core governance outcomes; their absence supports AP-A3 testing.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-A3-001",
+      "title": "Provider, deployer or other actor responsibility is assumed, copied or displaced without actual-use analysis",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A3-AT-001",
+        "AP-A3-AT-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A3-001",
+        "EVD-AP-A3-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Prevent consequential progression until role classification, local duties and final accountability are explicitly determined.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A3-002",
+      "title": "Ownership is overlapping, contradictory or lacks final accountable authority",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A3-AT-003",
+        "AP-A3-AT-004"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A3-001",
+        "EVD-AP-A3-004"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Reconcile decision rights and final accountability before relying on the affected governance or control process.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A3-003",
+      "title": "A material integrated component, control or subcontracted duty is orphaned",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A3-AT-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A3-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block or constrain the affected operation until an enabled accountable owner, handoff and support path are established.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A3-004",
+      "title": "Contract, operating procedure, access or control ownership prevents responsibility execution",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A3-AT-006",
+        "AP-A3-AT-007"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A3-004",
+        "EVD-AP-A3-005"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Suspend reliance on the affected arrangement and align contract, procedure, access and control authority.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A3-005",
+      "title": "Responsibility displacement persists in operation or role changes, or tested absence is not established",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A3-AT-008",
+        "AP-A3-AT-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A3-005",
+        "EVD-AP-A3-006",
+        "EVD-AP-A3-007"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Requalify the complete responsibility model and retain UNKNOWN for absence until the scoped current test passes.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-001-FND-AP-A3-001-003",
+      "tactic_id": "GOV-ROL-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-001-FND-AP-A3-002-004",
+      "tactic_id": "GOV-ROL-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-001-FND-AP-A3-003-005",
+      "tactic_id": "GOV-ROL-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-002-FND-AP-A3-003-003",
+      "tactic_id": "GOV-ROL-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-002-FND-AP-A3-004-004",
+      "tactic_id": "GOV-ROL-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-003-FND-AP-A3-004-002",
+      "tactic_id": "GOV-ROL-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-003-FND-AP-A3-005-003",
+      "tactic_id": "GOV-ROL-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-004-FND-AP-A3-003-002",
+      "tactic_id": "GOV-ROL-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A3-GOV-ROL-004-FND-AP-A3-005-003",
+      "tactic_id": "GOV-ROL-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A3-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.4.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract actor, contract, ownership, access, workflow and execution evidence.",
+      "Compare role statements and identify missing, conflicting, stale or non-executable assignments.",
+      "Apply deterministic evidence ceilings and propose eligible finding states for human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Determine legal actor status or transfer statutory responsibility.",
+      "Assign organizational accountability or accept an unsupported responsibility waiver.",
+      "Treat provider assurance as deployer assurance or raise assurance beyond the evidence ceiling.",
+      "Clear a hard gate, lock a finding, accept residual risk or authorize a lifecycle transition."
+    ],
+    "human_authority_required_for": [
+      "Determine legal and regulatory roles and applicable duties.",
+      "Approve system, business and control accountability and delegated authority.",
+      "Adjudicate contract, role, evidence and access conflicts.",
+      "Lock findings, accept residual risk and approve bounded exceptions.",
+      "Authorize deployment, continued operation, requalification, transfer or retirement."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "AP-A1",
+    "AP-A2",
+    "AP-A4",
+    "AP-A5",
+    "B5",
+    "C1",
+    "C2",
+    "C3",
+    "C5",
+    "D1",
+    "E3",
+    "F1",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "failure_mechanism": "Responsibility is treated as a label or contractual assumption rather than an executable accountability system. Each party relies on another party, while authority, access, information, control ownership, escalation and evidence of execution fail to align across the complete AI value chain.",
+  "atomic_tests": [
+    {
+      "id": "AP-A3-AT-001",
+      "question_id": "AP-A3-Q1",
+      "test": "Material internal or external actors are missing from the system-specific role determination or treated as out of scope without evidence.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A3-AT-002",
+      "question_id": "AP-A3-Q1",
+      "test": "Provider, deployer, integrator, supplier or operator responsibilities are copied, assumed or substituted without analysis of actual use and remaining local duties.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A3-AT-003",
+      "question_id": "AP-A3-Q1",
+      "test": "Multiple parties claim or reject the same responsibility and no final accountable authority or adjudication route is established.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-A3-AT-004",
+      "question_id": "AP-A3-Q1",
+      "test": "Task execution, advisory participation or committee membership is treated as final accountability despite missing decision authority.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-001",
+        "EVD-AP-A3-004"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A3-AT-005",
+      "question_id": "AP-A3-Q2",
+      "test": "A material model, data source, tool, integration, infrastructure element, control or subcontracted duty has no enabled accountable owner or reliable handoff.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-003"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A3-AT-006",
+      "question_id": "AP-A3-Q2",
+      "test": "Contractual allocation conflicts with actual procedures, access, authority, monitoring, incident, change or exit capability.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-004"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A3-AT-007",
+      "question_id": "AP-A3-Q2",
+      "test": "Escalation, incident, change or approval routes bounce between parties, terminate without decision or depend on a party lacking required authority or information.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-004",
+        "EVD-AP-A3-005"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A3-AT-008",
+      "question_id": "AP-A3-Q3",
+      "test": "Representative execution records show repeated non-performance, unsupported reliance, unresolved ownership or stale responsibility after material change.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-005",
+        "EVD-AP-A3-006"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A3-AT-009",
+      "question_id": "AP-A3-Q3",
+      "test": "The organization claims role ambiguity or responsibility displacement is absent without a scoped, executed, current and independently verified absence test.",
+      "required_evidence_ids": [
+        "EVD-AP-A3-007"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Complete actor and role inventory for the current system and use",
+      "System/business accountability and decision-right review",
+      "Component, control, contract and handoff responsibility trace",
+      "Access, competence, resource and escalation capability test",
+      "Representative executed-case and responsibility-bounce review",
+      "Material-change and stale-owner review",
+      "Independent review and residual limitation statement"
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

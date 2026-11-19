@@ -1,0 +1,614 @@
+{
+  "schema_version": "2.0.0",
+  "id": "B1",
+  "version": "1.0.1",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "B1_CAPABILITY_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-03",
+    "effective_from": "2026-08-03",
+    "review_due_on": "2027-08-03",
+    "release_version": "1.0.1",
+    "supersedes": "B1_v1.0.0",
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability, publication-template or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "CAPABILITY",
+  "title": "Data inventory, provenance and lineage",
+  "canonical_definition": "Training, tuning, retrieval, prompt, context, evaluation, operational, memory, logging, human-review and output data are separately identifiable from origin through collection, transformation, storage, access, transfer, use, retention, reuse and deletion, using stable identities, accountable ownership and reproducible lineage.",
+  "applicability": {
+    "statement": "Applicable to every AI system that receives, generates, retrieves, transforms, stores, transfers, learns from, logs or reuses data or content.",
+    "conditions": [
+      "Identify every material data class, dataset, source, store, interface, provider, owner, destination and use across the complete system boundary.",
+      "Assign stable identifiers and version information to material datasets, retrieval collections, prompt/context sources, evaluation corpora, logs and generated-data stores.",
+      "Record material collection, preparation, annotation, labelling, cleaning, enrichment, aggregation, filtering, embedding, transfer, retention, deletion and reuse events.",
+      "Link rights, authority, purpose, quality, freshness, restrictions and confidentiality metadata to the exact data version and use path.",
+      "Preserve enough run-level provenance to reconstruct representative outputs, decisions, evaluations and incidents without exposing unnecessary protected content."
+    ],
+    "exclusions": [
+      "A component inventory without data identities, ownership, transformations and use paths does not satisfy B1.",
+      "A privacy record of processing activities may support B1 but does not by itself establish technical lineage across non-personal and generated data.",
+      "A data catalog entry without current implementation, runtime or reconstruction evidence cannot exceed DECLARED assurance."
+    ],
+    "reassessment_triggers": [
+      "Addition, replacement or material version change of a dataset, retrieval collection, prompt source, data provider, connector or output-reuse path",
+      "Change to collection purpose, owner, rights, licence, confidentiality, jurisdiction, provider, tenant, destination, retention or deletion treatment",
+      "Introduction of new transformation, annotation, filtering, enrichment, synthetic-data, embedding, memory or feedback-loop processing",
+      "Material change to data quality, freshness, representativeness, schema, source reliability or authorization status",
+      "Incident, complaint, audit or evaluation reveals unknown inputs, undocumented fields, false citations, stale data, poisoning, leakage or inability to reconstruct an output",
+      "Lifecycle transition, substantial system modification, ownership transfer, retirement or deletion campaign"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "B1-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are material data classes, sources, owners, destinations, rights and uses inventoried with stable identifiers?"
+    },
+    {
+      "id": "B1-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are lineage, transformation, quality, authorization, transfer, retention and deletion controls implemented across the actual data flow?"
+    },
+    {
+      "id": "B1-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Can representative outputs, decisions, evaluations and incidents be traced to current, authorized and sufficiently reliable data evidence?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-B1-001",
+      "title": "AI data asset inventory and dictionary",
+      "claim_supported": "All material data classes, datasets, stores, interfaces, owners, destinations, purposes and uses have stable identities and current metadata.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers training, tuning, retrieval, prompt/context, evaluation, operational, memory, logging, human-review and output data where applicable.",
+        "Records stable dataset or collection ID, version, owner, source, system use, location, destination, classification, purpose, rights status and lifecycle state."
+      ],
+      "limitations": [
+        "A generic enterprise catalog that cannot be reconciled to the assessed implementation is insufficient."
+      ]
+    },
+    {
+      "id": "EVD-B1-002",
+      "title": "End-to-end data-flow and lineage architecture",
+      "claim_supported": "Material data paths from origin through transformations, stores, transfers, model or tool use, outputs, retention and deletion are defined and implementation-aligned.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Identifies source, destination, interface, provider, tenant, security boundary, transformation and accountable owner for every material path.",
+        "Uses the same system, component and data identities as the assessed implementation and distinguishes declared, implemented and runtime-observed paths."
+      ],
+      "limitations": [
+        "A high-level architecture diagram without field, dataset, transformation and destination traceability cannot establish implementation."
+      ]
+    },
+    {
+      "id": "EVD-B1-003",
+      "title": "Source acquisition, ownership and authorization records",
+      "claim_supported": "The origin, acquisition method, owner, custodian, rights, licence, purpose, restrictions and authorization status of each material source are established.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Links source terms, notices, consents, contracts, approvals or internal authority to the stable data identity and intended use.",
+        "Records unresolved rights, ownership, jurisdiction or purpose questions rather than converting them into assumed permission."
+      ],
+      "limitations": [
+        "Availability, public accessibility or vendor inclusion does not prove authority, rights or fitness for the assessed use."
+      ]
+    },
+    {
+      "id": "EVD-B1-004",
+      "title": "Transformation, preparation and dataset-version records",
+      "claim_supported": "Material transformations and derived datasets are reproducible and attributable to source versions, processing logic, parameters, actors and dates.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers collection filters, annotation, labelling, cleaning, deduplication, enrichment, aggregation, synthetic generation, embedding and feature or schema changes where applicable.",
+        "Preserves source-to-derived links, code or configuration version, execution identity, quality results and exceptions."
+      ],
+      "limitations": [
+        "A latest-file name, checksum alone or unversioned pipeline description does not establish reproducible lineage."
+      ]
+    },
+    {
+      "id": "EVD-B1-005",
+      "title": "Access, transfer, retention, deletion and reuse trace",
+      "claim_supported": "Material access, provider transfer, cross-tenant or cross-jurisdiction movement, retention, deletion and reuse events are traceable to data identity and authority.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Includes relevant access, connector, transfer, storage, retention, deletion, backup, archive and downstream reuse evidence for the assessed period.",
+        "Demonstrates that deletion, restriction or authorization changes propagate to derived stores and reuse paths where required."
+      ],
+      "limitations": [
+        "Policy statements or configured retention periods without execution evidence do not establish operational effectiveness."
+      ]
+    },
+    {
+      "id": "EVD-B1-006",
+      "title": "Data quality, freshness and fitness assessment",
+      "claim_supported": "Quality, completeness, freshness, provenance confidence, limitations and fitness for the intended use are assessed for the exact data version and context.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Defines context-specific quality and freshness criteria, test methods, thresholds, exceptions and accountable decision owners.",
+        "Links results and limitations to the exact data identity, model or retrieval use and target lifecycle decision."
+      ],
+      "limitations": [
+        "A generic quality score or vendor statement cannot establish fitness for a different purpose, population, time or operating context."
+      ]
+    },
+    {
+      "id": "EVD-B1-007",
+      "title": "Runtime prompt, retrieval, memory and context provenance trace",
+      "claim_supported": "Representative runtime context can be attributed to source, collection, tenant, version, retrieval event, transformation and authorization path.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Captures source or collection IDs, chunk or record references, retrieval and ranking version, prompt/context assembly, policy decisions and relevant timestamps.",
+        "Demonstrates provenance across fallback, cache, memory, agent, tool and retry paths without unnecessarily retaining protected content."
+      ],
+      "limitations": [
+        "A displayed citation that is not linked to the content actually used by the system is insufficient."
+      ]
+    },
+    {
+      "id": "EVD-B1-008",
+      "title": "Output, decision and incident reconstruction test",
+      "claim_supported": "Representative outputs, consequential decisions, evaluations and incidents can be reconstructed from the data, transformation and system versions actually used.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Reconstructs a representative sample from output or event back to input sources, retrieval context, transformations, model or component version, controls and accountable decision path.",
+        "Records reconstruction coverage, failures, uncertainty, privacy or confidentiality constraints and remediation requirements."
+      ],
+      "limitations": [
+        "A model explanation, citation list or audit log alone does not establish end-to-end data provenance."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "Data governance cannot exceed DECLARED assurance until material data classes, sources, owners, destinations and uses have stable identities.",
+      "Lineage cannot exceed IMPLEMENTED assurance until actual interfaces, stores, transformations and transfers are reconciled to the documented flow.",
+      "Transformation and output provenance cannot exceed TESTED assurance without reproducible samples using the exact versions and processing logic.",
+      "Operational data-flow effectiveness cannot exceed OPERATIONALLY_OBSERVED without representative runtime, transfer, retention, deletion and reconstruction evidence.",
+      "A complete inventory does not prove lawful use, minimization, confidentiality, intellectual-property permission or data quality; those claims require their own evidence and related-criterion assessment."
+    ],
+    "false_positive_guards": [
+      "Do not require storage of raw sensitive content when stable identifiers, protected metadata and controlled reconstruction can establish provenance.",
+      "Do not treat privacy-preserving aggregation, pseudonymization or de-identification as loss of lineage when controlled source-to-derived traceability remains available to authorized reviewers.",
+      "Do not treat every transient intermediate as a separately governed dataset when the transformation is reproducible, bounded and linked to a governed source and output.",
+      "Do not treat legitimate supplier confidentiality as absence of provenance when adequate attributable metadata, contractual assurance and independent verification exist.",
+      "Do not require identical lineage depth for low-consequence and high-consequence uses; require depth proportionate to purpose, exposure, reversibility and legal or contractual duty."
+    ],
+    "prohibited_inferences": [
+      "Do not infer source authority, licence or quality from accessibility, technical compatibility, vendor inclusion or prior use.",
+      "Do not infer lineage from file names, timestamps, checksums, citations or data-catalog presence alone.",
+      "Do not infer that an output used only authorized or current data because it appears accurate or cites a plausible source.",
+      "Do not infer deletion or restriction propagation from a primary-store action without checking derived datasets, embeddings, caches, backups, logs and downstream reuse.",
+      "Do not clear a hard gate because inventory or lineage remediation is planned or a tactic has been selected."
+    ],
+    "contradiction_handling": [
+      "Observed runtime sources, fields, stores, transfers or output references override a stale or incomplete declared inventory for present-state assessment.",
+      "Conflicting source, owner, rights, version or transformation records keep the affected claim UNKNOWN and apply the more restrictive use boundary until adjudicated.",
+      "A false, broken or non-reproducible citation is recorded as a provenance failure even when the output is substantively correct.",
+      "When retention or deletion records conflict with observed copies or reuse, treat the affected path as unresolved and constrain further processing.",
+      "Post-hoc documentation does not erase the period in which a material data flow was ungoverned or untraceable."
+    ],
+    "freshness_rules": [
+      "Reconcile the inventory and lineage baseline before each lifecycle transition and after every material source, schema, transformation, provider, connector, rights or purpose change.",
+      "Quality, freshness and authorization evidence is version-, purpose-, population-, jurisdiction- and time-specific.",
+      "Runtime provenance and reconstruction samples must cover the current deployed versions, fallback paths and material operating conditions.",
+      "Retention, deletion and reuse evidence must be refreshed after policy, storage, backup, embedding, memory or downstream dependency changes."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block training, tuning, retrieval, evaluation, deployment or consequential use when a material data source, owner, purpose, destination or authorization status is UNKNOWN.",
+      "Block progression when a material transformation, transfer or derived dataset cannot be traced to governed source and version identities.",
+      "Block or constrain use when current quality, freshness, rights, confidentiality or transfer metadata is absent for data that materially affects consequential outputs.",
+      "Block deployment or continued high-consequence operation when representative outputs or decisions cannot be reconstructed to the data and transformations actually used.",
+      "Block retirement or deletion closure when material retained copies, embeddings, caches, backups or downstream reuse cannot be accounted for."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_DATA_PRIVACY_SECURITY_LEGAL_SYSTEM_AND_BUSINESS_AUTHORITIES"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-B1-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 10(2)(a)-(g) and 10(3)-(5); Article 11 and Annex IV technical documentation; Article 12 record-keeping",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Grounds data-governance practices for collection origin, preparation and transformation, assumptions, suitability, quality, bias-relevant examination, gaps and traceable documentation for applicable high-risk AI systems.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-B1-NIST-AI-RMF-002",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023; AI RMF Playbook current 2026-08-03",
+      "exact_locator": "AI RMF Core GOVERN 1.6, MAP 2.3, MEASURE 2.1, 2.5 and 2.9, and MANAGE 1.1; Playbook documentation prompts on data provenance, sources, origins, transformations, augmentations, labels, dependencies, constraints and metadata",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Supports governed inventories, dataset and TEVV documentation, provenance, reproducibility, context-specific validity, monitoring and output reconstruction across the AI lifecycle.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-B1-EU-GDPR-003",
+      "source_id": "SRC-EU-GDPR",
+      "source_version_or_date": "Regulation (EU) 2016/679",
+      "exact_locator": "Articles 5(1)(a), 5(1)(d), 5(1)(e), 5(2), 25, 30 and 32",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "When personal data are processed, supports accountable records of processing, accuracy, storage limitation, privacy by design and security controls that require attributable and current data flows.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-B1-001",
+      "title": "Material data sources, classes, owners, destinations or uses are not completely inventoried",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B1-SC-001",
+        "B1-SC-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-B1-001",
+        "EVD-B1-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Do not progress the affected data use or lifecycle transition until material data identities, ownership, purpose, destination and authorization are human-validated.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B1-002",
+      "title": "Source-to-output lineage or transformation history is incomplete, non-reproducible or implementation-misaligned",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B1-SC-003",
+        "B1-SC-004",
+        "B1-SC-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-B1-002",
+        "EVD-B1-004",
+        "EVD-B1-005"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block or constrain the affected transformation, transfer or output path until lineage is implementation-aligned and representative reconstruction succeeds.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B1-003",
+      "title": "Quality, freshness, rights, authorization, transfer or retention metadata is not linked to the exact data use",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B1-SC-002",
+        "B1-SC-006"
+      ],
+      "required_evidence_ids": [
+        "EVD-B1-003",
+        "EVD-B1-005",
+        "EVD-B1-006"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain use to a bounded non-consequential environment until the applicable metadata and accountable decision are current for the exact data version and purpose.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B1-004",
+      "title": "Retrieval context or generated output provenance is not preserved or cannot be reproduced",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B1-SC-007",
+        "B1-SC-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-B1-007",
+        "EVD-B1-008"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block consequential reliance on affected outputs until source-to-context and output-to-source traceability is tested and material failures are remediated or constrained.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B1-005",
+      "title": "Lineage controls are not maintained after material data or system change",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B1-SC-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-B1-001",
+        "EVD-B1-002",
+        "EVD-B1-004",
+        "EVD-B1-008"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Suspend the affected transition or change until inventories, lineage, reconstruction tests and dependent approvals are refreshed.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-B1-GOV-DAT-001-FND-B1-001-001",
+      "tactic_id": "GOV-DAT-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B1-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-B1-GOV-DAT-002-FND-B1-002-002",
+      "tactic_id": "GOV-DAT-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B1-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-B1-GOV-DAT-003-FND-B1-003-003",
+      "tactic_id": "GOV-DAT-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B1-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-B1-GOV-DAT-004-FND-B1-004-004",
+      "tactic_id": "GOV-DAT-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B1-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-B1-GOV-SEC-005-FND-B1-004-005",
+      "tactic_id": "GOV-SEC-005",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B1-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-B1-GOV-DAT-001-FND-B1-005-006",
+      "tactic_id": "GOV-DAT-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B1-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-B1-GOV-DAT-002-FND-B1-005-007",
+      "tactic_id": "GOV-DAT-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B1-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract data identities, sources, owners, stores, interfaces, transformations, transfers, purposes, rights, quality, retention, deletion and output references from approved evidence.",
+      "Reconcile declared inventory and lineage with configuration, runtime and reconstruction evidence and identify missing or conflicting paths.",
+      "Apply deterministic evidence ceilings and propose eligible conclusion states for accountable human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Declare that data use is lawful, licensed, confidential, minimized, accurate or fit solely because provenance metadata exists.",
+      "Assume source authority, ownership, quality, freshness or deletion from vendor claims, catalog entries, file names, citations or apparent output accuracy.",
+      "Store or expose protected content beyond the approved evidence and access boundary merely to improve traceability.",
+      "Clear a hard gate, lock a finding, approve an exception, accept residual risk or authorize a lifecycle transition."
+    ],
+    "human_authority_required_for": [
+      "Determine materiality, required lineage depth and acceptable protected-metadata design for the assessed context.",
+      "Adjudicate source ownership, rights, purpose, quality, confidentiality, transfer and retention conflicts.",
+      "Lock findings and decide containment, remediation, exception, deletion or continued-use boundaries.",
+      "Approve residual risk and authorize the exact lifecycle transition or consequential use."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A3",
+    "A4",
+    "A5",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "C1",
+    "C2",
+    "C3",
+    "D1",
+    "D3",
+    "D4",
+    "D5",
+    "E2",
+    "F2",
+    "F3",
+    "F5",
+    "AP-B1"
+  ],
+  "governance_purpose": "Ensure that every material data asset and flow used by the AI system is attributable, versioned, authorized, implementation-aligned and reproducible enough to support trustworthy assessment, operation, investigation, change and retirement.",
+  "distinct_claim": "B1 owns stable identification and end-to-end traceability of data sources, transformations, stores, transfers, use and output provenance. B2 owns necessity and minimization; B3 owns personal-data lawfulness, transparency and rights; B4 owns confidentiality boundaries; B5 owns intellectual-property and licensing conclusions; C1 owns model, agent and component inventory; F2 owns requirement-to-evidence integrity.",
+  "atomic_subcriteria": [
+    {
+      "id": "B1-SC-001",
+      "question_id": "B1-Q1",
+      "criterion": "Every material data class, dataset, store, interface, source, destination and use across the complete AI system boundary is identified.",
+      "required_evidence_ids": [
+        "EVD-B1-001",
+        "EVD-B1-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-002",
+      "question_id": "B1-Q1",
+      "criterion": "Each material data asset has a stable ID, version, owner, source, purpose, destination, rights or authority status, classification and lifecycle state.",
+      "required_evidence_ids": [
+        "EVD-B1-001",
+        "EVD-B1-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-003",
+      "question_id": "B1-Q2",
+      "criterion": "The implemented source-to-store, store-to-processing, processing-to-provider or tool, and output-to-retention or reuse paths are documented and technically reconciled.",
+      "required_evidence_ids": [
+        "EVD-B1-002",
+        "EVD-B1-005"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-004",
+      "question_id": "B1-Q2",
+      "criterion": "Material collection, preparation, annotation, cleaning, enrichment, aggregation, filtering, embedding and derived-data transformations are versioned, attributable and reproducible.",
+      "required_evidence_ids": [
+        "EVD-B1-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-005",
+      "question_id": "B1-Q2",
+      "criterion": "Access, transfer, tenant, provider, jurisdiction, retention, deletion, archive, backup and downstream reuse events remain linked to the governed data identity and authority.",
+      "required_evidence_ids": [
+        "EVD-B1-005"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-006",
+      "question_id": "B1-Q2",
+      "criterion": "Context-specific quality, freshness, completeness, limitations and fitness results are linked to the exact data version and intended system use.",
+      "required_evidence_ids": [
+        "EVD-B1-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-007",
+      "question_id": "B1-Q3",
+      "criterion": "Representative prompt, retrieval, memory, agent and tool context preserves attributable source, collection, tenant, version and transformation provenance.",
+      "required_evidence_ids": [
+        "EVD-B1-007"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-008",
+      "question_id": "B1-Q3",
+      "criterion": "Representative outputs, consequential decisions, evaluations and incidents can be reconstructed to the actual data, transformations and component versions used.",
+      "required_evidence_ids": [
+        "EVD-B1-008"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "B1-SC-009",
+      "question_id": "B1-Q3",
+      "criterion": "Material data, provider, schema, transformation, rights, purpose and lifecycle changes trigger inventory, lineage, quality and reconstruction reassessment before affected use continues.",
+      "required_evidence_ids": [
+        "EVD-B1-001",
+        "EVD-B1-002",
+        "EVD-B1-004",
+        "EVD-B1-008"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

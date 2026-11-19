@@ -1,0 +1,668 @@
+{
+  "schema_version": "2.0.0",
+  "id": "AP-B2",
+  "version": "1.0.1",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "AP-B2_ANTIPATTERN_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-03",
+    "effective_from": "2026-08-03",
+    "review_due_on": "2027-08-03",
+    "release_version": "1.0.1",
+    "supersedes": "AP-B2_v1.0.0",
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability, publication-template or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "ANTIPATTERN",
+  "title": "Convenience-driven data accumulation",
+  "canonical_definition": "Data are collected, copied, accessed, transmitted, placed into prompts or retrieval context, exposed to providers or tools, logged, retained, combined or reused because they are available, may be useful, improve convenience or marginally increase performance, rather than because the exact data scope is demonstrably necessary and proportionate for an explicit approved purpose. The accumulation persists through hidden fields, full-document transfer, excessive context, broad telemetry, prototype shortcuts, stale copies, weak deletion propagation and silent secondary use.",
+  "applicability": {
+    "statement": "Applicable wherever an AI system can access, receive, generate, copy, infer, transmit, log, retain or reuse organizational, personal, confidential, customer, employee, supplier, third-party or public data.",
+    "conditions": [
+      "Assess both declared and observed fields, documents, prompts, context, retrieval results, provider/tool payloads, logs, telemetry, caches, memories, exports, backups and downstream reuse.",
+      "Challenge necessity at field, precision, document, recipient, purpose, lifecycle and retention levels rather than only at dataset or system level.",
+      "Include development, evaluation, red-team, incident, support, debugging, analytics and human-review environments.",
+      "Test whether lower-data, synthetic, anonymised, tokenised, aggregated, selectively disclosed or local alternatives can satisfy the purpose.",
+      "Trace deletion, restriction, purpose expiry and secondary-use changes across material copies and derived paths.",
+      "Keep tested absence separate from lack of observed incidents or documentation claims."
+    ],
+    "exclusions": [
+      "A justified, proportionate and approved collection is not convenience-driven merely because it is large or sensitive.",
+      "A binding legal hold, incident preservation duty or safety requirement is not an anti-pattern when scope, access, duration and authority are explicit and independently reviewed.",
+      "Necessary security and audit evidence is not accumulation when content and retention are minimised to the approved control purpose.",
+      "Pseudonymisation or encryption does not remove the anti-pattern when unnecessary collection, transmission or retention remains.",
+      "AP-B2 does not replace B3-B5 assessment of privacy, confidentiality or intellectual-property obligations."
+    ],
+    "reassessment_triggers": [
+      "Addition of data sources, fields, document types, logs, telemetry, memories, provider features, model feedback or output reuse",
+      "Context-window, retrieval-depth, upload-size, logging, debugging, observability or retention increase",
+      "Prototype or evaluation begins using production, personal, confidential, special-category or licensed data",
+      "New provider, tool, tenant, jurisdiction, export, backup, archive or downstream consumer",
+      "Purpose, product, customer, population, model or business process changes while historical data remain available",
+      "Deletion, restriction, objection, licence or contract event reveals residual copies or ungoverned reuse"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "AP-B2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are data categories, fields, documents, precision levels, purposes or retention periods accepted because they may be useful rather than because current necessity and proportionality are established?"
+    },
+    {
+      "id": "AP-B2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do actual pipelines, prompts, retrieval, providers, tools, logs, caches, backups or reuse paths collect, expose or retain more data than the approved minimum?"
+    },
+    {
+      "id": "AP-B2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do challenge tests reveal full-document or whole-dataset transfer, excessive context, unnecessary production data, deletion failures, stale retention or unapproved secondary use?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-B2-001",
+      "title": "Declared-versus-necessary data-scope challenge",
+      "claim_supported": "Material data elements and uses have been independently challenged against explicit purpose, necessity, proportionality and lower-data alternatives.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Samples high-volume, high-sensitivity, high-consequence and frequently reused data paths.",
+        "Records unnecessary, excessive, ambiguous and disputed items with owner, action and lifecycle consequence."
+      ],
+      "limitations": [
+        "A self-attested necessity matrix without independent challenge cannot establish absence."
+      ]
+    },
+    {
+      "id": "EVD-AP-B2-002",
+      "title": "Runtime payload, context and logging overcollection test",
+      "claim_supported": "Observed fields, documents, metadata, prompts, retrieval context, provider/tool payloads, outputs, logs and telemetry do not exceed the approved minimum.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Uses seeded out-of-scope fields, oversized documents and excessive context to verify rejection, redaction, truncation, non-transmission and non-retention.",
+        "Covers normal, error, retry, fallback, debug, support, cache, memory and export paths."
+      ],
+      "limitations": [
+        "Happy-path code review or a small manual sample cannot establish tested absence."
+      ]
+    },
+    {
+      "id": "EVD-AP-B2-003",
+      "title": "Prototype, evaluation and production-data separation review",
+      "claim_supported": "Development, evaluation and testing do not use production or protected data by convenience when lower-data alternatives can satisfy the purpose.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Reconciles environment, dataset, access, credential, export and retention boundaries.",
+        "Documents strict necessity, rejected alternatives, safeguards and expiry for any approved exception."
+      ],
+      "limitations": [
+        "Environment naming, masking claims or access restrictions alone do not prove that protected content is absent or necessary."
+      ]
+    },
+    {
+      "id": "EVD-AP-B2-004",
+      "title": "Retention and deletion propagation challenge",
+      "claim_supported": "Data do not persist beyond purpose or approved retention across stores, logs, caches, embeddings, backups, derived datasets and downstream recipients.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Executes representative deletion, restriction and purpose-expiry scenarios and reconciles residual copies and failures.",
+        "Includes provider, archive, backup, model-improvement and output-reuse paths."
+      ],
+      "limitations": [
+        "Expiry configuration, policy or ticket closure without observed propagation cannot establish absence."
+      ]
+    },
+    {
+      "id": "EVD-AP-B2-005",
+      "title": "Secondary-use and scope-drift review",
+      "claim_supported": "Historical data are not silently reused for materially different purposes, populations, products, models or decisions.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Samples new features, model training, evaluation, analytics, product integration, feedback and commercial reuse.",
+        "Verifies renewed purpose, necessity, compatibility, rights, retention and affected-party review before use."
+      ],
+      "limitations": [
+        "Data availability in a lake, warehouse, vector store or provider account does not imply approved reuse."
+      ]
+    },
+    {
+      "id": "EVD-AP-B2-006",
+      "title": "Independent absence-test record for convenience-driven accumulation",
+      "claim_supported": "The defined AP-B2 scope has been challenged and tested with current, representative evidence sufficient to support TESTED_ABSENT where justified.",
+      "evidence_class": "EXTERNAL_ATTESTATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Confirms scope, method, samples, negative tests, retention/deletion tests, secondary-use review, limitations and unresolved uncertainty.",
+        "Is independent of the implementation owner and current for the deployed version and storage topology."
+      ],
+      "limitations": [
+        "No incidents, no complaints, complete policy or a single clean sample cannot support TESTED_ABSENT."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "AP-B2 cannot be TESTED_ABSENT without an independently defined and executed absence test covering declared and observed data scope, context, providers, logs, retention, deletion and secondary use.",
+      "Documentation-only evidence cannot exceed UNKNOWN or PARTIALLY_PRESENT when runtime payloads, stores or retention paths are untested.",
+      "A clean primary path cannot establish absence when error, retry, support, debug, cache, memory, backup or export paths are untested.",
+      "Deletion absence cannot exceed UNKNOWN until propagation across material copies and derived paths is operationally observed.",
+      "Encryption, pseudonymisation, access control or provider assurance cannot by themselves reduce a confirmed unnecessary collection or retention finding."
+    ],
+    "false_positive_guards": [
+      "Do not confirm accumulation merely because a dataset is large, sensitive or retained; test necessity, authority, scope, duration and alternatives.",
+      "Do not treat required safety, security, fraud, audit, incident or legal-hold records as convenience accumulation when they are purpose-bound and minimised.",
+      "Do not treat a temporary approved exception as systemic accumulation when it has strict necessity, technical controls, expiry, monitoring and independent closure.",
+      "Do not assume synthetic or anonymised data are always preferable; test utility, re-identification, quality and bias implications.",
+      "Do not confirm overcollection solely from a field name; inspect actual values, precision, use, destination and retention."
+    ],
+    "prohibited_inferences": [
+      "Do not infer tested absence from no known incident, no regulator complaint, low data sensitivity or a small volume.",
+      "Do not infer necessity from model accuracy, convenience, user request, prior availability, vendor defaults or possible future reuse.",
+      "Do not infer deletion from one-system evidence or expiry configuration.",
+      "Do not infer purpose compatibility from similar fields, same customer, same data subject or internal organizational use.",
+      "Do not let strong B1 provenance evidence average away AP-B2; traceability can reveal but does not cure excessive data use."
+    ],
+    "contradiction_handling": [
+      "When approved scope and observed payloads conflict, the observed payload controls the anti-pattern technical state until reconciled.",
+      "When necessity owners disagree, preserve UNKNOWN or PARTIALLY_PRESENT and escalate for attributable decision rather than selecting the most permissive view.",
+      "When performance evidence favors broader data but lower-data risk evidence favors restriction, record the trade-off and require formal proportionality approval.",
+      "When deletion evidence differs across stores or providers, treat AP-B2 as present or unknown according to the material unresolved path."
+    ],
+    "freshness_rules": [
+      "Absence tests must use current deployed schemas, provider/tool contracts, logging configurations, storage topology and retention rules.",
+      "Re-run tests after any material data, model, prompt, context, provider, tool, logging, retention, purpose or lifecycle change.",
+      "Secondary-use review must sample newly created features, analytics, evaluations, fine-tuning, feedback and product integrations.",
+      "Deletion tests must remain current for backups, archives, embeddings, derived data and downstream recipients."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Material protected or high-consequence data are collected, transmitted or retained without current necessity and purpose evidence.",
+      "Whole databases, full documents or unrestricted context are sent where narrower fields or excerpts are sufficient.",
+      "Production or protected data enter an experiment, evaluation or support path without strict necessity and approved alternatives review.",
+      "Deletion, restriction or purpose expiry fails to propagate across a material path.",
+      "Historical data are reused for a materially different purpose without renewed authorization."
+    ],
+    "override_authority": "Only the accountable governance, data/privacy, legal or risk authority for the exact scope may approve a time-bounded exception. Binding law, rights and contractual restrictions cannot be waived, and the exception requires strict necessity, compensating controls, expiry and reassessment."
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-AP-B2-EU-GDPR-001",
+      "source_id": "SRC-EU-GDPR",
+      "source_version_or_date": "Regulation (EU) 2016/679",
+      "exact_locator": "Article 5(1)(b), 5(1)(c), 5(1)(e), 25(1) and 25(2)",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "When personal data processing is in scope, these provisions establish purpose limitation, data minimisation, storage limitation and data-protection-by-design/default obligations that require necessity, proportionality and default restriction of amount, extent, retention and accessibility.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-B2-EU-AIA-002",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 10(2), 10(4), and 10(5)(a)-(f)",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "For applicable high-risk AI systems, Article 10 links data governance to intended purpose and imposes a strict-necessity, alternatives, reuse-limitation, access-control, non-transfer and deletion boundary for exceptional processing of special categories of personal data for bias detection and correction.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-B2-NIST-AI-RMF-003",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023",
+      "exact_locator": "AI RMF Core MAP 1.1, MAP 1.6, MAP 2.3 and MANAGE 1.1",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "These outcomes and principles require intended purpose, privacy-related system requirements, data-collection and selection considerations, and a governed determination that the system achieves its intended purpose and should proceed.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-B2-NIST-PRIVACY-FRAMEWORK-004",
+      "source_id": "SRC-NIST-PRIVACY-FRAMEWORK",
+      "source_version_or_date": "NIST Privacy Framework Version 1.0, January 2020",
+      "exact_locator": "ID.IM-P5; CT.PO-P2 and CT.PO-P4; CT.DM-P4, CT.DM-P5 and CT.DM-P8; CT.DP-P1 through CT.DP-P5",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "The cited outcomes connect purpose inventories, lifecycle-aligned data management, deletion, minimised audit records, selective collection or disclosure, and privacy-enhancing forms such as tokenisation, de-identification and derived attributes.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-B2-001",
+      "title": "Whole datasets, documents or fields are collected or copied without demonstrated necessity",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B2-AT-001",
+        "AP-B2-AT-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B2-001",
+        "EVD-AP-B2-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Immediately constrain the affected collection or copy and require field-level purpose, necessity, alternatives and impact adjudication.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B2-002",
+      "title": "Prompts, retrieval, providers, tools, logs or telemetry receive excessive content",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B2-AT-003",
+        "AP-B2-AT-004"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B2-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Disable or constrain the affected path until schema, context, logging and retention controls pass representative negative tests.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B2-003",
+      "title": "Production or protected data are used in experiments or tests by convenience",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B2-AT-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B2-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Isolate the environment and data immediately; resume only after strict necessity, alternatives, safeguards, expiry and accountable approval are established.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B2-004",
+      "title": "Retention, deletion or restriction fails across copies, derived data or recipients",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B2-AT-006",
+        "AP-B2-AT-007"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B2-004"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Stop further accumulation and treat deletion or retirement as incomplete until residual paths are reconciled and independently verified.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B2-005",
+      "title": "Historical data are silently repurposed or scope expands without reauthorization",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B2-AT-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B2-005"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Suspend the new use and require renewed purpose, necessity, compatibility, rights, retention and affected-party review.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B2-006",
+      "title": "Tested absence of convenience-driven data accumulation is not established",
+      "eligible_conclusion_states": [
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B2-AT-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B2-006"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Keep AP-B2 UNKNOWN and block or constrain the target transition where untested accumulation could materially affect rights, confidentiality, safety, fairness, cost or accountability.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-005-FND-AP-B2-001-001",
+      "tactic_id": "GOV-DAT-005",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-006-FND-AP-B2-001-002",
+      "tactic_id": "GOV-DAT-006",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-006-FND-AP-B2-002-003",
+      "tactic_id": "GOV-DAT-006",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-003-FND-AP-B2-002-004",
+      "tactic_id": "GOV-DAT-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-LIF-002-FND-AP-B2-003-005",
+      "tactic_id": "GOV-LIF-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-006-FND-AP-B2-003-006",
+      "tactic_id": "GOV-DAT-006",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-007-FND-AP-B2-004-007",
+      "tactic_id": "GOV-DAT-007",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-008-FND-AP-B2-005-008",
+      "tactic_id": "GOV-DAT-008",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-PUR-004-FND-AP-B2-005-009",
+      "tactic_id": "GOV-PUR-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-005-FND-AP-B2-006-010",
+      "tactic_id": "GOV-DAT-005",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-006-FND-AP-B2-006-011",
+      "tactic_id": "GOV-DAT-006",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-007-FND-AP-B2-006-012",
+      "tactic_id": "GOV-DAT-007",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B2-GOV-DAT-008-FND-AP-B2-006-013",
+      "tactic_id": "GOV-DAT-008",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B2-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Compare declared purpose and minimum scope with observed fields, documents, payloads, context, logs, retention and reuse.",
+      "Execute approved negative tests and identify candidate accumulation, deletion or secondary-use failures.",
+      "Apply deterministic evidence ceilings and propose eligible anti-pattern states for accountable human lock.",
+      "Resolve exact approved tactic mappings only after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Decide that more data are necessary because performance improves or users request convenience.",
+      "Declare TESTED_ABSENT without the complete independent absence-test contract.",
+      "Delete or restrict protected data, approve secondary use, or waive a retention or purpose boundary.",
+      "Clear a hard gate, lock a finding, accept residual risk or authorize continued operation or lifecycle transition."
+    ],
+    "human_authority_required_for": [
+      "Determine materiality, necessity, proportionality and sufficiency of lower-data alternatives.",
+      "Adjudicate business, privacy, safety, fairness, security, legal and contractual conflicts.",
+      "Lock presence or absence findings and decide isolation, deletion, redesign, reauthorization or bounded exception.",
+      "Approve residual risk and the exact lifecycle transition."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A4",
+    "A5",
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "C1",
+    "C3",
+    "C4",
+    "D1",
+    "D3",
+    "D4",
+    "E1",
+    "E2",
+    "F1",
+    "F3",
+    "F5",
+    "AP-B1",
+    "AP-B3",
+    "AP-B4",
+    "AP-B5"
+  ],
+  "failure_mechanism": "Availability and convenience become implicit authorization. Broad schemas, full documents, oversized context, permissive provider payloads, default logging, production-data shortcuts and indefinite retention expand the attack surface, privacy and confidentiality exposure, bias and quality risk, cost, legal uncertainty and downstream reuse. Because copies and derived paths are not purpose-bound, deletion and scope changes fail to propagate and historical data silently acquire new uses.",
+  "atomic_tests": [
+    {
+      "id": "AP-B2-AT-001",
+      "question_id": "AP-B2-Q1",
+      "test": "Challenge whether each material dataset, document class, field, precision level and retention period has a current purpose-specific necessity rationale rather than a future-use or convenience statement.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-001"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-B2-AT-002",
+      "question_id": "AP-B2-Q1",
+      "test": "Test whether narrower fields, selective disclosure, aggregation, tokenisation, anonymisation, synthetic data or local processing could satisfy the purpose with acceptable utility and lower exposure.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-001"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B2-AT-003",
+      "question_id": "AP-B2-Q2",
+      "test": "Seed unnecessary fields and metadata into representative collection, prompt, retrieval, provider and tool paths and verify rejection, redaction, truncation and non-transmission.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-002"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B2-AT-004",
+      "question_id": "AP-B2-Q2",
+      "test": "Test whether raw prompts, documents, outputs, identifiers or hidden metadata enter logs, telemetry, caches, error records, support exports, memories or human-review queues beyond the approved minimum.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-002"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B2-AT-005",
+      "question_id": "AP-B2-Q2",
+      "test": "Reconcile development, evaluation and test environments to identify production, personal, confidential, special-category or licensed data used without strict necessity, alternatives and expiry.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-B2-AT-006",
+      "question_id": "AP-B2-Q3",
+      "test": "Execute purpose-expiry, deletion and restriction scenarios across stores, logs, caches, embeddings, backups, derived datasets, providers and downstream recipients.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B2-AT-007",
+      "question_id": "AP-B2-Q3",
+      "test": "Test whether retention periods, archives, legal holds and model-improvement copies have distinct approved purposes, shortest-justified duration and closure evidence.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-B2-AT-008",
+      "question_id": "AP-B2-Q3",
+      "test": "Sample new features, analytics, evaluations, fine-tuning, feedback and integrations for silent reuse of historical data outside the approved purpose and scope.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-005"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-B2-AT-009",
+      "question_id": "AP-B2-Q3",
+      "test": "Execute an independent absence test covering necessity challenge, runtime overcollection, experiment separation, retention/deletion propagation, secondary use, material changes and exceptional paths.",
+      "required_evidence_ids": [
+        "EVD-AP-B2-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Current purpose-to-data necessity and proportionality challenge",
+      "Declared-versus-observed field, document, context and provider/tool payload samples",
+      "Negative tests with seeded unnecessary content across normal and exceptional paths",
+      "Prototype/evaluation/production-data separation review",
+      "Retention, deletion, restriction and purpose-expiry propagation test",
+      "Secondary-use and material-scope-change sample",
+      "Independent limitations, residual uncertainty and approval record"
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

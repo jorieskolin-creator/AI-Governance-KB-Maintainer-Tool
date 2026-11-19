@@ -1,0 +1,583 @@
+{
+  "schema_version": "2.0.0",
+  "id": "A2",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "A2_CAPABILITY_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Legal interpretation, evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "CAPABILITY",
+  "title": "AI suitability, proportionality and value hypothesis",
+  "canonical_definition": "The organization demonstrates that AI is a proportionate mechanism for a defined problem and that expected value is measurable against a technology-neutral baseline, feasible alternatives, total cost, operational burden, human impact and risk.",
+  "applicability": {
+    "statement": "Applicable to every proposed AI use, material AI-enabled change and continued AI investment decision, including internally built, externally supplied and embedded AI capabilities.",
+    "conditions": [
+      "Assess the complete socio-technical solution and operating model, not only model performance.",
+      "Define the problem, desired outcome and baseline before selecting or defending an AI mechanism.",
+      "Compare feasible non-AI, rule-based, process, data and lower-complexity alternatives.",
+      "Use decision depth proportionate to lifecycle stage, scale, cost, impact, uncertainty and reversibility."
+    ],
+    "exclusions": [
+      "No exclusion is permitted solely because an AI component is inexpensive, already licensed, embedded in a product or labelled experimental.",
+      "A narrow maintenance change may rely on a current approved proportionality assessment only when the problem, use, cost, risk and value boundary remain unchanged and this is evidenced."
+    ],
+    "reassessment_triggers": [
+      "Material change in problem, users, affected persons, outputs, autonomy, data, model, provider or integration",
+      "Value, quality, adoption, cost or risk performance outside approved thresholds",
+      "A credible simpler or non-AI alternative becomes available",
+      "Pilot-to-production, internal-to-external or low-to-high consequence transition",
+      "Control burden, provider cost, energy/resource use or operational dependency materially increases",
+      "Continuation or stop criteria expire or are breached"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "A2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Is the problem, desired outcome and measurable value hypothesis defined independently of the AI solution?"
+    },
+    {
+      "id": "A2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Has the chosen AI approach been compared with simpler alternatives and implemented with explicit benefit, cost, risk and operational trade-offs?"
+    },
+    {
+      "id": "A2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do representative trials and operating evidence demonstrate sufficient value and feasibility to justify progression, with continuation and stop criteria applied?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-A2-001",
+      "title": "Technology-neutral problem and outcome baseline",
+      "claim_supported": "The organization has defined the problem, affected process, desired outcome and current baseline independently of a predetermined AI solution.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Defines the current process or decision, users and affected persons, baseline performance, constraints and desired outcome.",
+        "Uses language that remains meaningful if AI is removed from the proposed solution."
+      ],
+      "limitations": [
+        "A use-case title, vendor proposal or model capability statement does not establish a problem baseline."
+      ]
+    },
+    {
+      "id": "EVD-A2-002",
+      "title": "Measurable value hypothesis and ownership record",
+      "claim_supported": "Expected benefit is expressed as measurable outcomes with owners, thresholds, time horizons and causal assumptions.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Separates business, user, societal and operational outcomes from activity, usage and model metrics.",
+        "Identifies baseline, target, measurement method, owner, decision date and conditions that would falsify the hypothesis."
+      ],
+      "limitations": [
+        "Adoption, prompt volume, feature delivery or benchmark improvement alone does not establish realized value."
+      ]
+    },
+    {
+      "id": "EVD-A2-003",
+      "title": "Alternative and proportionality assessment",
+      "claim_supported": "The selected AI approach has been compared with feasible simpler, non-AI and lower-risk alternatives using explicit decision criteria.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Considers process change, rules, deterministic automation, analytics, data improvement, human service and no-change options where feasible.",
+        "Explains why the selected mechanism is proportionate to expected benefit, consequence, uncertainty, cost and control burden."
+      ],
+      "limitations": [
+        "A vendor shortlist or comparison between AI models is not a complete alternatives assessment."
+      ]
+    },
+    {
+      "id": "EVD-A2-004",
+      "title": "Total cost and resource baseline",
+      "claim_supported": "Build, buy, integration, evaluation, security, governance, operations, monitoring, human review, incident and exit costs are identified and bounded.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Includes variable usage, model/provider, data, infrastructure, people, assurance and change costs for the target scale.",
+        "Records assumptions, sensitivity ranges, budget owner and cost thresholds."
+      ],
+      "limitations": [
+        "Prototype API cost or licence price alone cannot establish total cost of ownership."
+      ]
+    },
+    {
+      "id": "EVD-A2-005",
+      "title": "Risk, impact and control-burden assessment",
+      "claim_supported": "Expected benefit is evaluated alongside foreseeable harms, uncertainty, dependency, human impact and required governance controls.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Uses the same system, scope, lifecycle and affected-person boundary as the value hypothesis.",
+        "Identifies whether required controls or human work materially reduce the proposed benefit or feasibility."
+      ],
+      "limitations": [
+        "A generic risk register or low internal risk score does not establish proportionality."
+      ]
+    },
+    {
+      "id": "EVD-A2-006",
+      "title": "Representative comparative trial results",
+      "claim_supported": "Executed evaluation compares the current AI solution with the approved baseline and relevant alternatives under representative conditions.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Defines versions, samples, users, operating conditions, metrics, thresholds, costs, failures and confidence limitations before interpreting results.",
+        "Includes negative, neutral and subgroup results and does not exclude material failure modes."
+      ],
+      "limitations": [
+        "A demonstration, benchmark, test plan or selected successful cases cannot establish comparative value."
+      ]
+    },
+    {
+      "id": "EVD-A2-007",
+      "title": "Operational benefit and economics records",
+      "claim_supported": "Current operation demonstrates whether expected value, cost, quality and human workload are realized within the approved boundary.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers representative time periods, user groups, volumes, exception handling, human review, rework and downstream consequences.",
+        "Reconciles realized outcomes and costs with the approved value hypothesis and baseline."
+      ],
+      "limitations": [
+        "High usage or positive feedback without outcome and cost evidence does not establish realized value."
+      ]
+    },
+    {
+      "id": "EVD-A2-008",
+      "title": "Continuation, stop and requalification decision record",
+      "claim_supported": "Progression, continuation, constraint or termination follows pre-defined criteria and an attributable decision.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Records evidence considered, threshold result, dissent, conditions, expiry, accountable authority and next reassessment point.",
+        "Prevents sunk cost, schedule pressure or technical availability from silently overriding stop criteria."
+      ],
+      "limitations": [
+        "A backlog decision, funding renewal or deployment event is not sufficient without the decision basis."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "Problem and value documentation can establish DECLARED intent but not comparative feasibility or realized benefit.",
+      "Alternative assessment can establish a decision rationale but not technical or operational effectiveness.",
+      "Executed trials can establish TESTED comparative evidence only for the assessed versions, populations, conditions and time horizon.",
+      "Operational records can establish OPERATIONALLY_OBSERVED value only for covered use, cost, quality and impact dimensions."
+    ],
+    "false_positive_guards": [
+      "Do not treat the presence of AI as disproportionate solely because a simpler conceptual alternative exists; assess feasibility, outcome and total constraint.",
+      "Do not treat a high-cost solution as disproportionate when evidence shows commensurate value and controlled risk.",
+      "Do not treat early uncertainty as value theatre when the experiment has explicit falsifiable hypotheses, bounded exposure and enforced stop criteria.",
+      "Do not treat low adoption as failure without determining whether adoption is a valid causal requirement for the target outcome."
+    ],
+    "prohibited_inferences": [
+      "Do not infer value from model quality, user engagement, press visibility, innovation activity or delivery completion alone.",
+      "Do not infer proportionality from executive sponsorship, provider reputation or budget approval.",
+      "Do not infer that AI is required because the current manual process is weak.",
+      "Do not infer production readiness from a successful demonstration or average result that excludes material costs, harms or failure conditions."
+    ],
+    "contradiction_handling": [
+      "Conflicting baselines, metric definitions or cost assumptions enforce UNKNOWN until reconciled.",
+      "Where business value evidence conflicts with risk, affected-person or operational evidence, preserve both paths and require accountable adjudication.",
+      "A positive aggregate result cannot override a material subgroup, safety, rights or hard-gate failure."
+    ],
+    "freshness_rules": [
+      "Use the current solution, model/provider version, operating boundary, scale and cost assumptions.",
+      "Repeat comparative assessment after material change or threshold breach.",
+      "Operational value evidence must cover a representative period and remain within the decision record expiry."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block consequential deployment when the problem, value hypothesis or proportionality rationale is materially undefined.",
+      "Block progression when representative evidence fails pre-defined minimum value, feasibility or risk thresholds and no formally approved constrained experiment remains.",
+      "Constrain operation when benefit, cost or human-impact evidence is materially incomplete for the proposed scale.",
+      "Stop or requalify continued use when approved stop criteria are met or the decision record has expired."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_BUSINESS_FINANCE_AND_RISK_OWNER"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-A2-NIST-AI-RMF-001",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1 (2023); Playbook current 2026-08-02",
+      "exact_locator": "AI RMF Core MAP 1.1, MAP 1.3, MAP 1.5, MAP 2.2, MAP 3.2, MEASURE 1.1 and MANAGE 1.1; NIST AI RMF Playbook MAP 1.3",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Grounds technology-neutral context, organizational goals, risk tolerance, business benefit, go/no-go decisions, measurable performance and prioritization of risk treatment relative to expected value.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-A2-EU-AIA-002",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 9(2)-(7), including targeted risk-management measures and testing against prior defined metrics and probabilistic thresholds appropriate to intended purpose",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Supports lifecycle risk management, targeted and proportionate measures, prior-defined test metrics and evidence-based decisions for high-risk AI systems when the Regulation applies; it does not by itself establish business value.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-A2-001",
+      "title": "Problem, desired outcome or value hypothesis is not defined independently of the AI solution",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A2-SC-001",
+        "A2-SC-002",
+        "A2-SC-003"
+      ],
+      "required_evidence_ids": [
+        "EVD-A2-001",
+        "EVD-A2-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Prevent consequential progression until a technology-neutral problem, baseline and falsifiable value hypothesis are approved.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A2-002",
+      "title": "Feasible alternatives and proportionality have not been credibly assessed",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A2-SC-004",
+        "A2-SC-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-A2-003",
+        "EVD-A2-005"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain the solution to a bounded experiment or require an accountable alternative and proportionality decision.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A2-003",
+      "title": "Total cost, resource demand, human workload or control burden is materially incomplete",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A2-SC-005",
+        "A2-SC-006"
+      ],
+      "required_evidence_ids": [
+        "EVD-A2-004",
+        "EVD-A2-005"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Do not approve scale or economic claims until material cost and control assumptions are measured and owned.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A2-004",
+      "title": "Representative comparative evidence does not demonstrate sufficient value or feasibility",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A2-SC-007"
+      ],
+      "required_evidence_ids": [
+        "EVD-A2-006"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block the target transition or continue only within a formally approved learning experiment with explicit limits.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A2-005",
+      "title": "Continuation, stop or value-realization controls are not enforced",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A2-SC-008",
+        "A2-SC-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-A2-007",
+        "EVD-A2-008"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Suspend automatic progression, apply the decision threshold and require requalification or termination as indicated.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-A2-GOV-VAL-001-FND-A2-001-001",
+      "tactic_id": "GOV-VAL-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A2-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.3.0"
+    },
+    {
+      "mapping_id": "MAP-A2-GOV-VAL-002-FND-A2-002-001",
+      "tactic_id": "GOV-VAL-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A2-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.3.0"
+    },
+    {
+      "mapping_id": "MAP-A2-GOV-VAL-002-FND-A2-003-002",
+      "tactic_id": "GOV-VAL-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A2-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.3.0"
+    },
+    {
+      "mapping_id": "MAP-A2-GOV-VAL-003-FND-A2-003-001",
+      "tactic_id": "GOV-VAL-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A2-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.3.0"
+    },
+    {
+      "mapping_id": "MAP-A2-GOV-VAL-003-FND-A2-005-002",
+      "tactic_id": "GOV-VAL-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A2-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.3.0"
+    },
+    {
+      "mapping_id": "MAP-A2-GOV-VAL-004-FND-A2-004-001",
+      "tactic_id": "GOV-VAL-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A2-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.3.0"
+    },
+    {
+      "mapping_id": "MAP-A2-GOV-VAL-004-FND-A2-005-002",
+      "tactic_id": "GOV-VAL-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A2-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.3.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract problem, baseline, alternatives, cost, risk, metric and trial evidence.",
+      "Calculate documented comparative metrics and identify missing, conflicting or expired assumptions.",
+      "Apply deterministic evidence ceilings and propose eligible conclusion states for human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Select the organization's goals, risk appetite or preferred investment outcome.",
+      "Manufacture a value hypothesis from technical capability or retrospective success criteria.",
+      "Raise assurance beyond representative evidence or average away a material rights, safety or hard-gate issue.",
+      "Override stop criteria, accept residual risk, approve funding, authorize deployment or close a finding."
+    ],
+    "human_authority_required_for": [
+      "Approve the problem, value hypothesis, alternatives and proportionality rationale.",
+      "Adjudicate material conflicts among value, cost, risk and impact evidence.",
+      "Lock findings and approve go, no-go, constrained experiment, continuation, scale or termination decisions.",
+      "Accept residual risk and authorize lifecycle transitions."
+    ]
+  },
+  "related_criteria": [
+    "AP-A2",
+    "A1",
+    "A3",
+    "A4",
+    "A5",
+    "B2",
+    "C2",
+    "C4",
+    "D2",
+    "D4",
+    "E1",
+    "E2",
+    "F2",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "governance_purpose": "Ensure AI investment and use are justified by a specific, measurable and falsifiable value case that remains proportionate to alternatives, total cost, operational burden, human impact and risk.",
+  "distinct_claim": "A2 owns whether AI is a suitable and proportionate mechanism and whether its value hypothesis is evidenced. A1 owns purpose and use boundaries; D2 owns functional performance; F3 owns residual-risk management; F4 owns authorization; operational financial governance may supply evidence but does not replace the A2 decision.",
+  "atomic_subcriteria": [
+    {
+      "id": "A2-SC-001",
+      "question_id": "A2-Q1",
+      "criterion": "The underlying problem, affected process or decision and desired outcome are defined independently of AI technology, vendor or model capability.",
+      "required_evidence_ids": [
+        "EVD-A2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-002",
+      "question_id": "A2-Q1",
+      "criterion": "A current technology-neutral baseline and relevant counterfactual define what improvement must be demonstrated.",
+      "required_evidence_ids": [
+        "EVD-A2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-003",
+      "question_id": "A2-Q1",
+      "criterion": "The value hypothesis uses outcome measures, owners, thresholds, time horizons and falsification conditions rather than activity or model metrics alone.",
+      "required_evidence_ids": [
+        "EVD-A2-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-004",
+      "question_id": "A2-Q2",
+      "criterion": "Feasible non-AI, deterministic, process, data, human-service and no-change alternatives are compared using explicit criteria.",
+      "required_evidence_ids": [
+        "EVD-A2-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A2-SC-005",
+      "question_id": "A2-Q2",
+      "criterion": "The selected approach is proportionate after considering benefit, consequence, uncertainty, rights and human impact, total cost, complexity and control burden.",
+      "required_evidence_ids": [
+        "EVD-A2-003",
+        "EVD-A2-004",
+        "EVD-A2-005"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A2-SC-006",
+      "question_id": "A2-Q2",
+      "criterion": "Implementation includes measurable budgets, resource and human-work controls, ownership and traceability for assumptions used in the value case.",
+      "required_evidence_ids": [
+        "EVD-A2-004"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-007",
+      "question_id": "A2-Q3",
+      "criterion": "Representative comparative trials test the current solution against the approved baseline and alternatives using pre-defined metrics and thresholds.",
+      "required_evidence_ids": [
+        "EVD-A2-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-008",
+      "question_id": "A2-Q3",
+      "criterion": "Continuation, stop, constraint and scale criteria are applied to the complete evidence, including negative, subgroup, cost and risk results.",
+      "required_evidence_ids": [
+        "EVD-A2-008"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A2-SC-009",
+      "question_id": "A2-Q3",
+      "criterion": "Operational evidence monitors realized value, cost, quality, human workload and impact and triggers requalification after material deviation or change.",
+      "required_evidence_ids": [
+        "EVD-A2-007",
+        "EVD-A2-008"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

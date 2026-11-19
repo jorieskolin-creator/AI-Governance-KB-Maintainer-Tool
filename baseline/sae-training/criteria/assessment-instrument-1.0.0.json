@@ -1,0 +1,3951 @@
+{
+  "version": "assessment-instrument-1.0.0",
+  "source": "AI_Governance_Categories_and_Anti-Patterns_v1.1",
+  "instrumentStatus": "LOADED",
+  "knowledgeBaseStatus": "NOT_PUBLISHED",
+  "requirements": [
+    {
+      "id": "REQ-A1",
+      "domain": "A",
+      "title": "Intended purpose and use boundaries",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The intended purpose, users, affected persons, operating context, expected outputs, permitted uses, prohibited uses and foreseeable misuse are precise enough to govern design and evaluation.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "A1",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-A2",
+      "domain": "A",
+      "title": "AI suitability, proportionality and value hypothesis",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The organization demonstrates that AI is a proportionate mechanism for a defined problem and that expected value is measurable against cost, alternatives and risk.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "A2",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-A3",
+      "domain": "A",
+      "title": "Value-chain roles and responsibility boundaries",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Organizational, contractual and regulatory roles across the complete AI value chain are identified and matched to real control and accountability.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "A3",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-A4",
+      "domain": "A",
+      "title": "Risk, legal and regulatory classification",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "MIXED",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The complete system and actual use are classified through a reviewable applicability analysis covering role, risk, jurisdiction, data, impact and sector obligations.",
+      "humanAuthority": "LEGAL",
+      "authoringObjectId": "A4",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-A5",
+      "domain": "A",
+      "title": "Lifecycle stage and transition boundary",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The current stage, permitted activities, target stage, acceptance criteria and authorization boundary are explicit from qualification through retirement.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "A5",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-B1",
+      "domain": "B",
+      "title": "Data inventory, provenance and lineage",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "USES_DATA",
+      "interpretation": "Training, tuning, retrieval, prompt, evaluation, operational and output data are separately identifiable from origin through transformation, storage, transfer and deletion.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "B1",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-B2",
+      "domain": "B",
+      "title": "Purpose limitation and data minimization",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "USES_DATA",
+      "interpretation": "Only data demonstrably necessary and proportionate for the declared purpose and lifecycle stage are processed and retained.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "B2",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-B3",
+      "domain": "B",
+      "title": "Privacy and data-subject governance",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "MIXED",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "PERSONAL_DATA",
+      "interpretation": "Personal-data processing, lawful basis, transparency, rights, privacy risks and impact-assessment duties are operationalized in the system and its lifecycle.",
+      "humanAuthority": "PRIVACY",
+      "authoringObjectId": "B3",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-B4",
+      "domain": "B",
+      "title": "Confidentiality and information-boundary control",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Confidential, restricted, customer-controlled and security-sensitive information remains within approved identity, tenant, provider, logging and contractual boundaries.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "B4",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-B5",
+      "domain": "B",
+      "title": "Intellectual property, licensing and content rights",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "MIXED",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The organization has a defensible and traceable basis to use, transform, train on, retrieve, generate and distribute relevant data, models, code and outputs.",
+      "humanAuthority": "LEGAL",
+      "authoringObjectId": "B5",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-C1",
+      "domain": "C",
+      "title": "Model, agent and component inventory",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Models, agents, prompts, tools, APIs, datasets, providers, infrastructure, versions and owners are registered and linked to the assessed system.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "C1",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-C2",
+      "domain": "C",
+      "title": "Model and provider suitability",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Model and provider selections are evidence-based for task quality, language, latency, security, privacy, resilience, cost, contract and risk.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "C2",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-C3",
+      "domain": "C",
+      "title": "Agent autonomy and tool permissioning",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "USES_AGENTS",
+      "interpretation": "Agent authority is explicit, least-privilege, stage-appropriate, budgeted, observable and bounded by deterministic authorization for consequential actions.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "C3",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-C4",
+      "domain": "C",
+      "title": "Provider, vendor and contractual governance",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "THIRD_PARTY_COMPONENTS",
+      "interpretation": "Third-party AI services are evaluated, contractually governed, monitored and replaceable in the context of the actual system.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "C4",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-C5",
+      "domain": "C",
+      "title": "AI supply-chain integrity and change control",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "AI models, datasets, libraries, tools, services and update channels have verifiable provenance, controlled baselines and risk-based change gates.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "C5",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-D1",
+      "domain": "D",
+      "title": "Secure and isolated AI architecture",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The system uses defense in depth, explicit trust boundaries and enforced identity, network, environment, tenant, secrets and data-flow controls.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "D1",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-D2",
+      "domain": "D",
+      "title": "Functional quality, accuracy and reliability",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "End-to-end performance is evaluated on representative tasks, users, contexts and failure modes against consequence-based acceptance thresholds.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "D2",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-D3",
+      "domain": "D",
+      "title": "AI-specific security and adversarial resilience",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The system identifies and controls attack paths that exploit AI models, prompts, training or retrieval data, generated outputs, tools and feedback loops, and verifies resilience through representative adversarial testing and monitoring.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "D3",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-D4",
+      "domain": "D",
+      "title": "Traceability, reproducibility and observability",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Material outputs and actions can be reconstructed from evidence, data, component versions, prompts, tools, validations and human decisions with sufficient operational telemetry.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "D4",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-D5",
+      "domain": "D",
+      "title": "Safety, failure handling and recovery",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Foreseeable unsafe states are constrained through fail-safe behavior, interruption, fallback, rollback, human takeover, incident response and recovery testing.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "D5",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-E1",
+      "domain": "E",
+      "title": "Human and fundamental-rights impact",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "AFFECTS_PEOPLE",
+      "interpretation": "The organization evaluates direct, indirect and cumulative benefits and harms for users, non-users, affected groups and rights across the actual context.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "E1",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-E2",
+      "domain": "E",
+      "title": "Fairness and non-discrimination",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "AFFECTS_PEOPLE",
+      "interpretation": "Contextual fairness objectives, relevant groups, data and decision pathways are defined, measured and governed for unacceptable disparity.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "E2",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-E3",
+      "domain": "E",
+      "title": "Transparency and communication",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "INTERACTS_WITH_PEOPLE",
+      "interpretation": "Users and affected persons receive timely, accurate and actionable information about AI use, purpose, limitations, data use, human involvement and relevant consequences.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "E3",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-E4",
+      "domain": "E",
+      "title": "Meaningful human oversight",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Competent humans have sufficient information, authority, time and technical ability to review, intervene, override and escalate at material decision points.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "E4",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-E5",
+      "domain": "E",
+      "title": "Contestability, correction, accessibility and AI literacy",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "INTERACTS_WITH_PEOPLE",
+      "interpretation": "Material outcomes can be questioned and corrected through accessible human recourse, while users, reviewers and decision-makers have role-appropriate competence.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "E5",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-F1",
+      "domain": "F",
+      "title": "Ownership and accountable operating model",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "One accountable system owner and clearly assigned business, technical, data, model, security, privacy, operations and decision roles exercise authority throughout the lifecycle.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "F1",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-F2",
+      "domain": "F",
+      "title": "Compliance evidence and documentation integrity",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Material claims, requirements, controls and readiness conclusions are linked to current, scoped, attributable and sufficient evidence that matches implementation and operation.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "F2",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-F3",
+      "domain": "F",
+      "title": "Risk, control and residual-risk management",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "System-specific risks are linked to controls, evidence, owners, treatment criteria, residual uncertainty and authorized acceptance.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "F3",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-F4",
+      "domain": "F",
+      "title": "Decision rights, authorization and escalation",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "The correct human authority makes timely, proportional and recorded lifecycle decisions, clearly separated from automated recommendations.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "F4",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    },
+    {
+      "id": "REQ-F5",
+      "domain": "F",
+      "title": "Monitoring, incidents, change, re-evaluation and retirement",
+      "sourceIds": [
+        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
+      ],
+      "authority": "INTERNAL_PROCESS",
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "applicability": "ALWAYS",
+      "interpretation": "Quality, risk, security, impact and compliance are monitored; incidents and material changes trigger response, reassessment, reauthorization or controlled retirement.",
+      "humanAuthority": "GOVERNANCE",
+      "authoringObjectId": "F5",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED"
+    }
+  ],
+  "controls": [
+    {
+      "id": "CTRL-A1",
+      "domain": "A",
+      "title": "Intended purpose and use boundaries",
+      "requirementIds": [
+        "REQ-A1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "purpose",
+        "excluded-use",
+        "accountable-owner"
+      ],
+      "authoringObjectId": "A1",
+      "pairedObjectId": "AP-A1",
+      "questions": [
+        {
+          "id": "A1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Is the intended purpose and decision context specific, bounded and testable?"
+        },
+        {
+          "id": "A1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are purpose and use boundaries implemented consistently in workflows, data use, access and product behavior?"
+        },
+        {
+          "id": "A1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence show that actual and foreseeable use remains within the declared boundary?"
+        }
+      ],
+      "indicators": [
+        "Named users and affected persons",
+        "Explicit permitted and prohibited uses",
+        "Measurable output and outcome expectations",
+        "Purpose reflected in architecture and evaluations"
+      ],
+      "definition": "The intended purpose, users, affected persons, operating context, expected outputs, permitted uses, prohibited uses and foreseeable misuse are precise enough to govern design and evaluation.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-A2",
+      "domain": "A",
+      "title": "AI suitability, proportionality and value hypothesis",
+      "requirementIds": [
+        "REQ-A2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "value",
+        "success-metric",
+        "non-ai-baseline"
+      ],
+      "authoringObjectId": "A2",
+      "pairedObjectId": "AP-A2",
+      "questions": [
+        {
+          "id": "A2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Is the problem, desired outcome and measurable value hypothesis defined independently of the AI solution?"
+        },
+        {
+          "id": "A2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Has the chosen AI approach been compared with simpler alternatives and implemented with explicit cost-risk trade-offs?"
+        },
+        {
+          "id": "A2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do representative trials show sufficient value and feasibility to justify progression, with stop criteria applied?"
+        }
+      ],
+      "indicators": [
+        "Non-AI baseline exists",
+        "Value metrics and owners are named",
+        "Cost and operational consequences are considered",
+        "Continuation and stop criteria are enforced"
+      ],
+      "definition": "The organization demonstrates that AI is a proportionate mechanism for a defined problem and that expected value is measurable against cost, alternatives and risk.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-A3",
+      "domain": "A",
+      "title": "Value-chain roles and responsibility boundaries",
+      "requirementIds": [
+        "REQ-A3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "provider-role",
+        "deployer-role",
+        "component-owner"
+      ],
+      "authoringObjectId": "A3",
+      "pairedObjectId": "AP-A3",
+      "questions": [
+        {
+          "id": "A3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are system, business, provider, deployer, integrator and component roles explicitly determined?"
+        },
+        {
+          "id": "A3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are responsibilities implemented through contracts, operating procedures, access and ownership assignments?"
+        },
+        {
+          "id": "A3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does evidence show that each party can and does discharge the responsibilities assigned to it?"
+        }
+      ],
+      "indicators": [
+        "System and business owners are named",
+        "Provider and deployer duties are separated",
+        "Contract and operating model agree",
+        "Component responsibility is traceable"
+      ],
+      "definition": "Organizational, contractual and regulatory roles across the complete AI value chain are identified and matched to real control and accountability.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-A4",
+      "domain": "A",
+      "title": "Risk, legal and regulatory classification",
+      "requirementIds": [
+        "REQ-A4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "classification",
+        "prohibited-use",
+        "reclassification-trigger"
+      ],
+      "authoringObjectId": "A4",
+      "pairedObjectId": "AP-A4",
+      "questions": [
+        {
+          "id": "A4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are applicable jurisdictions, roles, prohibited-practice screens, risk classes and adjacent legal regimes identified from actual use?"
+        },
+        {
+          "id": "A4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are classification outcomes implemented as controls, documentation duties, review routes and transition constraints?"
+        },
+        {
+          "id": "A4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Is the rationale current, evidence-backed, independently reviewed where needed and linked to reclassification triggers?"
+        }
+      ],
+      "indicators": [
+        "System-level classification record",
+        "Uncertainty and dissent are visible",
+        "Adjacent regimes are screened",
+        "Material change triggers reclassification"
+      ],
+      "definition": "The complete system and actual use are classified through a reviewable applicability analysis covering role, risk, jurisdiction, data, impact and sector obligations.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-A5",
+      "domain": "A",
+      "title": "Lifecycle stage and transition boundary",
+      "requirementIds": [
+        "REQ-A5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "lifecycle-stage",
+        "operating-boundary",
+        "transition-criteria"
+      ],
+      "authoringObjectId": "A5",
+      "pairedObjectId": "AP-A5",
+      "questions": [
+        {
+          "id": "A5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are current and target lifecycle stages, scope and permitted activities explicitly defined?"
+        },
+        {
+          "id": "A5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are environment, data, access and user boundaries technically and operationally enforced for the current stage?"
+        },
+        {
+          "id": "A5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does evidence demonstrate that transition criteria are met and the correct authority has approved progression?"
+        }
+      ],
+      "indicators": [
+        "Stage-specific boundary record",
+        "Experiment and production separation",
+        "Transition acceptance criteria",
+        "Retirement and rollback remain possible"
+      ],
+      "definition": "The current stage, permitted activities, target stage, acceptance criteria and authorization boundary are explicit from qualification through retirement.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-B1",
+      "domain": "B",
+      "title": "Data inventory, provenance and lineage",
+      "requirementIds": [
+        "REQ-B1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "data-inventory",
+        "data-flow",
+        "lineage"
+      ],
+      "authoringObjectId": "B1",
+      "pairedObjectId": "AP-B1",
+      "questions": [
+        {
+          "id": "B1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are material data classes, sources, owners, destinations and uses inventoried with stable identifiers?"
+        },
+        {
+          "id": "B1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are lineage, transformation, quality, licensing and transfer controls implemented across the actual data flow?"
+        },
+        {
+          "id": "B1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Can representative outputs and decisions be traced to current, authorized and sufficiently reliable data evidence?"
+        }
+      ],
+      "indicators": [
+        "Data-flow and lineage records",
+        "Stable dataset identifiers",
+        "Owners and rights are recorded",
+        "Outputs preserve provenance where material"
+      ],
+      "definition": "Training, tuning, retrieval, prompt, evaluation, operational and output data are separately identifiable from origin through transformation, storage, transfer and deletion.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-B2",
+      "domain": "B",
+      "title": "Purpose limitation and data minimization",
+      "requirementIds": [
+        "REQ-B2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "minimization",
+        "retention",
+        "necessity"
+      ],
+      "authoringObjectId": "B2",
+      "pairedObjectId": "AP-B2",
+      "questions": [
+        {
+          "id": "B2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Is necessity defined for each material data category, field and retention period?"
+        },
+        {
+          "id": "B2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are minimization, abstraction, tokenization, synthetic-data and deletion controls implemented in every relevant store and interface?"
+        },
+        {
+          "id": "B2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do tests and operational evidence show that unnecessary content is excluded and deletion or scope changes propagate?"
+        }
+      ],
+      "indicators": [
+        "Field-level necessity record",
+        "Minimized or synthetic prototype data",
+        "Retention tied to purpose",
+        "Scope reassessed after design change"
+      ],
+      "definition": "Only data demonstrably necessary and proportionate for the declared purpose and lifecycle stage are processed and retained.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-B3",
+      "domain": "B",
+      "title": "Privacy and data-subject governance",
+      "requirementIds": [
+        "REQ-B3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "privacy-review",
+        "lawful-basis",
+        "dpia"
+      ],
+      "authoringObjectId": "B3",
+      "pairedObjectId": "AP-B3",
+      "questions": [
+        {
+          "id": "B3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are personal-data categories, purposes, lawful basis, rights and impact-assessment triggers determined?"
+        },
+        {
+          "id": "B3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are privacy requirements implemented across architecture, access, logging, retention, providers and user workflows?"
+        },
+        {
+          "id": "B3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do tests and operational records demonstrate rights fulfilment, deletion, restriction and privacy-control effectiveness?"
+        }
+      ],
+      "indicators": [
+        "Data categories are classified",
+        "Context-specific privacy analysis",
+        "Rights can be fulfilled end to end",
+        "Privacy controls are tested"
+      ],
+      "definition": "Personal-data processing, lawful basis, transparency, rights, privacy risks and impact-assessment duties are operationalized in the system and its lifecycle.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-B4",
+      "domain": "B",
+      "title": "Confidentiality and information-boundary control",
+      "requirementIds": [
+        "REQ-B4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "confidentiality",
+        "tenant-isolation",
+        "secrets-isolation"
+      ],
+      "authoringObjectId": "B4",
+      "pairedObjectId": "AP-B4",
+      "questions": [
+        {
+          "id": "B4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are information classes, confidentiality obligations and prohibited disclosure paths explicitly defined?"
+        },
+        {
+          "id": "B4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are secrets isolation, least privilege, tenant separation, provider settings and leakage controls technically enforced?"
+        },
+        {
+          "id": "B4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do leakage, cross-tenant, unauthorized reuse and output-disclosure tests demonstrate effective boundaries?"
+        }
+      ],
+      "indicators": [
+        "AI inputs follow classification rules",
+        "Secrets are excluded from model-visible context",
+        "Tenant isolation is tested",
+        "Provider retention and training settings are known"
+      ],
+      "definition": "Confidential, restricted, customer-controlled and security-sensitive information remains within approved identity, tenant, provider, logging and contractual boundaries.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-B5",
+      "domain": "B",
+      "title": "Intellectual property, licensing and content rights",
+      "requirementIds": [
+        "REQ-B5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "licence",
+        "content-rights",
+        "output-ownership"
+      ],
+      "authoringObjectId": "B5",
+      "pairedObjectId": "AP-B5",
+      "questions": [
+        {
+          "id": "B5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are rights, licences, restrictions, attribution and ownership conditions identified for all material assets and outputs?"
+        },
+        {
+          "id": "B5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are those conditions implemented in ingestion, training, retrieval, generation, review and distribution workflows?"
+        },
+        {
+          "id": "B5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence demonstrate compliance with restrictions and effective detection or review of infringement risk?"
+        }
+      ],
+      "indicators": [
+        "Licence and rights inventory",
+        "Restricted content is blocked or permissioned",
+        "Output-use conditions are explicit",
+        "Customer IP boundaries are preserved"
+      ],
+      "definition": "The organization has a defensible and traceable basis to use, transform, train on, retrieve, generate and distribute relevant data, models, code and outputs.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-C1",
+      "domain": "C",
+      "title": "Model, agent and component inventory",
+      "requirementIds": [
+        "REQ-C1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "model-inventory",
+        "component-manifest",
+        "prompt-version"
+      ],
+      "authoringObjectId": "C1",
+      "pairedObjectId": "AP-C1",
+      "questions": [
+        {
+          "id": "C1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are all material AI and supporting components, versions, configurations, owners and roles inventoried?"
+        },
+        {
+          "id": "C1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Is inventory capture integrated with build, deployment, routing and change processes?"
+        },
+        {
+          "id": "C1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Can a specific run, decision or incident be reconstructed from the component baseline actually used?"
+        }
+      ],
+      "indicators": [
+        "Component manifest exists",
+        "Model and prompt versions are traceable",
+        "Tools and permissions are visible",
+        "Obsolete components can be identified"
+      ],
+      "definition": "Models, agents, prompts, tools, APIs, datasets, providers, infrastructure, versions and owners are registered and linked to the assessed system.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-C2",
+      "domain": "C",
+      "title": "Model and provider suitability",
+      "requirementIds": [
+        "REQ-C2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "model-suitability",
+        "provider-comparison",
+        "fallback"
+      ],
+      "authoringObjectId": "C2",
+      "pairedObjectId": "AP-C2",
+      "questions": [
+        {
+          "id": "C2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are task-specific model and provider requirements and selection criteria defined?"
+        },
+        {
+          "id": "C2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are approved choices, routing, fallbacks and contractual constraints implemented in configuration and operation?"
+        },
+        {
+          "id": "C2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do representative evaluations and provider evidence demonstrate continued suitability against alternatives?"
+        }
+      ],
+      "indicators": [
+        "Selection criteria are documented",
+        "Suitability is tied to test results",
+        "Fallbacks are controlled",
+        "Provider limitations are known"
+      ],
+      "definition": "Model and provider selections are evidence-based for task quality, language, latency, security, privacy, resilience, cost, contract and risk.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-C3",
+      "domain": "C",
+      "title": "Agent autonomy and tool permissioning",
+      "requirementIds": [
+        "REQ-C3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "CRITICAL",
+      "signals": [
+        "tool-allowlist",
+        "human-approval",
+        "rate-limit",
+        "kill-switch"
+      ],
+      "authoringObjectId": "C3",
+      "pairedObjectId": "AP-C3",
+      "questions": [
+        {
+          "id": "C3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are each agent's tools, credentials, data access, action scope, budgets and approval points defined?"
+        },
+        {
+          "id": "C3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are least privilege, deterministic authorization, reversibility, rate limits and interruption implemented outside model discretion?"
+        },
+        {
+          "id": "C3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do negative tests and runtime evidence show that unauthorized, recursive or cross-boundary actions are prevented and detected?"
+        }
+      ],
+      "indicators": [
+        "Per-tool permission model",
+        "Consequential actions require approval",
+        "Read and write privileges differ",
+        "Kill switch and rollback exist"
+      ],
+      "definition": "Agent authority is explicit, least-privilege, stage-appropriate, budgeted, observable and bounded by deterministic authorization for consequential actions.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-C4",
+      "domain": "C",
+      "title": "Provider, vendor and contractual governance",
+      "requirementIds": [
+        "REQ-C4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "provider-review",
+        "subprocessor",
+        "exit-plan"
+      ],
+      "authoringObjectId": "C4",
+      "pairedObjectId": "AP-C4",
+      "questions": [
+        {
+          "id": "C4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are provider terms, data practices, subprocessors, service limits, audit rights and exit needs defined?"
+        },
+        {
+          "id": "C4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are contractual controls, approved configurations, monitoring and contingency arrangements implemented?"
+        },
+        {
+          "id": "C4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence show that material provider changes and service failures are detected, assessed and acted upon?"
+        }
+      ],
+      "indicators": [
+        "Approved-vendor status",
+        "Terms and subprocessors are versioned",
+        "Retention and training use are confirmed",
+        "Exit and portability plans exist"
+      ],
+      "definition": "Third-party AI services are evaluated, contractually governed, monitored and replaceable in the context of the actual system.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-C5",
+      "domain": "C",
+      "title": "AI supply-chain integrity and change control",
+      "requirementIds": [
+        "REQ-C5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "supply-chain",
+        "component-baseline",
+        "update-channel"
+      ],
+      "authoringObjectId": "C5",
+      "pairedObjectId": "AP-C5",
+      "questions": [
+        {
+          "id": "C5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are component provenance, versions, vulnerabilities, update sources and material-change triggers defined?"
+        },
+        {
+          "id": "C5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are integrity checks, approved update channels, testing, rollback and replacement processes implemented?"
+        },
+        {
+          "id": "C5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does evidence show that drift, compromise, deprecation and material change are detected and reauthorized when required?"
+        }
+      ],
+      "indicators": [
+        "Software/model/data bills of materials",
+        "Controlled baselines and update channels",
+        "Integrity and vulnerability checks",
+        "Tested rollback or replacement"
+      ],
+      "definition": "AI models, datasets, libraries, tools, services and update channels have verifiable provenance, controlled baselines and risk-based change gates.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-D1",
+      "domain": "D",
+      "title": "Secure and isolated AI architecture",
+      "requirementIds": [
+        "REQ-D1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "threat-model",
+        "trust-boundary",
+        "environment-isolation"
+      ],
+      "authoringObjectId": "D1",
+      "pairedObjectId": "AP-D1",
+      "questions": [
+        {
+          "id": "D1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are assets, identities, data flows, trust boundaries, environments and external connections defined?"
+        },
+        {
+          "id": "D1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are authentication, authorization, network restriction, secrets isolation and tenant/environment separation enforced?"
+        },
+        {
+          "id": "D1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do architecture review and technical tests demonstrate that stated boundaries resist unauthorized access and cross-environment movement?"
+        }
+      ],
+      "indicators": [
+        "Trust-boundary architecture",
+        "Environment-specific credentials",
+        "Network and identity least privilege",
+        "Tenant and isolation tests"
+      ],
+      "definition": "The system uses defense in depth, explicit trust boundaries and enforced identity, network, environment, tenant, secrets and data-flow controls.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-D2",
+      "domain": "D",
+      "title": "Functional quality, accuracy and reliability",
+      "requirementIds": [
+        "REQ-D2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "evaluation",
+        "acceptance-threshold",
+        "reliability"
+      ],
+      "authoringObjectId": "D2",
+      "pairedObjectId": "AP-D2",
+      "questions": [
+        {
+          "id": "D2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are quality attributes, representative cases, failure classes and acceptance thresholds defined for the intended context?"
+        },
+        {
+          "id": "D2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are evaluation, fallback, human review and release controls implemented in the delivery lifecycle?"
+        },
+        {
+          "id": "D2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do repeated, independent where needed, end-to-end tests and operational data demonstrate acceptable performance and reliability?"
+        }
+      ],
+      "indicators": [
+        "Representative evaluation set",
+        "Repeated-run and subgroup analysis",
+        "Risk-based thresholds",
+        "Production performance compared with baseline"
+      ],
+      "definition": "End-to-end performance is evaluated on representative tasks, users, contexts and failure modes against consequence-based acceptance thresholds.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-D3",
+      "domain": "D",
+      "title": "AI-specific security and adversarial resilience",
+      "requirementIds": [
+        "REQ-D3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "prompt-injection",
+        "data-leakage",
+        "red-team",
+        "adversarial-test"
+      ],
+      "authoringObjectId": "D3",
+      "pairedObjectId": "AP-D3",
+      "questions": [
+        {
+          "id": "D3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does a system-specific threat model cover applicable AI attack surfaces, attacker goals, assets, trust boundaries and consequences?"
+        },
+        {
+          "id": "D3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are enforceable controls implemented outside model discretion for untrusted inputs, retrieval, outputs, tools, data, models and privileged actions?"
+        },
+        {
+          "id": "D3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do representative adversarial tests, regression evidence and operational monitoring demonstrate control effectiveness and expose residual limitations?"
+        }
+      ],
+      "indicators": [
+        "AI-specific threat model and abuse cases",
+        "Deterministic validation and authorization boundaries",
+        "Representative adversarial regression suite",
+        "AI-security telemetry and response playbook"
+      ],
+      "definition": "The system identifies and controls attack paths that exploit AI models, prompts, training or retrieval data, generated outputs, tools and feedback loops, and verifies resilience through representative adversarial testing and monitoring.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-D4",
+      "domain": "D",
+      "title": "Traceability, reproducibility and observability",
+      "requirementIds": [
+        "REQ-D4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "audit-log",
+        "run-manifest",
+        "reproducibility"
+      ],
+      "authoringObjectId": "D4",
+      "pairedObjectId": "AP-D4",
+      "questions": [
+        {
+          "id": "D4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are required trace events, identifiers, lineage, retention and reconstruction outcomes defined?"
+        },
+        {
+          "id": "D4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are run manifests, evidence links, component versions, tool logs and governance events captured with integrity controls?"
+        },
+        {
+          "id": "D4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Can representative outputs, failures and decisions be reconstructed and compared across versions and time?"
+        }
+      ],
+      "indicators": [
+        "Run manifest and evidence IDs",
+        "Model, prompt and tool versions recorded",
+        "Material actions logged",
+        "Prior runs can be compared"
+      ],
+      "definition": "Material outputs and actions can be reconstructed from evidence, data, component versions, prompts, tools, validations and human decisions with sufficient operational telemetry.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-D5",
+      "domain": "D",
+      "title": "Safety, failure handling and recovery",
+      "requirementIds": [
+        "REQ-D5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "rollback",
+        "safe-shutdown",
+        "fail-safe"
+      ],
+      "authoringObjectId": "D5",
+      "pairedObjectId": "AP-D5",
+      "questions": [
+        {
+          "id": "D5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are failure modes, unsafe states, recovery objectives and control-transfer conditions defined?"
+        },
+        {
+          "id": "D5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are fail-safe states, interruption, fallback, rollback, human takeover and incident procedures implemented?"
+        },
+        {
+          "id": "D5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do fault-injection, recovery and operational exercises demonstrate controlled degradation and timely restoration?"
+        }
+      ],
+      "indicators": [
+        "Defined fail-safe states",
+        "Fallback and interruption controls",
+        "Tested rollback and recovery",
+        "Incident ownership and human takeover"
+      ],
+      "definition": "Foreseeable unsafe states are constrained through fail-safe behavior, interruption, fallback, rollback, human takeover, incident response and recovery testing.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-E1",
+      "domain": "E",
+      "title": "Human and fundamental-rights impact",
+      "requirementIds": [
+        "REQ-E1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "impact-assessment",
+        "affected-persons",
+        "harm-scenario"
+      ],
+      "authoringObjectId": "E1",
+      "pairedObjectId": "AP-E1",
+      "questions": [
+        {
+          "id": "E1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are affected persons, rights, benefit-harm pathways, severity, likelihood, reversibility and vulnerability defined?"
+        },
+        {
+          "id": "E1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are impact mitigations, stakeholder input, escalation and review integrated into design and operation?"
+        },
+        {
+          "id": "E1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do evaluation and post-deployment evidence show impacts are monitored, mitigated and reassessed after change?"
+        }
+      ],
+      "indicators": [
+        "Affected-person map",
+        "Indirect and vulnerable-group impacts",
+        "Harm scenarios and mitigations",
+        "Material change triggers reassessment"
+      ],
+      "definition": "The organization evaluates direct, indirect and cumulative benefits and harms for users, non-users, affected groups and rights across the actual context.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-E2",
+      "domain": "E",
+      "title": "Fairness and non-discrimination",
+      "requirementIds": [
+        "REQ-E2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "fairness",
+        "subgroup",
+        "disparity"
+      ],
+      "authoringObjectId": "E2",
+      "pairedObjectId": "AP-E2",
+      "questions": [
+        {
+          "id": "E2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are context-specific fairness objectives, relevant groups, harms, metrics and unacceptable thresholds defined?"
+        },
+        {
+          "id": "E2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are data, model, workflow and human-review mitigations implemented without creating new inequities?"
+        },
+        {
+          "id": "E2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do subgroup, intersectional and operational results demonstrate acceptable disparity and effective mitigation?"
+        }
+      ],
+      "indicators": [
+        "Contextual fairness objective",
+        "Subgroup and proxy analysis",
+        "Validated mitigations",
+        "Unresolved disparity is escalated"
+      ],
+      "definition": "Contextual fairness objectives, relevant groups, data and decision pathways are defined, measured and governed for unacceptable disparity.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-E3",
+      "domain": "E",
+      "title": "Transparency and communication",
+      "requirementIds": [
+        "REQ-E3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "ai-notice",
+        "explanation",
+        "disclosure"
+      ],
+      "authoringObjectId": "E3",
+      "pairedObjectId": "AP-E3",
+      "questions": [
+        {
+          "id": "E3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are audience-specific transparency objectives, content, timing and communication responsibilities defined?"
+        },
+        {
+          "id": "E3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are disclosures, labels, limitations, contact and correction routes implemented in the actual interaction and workflow?"
+        },
+        {
+          "id": "E3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do comprehension, accessibility and consistency checks show that people can understand and act on the information?"
+        }
+      ],
+      "indicators": [
+        "AI interaction is disclosed when required",
+        "Purpose and limits are understandable",
+        "Human-review status is clear",
+        "Contact and challenge paths exist"
+      ],
+      "definition": "Users and affected persons receive timely, accurate and actionable information about AI use, purpose, limitations, data use, human involvement and relevant consequences.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-E4",
+      "domain": "E",
+      "title": "Meaningful human oversight",
+      "requirementIds": [
+        "REQ-E4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "CRITICAL",
+      "signals": [
+        "human-override",
+        "oversight",
+        "automation-bias"
+      ],
+      "authoringObjectId": "E4",
+      "pairedObjectId": "AP-E4",
+      "questions": [
+        {
+          "id": "E4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are oversight purpose, reviewer competence, information needs, intervention points and authority defined?"
+        },
+        {
+          "id": "E4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Can reviewers actually inspect evidence, pause, correct, override and escalate without undue friction or incentive bias?"
+        },
+        {
+          "id": "E4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do intervention, disagreement, error and workload data demonstrate that oversight is effective rather than nominal?"
+        }
+      ],
+      "indicators": [
+        "Explicit oversight points",
+        "Reviewer sees evidence and uncertainty",
+        "Override is technically possible",
+        "Effectiveness and automation bias are monitored"
+      ],
+      "definition": "Competent humans have sufficient information, authority, time and technical ability to review, intervene, override and escalate at material decision points.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-E5",
+      "domain": "E",
+      "title": "Contestability, correction, accessibility and AI literacy",
+      "requirementIds": [
+        "REQ-E5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "appeal",
+        "correction",
+        "accessibility"
+      ],
+      "authoringObjectId": "E5",
+      "pairedObjectId": "AP-E5",
+      "questions": [
+        {
+          "id": "E5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are correction, appeal, accessibility and role-specific competence requirements defined?"
+        },
+        {
+          "id": "E5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are timely human recourse, accessible interfaces, correction propagation and training implemented?"
+        },
+        {
+          "id": "E5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do case outcomes, accessibility checks, competence evidence and complaint trends show that recourse works in practice?"
+        }
+      ],
+      "indicators": [
+        "Appeal and correction workflow",
+        "Accessible human review",
+        "Role-specific AI competence",
+        "Errors feed into improvement"
+      ],
+      "definition": "Material outcomes can be questioned and corrected through accessible human recourse, while users, reviewers and decision-makers have role-appropriate competence.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-F1",
+      "domain": "F",
+      "title": "Ownership and accountable operating model",
+      "requirementIds": [
+        "REQ-F1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "accountable-owner",
+        "raci",
+        "ownership-continuity"
+      ],
+      "authoringObjectId": "F1",
+      "pairedObjectId": "AP-F1",
+      "questions": [
+        {
+          "id": "F1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are accountable ownership, delegated responsibilities, decision rights and continuity obligations defined?"
+        },
+        {
+          "id": "F1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are ownership and role assignments embedded in work queues, access, reviews, incidents and change processes?"
+        },
+        {
+          "id": "F1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do records show that named owners act, resolve gaps and remain accountable after deployment?"
+        }
+      ],
+      "indicators": [
+        "Accountable system owner",
+        "Current authority/RACI model",
+        "Gaps and decisions have owners",
+        "Ownership persists through retirement"
+      ],
+      "definition": "One accountable system owner and clearly assigned business, technical, data, model, security, privacy, operations and decision roles exercise authority throughout the lifecycle.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-F2",
+      "domain": "F",
+      "title": "Compliance evidence and documentation integrity",
+      "requirementIds": [
+        "REQ-F2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "evidence-register",
+        "claim-linking",
+        "evidence-freshness"
+      ],
+      "authoringObjectId": "F2",
+      "pairedObjectId": "AP-F2",
+      "questions": [
+        {
+          "id": "F2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are required evidence types, provenance, scope, freshness, owners and validation rules defined for each material claim?"
+        },
+        {
+          "id": "F2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are evidence capture, versioning, integrity, expiry, contradiction and claim-linking implemented?"
+        },
+        {
+          "id": "F2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Can the decision package be reproduced and shown to reflect the current implemented and operated system?"
+        }
+      ],
+      "indicators": [
+        "Requirement-to-evidence mapping",
+        "Declarations separated from observations",
+        "Missing and expired evidence visible",
+        "Decision package is reproducible"
+      ],
+      "definition": "Material claims, requirements, controls and readiness conclusions are linked to current, scoped, attributable and sufficient evidence that matches implementation and operation.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-F3",
+      "domain": "F",
+      "title": "Risk, control and residual-risk management",
+      "requirementIds": [
+        "REQ-F3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "risk-register",
+        "residual-risk",
+        "risk-acceptance"
+      ],
+      "authoringObjectId": "F3",
+      "pairedObjectId": "AP-F3",
+      "questions": [
+        {
+          "id": "F3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are inherent risk, treatment objectives, residual risk, tolerance and acceptance authority defined?"
+        },
+        {
+          "id": "F3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are controls, owners, deadlines, exceptions and acceptance criteria implemented and tracked?"
+        },
+        {
+          "id": "F3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does effectiveness evidence justify residual-risk status and any acceptance by an authorized human?"
+        }
+      ],
+      "indicators": [
+        "System-specific risk register",
+        "Controls linked to acceptance criteria",
+        "Residual risk and uncertainty visible",
+        "Exceptions expire and acceptance is attributable"
+      ],
+      "definition": "System-specific risks are linked to controls, evidence, owners, treatment criteria, residual uncertainty and authorized acceptance.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-F4",
+      "domain": "F",
+      "title": "Decision rights, authorization and escalation",
+      "requirementIds": [
+        "REQ-F4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "decision-rights",
+        "authorization",
+        "escalation"
+      ],
+      "authoringObjectId": "F4",
+      "pairedObjectId": "AP-F4",
+      "questions": [
+        {
+          "id": "F4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are decision types, delegated authority, quorum, escalation, service levels, expiry and separation from AI recommendation defined?"
+        },
+        {
+          "id": "F4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are asynchronous review, conditions, dissent, reminders, escalation and immutable decision records implemented?"
+        },
+        {
+          "id": "F4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do decision records show timely review by authorized people and enforcement of conditions before progression?"
+        }
+      ],
+      "indicators": [
+        "Decision authority matrix",
+        "AI recommendation separated from authorization",
+        "Conditions and dissent are recorded",
+        "Material change expires prior decisions"
+      ],
+      "definition": "The correct human authority makes timely, proportional and recorded lifecycle decisions, clearly separated from automated recommendations.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "CTRL-F5",
+      "domain": "F",
+      "title": "Monitoring, incidents, change, re-evaluation and retirement",
+      "requirementIds": [
+        "REQ-F5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "targetState": "HUMAN_VALIDATED",
+      "severity": "HIGH",
+      "signals": [
+        "monitoring-plan",
+        "incident-response",
+        "change-trigger",
+        "retirement-plan"
+      ],
+      "authoringObjectId": "F5",
+      "pairedObjectId": "AP-F5",
+      "questions": [
+        {
+          "id": "F5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Are monitoring objectives, incident thresholds, material-change triggers, review cadence and retirement duties defined?"
+        },
+        {
+          "id": "F5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Are telemetry, incident workflows, reassessment, rollback, decommissioning, deletion and vendor exit implemented?"
+        },
+        {
+          "id": "F5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Do operational records show timely detection, response, reauthorization and complete retirement when required?"
+        }
+      ],
+      "indicators": [
+        "Monitoring spans quality and risk",
+        "Change triggers are codified",
+        "Incidents create governance actions",
+        "Retirement removes access and data while preserving decisions"
+      ],
+      "definition": "Quality, risk, security, impact and compliance are monitored; incidents and material changes trigger response, reassessment, reauthorization or controlled retirement.",
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "findingDefinitions": [],
+      "atomicSubcriteria": [],
+      "evidenceRules": null
+    }
+  ],
+  "antipatterns": [
+    {
+      "id": "AP-A1",
+      "domain": "A",
+      "title": "Undefined or elastic intended purpose",
+      "severity": "HIGH",
+      "signal": "undefined-purpose",
+      "signals": [
+        "undefined-purpose"
+      ],
+      "relatedControlIds": [
+        "CTRL-A1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "A1",
+      "definition": "The purpose is vague, technically framed, inconsistent or expands without requalification.",
+      "questions": [
+        {
+          "id": "AP-A1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Is the declared purpose vague, inconsistent or missing material use boundaries?"
+        },
+        {
+          "id": "AP-A1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented or operational uses materially diverge from the declared purpose?"
+        },
+        {
+          "id": "AP-A1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Has a scoped current comparison tested declared and actual uses for divergence?"
+        }
+      ],
+      "indicators": [
+        "General-purpose wording without use constraints",
+        "Conflicting purpose statements",
+        "No affected-person boundary",
+        "Prototype features become accepted use without review"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-A2",
+      "domain": "A",
+      "title": "AI-first solutionism or value theatre",
+      "severity": "HIGH",
+      "signal": "value-theatre",
+      "signals": [
+        "value-theatre"
+      ],
+      "relatedControlIds": [
+        "CTRL-A2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "A2",
+      "definition": "AI is adopted for novelty, availability or signalling without evidence that it is the best proportionate mechanism.",
+      "questions": [
+        {
+          "id": "AP-A2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit AI-first solutionism or value theatre: AI is adopted for novelty, availability or signalling without evidence that it is the best proportionate mechanism."
+        },
+        {
+          "id": "AP-A2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show a predetermined AI solution, missing baseline comparison, or activity metrics substituting for value?"
+        },
+        {
+          "id": "AP-A2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of AI-first solutionism or value theatre, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "The use case starts with a predetermined AI solution",
+        "No baseline or alternative comparison",
+        "Activity metrics substitute for value",
+        "Progress continues despite poor outcome evidence"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-A3",
+      "domain": "A",
+      "title": "Role ambiguity and responsibility displacement",
+      "severity": "HIGH",
+      "signal": "responsibility-displacement",
+      "signals": [
+        "responsibility-displacement"
+      ],
+      "relatedControlIds": [
+        "CTRL-A3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "A3",
+      "definition": "Parties assume that governance, compliance or operational control belongs to someone else.",
+      "questions": [
+        {
+          "id": "AP-A3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Role ambiguity and responsibility displacement: Parties assume that governance, compliance or operational control belongs to someone else."
+        },
+        {
+          "id": "AP-A3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show vendor assurance treated as deployer assurance, overlapping ownership, or unowned integrated components?"
+        },
+        {
+          "id": "AP-A3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Role ambiguity and responsibility displacement, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Vendor assurance is treated as deployer assurance",
+        "Overlapping or contradictory ownership",
+        "No owner for integrated components",
+        "Responsibility disappears across subcontracting"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-A4",
+      "domain": "A",
+      "title": "Superficial or static classification",
+      "severity": "HIGH",
+      "signal": "static-classification",
+      "signals": [
+        "static-classification"
+      ],
+      "relatedControlIds": [
+        "CTRL-A4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "A4",
+      "definition": "Classification is copied, model-centric, overconfident or treated as a one-time formality.",
+      "questions": [
+        {
+          "id": "AP-A4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Superficial or static classification: Classification is copied, model-centric, overconfident or treated as a one-time formality."
+        },
+        {
+          "id": "AP-A4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show copied vendor categories, internal ratings treated as legal class, or missing reclassification after change?"
+        },
+        {
+          "id": "AP-A4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Superficial or static classification, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Vendor category copied without use analysis",
+        "Internal rating confused with legal class",
+        "Unknown legal questions stated as facts",
+        "No reclassification after change"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-A5",
+      "domain": "A",
+      "title": "Prototype-to-production drift",
+      "severity": "CRITICAL",
+      "signal": "prototype-production-drift",
+      "signals": [
+        "prototype-production-drift"
+      ],
+      "relatedControlIds": [
+        "CTRL-A5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "A5",
+      "definition": "An experiment accumulates real users, data, integrations or dependency without formal transition and reassessment.",
+      "questions": [
+        {
+          "id": "AP-A5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Prototype-to-production drift: An experiment accumulates real users, data, integrations or dependency without formal transition and reassessment."
+        },
+        {
+          "id": "AP-A5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show production data or credentials in an experiment, indefinite prototypes, or development approval treated as deployment approval?"
+        },
+        {
+          "id": "AP-A5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Prototype-to-production drift, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Temporary prototype runs indefinitely",
+        "Production data or credentials enter an experiment",
+        "Development approval is treated as deployment approval",
+        "Shadow infrastructure becomes business critical"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-B1",
+      "domain": "B",
+      "title": "Invisible or untraceable data flows",
+      "severity": "HIGH",
+      "signal": "untraceable-data",
+      "signals": [
+        "untraceable-data"
+      ],
+      "relatedControlIds": [
+        "CTRL-B1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "B1",
+      "definition": "Data origin, ownership, transformation, transmission, retention or reuse cannot be reliably established.",
+      "questions": [
+        {
+          "id": "AP-B1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Invisible or untraceable data flows: Data origin, ownership, transformation, transmission, retention or reuse cannot be reliably established."
+        },
+        {
+          "id": "AP-B1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show unknown prompt sources, undocumented provider fields, or outputs reused without provenance?"
+        },
+        {
+          "id": "AP-B1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Invisible or untraceable data flows, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Unknown sources mixed in prompts",
+        "Retrieval stores lack dataset records",
+        "Undocumented fields reach providers",
+        "Outputs are reused without provenance"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-B2",
+      "domain": "B",
+      "title": "Convenience-driven data accumulation",
+      "severity": "HIGH",
+      "signal": "data-accumulation",
+      "signals": [
+        "data-accumulation"
+      ],
+      "relatedControlIds": [
+        "CTRL-B2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "B2",
+      "definition": "Data is collected, transmitted or retained because it may be useful rather than because it is necessary.",
+      "questions": [
+        {
+          "id": "AP-B2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Convenience-driven data accumulation: Data is collected, transmitted or retained because it may be useful rather than because it is necessary."
+        },
+        {
+          "id": "AP-B2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show whole-database copies, full documents sent when fields suffice, or missing deletion propagation?"
+        },
+        {
+          "id": "AP-B2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Convenience-driven data accumulation, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Whole databases copied for narrow use",
+        "Full documents sent when fields suffice",
+        "No deletion propagation",
+        "More context is assumed to be inherently better"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-B3",
+      "domain": "B",
+      "title": "Privacy-by-documentation only",
+      "severity": "CRITICAL",
+      "signal": "privacy-by-documentation",
+      "signals": [
+        "privacy-by-documentation"
+      ],
+      "relatedControlIds": [
+        "CTRL-B3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "B3",
+      "definition": "Privacy exists in policy text but is not reflected in actual data flows, controls or operations.",
+      "questions": [
+        {
+          "id": "AP-B3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Privacy-by-documentation only: Privacy exists in policy text but is not reflected in actual data flows, controls or operations."
+        },
+        {
+          "id": "AP-B3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show personal data in logs or embeddings, rights that cannot propagate, or pseudonymization treated as anonymization?"
+        },
+        {
+          "id": "AP-B3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Privacy-by-documentation only, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Privacy statement without inventory",
+        "Personal data persists in logs or embeddings",
+        "Rights cannot propagate",
+        "Pseudonymization is treated as anonymization"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-B4",
+      "domain": "B",
+      "title": "Confidentiality leakage through AI channels",
+      "severity": "CRITICAL",
+      "signal": "confidentiality-leakage",
+      "signals": [
+        "confidentiality-leakage"
+      ],
+      "relatedControlIds": [
+        "CTRL-B4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "B4",
+      "definition": "Sensitive information enters or leaves models, prompts, logs, caches, retrieval stores or tools without adequate protection.",
+      "questions": [
+        {
+          "id": "AP-B4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Confidentiality leakage through AI channels: Sensitive information enters or leaves models, prompts, logs, caches, retrieval stores or tools without adequate protection."
+        },
+        {
+          "id": "AP-B4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show secrets in prompts, unapproved provider transfers, or outputs revealing source-system content?"
+        },
+        {
+          "id": "AP-B4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Confidentiality leakage through AI channels, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Secrets embedded in prompts",
+        "Unapproved provider receives restricted data",
+        "Shared retrieval store lacks tenant isolation",
+        "Outputs reveal source-system content"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-B5",
+      "domain": "B",
+      "title": "Unverified rights and output ownership",
+      "severity": "HIGH",
+      "signal": "unverified-rights",
+      "signals": [
+        "unverified-rights"
+      ],
+      "relatedControlIds": [
+        "CTRL-B5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "B5",
+      "definition": "Accessible content is assumed to be available for AI use, transformation or redistribution without rights analysis.",
+      "questions": [
+        {
+          "id": "AP-B5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Unverified rights and output ownership: Accessible content is assumed to be available for AI use, transformation or redistribution without rights analysis."
+        },
+        {
+          "id": "AP-B5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show scraped material without rights review, confidential tuning data, or generated output claimed as proprietary without review?"
+        },
+        {
+          "id": "AP-B5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Unverified rights and output ownership, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Scraped material lacks rights review",
+        "Confidential material used for tuning",
+        "Licence conflicts with commercial use",
+        "Generated output is claimed as proprietary without review"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-C1",
+      "domain": "C",
+      "title": "Shadow AI component usage",
+      "severity": "HIGH",
+      "signal": "shadow-ai",
+      "signals": [
+        "shadow-ai"
+      ],
+      "relatedControlIds": [
+        "CTRL-C1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "C1",
+      "definition": "Unregistered or uncontrolled models, tools, providers, prompts or agent capabilities are used.",
+      "questions": [
+        {
+          "id": "AP-C1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Shadow AI component usage: Unregistered or uncontrolled models, tools, providers, prompts or agent capabilities are used."
+        },
+        {
+          "id": "AP-C1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show models selected directly in code, unofficial AI services, or tool sets that differ from architecture?"
+        },
+        {
+          "id": "AP-C1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Shadow AI component usage, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Model selected directly in code",
+        "Unofficial AI service processes data",
+        "Tool set differs from architecture",
+        "No owner for a critical component"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-C2",
+      "domain": "C",
+      "title": "Convenience- or brand-driven model selection",
+      "severity": "HIGH",
+      "signal": "brand-driven-selection",
+      "signals": [
+        "brand-driven-selection"
+      ],
+      "relatedControlIds": [
+        "CTRL-C2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "C2",
+      "definition": "Models or providers are selected by familiarity, availability, prestige or generic benchmarks rather than contextual evidence.",
+      "questions": [
+        {
+          "id": "AP-C2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Convenience- or brand-driven model selection: Models or providers are selected by familiarity, availability, prestige or generic benchmarks rather than contextual evidence."
+        },
+        {
+          "id": "AP-C2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show one model used for every task, missing provider comparison, or generic benchmarks replacing system testing?"
+        },
+        {
+          "id": "AP-C2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Convenience- or brand-driven model selection, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "One model is used for every task",
+        "No provider comparison",
+        "Generic benchmark replaces system testing",
+        "Fallback is untested"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-C3",
+      "domain": "C",
+      "title": "Unbounded or implicit agent authority",
+      "severity": "CRITICAL",
+      "signal": "excessive-agency",
+      "signals": [
+        "excessive-agency"
+      ],
+      "relatedControlIds": [
+        "CTRL-C3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "C3",
+      "definition": "An agent receives broad access and can choose independently how to exercise it without enforceable limits.",
+      "questions": [
+        {
+          "id": "AP-C3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Unbounded or implicit agent authority: An agent receives broad access and can choose independently how to exercise it without enforceable limits."
+        },
+        {
+          "id": "AP-C3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show shared administrative credentials, unrestricted tool access, or model-controlled authorization?"
+        },
+        {
+          "id": "AP-C3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Unbounded or implicit agent authority, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Shared administrative credentials",
+        "Unrestricted browser or database access",
+        "Model controls authorization",
+        "No approval for external messages or record changes"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-C4",
+      "domain": "C",
+      "title": "Vendor assurance substitution",
+      "severity": "HIGH",
+      "signal": "vendor-assurance-substitution",
+      "signals": [
+        "vendor-assurance-substitution"
+      ],
+      "relatedControlIds": [
+        "CTRL-C4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "C4",
+      "definition": "Vendor claims, certifications or marketing are treated as proof that the integrated system is governed.",
+      "questions": [
+        {
+          "id": "AP-C4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Vendor assurance substitution: Vendor claims, certifications or marketing are treated as proof that the integrated system is governed."
+        },
+        {
+          "id": "AP-C4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show enterprise-grade used as evidence, assumed transfer of provider compliance, or missing exit plans?"
+        },
+        {
+          "id": "AP-C4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Vendor assurance substitution, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "No contract-specific review",
+        "Enterprise-grade is used as evidence",
+        "Provider compliance is assumed to transfer",
+        "No exit plan or term-change monitoring"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-C5",
+      "domain": "C",
+      "title": "Silent supply-chain drift",
+      "severity": "HIGH",
+      "signal": "supply-chain-drift",
+      "signals": [
+        "supply-chain-drift"
+      ],
+      "relatedControlIds": [
+        "CTRL-C5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "C5",
+      "definition": "Components or dependencies change without the organization understanding or authorizing their effect on behavior and risk.",
+      "questions": [
+        {
+          "id": "AP-C5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Silent supply-chain drift: Components or dependencies change without the organization understanding or authorizing their effect on behavior and risk."
+        },
+        {
+          "id": "AP-C5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show latest aliases in production, untested automatic updates, or silent provider behavior changes?"
+        },
+        {
+          "id": "AP-C5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Silent supply-chain drift, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Latest aliases in production",
+        "Automatic updates lack regression tests",
+        "Provider behavior changes silently",
+        "No provenance or component baseline"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-D1",
+      "domain": "D",
+      "title": "Implicit-trust AI architecture",
+      "severity": "CRITICAL",
+      "signal": "unsafe-experiment-boundary",
+      "signals": [
+        "unsafe-experiment-boundary"
+      ],
+      "relatedControlIds": [
+        "CTRL-D1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "D1",
+      "definition": "The system relies on prompts, conventions or developer intent instead of enforceable architectural controls.",
+      "questions": [
+        {
+          "id": "AP-D1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Implicit-trust AI architecture: The system relies on prompts, conventions or developer intent instead of enforceable architectural controls."
+        },
+        {
+          "id": "AP-D1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show shared credentials across environments, prompts used as security boundaries, or prototypes reaching production resources?"
+        },
+        {
+          "id": "AP-D1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Implicit-trust AI architecture, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Shared credentials across environments",
+        "System prompt used as security boundary",
+        "Prototype reaches production resources",
+        "No tenant or architecture separation"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-D2",
+      "domain": "D",
+      "title": "Demo-based quality assurance",
+      "severity": "HIGH",
+      "signal": "demo-quality",
+      "signals": [
+        "demo-quality"
+      ],
+      "relatedControlIds": [
+        "CTRL-D2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "D2",
+      "definition": "Successful examples or generic model benchmarks are treated as proof of end-to-end reliability.",
+      "questions": [
+        {
+          "id": "AP-D2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Demo-based quality assurance: Successful examples or generic model benchmarks are treated as proof of end-to-end reliability."
+        },
+        {
+          "id": "AP-D2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show happy-path-only examples, a single successful run, or average scores hiding critical failures?"
+        },
+        {
+          "id": "AP-D2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Demo-based quality assurance, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Only happy-path examples",
+        "Single successful run",
+        "No domain-expert review",
+        "Average score hides critical failure"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-D3",
+      "domain": "D",
+      "title": "Prompt-only or model-mediated security boundary",
+      "severity": "HIGH",
+      "signal": "missing-adversarial-evaluation",
+      "signals": [
+        "missing-adversarial-evaluation"
+      ],
+      "relatedControlIds": [
+        "CTRL-D3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "D3",
+      "definition": "Security-critical restrictions depend mainly on instructions, refusals, model behavior or unverified filters instead of enforceable external controls and adversarial evidence.",
+      "questions": [
+        {
+          "id": "AP-D3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Prompt-only or model-mediated security boundary: Security-critical restrictions depend mainly on instructions, refusals, model behavior or unverified filters instead of enforceable external controls and adversarial evidence."
+        },
+        {
+          "id": "AP-D3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show safety prompts as the principal control, model output reaching tools directly, or missing adversarial testing?"
+        },
+        {
+          "id": "AP-D3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Prompt-only or model-mediated security boundary, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Safety prompt is the principal control",
+        "Model output reaches tools or interpreters directly",
+        "Untrusted retrieved content can alter privileged behavior",
+        "No representative adversarial testing"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-D4",
+      "domain": "D",
+      "title": "Opaque and non-reproducible execution",
+      "severity": "HIGH",
+      "signal": "opaque-execution",
+      "signals": [
+        "opaque-execution"
+      ],
+      "relatedControlIds": [
+        "CTRL-D4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "D4",
+      "definition": "The organization cannot determine how a material result or action was produced.",
+      "questions": [
+        {
+          "id": "AP-D4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Opaque and non-reproducible execution: The organization cannot determine how a material result or action was produced."
+        },
+        {
+          "id": "AP-D4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show missing run history, overwritten prompts, or evidence not linked to claims?"
+        },
+        {
+          "id": "AP-D4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Opaque and non-reproducible execution, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "No run history",
+        "Overwritten prompts or mutable aliases",
+        "Evidence is not linked to claims",
+        "Manual steps are undocumented"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-D5",
+      "domain": "D",
+      "title": "Fail-open AI operation",
+      "severity": "CRITICAL",
+      "signal": "missing-failsafe",
+      "signals": [
+        "missing-failsafe"
+      ],
+      "relatedControlIds": [
+        "CTRL-D5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "D5",
+      "definition": "When confidence, controls, components or evidence fail, the system continues without safe limitation.",
+      "questions": [
+        {
+          "id": "AP-D5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Fail-open AI operation: When confidence, controls, components or evidence fail, the system continues without safe limitation."
+        },
+        {
+          "id": "AP-D5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show errors becoming plausible outputs, control outages bypassing validation, or undefined rollback?"
+        },
+        {
+          "id": "AP-D5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Fail-open AI operation, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Errors become plausible outputs",
+        "Control outage bypasses validation",
+        "Agent continues after tool failure",
+        "Rollback or manual takeover is undefined"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-E1",
+      "domain": "E",
+      "title": "User-only impact framing",
+      "severity": "HIGH",
+      "signal": "user-only-impact",
+      "signals": [
+        "user-only-impact"
+      ],
+      "relatedControlIds": [
+        "CTRL-E1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "E1",
+      "definition": "The system is evaluated only from the buyer's or operator's perspective while affected non-users and rights are ignored.",
+      "questions": [
+        {
+          "id": "AP-E1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit User-only impact framing: The system is evaluated only from the buyer's or operator's perspective while affected non-users and rights are ignored."
+        },
+        {
+          "id": "AP-E1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show omitted non-users, missing vulnerable-group analysis, or rights considered only after complaint?"
+        },
+        {
+          "id": "AP-E1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of User-only impact framing, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Affected non-users omitted",
+        "Efficiency outweighs unassessed harm",
+        "No vulnerable-group analysis",
+        "Rights considered only after complaint"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-E2",
+      "domain": "E",
+      "title": "Aggregate-performance fairness",
+      "severity": "HIGH",
+      "signal": "aggregate-bias-blindness",
+      "signals": [
+        "aggregate-bias-blindness"
+      ],
+      "relatedControlIds": [
+        "CTRL-E2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "E2",
+      "definition": "Overall performance or removal of explicit protected attributes is treated as proof of fairness.",
+      "questions": [
+        {
+          "id": "AP-E2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Aggregate-performance fairness: Overall performance or removal of explicit protected attributes is treated as proof of fairness."
+        },
+        {
+          "id": "AP-E2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show missing subgroup testing, ignored proxy effects, or human override assumed to remove bias?"
+        },
+        {
+          "id": "AP-E2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Aggregate-performance fairness, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "No subgroup testing",
+        "Proxy effects are ignored",
+        "Small groups disappear from analysis",
+        "Human override is assumed to remove bias"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-E3",
+      "domain": "E",
+      "title": "Decorative or incomplete transparency",
+      "severity": "HIGH",
+      "signal": "missing-transparency",
+      "signals": [
+        "missing-transparency"
+      ],
+      "relatedControlIds": [
+        "CTRL-E3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "E3",
+      "definition": "Generic disclosures exist but do not accurately explain the system or enable informed action.",
+      "questions": [
+        {
+          "id": "AP-E3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Decorative or incomplete transparency: Generic disclosures exist but do not accurately explain the system or enable informed action."
+        },
+        {
+          "id": "AP-E3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show vague AI-may-be-used wording, hidden or mistimed disclosure, or omitted limitations?"
+        },
+        {
+          "id": "AP-E3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Decorative or incomplete transparency, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Vague AI-may-be-used wording",
+        "Disclosure hidden or mistimed",
+        "Consequences and limitations omitted",
+        "Transparency record conflicts with operation"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-E4",
+      "domain": "E",
+      "title": "Rubber-stamp oversight",
+      "severity": "CRITICAL",
+      "signal": "rubber-stamp-oversight",
+      "signals": [
+        "rubber-stamp-oversight"
+      ],
+      "relatedControlIds": [
+        "CTRL-E4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "E4",
+      "definition": "A human is nominally present but lacks information, capacity, authority or incentive for independent judgment.",
+      "questions": [
+        {
+          "id": "AP-E4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Rubber-stamp oversight: A human is nominally present but lacks information, capacity, authority or incentive for independent judgment."
+        },
+        {
+          "id": "AP-E4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show review volume preventing scrutiny, AI recommendation as default, or untracked override?"
+        },
+        {
+          "id": "AP-E4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Rubber-stamp oversight, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Review volume prevents scrutiny",
+        "AI recommendation is the default",
+        "Evidence cannot be inspected",
+        "Override is discouraged or untracked"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-E5",
+      "domain": "E",
+      "title": "No practical recourse or competence",
+      "severity": "HIGH",
+      "signal": "no-recourse",
+      "signals": [
+        "no-recourse"
+      ],
+      "relatedControlIds": [
+        "CTRL-E5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "E5",
+      "definition": "Outcomes are functionally final or relevant people lack the means and understanding to question them.",
+      "questions": [
+        {
+          "id": "AP-E5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit No practical recourse or competence: Outcomes are functionally final or relevant people lack the means and understanding to question them."
+        },
+        {
+          "id": "AP-E5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show no correction channel, appeals that repeat automated logic, or accessibility barriers?"
+        },
+        {
+          "id": "AP-E5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of No practical recourse or competence, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "No correction channel",
+        "Appeal repeats the same automated logic",
+        "Accessibility barriers",
+        "Training covers tool use but not limits and duties"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-F1",
+      "domain": "F",
+      "title": "Committee accountability without individual ownership",
+      "severity": "HIGH",
+      "signal": "committee-accountability",
+      "signals": [
+        "committee-accountability"
+      ],
+      "relatedControlIds": [
+        "CTRL-F1"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "F1",
+      "definition": "Governance bodies exist but no identifiable person is operationally accountable for the system.",
+      "questions": [
+        {
+          "id": "AP-F1-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Committee accountability without individual ownership: Governance bodies exist but no identifiable person is operationally accountable for the system."
+        },
+        {
+          "id": "AP-F1-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show unowned tasks, absent business owner, or incidents exposing responsibility confusion?"
+        },
+        {
+          "id": "AP-F1-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Committee accountability without individual ownership, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "The board owns it",
+        "Unresolved tasks lack owners",
+        "Business owner is absent",
+        "Incidents expose responsibility confusion"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-F2",
+      "domain": "F",
+      "title": "Compliance by assertion or document volume",
+      "severity": "CRITICAL",
+      "signal": "approval-without-evidence",
+      "signals": [
+        "approval-without-evidence"
+      ],
+      "relatedControlIds": [
+        "CTRL-F2"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "F2",
+      "definition": "Documents and checkboxes create apparent assurance without demonstrating implementation or effectiveness.",
+      "questions": [
+        {
+          "id": "AP-F2-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Compliance by assertion or document volume: Documents and checkboxes create apparent assurance without demonstrating implementation or effectiveness."
+        },
+        {
+          "id": "AP-F2-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show policy used as implementation proof, undated screenshots, or green status despite unresolved controls?"
+        },
+        {
+          "id": "AP-F2-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Compliance by assertion or document volume, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Policy used as implementation proof",
+        "Screenshots lack source or date",
+        "Evidence copied across systems",
+        "Green status despite unresolved controls"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-F3",
+      "domain": "F",
+      "title": "Risk inventory without risk control",
+      "severity": "HIGH",
+      "signal": "risk-inventory-only",
+      "signals": [
+        "risk-inventory-only"
+      ],
+      "relatedControlIds": [
+        "CTRL-F3"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "F3",
+      "definition": "Risks are listed but not operationally treated, tested, reassessed or accepted by the correct authority.",
+      "questions": [
+        {
+          "id": "AP-F3-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Risk inventory without risk control: Risks are listed but not operationally treated, tested, reassessed or accepted by the correct authority."
+        },
+        {
+          "id": "AP-F3-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show generic risk lists, intended-only mitigations, or expired exceptions remaining active?"
+        },
+        {
+          "id": "AP-F3-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Risk inventory without risk control, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Generic risk list",
+        "Mitigation is an intention",
+        "Severity drops without evidence",
+        "Expired exceptions remain active"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-F4",
+      "domain": "F",
+      "title": "Calendar-driven or ambiguous governance decisions",
+      "severity": "HIGH",
+      "signal": "calendar-driven-decision",
+      "signals": [
+        "calendar-driven-decision"
+      ],
+      "relatedControlIds": [
+        "CTRL-F4"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "F4",
+      "definition": "Progress depends on periodic forums, silent assent or unclear authority, or automated recommendations are mistaken for approval.",
+      "questions": [
+        {
+          "id": "AP-F4-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Calendar-driven or ambiguous governance decisions: Progress depends on periodic forums, silent assent or unclear authority, or automated recommendations are mistaken for approval."
+        },
+        {
+          "id": "AP-F4-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show green output treated as authorization, silence counted as approval, or untracked approval conditions?"
+        },
+        {
+          "id": "AP-F4-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Calendar-driven or ambiguous governance decisions, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "Routine decisions wait for a monthly forum",
+        "Green output is treated as authorization",
+        "Silence counts as approval",
+        "Approval conditions are not tracked"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-F5",
+      "domain": "F",
+      "title": "Approval-as-end-state governance",
+      "severity": "HIGH",
+      "signal": "missing-reassessment",
+      "signals": [
+        "missing-reassessment"
+      ],
+      "relatedControlIds": [
+        "CTRL-F5"
+      ],
+      "lifecycleStages": [
+        "QUALIFICATION_AND_REGISTRATION",
+        "DESIGN_AND_DEVELOPMENT",
+        "VERIFICATION_AND_VALIDATION",
+        "DEPLOYMENT",
+        "OPERATION_AND_MONITORING",
+        "REVIEW_AND_EVALUATION",
+        "RETIREMENT"
+      ],
+      "pairedObjectId": "F5",
+      "definition": "Governance effectively stops after initial approval while operation, change and retirement remain uncontrolled.",
+      "questions": [
+        {
+          "id": "AP-F5-Q1",
+          "dimension": "DEFINITION_AND_INTENT",
+          "question": "Does the case exhibit Approval-as-end-state governance: Governance effectively stops after initial approval while operation, change and retirement remain uncontrolled."
+        },
+        {
+          "id": "AP-F5-Q2",
+          "dimension": "IMPLEMENTATION_AND_OPERATION",
+          "question": "Do implemented workflows, data paths or operations show no post-deployment monitoring, model changes bypassing review, or retired systems retaining access?"
+        },
+        {
+          "id": "AP-F5-Q3",
+          "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+          "question": "Does current evidence test presence or scoped absence of Approval-as-end-state governance, or does it remain unknown?"
+        }
+      ],
+      "indicators": [
+        "No post-deployment monitoring",
+        "Model changes bypass review",
+        "Incidents are handled only technically",
+        "Retired systems retain access, data or contracts"
+      ],
+      "instrumentStatus": "LOADED",
+      "knowledgeBaseStatus": "NOT_PUBLISHED",
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    }
+  ],
+  "counts": {
+    "pairs": 30,
+    "capabilities": 30,
+    "antipatterns": 30,
+    "questions": 180
+  }
+}

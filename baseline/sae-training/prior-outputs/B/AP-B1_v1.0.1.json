@@ -1,0 +1,660 @@
+{
+  "schema_version": "2.0.0",
+  "id": "AP-B1",
+  "version": "1.0.1",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "AP-B1_ANTIPATTERN_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-03",
+    "effective_from": "2026-08-03",
+    "review_due_on": "2027-08-03",
+    "release_version": "1.0.1",
+    "supersedes": "AP-B1_v1.0.0",
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability, publication-template or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "ANTIPATTERN",
+  "title": "Invisible or untraceable data flows",
+  "canonical_definition": "Data origin, ownership, transformation, transmission, storage, retention, deletion, reuse or output provenance cannot be reliably established for one or more material paths in the complete AI system.",
+  "applicability": {
+    "statement": "Applicable whenever the AI system receives, creates, retrieves, transforms, stores, transfers, logs, retains, deletes or reuses data or content.",
+    "conditions": [
+      "Test declared inventories against actual source, connector, store, provider, tenant, transformation, prompt, retrieval, memory, logging, output and reuse paths.",
+      "Search for unknown sources, undocumented fields, unversioned transformations, cross-boundary transfers, orphaned derived stores and unverifiable output references.",
+      "Test representative runs and changes, including fallback, cache, retry, agent, tool, memory, batch and incident paths.",
+      "Evaluate both confirmed opacity and tested absence; missing evidence does not establish absence.",
+      "Preserve the historical period and consequences of an untraceable flow even after post-hoc documentation or remediation."
+    ],
+    "exclusions": [
+      "A deliberately minimized telemetry design is not invisible when protected identifiers and authorized reconstruction provide sufficient traceability.",
+      "A low-consequence transient transformation is not automatically an anti-pattern when it is reproducible and bounded by governed source and output identities.",
+      "Supplier confidentiality is not opacity when attributable metadata, contractual assurance and adequate independent verification establish the material lineage claim."
+    ],
+    "reassessment_triggers": [
+      "New or changed source, retrieval collection, prompt template, data provider, connector, model, agent, tool, memory or output-reuse path",
+      "Schema, field, transformation, embedding, filtering, ranking, caching, logging, retention, deletion or backup change",
+      "Unknown input, false citation, data poisoning, leakage, quality incident, rights dispute, complaint or audit exception",
+      "Provider, tenant, jurisdiction, purpose, owner, licence, confidentiality or lifecycle transition change",
+      "Failure to reproduce a representative output, decision, evaluation or incident",
+      "Expiry or contradiction of the latest absence test"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "AP-B1-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Can any material data source, owner, store, transformation, transfer, retention, reuse or output-provenance path not be identified and attributed?"
+    },
+    {
+      "id": "AP-B1-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do actual flows bypass inventory or lineage controls, mix unknown sources, transform without records or transmit undocumented fields?"
+    },
+    {
+      "id": "AP-B1-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence confirm opacity or untraceability, or establish tested absence across representative flows, outputs and material changes?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-B1-001",
+      "title": "Declared inventory reconciled to observed sources and stores",
+      "claim_supported": "Declared data assets, stores, connectors and uses are compared with runtime, configuration and discovery evidence to identify unknown or orphaned paths.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers all material environments, providers, tenants, retrieval stores, prompt/context sources, logs, caches, memories and output stores.",
+        "Records mismatches, unknowns, owner gaps, scope limits and corrective actions."
+      ],
+      "limitations": [
+        "A declared inventory without independent discovery or runtime reconciliation cannot establish absence."
+      ]
+    },
+    {
+      "id": "EVD-AP-B1-002",
+      "title": "Field-level transfer and boundary trace",
+      "claim_supported": "Actual fields and data classes crossing interfaces, providers, tools, tenants, jurisdictions and purpose boundaries are observable and attributable.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Uses representative telemetry, connector configuration, payload schema, access logs and controlled inspection appropriate to sensitivity.",
+        "Includes fallback, retry, error, cache, batch, agent and tool paths."
+      ],
+      "limitations": [
+        "Endpoint lists or contractual data categories alone do not prove which fields were transmitted."
+      ]
+    },
+    {
+      "id": "EVD-AP-B1-003",
+      "title": "Transformation and derived-data lineage samples",
+      "claim_supported": "Representative transformations and derived datasets can be traced to source versions, processing logic, parameters, actors and dates.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Samples material annotation, cleaning, enrichment, aggregation, filtering, embedding, synthetic generation and feedback-loop transformations where applicable.",
+        "Records non-reproducible, unversioned, orphaned or post-hoc reconstructed steps."
+      ],
+      "limitations": [
+        "A successful final output does not establish the integrity or traceability of intermediate transformations."
+      ]
+    },
+    {
+      "id": "EVD-AP-B1-004",
+      "title": "Retrieval and output provenance challenge test",
+      "claim_supported": "Representative citations, retrieved context and generated outputs are challenged for source identity, content-use fidelity, version and reproducibility.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Includes correct, missing, conflicting, stale, poisoned and cross-tenant source cases and verifies the content actually used by the system.",
+        "Tests fallback, no-result, cache, memory and multi-step agent or tool behavior."
+      ],
+      "limitations": [
+        "Plausible citations or post-hoc semantic similarity do not establish that the cited source produced the output."
+      ]
+    },
+    {
+      "id": "EVD-AP-B1-005",
+      "title": "Retention, deletion and downstream reuse reconciliation",
+      "claim_supported": "Copies, derived stores, embeddings, caches, backups, logs, archives and downstream reuse are reconciled after retention, deletion, restriction or authorization change.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Tests a representative data identity through primary and derived locations and records successful, failed and unknown propagation.",
+        "Identifies technical, legal, contractual or continuity constraints and accountable decisions."
+      ],
+      "limitations": [
+        "Deletion from the primary source does not establish deletion or restriction across derived and downstream paths."
+      ]
+    },
+    {
+      "id": "EVD-AP-B1-006",
+      "title": "Independent absence-test protocol and results",
+      "claim_supported": "The absence of invisible or untraceable material flows is tested across representative sources, transformations, transfers, outputs and lifecycle changes.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Defines scope, system and data versions, discovery methods, runtime samples, negative cases, coverage limits, date and independent reviewer.",
+        "Covers declared versus observed assets, field-level transfers, transformations, provenance, retention/deletion and reconstruction.",
+        "Records unresolved blind spots and assigns UNKNOWN rather than successful absence where coverage is insufficient."
+      ],
+      "limitations": [
+        "No incident, complaint, unknown source or failed reconstruction does not by itself establish absence."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "Absence cannot exceed DECLARED assurance without a complete tested scope and current independent review.",
+      "A declared inventory cannot establish absence of shadow sources, undocumented fields, derived stores, fallback paths or downstream reuse.",
+      "Transformation or output traceability cannot exceed TESTED assurance without representative reproduction and challenge cases.",
+      "Operational absence cannot exceed OPERATIONALLY_OBSERVED without runtime reconciliation across material environments, providers, tenants and lifecycle changes.",
+      "Post-hoc documentation may improve current control but does not erase historical opacity, exposure or untraceable use."
+    ],
+    "false_positive_guards": [
+      "Do not classify protected, pseudonymous or privacy-preserving identifiers as invisible when authorized reviewers can reconstruct material lineage without exposing unnecessary content.",
+      "Do not classify every missing low-level event as a material lineage break when the governed transformation remains reproducible and the omission does not affect source, rights, quality, boundary or output traceability.",
+      "Do not treat a temporary logging outage as systemic opacity when bounded scope, compensating evidence, timely remediation and independent review establish continuity.",
+      "Do not classify supplier-confidential implementation details as opacity when the material data identity, source, ownership, transformation, use and verification claims remain attributable.",
+      "Do not collapse B1 opacity into B2 minimization, B3 privacy, B4 confidentiality or B5 rights findings; preserve independent conclusions."
+    ],
+    "prohibited_inferences": [
+      "Do not infer absence from a clean architecture diagram, data catalog, provider contract, model card, privacy notice or successful audit sample alone.",
+      "Do not infer source or transformation from output wording, citations, file names, timestamps, checksums or retrieval scores alone.",
+      "Do not infer that undocumented fields were not transmitted because they were not intended or not visible in the user interface.",
+      "Do not infer deletion or restriction propagation from primary-store status.",
+      "Do not clear a finding because lineage remediation is planned, a catalog is being built or a tactic has been selected."
+    ],
+    "contradiction_handling": [
+      "Observed unknown sources, fields, stores, transfers or output references override a clean declared inventory for present-state assessment.",
+      "Conflicting source, version, owner, rights or transformation evidence keeps the affected path UNKNOWN until reconciled and constrains further use.",
+      "A false or irreproducible citation is treated as a provenance failure even when the output is accurate.",
+      "Post-hoc records are separated from contemporaneous evidence and do not remove the historical finding.",
+      "Where protected-content constraints limit inspection, unresolved material lineage remains UNKNOWN unless an authorized alternative verification method is sufficient."
+    ],
+    "freshness_rules": [
+      "Repeat reconciliation and absence testing after material source, provider, connector, schema, transformation, model, retrieval, memory, output or lifecycle change.",
+      "Runtime and field-level evidence must cover the current deployed versions and relevant operating period.",
+      "Transformation and reconstruction samples expire when source versions, processing logic, ranking, prompt/context assembly or downstream consumers change.",
+      "Retention, deletion and reuse testing must be refreshed after storage, backup, embedding, cache, archive or dependency change."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block or isolate any material flow with unknown source, owner, purpose, destination, rights or confidentiality status.",
+      "Block affected training, retrieval, evaluation, transfer or consequential output use when transformations or source-to-output lineage cannot be reproduced.",
+      "Block or constrain provider, tenant, tool or jurisdiction paths that transmit undocumented fields or bypass approved boundaries.",
+      "Block consequential reliance on outputs with false, missing or irreproducible provenance.",
+      "Block deletion, restriction or retirement closure when retained copies, derived stores or downstream reuse remain materially untraceable.",
+      "Keep absence UNKNOWN and constrain progression when the required independent absence test is incomplete, stale or materially blind."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_DATA_PRIVACY_SECURITY_LEGAL_SYSTEM_AND_BUSINESS_AUTHORITIES"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-AP-B1-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 10(2)(a)-(g) and 10(3)-(5); Article 11 and Annex IV technical documentation; Article 12 record-keeping",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Provides authoritative tests against unknown data origin, undocumented preparation, unresolved data gaps and insufficient record-keeping for applicable high-risk AI systems.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-B1-NIST-AI-RMF-002",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023; AI RMF Playbook current 2026-08-03",
+      "exact_locator": "AI RMF Core GOVERN 1.6, MAP 2.3, MEASURE 2.1, 2.5 and 2.9, and MANAGE 1.1; Playbook provenance and dataset-documentation prompts",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Supports testing for inventory gaps, missing data provenance, undocumented transformations, non-reproducible output traces and stale or incomplete dataset evidence.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-B1-EU-GDPR-003",
+      "source_id": "SRC-EU-GDPR",
+      "source_version_or_date": "Regulation (EU) 2016/679",
+      "exact_locator": "Articles 5(1)(a), 5(1)(d), 5(1)(e), 5(2), 25, 30 and 32",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "When personal data are processed, accountable records, accuracy, storage limitation, design controls and security provide tests against undocumented, stale or untraceable processing.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-B1-001",
+      "title": "Unknown or unregistered data sources enter a material system path",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B1-AT-001",
+        "AP-B1-AT-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B1-001",
+        "EVD-AP-B1-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Immediately isolate or constrain the affected source and downstream use until identity, owner, authority, purpose and consequences are adjudicated.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B1-002",
+      "title": "Lineage breaks across transformations, stores, transfers or derived datasets",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B1-AT-003",
+        "AP-B1-AT-004"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B1-002",
+        "EVD-AP-B1-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block the affected transformation or transfer path until end-to-end lineage and representative reproduction are restored.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B1-003",
+      "title": "Undocumented fields or data classes cross provider, tenant, jurisdiction or purpose boundaries",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B1-AT-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B1-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Disable or constrain the affected connector, provider or tool path and require accountable boundary and data-use reassessment.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B1-004",
+      "title": "Retrieval or output provenance is missing, misleading or non-reproducible",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B1-AT-006",
+        "AP-B1-AT-007"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B1-004"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Prevent consequential reliance on affected outputs until provenance fidelity and run reconstruction meet approved thresholds.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B1-005",
+      "title": "Retention, deletion, restriction or downstream reuse cannot be established",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B1-AT-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B1-005"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain further processing and close neither deletion nor retirement obligations until material copies and reuse paths are reconciled.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-B1-006",
+      "title": "Tested absence of invisible or untraceable data flows is not established",
+      "eligible_conclusion_states": [
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-B1-AT-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-B1-006"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Keep the anti-pattern state UNKNOWN and block or constrain the target transition where untested paths could materially affect rights, security, quality, accountability or consequential outputs.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-001-FND-AP-B1-001-001",
+      "tactic_id": "GOV-DAT-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-003-FND-AP-B1-001-002",
+      "tactic_id": "GOV-DAT-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-002-FND-AP-B1-002-003",
+      "tactic_id": "GOV-DAT-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-002-FND-AP-B1-003-004",
+      "tactic_id": "GOV-DAT-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-003-FND-AP-B1-003-005",
+      "tactic_id": "GOV-DAT-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-SEC-005-FND-AP-B1-003-006",
+      "tactic_id": "GOV-SEC-005",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-004-FND-AP-B1-004-007",
+      "tactic_id": "GOV-DAT-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-SEC-005-FND-AP-B1-004-008",
+      "tactic_id": "GOV-SEC-005",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-002-FND-AP-B1-005-009",
+      "tactic_id": "GOV-DAT-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-003-FND-AP-B1-005-010",
+      "tactic_id": "GOV-DAT-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-001-FND-AP-B1-006-011",
+      "tactic_id": "GOV-DAT-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-002-FND-AP-B1-006-012",
+      "tactic_id": "GOV-DAT-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    },
+    {
+      "mapping_id": "MAP-AP-B1-GOV-DAT-004-FND-AP-B1-006-013",
+      "tactic_id": "GOV-DAT-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-B1-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.7.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Compare declared and observed data assets, fields, stores, transformations, transfers, retention, deletion and output references.",
+      "Identify unknown, conflicting, stale or non-reproducible paths and apply deterministic evidence ceilings.",
+      "Propose eligible presence or UNKNOWN states for accountable human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Declare tested absence from missing incidents, clean documentation, catalog presence or a limited sample.",
+      "Assume permission, quality, confidentiality, minimization or lawful processing from provenance metadata alone.",
+      "Treat post-hoc documentation as erasing historical opacity or exposure.",
+      "Clear a hard gate, lock a finding, approve an exception, accept residual risk or authorize continued use or lifecycle transition."
+    ],
+    "human_authority_required_for": [
+      "Determine materiality and whether protected-metadata or supplier-assurance evidence is sufficient.",
+      "Adjudicate conflicting source, owner, rights, purpose, transfer, quality, retention and reconstruction evidence.",
+      "Lock presence or absence findings and decide immediate isolation, remediation, deletion or constrained use.",
+      "Approve residual risk, bounded exceptions and the exact lifecycle transition."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A3",
+    "A4",
+    "A5",
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "C1",
+    "C3",
+    "D1",
+    "D3",
+    "D4",
+    "D5",
+    "E2",
+    "F2",
+    "F3",
+    "F5",
+    "AP-B2",
+    "AP-B3",
+    "AP-B4",
+    "AP-B5"
+  ],
+  "failure_mechanism": "Opaque, undocumented or mutable data paths prevent accountable parties from establishing what data entered the system, how it changed, where it moved, whether it was authorized and reliable, and which sources materially influenced outputs. The result is non-reproducible assessment, hidden leakage or rights exposure, undetected contamination and inability to investigate, correct, delete, constrain or retire the affected data use.",
+  "atomic_tests": [
+    {
+      "id": "AP-B1-AT-001",
+      "question_id": "AP-B1-Q1",
+      "test": "Test whether any material input, prompt, upload, retrieval, memory, feedback, evaluation or operational source lacks a stable identity, owner or source record.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-001"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B1-AT-002",
+      "question_id": "AP-B1-Q1",
+      "test": "Test whether vector stores, retrieval collections, logs, caches, memories, evaluation corpora or output stores exist outside the approved inventory or have orphaned ownership.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-001"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B1-AT-003",
+      "question_id": "AP-B1-Q2",
+      "test": "Test whether collection, annotation, labelling, cleaning, enrichment, aggregation, filtering, embedding, synthetic generation or feedback transformations lack reproducible version and source links.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B1-AT-004",
+      "question_id": "AP-B1-Q2",
+      "test": "Test whether derived datasets, copies, exports or transfers break the source-to-destination chain or cannot be attributed to an accountable actor and processing event.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-002",
+        "EVD-AP-B1-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B1-AT-005",
+      "question_id": "AP-B1-Q2",
+      "test": "Test whether undocumented fields or data classes reach a provider, tool, tenant, jurisdiction, log, cache or downstream consumer outside the approved purpose and boundary.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-002"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B1-AT-006",
+      "question_id": "AP-B1-Q3",
+      "test": "Test whether retrieved context, prompt assembly, memory or agent/tool evidence lacks attributable source, collection, tenant, version or transformation provenance.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B1-AT-007",
+      "question_id": "AP-B1-Q3",
+      "test": "Challenge whether representative citations and generated outputs can be reproduced from the content and versions actually used rather than from plausible post-hoc sources.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B1-AT-008",
+      "question_id": "AP-B1-Q2",
+      "test": "Test whether retention, deletion, restriction or authorization changes propagate to derived stores, embeddings, caches, backups, logs, archives and downstream reuse.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-005"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-B1-AT-009",
+      "question_id": "AP-B1-Q3",
+      "test": "Execute an independent absence test across representative declared-versus-observed assets, field transfers, transformations, provenance, reconstruction, retention, deletion and material-change paths.",
+      "required_evidence_ids": [
+        "EVD-AP-B1-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Current declared-versus-observed data asset and store reconciliation",
+      "Representative field-level transfer and provider/tool boundary traces",
+      "Transformation and derived-data lineage reproduction samples",
+      "Retrieval, citation and output-provenance challenge results",
+      "Retention, deletion, restriction and downstream-reuse propagation test",
+      "Material-change and fallback-path coverage record",
+      "Independent absence-test review and approval"
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

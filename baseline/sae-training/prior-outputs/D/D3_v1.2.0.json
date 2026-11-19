@@ -1,0 +1,749 @@
+{
+  "schema_version": "1.1.0",
+  "id": "D3",
+  "version": "1.2.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "PRODUCTION_GOVERNANCE_CONTENT_AND_AUTHORING_STANDARD",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-07-31",
+    "effective_from": "2026-07-31",
+    "review_due_on": "2027-07-31",
+    "release_version": "1.2.0",
+    "supersedes": "D3_v1.1.json",
+    "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+    "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+  },
+  "domain": "D",
+  "object_type": "CAPABILITY",
+  "title": "AI-specific security and adversarial resilience",
+  "canonical_definition": "The system identifies and controls attack paths that exploit AI models, prompts, training or retrieval data, generated outputs, tools and feedback loops, and verifies resilience through representative adversarial testing and operational monitoring.",
+  "governance_purpose": "Prevent AI-specific manipulation from converting probabilistic model behavior, untrusted content or compromised AI assets into loss of confidentiality, integrity, availability, safety or authorized control.",
+  "distinct_claim": "D3 owns adversarial resilience for attack paths that exploit AI-specific assets and model-mediated boundaries. D1 owns general architecture and isolation; C3 owns the amount of agent authority; D3 verifies whether those boundaries withstand AI-specific attack paths.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "Screen every AI solution for AI-specific attack surfaces and model-mediated security boundaries.",
+      "Select predictive-AI attack modules when the solution trains, tunes or relies on predictive models.",
+      "Select generative-AI modules when untrusted prompts, instructions or generated content are present.",
+      "Select retrieval modules when documents, browsing, uploads, memory or external content enter model context.",
+      "Select agentic modules when the solution selects tools, invokes services, communicates or changes state.",
+      "Increase assurance when sensitive data, external exposure, consequential impact, high-risk classification or safety relevance is present."
+    ],
+    "technology_profiles": {
+      "PREDICTIVE_AI": [
+        "poisoning",
+        "evasion and adversarial examples",
+        "model extraction and inference",
+        "availability abuse"
+      ],
+      "GENERATIVE_AI": [
+        "direct and indirect instruction injection",
+        "misuse",
+        "sensitive disclosure",
+        "unsafe output handling",
+        "resource abuse"
+      ],
+      "RAG_OR_EXTERNAL_CONTENT": [
+        "retrieval poisoning",
+        "instruction injection",
+        "cross-tenant retrieval",
+        "provenance manipulation"
+      ],
+      "AGENTIC_AI": [
+        "tool and action abuse",
+        "privilege escalation",
+        "memory poisoning",
+        "looping and denial of wallet",
+        "cross-system impact"
+      ]
+    }
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_authority": "MIXED",
+  "human_decision_authority": "SECURITY_AND_GOVERNANCE",
+  "human_authority_roles": [
+    "AI_SYSTEM_OWNER",
+    "SECURITY_RISK_OWNER",
+    "BUSINESS_RISK_ACCEPTANCE_AUTHORITY",
+    "LEGAL_OR_PRIVACY_AUTHORITY_WHEN_APPLICABLE"
+  ],
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "ai-threat-model-gap",
+    "missing-deterministic-security-boundary",
+    "untrusted-retrieval-boundary",
+    "adversarial-evaluation-gap",
+    "ai-security-monitoring-gap"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "D3-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does a system-specific threat model cover applicable AI attack surfaces, attacker goals, protected assets, trust boundaries and credible consequences?"
+    },
+    {
+      "id": "D3-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are enforceable controls implemented outside model discretion for untrusted inputs, retrieval, outputs, tools, data, models and privileged actions?"
+    },
+    {
+      "id": "D3-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do representative adversarial tests, regression evidence and operational monitoring demonstrate control effectiveness and disclose residual limitations?"
+    }
+  ],
+  "atomic_subcriteria": [
+    {
+      "id": "D3-SC01",
+      "title": "System-level AI threat model",
+      "description": "Identify relevant AI assets, attacker objectives, trust boundaries, identities, privileges, entry points, downstream effects and credible consequences for the assessed architecture.",
+      "question_ref": "D3-Q1",
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E03"
+      ]
+    },
+    {
+      "id": "D3-SC02",
+      "title": "Direct and indirect instruction-injection coverage",
+      "description": "Cover attacker-controlled prompts, retrieved content, uploaded files, browser content, memory and other model instructions that may influence a protected boundary.",
+      "question_ref": "D3-Q1",
+      "conditional_on": "GENERATIVE_AI or model-mediated instruction processing",
+      "required_evidence_ids": [
+        "D3-E03",
+        "D3-E07"
+      ]
+    },
+    {
+      "id": "D3-SC03",
+      "title": "Poisoning and integrity-attack coverage",
+      "description": "Cover attacks against training, tuning, feedback, retrieval, memory and other mutable knowledge or model assets.",
+      "question_ref": "D3-Q1",
+      "conditional_on": "training, tuning, feedback learning, retrieval or mutable knowledge",
+      "required_evidence_ids": [
+        "D3-E03",
+        "D3-E05",
+        "D3-E07"
+      ]
+    },
+    {
+      "id": "D3-SC04",
+      "title": "Evasion, extraction, inference and confidentiality-attack coverage",
+      "description": "Assess applicable evasion, adversarial-example, extraction, membership-inference and confidentiality attacks according to model type and exposure.",
+      "question_ref": "D3-Q1",
+      "conditional_on": "model type, data sensitivity and exposure",
+      "required_evidence_ids": [
+        "D3-E03",
+        "D3-E06",
+        "D3-E07"
+      ]
+    },
+    {
+      "id": "D3-SC05",
+      "title": "Untrusted model-output handling",
+      "description": "Treat model output as untrusted and validate, encode, constrain or isolate it before rendering, interpretation, querying, tool use or state change.",
+      "question_ref": "D3-Q2",
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E04"
+      ]
+    },
+    {
+      "id": "D3-SC06",
+      "title": "Deterministic tool and action authorization",
+      "description": "Enforce identities, scopes, destinations, arguments, limits and approvals outside model discretion for every consequential tool or action.",
+      "question_ref": "D3-Q2",
+      "conditional_on": "tools, integrations or consequential actions",
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E04",
+        "D3-E07"
+      ]
+    },
+    {
+      "id": "D3-SC07",
+      "title": "Retrieval and external-content trust boundary",
+      "description": "Control source eligibility, provenance, tenant isolation, instruction handling and integrity for retrieved, uploaded, browser, memory and external content.",
+      "question_ref": "D3-Q2",
+      "conditional_on": "retrieval, browsing, upload, memory or external content",
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E04",
+        "D3-E05"
+      ]
+    },
+    {
+      "id": "D3-SC08",
+      "title": "Secrets, tenant, identity and egress protection",
+      "description": "Separate secrets, identities and tenant data; enforce least privilege, network boundaries and egress controls against model-mediated attack paths.",
+      "question_ref": "D3-Q2",
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E04"
+      ]
+    },
+    {
+      "id": "D3-SC09",
+      "title": "Resource and availability-abuse controls",
+      "description": "Bound requests, loops, retries, tools, spend, memory, concurrency and external effects, with deterministic termination and recovery controls.",
+      "question_ref": "D3-Q2",
+      "conditional_on": "external reachability or generative or agentic execution",
+      "required_evidence_ids": [
+        "D3-E04",
+        "D3-E08"
+      ]
+    },
+    {
+      "id": "D3-SC10",
+      "title": "Representative adversarial evaluation",
+      "description": "Execute architecture-specific adversarial tests using realistic identities, privileges, data, integrations, secondary paths and acceptance thresholds.",
+      "question_ref": "D3-Q3",
+      "required_evidence_ids": [
+        "D3-E03",
+        "D3-E07"
+      ]
+    },
+    {
+      "id": "D3-SC11",
+      "title": "AI-security monitoring, detection and incident response",
+      "description": "Detect, investigate, contain and recover from AI-specific attacks and security-control failures without relying on model cooperation.",
+      "question_ref": "D3-Q3",
+      "conditional_on": "deployment or operational use",
+      "required_evidence_ids": [
+        "D3-E08"
+      ]
+    },
+    {
+      "id": "D3-SC12",
+      "title": "Regression, change control and residual-risk authorization",
+      "description": "Convert failures into regression cases, retest affected paths after material change and preserve attributable human decisions for remaining risk.",
+      "question_ref": "D3-Q3",
+      "required_evidence_ids": [
+        "D3-E06",
+        "D3-E07",
+        "D3-E09"
+      ]
+    }
+  ],
+  "capability_indicators": [
+    "A versioned, system-specific AI threat model and abuse-case inventory exists.",
+    "Security-relevant decisions and actions are enforced by deterministic controls outside model discretion.",
+    "A representative adversarial regression suite covers the current architecture, identities and integrations.",
+    "AI-security telemetry and incident-response procedures cover preventive and detective controls.",
+    "Attack modules and scoped exclusions are justified from the actual architecture.",
+    "Failing adversarial cases become versioned regression tests.",
+    "Residual limitations are explicit and linked to an attributable human decision."
+  ],
+  "required_evidence": [
+    {
+      "id": "D3-E01",
+      "title": "Architecture and trust-boundary evidence",
+      "description": "Current system, data-flow and trust-boundary architecture identifies models, data, identities, tools, exposed interfaces and downstream effects.",
+      "minimum_strength": "IMPLEMENTED",
+      "accepted_source_types": [
+        "ARCHITECTURE_DOCUMENT",
+        "DATA_FLOW_DIAGRAM",
+        "CONFIGURATION"
+      ]
+    },
+    {
+      "id": "D3-E02",
+      "title": "AI-security requirements and acceptance criteria",
+      "description": "Approved security requirements, risk tolerance, lifecycle targets and acceptance criteria define the expected control outcome.",
+      "minimum_strength": "HUMAN_VALIDATED",
+      "accepted_source_types": [
+        "SECURITY_REQUIREMENT",
+        "RISK_POLICY",
+        "DECISION_RECORD"
+      ]
+    },
+    {
+      "id": "D3-E03",
+      "title": "System-specific AI threat model",
+      "description": "Threat model, abuse cases and attack-surface inventory cover applicable AI attack modules and credible consequences.",
+      "minimum_strength": "HUMAN_VALIDATED",
+      "accepted_source_types": [
+        "THREAT_MODEL",
+        "ABUSE_CASE_CATALOG"
+      ]
+    },
+    {
+      "id": "D3-E04",
+      "title": "Technical enforcement evidence",
+      "description": "Code and configuration demonstrate validators, policy enforcement, isolation, least privilege, authorization, egress control and secret separation.",
+      "minimum_strength": "IMPLEMENTED",
+      "accepted_source_types": [
+        "PRODUCTION_CODE",
+        "CONFIGURATION",
+        "INFRASTRUCTURE_AS_CODE"
+      ]
+    },
+    {
+      "id": "D3-E05",
+      "title": "AI data and knowledge-integrity evidence",
+      "description": "Applicable training, tuning, retrieval, feedback and mutable-content sources have provenance, eligibility and integrity controls.",
+      "minimum_strength": "IMPLEMENTED",
+      "accepted_source_types": [
+        "DATA_REGISTER",
+        "KNOWLEDGE_SOURCE_REGISTER",
+        "INTEGRITY_CONTROL_RECORD"
+      ]
+    },
+    {
+      "id": "D3-E06",
+      "title": "Model and provider security configuration",
+      "description": "Versions, provider settings, security-relevant configuration, limitations and change history are attributable to the assessed release.",
+      "minimum_strength": "IMPLEMENTED",
+      "accepted_source_types": [
+        "MODEL_REGISTER",
+        "PROVIDER_RECORD",
+        "CONFIGURATION",
+        "CHANGE_RECORD"
+      ]
+    },
+    {
+      "id": "D3-E07",
+      "title": "Adversarial evaluation results",
+      "description": "Versioned plan, cases, environment, identities, privileges, results, thresholds, failures, retests and coverage are recorded for the target release.",
+      "minimum_strength": "TESTED",
+      "accepted_source_types": [
+        "TEST_EXECUTION_RESULT",
+        "SECURITY_EVALUATION",
+        "PENETRATION_TEST_REPORT"
+      ]
+    },
+    {
+      "id": "D3-E08",
+      "title": "Operational monitoring and response evidence",
+      "description": "Telemetry, alerts, rejection events, incidents, containment and response exercises demonstrate operational preparedness.",
+      "minimum_strength": "OPERATIONALLY_OBSERVED",
+      "accepted_source_types": [
+        "MONITORING_CONFIGURATION",
+        "OPERATIONAL_LOG",
+        "INCIDENT_RECORD",
+        "INCIDENT_EXERCISE_RESULT"
+      ]
+    },
+    {
+      "id": "D3-E09",
+      "title": "Residual-risk decision",
+      "description": "The remaining risk, conditions, decision authority, expiry and target lifecycle transition are recorded without altering the verified technical state.",
+      "minimum_strength": "HUMAN_VALIDATED",
+      "accepted_source_types": [
+        "RISK_DECISION",
+        "AUTHORIZATION_RECORD"
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "strong": [
+      "Verified code and configuration evidence is combined with representative adversarial execution results for the current version and architecture.",
+      "Operational telemetry or exercises corroborate preventive and detective controls for the intended environment.",
+      "Independent reproduction or competent separate review covers high-consequence paths."
+    ],
+    "moderate": [
+      "Implementation and unit or integration tests exist, but realistic privileges, secondary paths or operational context remain incomplete.",
+      "A credible threat model exists, but some applicable attack modules or current components are not covered."
+    ],
+    "weak": [
+      "Policy, architecture narrative, vendor assertion, safety prompt, filter configuration or isolated successful examples exist without system-level adversarial evidence."
+    ],
+    "contradictory": [
+      "Declared restrictions conflict with code, permissions, provider settings, test failures or runtime events.",
+      "Testing excludes a reachable high-impact path or uses versions different from the target release."
+    ],
+    "assurance_ceilings": [
+      "Policy and design evidence can establish DECLARED assurance only.",
+      "Code and configuration can establish IMPLEMENTED assurance but not executed effectiveness.",
+      "A test definition without attributable results cannot establish TESTED assurance.",
+      "Operational effectiveness requires attributable evidence from the assessed environment and version.",
+      "Human authorization cannot increase the technical evidence state or erase a verified gap."
+    ]
+  },
+  "false_positive_guards": [
+    "Do not infer resilience from a system prompt, moderation endpoint, refusal behavior or provider safety claim.",
+    "Do not infer AP-D3 merely because a vulnerability exists; establish whether the security boundary materially relies on model behavior and whether external controls fail.",
+    "Do not treat the absence of known incidents as evidence of absence.",
+    "Do not apply retrieval, poisoning, agentic or model-extraction tests when the corresponding path is demonstrably absent; record the scoped exclusion.",
+    "Do not equate a generic application penetration test with AI-specific adversarial evaluation.",
+    "Do not accept tests against a materially different model, configuration, identity or integration as evidence for the target release."
+  ],
+  "prohibited_inferences": [
+    "No prompt injection was observed, therefore prompt injection is impossible.",
+    "The model refused the attack, therefore downstream actions are secure.",
+    "The provider is certified, therefore the integrated system is resilient.",
+    "The agent uses human review, therefore tool authorization cannot be bypassed.",
+    "A threat model proves the described controls are implemented.",
+    "A tactic is complete, therefore the finding is closed."
+  ],
+  "validation_questions": [
+    "What is the most consequential asset or action reachable from model-influenced data?",
+    "Which inputs are untrusted even when they arrive through an approved connector?",
+    "Where can model output become instructions, code, markup, a query, a tool argument or a decision?",
+    "Which authorization decisions occur outside model discretion?",
+    "What secondary, fallback, retry, cache or error paths bypass the primary control?",
+    "Which executed test demonstrates the claimed boundary using realistic identities and privileges?",
+    "Which versions and configurations were tested, and what changed afterwards?",
+    "How are attacks detected and contained without exposing additional sensitive data?",
+    "Which residual limitations remain and who is authorized to decide on them?"
+  ],
+  "detection_heuristics": [
+    "Search for direct execution or rendering of model output and free-form tool arguments.",
+    "Compare declared tool allowlists with runtime registrations, credentials, identities and scopes.",
+    "Identify retrieved or uploaded content concatenated into privileged prompts without trust metadata.",
+    "Inspect tests for direct and indirect injection, poisoning, unauthorized action, cross-tenant access and secondary bypass paths.",
+    "Search for provider, model or security-configuration changes not tied to regression evidence."
+  ],
+  "target_assurance_by_lifecycle_stage": {
+    "QUALIFICATION_AND_REGISTRATION": "DECLARED",
+    "DESIGN_AND_DEVELOPMENT": "IMPLEMENTED",
+    "VERIFICATION_AND_VALIDATION": "TESTED",
+    "DEPLOYMENT": "HUMAN_VALIDATED",
+    "OPERATION_AND_MONITORING": "OPERATIONALLY_OBSERVED",
+    "REVIEW_AND_EVALUATION": "HUMAN_VALIDATED",
+    "RETIREMENT": "TESTED"
+  },
+  "severity": "HIGH by default.",
+  "severity_escalation": {
+    "to": "CRITICAL",
+    "conditions": [
+      "An untrusted model-influenced path can reach privileged or irreversible actions.",
+      "An attack can expose sensitive multi-tenant, personal or special-category data.",
+      "An attack can alter a safety function or consequential decision.",
+      "A demonstrated exploit has uncontrolled external effects or materially defeats required human authority."
+    ]
+  },
+  "hard_gate_effect": {
+    "BLOCK": [
+      "Block Deployment and Operation when D3 is NOT_SATISFIED on a material reachable attack path.",
+      "Block Deployment and Operation when D3 is UNKNOWN for a high-consequence externally reachable or privileged path.",
+      "Block the affected transition when AP-D3 is CONFIRMED_PRESENT on a path to sensitive data, privileged action, external communication or a material decision."
+    ],
+    "REVIEW": [
+      "Require Security and Governance review when D3 is PARTIALLY_SATISFIED and residual exposure is bounded, monitored and supported by attributable evidence."
+    ],
+    "boundary": "A tactic, narrative explanation or numeric readiness score cannot override the gate. New evidence, reassessment and human authorization are required."
+  },
+  "related_criteria": [
+    "C3",
+    "C5",
+    "D1",
+    "D4",
+    "D5",
+    "F2",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "related_antipatterns": [
+    "AP-D3"
+  ],
+  "normative_source_mappings": [
+    {
+      "mapping_id": "MAP-D3-EU-AIA-ART15",
+      "source_id": "SRC-EU-AIA-2024-1689",
+      "source_version": "2024-07-12",
+      "title": "Regulation (EU) 2024/1689 (Artificial Intelligence Act)",
+      "official_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689",
+      "authority_type": "BINDING_LAW_WHEN_APPLICABLE",
+      "relevant_locator": "Article 15(1), 15(4) and 15(5)",
+      "mapping_relationship": "NORMATIVE_WHEN_APPLICABLE",
+      "mapping_rationale": "Supports lifecycle robustness and cybersecurity expectations, including resilience against attempts to exploit AI-specific vulnerabilities.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-D3-NIST-AIRMF",
+      "source_id": "SRC-NIST-AI-100-1",
+      "source_version": "2023-01-26",
+      "title": "Artificial Intelligence Risk Management Framework (AI RMF 1.0)",
+      "official_url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf",
+      "authority_type": "VOLUNTARY_FRAMEWORK",
+      "relevant_locator": "Section 3.4 and GOVERN/MAP/MEASURE/MANAGE",
+      "mapping_relationship": "INFORMATIVE",
+      "mapping_rationale": "Supports secure-and-resilient characteristics and full-lifecycle risk governance.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-D3-NIST-GENAI",
+      "source_id": "SRC-NIST-AI-600-1",
+      "source_version": "2024-07-26",
+      "title": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+      "official_url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+      "authority_type": "VOLUNTARY_FRAMEWORK",
+      "relevant_locator": "Section 2.9; MS-2.7-007; MS-2.7-009; MG-1.3-002",
+      "mapping_relationship": "INFORMATIVE_FOR_GENERATIVE_AI",
+      "mapping_rationale": "Supports information-security risk identification, AI red-teaming, control-effectiveness review and continuing risk-control monitoring.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-D3-NIST-SSDF-AI",
+      "source_id": "SRC-NIST-SP-800-218A",
+      "source_version": "2024-07",
+      "title": "NIST SP 800-218A - Secure Software Development Practices for Generative AI and Dual-Use Foundation Models",
+      "official_url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218A.pdf",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "relevant_locator": "AI-specific augmentation of SP 800-218 practices and tasks",
+      "mapping_relationship": "INFORMATIVE",
+      "mapping_rationale": "Supports secure development, verification, provenance and vulnerability-response practices for AI model and system producers.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-D3-NCSC-CISA",
+      "source_id": "SRC-NCSC-CISA-SECURE-AI-2023",
+      "source_version": "1.0 / 2023-11-27",
+      "title": "Guidelines for Secure AI System Development",
+      "official_url": "https://www.ncsc.gov.uk/collection/guidelines-secure-ai-system-development",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "relevant_locator": "Secure design, development, deployment, and operation and maintenance",
+      "mapping_relationship": "INFORMATIVE",
+      "mapping_rationale": "Supports system threat modelling, secure implementation, deployment controls, monitoring and incident response.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-D3-OWASP-LLM",
+      "source_id": "SRC-OWASP-LLM-TOP10-2025",
+      "source_version": "2025",
+      "title": "OWASP Top 10 for LLM Applications 2025",
+      "official_url": "https://genai.owasp.org/llm-top-10/",
+      "authority_type": "COMMUNITY_PRACTICE",
+      "relevant_locator": "LLM01, LLM05, LLM06 and LLM08",
+      "mapping_relationship": "THREAT_AND_MITIGATION_REFERENCE",
+      "mapping_rationale": "Supports generative-AI threat coverage for injection, unsafe output handling, excessive agency and retrieval or embedding weaknesses.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-D3-ENISA",
+      "source_id": "SRC-ENISA-AI-CYBER-2023",
+      "source_version": "2023-06-07",
+      "title": "Multilayer Framework for Good Cybersecurity Practices for AI",
+      "official_url": "https://www.enisa.europa.eu/publications/multilayer-framework-for-good-cybersecurity-practices-for-ai",
+      "authority_type": "EU_AGENCY_GUIDANCE",
+      "relevant_locator": "Cybersecurity foundations, AI-specific and sector-specific layers",
+      "mapping_relationship": "INFORMATIVE",
+      "mapping_rationale": "Supports layered system-specific cybersecurity coverage.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-D3-001",
+      "assessment_object_id": "D3",
+      "title": "AI-specific threat model is incomplete or not system-specific",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_subcriterion_ids": [
+        "D3-SC01",
+        "D3-SC02",
+        "D3-SC03",
+        "D3-SC04"
+      ],
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E03"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Deployment and Operation remain blocked when an unassessed path can reach a high-consequence boundary."
+    },
+    {
+      "id": "FND-D3-002",
+      "assessment_object_id": "D3",
+      "title": "Deterministic enforcement is missing at an AI output, tool or privileged-action boundary",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "mapped_subcriterion_ids": [
+        "D3-SC05",
+        "D3-SC06",
+        "D3-SC08",
+        "D3-SC09"
+      ],
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E04",
+        "D3-E07"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "The affected transition remains blocked until deterministic containment is implemented and verified."
+    },
+    {
+      "id": "FND-D3-003",
+      "assessment_object_id": "D3",
+      "title": "Untrusted retrieval or external content can influence control behavior without an adequate boundary",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "mapped_subcriterion_ids": [
+        "D3-SC03",
+        "D3-SC07"
+      ],
+      "required_evidence_ids": [
+        "D3-E01",
+        "D3-E04",
+        "D3-E05",
+        "D3-E07"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "The affected transition remains blocked until the trust boundary and integrity controls are verified."
+    },
+    {
+      "id": "FND-D3-004",
+      "assessment_object_id": "D3",
+      "title": "Adversarial evaluation is absent, unrepresentative or not regression-controlled",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_subcriterion_ids": [
+        "D3-SC10",
+        "D3-SC12"
+      ],
+      "required_evidence_ids": [
+        "D3-E03",
+        "D3-E06",
+        "D3-E07"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Deployment and Operation remain blocked when representative evidence is unavailable for a high-consequence path."
+    },
+    {
+      "id": "FND-D3-005",
+      "assessment_object_id": "D3",
+      "title": "AI-security monitoring and incident response are not operationally prepared",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_subcriterion_ids": [
+        "D3-SC11",
+        "D3-SC12"
+      ],
+      "required_evidence_ids": [
+        "D3-E08",
+        "D3-E09"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Operation remains blocked until detection, containment, ownership and recovery are demonstrated."
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "GOV-SEC-001",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "eligible_finding_ids": [
+        "FND-D3-001"
+      ],
+      "mapping_id": "MAP-D3-GOV-SEC-001",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-002",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "eligible_finding_ids": [
+        "FND-D3-002"
+      ],
+      "mapping_id": "MAP-D3-GOV-SEC-002",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-003",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_OPERATIONAL_CAPABILITY_GAP",
+      "eligible_finding_ids": [
+        "FND-D3-005"
+      ],
+      "mapping_id": "MAP-D3-GOV-SEC-003",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-004",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_TOOL_AUTHORIZATION_GAP",
+      "eligible_finding_ids": [
+        "FND-D3-002"
+      ],
+      "mapping_id": "MAP-D3-GOV-SEC-004",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-005",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_RETRIEVAL_TRUST_BOUNDARY_GAP",
+      "eligible_finding_ids": [
+        "FND-D3-003"
+      ],
+      "mapping_id": "MAP-D3-GOV-SEC-005",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-006",
+      "tactic_version": "1.0.0",
+      "relationship": "ESTABLISHES_ADVERSARIAL_ASSURANCE",
+      "eligible_finding_ids": [
+        "FND-D3-004"
+      ],
+      "mapping_id": "MAP-D3-GOV-SEC-006",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "ai_role": "AI may extract evidence, identify candidate signals and propose a traceable assessment interpretation.",
+    "deterministic_role": "Applicability, assurance ceilings, conclusion-state rules, finding triggers, hard gates and tactic eligibility are applied deterministically.",
+    "human_role": "Named human authorities resolve legal interpretation, lock consequential findings, accept residual risk and authorize lifecycle transitions.",
+    "prohibited": [
+      "AI narrative cannot waive a hard gate.",
+      "A readiness score cannot authorize progression.",
+      "Tactic assignment or completion cannot change a finding state."
+    ]
+  },
+  "domain_title": "Architecture, security, robustness, safety and evaluation",
+  "conclusion_states": [
+    "SATISFIED",
+    "PARTIALLY_SATISFIED",
+    "NOT_SATISFIED",
+    "UNKNOWN",
+    "NOT_APPLICABLE"
+  ],
+  "evidence_assurance_states": [
+    "NONE",
+    "DECLARED",
+    "IMPLEMENTED",
+    "TESTED",
+    "OPERATIONALLY_OBSERVED",
+    "INDEPENDENTLY_VALIDATED",
+    "FORMALLY_APPROVED"
+  ],
+  "$schema": "./schemas/capability.schema.json"
+}
