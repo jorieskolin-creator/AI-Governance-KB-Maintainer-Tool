@@ -19,7 +19,11 @@ Later, use an explicitly configured, supported storage connection supplied by
 location and authorization; production must not fall back to bundled inputs or
 local output. Google Drive is excluded. Develop the first profile from the supplied
 SAE materials and one Golden Reference capability/anti-pattern pair, not older
-repository defaults. The owner has confirmed
+repository defaults. Use the Categories and Anti-Patterns PDF for SAE criteria,
+the Thinking Flow and pinned instrument for exact questions, and only sources
+listed in the selected Source Register for substantive claims. Read permitted
+content at registered links; file-based sources must be registered PDFs under
+`references/`. Keep automated tests offline. The owner has confirmed
 the supplied SAE Tactic Playbook is final despite older incomplete-approval wording.
 Record that decision against the selected version/hash; the legacy pending-mapping
 statement below does not block this input set. Validate actual links without

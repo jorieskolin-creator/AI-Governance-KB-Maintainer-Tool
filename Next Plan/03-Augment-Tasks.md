@@ -32,7 +32,7 @@ Implement DC-00 through DC-07 in order for the local pilot. Do not access Vercel
 - Implement the minimal profile/input schemas from `02-Contracts.md` in a new Creator-owned schema namespace. Do not edit legacy schemas in place.
 - Add an explicit local SAE profile that loads the pinned inventory roles, verifies read permissions, versions and hashes, and checks the configured local output path without writing. No production or bundled-input fallback. Defer remote loaders to a separately approved task.
 - Build the first profile from the owner-supplied SAE samples: Source Register, taxonomy/criteria, cognitive model, final linked Tactic Playbook, schemas, and one Golden Reference capability/anti-pattern pair. Preserve actual formats and IDs. Bind the already-confirmed final-playbook decision to its selected version/hash without requesting approval again.
-- Implement conflict reporting, source-coverage matrix, tactic association versus activation distinction, and deterministic requested-document enumeration.
+- Implement conflict reporting, a source-coverage matrix, tactic association versus activation distinction, and deterministic requested-document enumeration. Treat empty instrument `sourceIds` as no preset mapping; reject references to unknown source IDs. Check required inputs are already present at run start, without importing or modifying them.
 - Build a small synthetic second profile with non-A–F domain IDs and non-five object counts for tests. Clearly label its content synthetic; do not pass it off as approved domain knowledge.
 - Add Input and Document Plan operations. Display precise missing-input findings. Any routes registered at this stage must be isolated and authorized from first exposure; do not start the legacy app just to exercise the Creator planner.
 
@@ -46,7 +46,8 @@ Implement DC-00 through DC-07 in order for the local pilot. Do not access Vercel
 
 **Work:**
 
-- Prepare exact permitted source passages for the chosen pair from explicitly selected local files or attributed human-verified excerpts. Test any registered-URL acquisition logic with mocks; do not reach remote services during the local pilot. No runtime upload workflow for authoritative inputs is required.
+- Prepare the selected pair's criteria from the pinned Categories and Anti-Patterns PDF and its questions and interpretation rules from the pinned Thinking Flow and checked instrument. Preserve locators and keep legacy publication instructions outside the new workflow.
+- Acquire permitted passages by following official links in the selected Source Register, or by opening pre-staged, versioned PDFs under `references/` explicitly bound to the same register. No unregistered URLs or files. Mock acquisition in automated verification; run registered URL reads only in an explicit pilot run, without Vercel or Google Drive.
 - Preserve versions, locators, hashes, extraction warnings, and model-use boundaries.
 - Add the source-unit contract and cache/checkpoint policy scoped to a run/input set.
 - Reject unsupported/scanned sources explicitly or accept a separately attributed human-verified extraction.
@@ -55,7 +56,7 @@ Implement DC-00 through DC-07 in order for the local pilot. Do not access Vercel
 
 **Allowed changes:** new source modules, selected extraction dependencies with reviewed versions/licenses, input/source UI, tests. No automatic expansion of the Source Register.
 
-**Acceptance:** a real permitted passage reaches the model-ready packet with its locator; metadata-only or inaccessible sources do not support substantive claims; malicious embedded instructions do not change tool behavior; source truncation is visible; acquisition errors do not erase completed work.
+**Acceptance:** the selected pair's PDF criteria and Thinking Flow questions reach the authoring input; a permitted registered URL passage or bound PDF page is attributable to its edition and locator; unregistered files, metadata-only entries and inaccessible sources do not support substantive claims; malicious embedded instructions do not change tool behavior; source truncation is visible; acquisition errors do not erase completed work.
 
 ## DC-03 — Author and render one fresh pair
 
