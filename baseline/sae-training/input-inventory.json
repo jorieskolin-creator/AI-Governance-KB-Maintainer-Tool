@@ -127,230 +127,258 @@
     },
     {
       "role": "golden-capability",
-      "path": "baseline/sae-training/golden/A1_v1.0.0.json",
+      "path": "baseline/sae-training/Samples/Golden/A1_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "1731b661153d0e41e59f1e052962e74446572ee4484171690ad40c2cf701dde4",
-      "origin": "Drive 03 Golden Standard, schema 2.1.0"
+      "origin": "Drive 03 Golden Standard, schema 2.1.0",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-antipattern",
-      "path": "baseline/sae-training/golden/AP-A1_v1.0.0.json",
+      "path": "baseline/sae-training/Samples/Golden/AP-A1_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "973e9423402b880eca22850bae76aa54afcfdec6f99becbbaf0bf6fe67552b40",
-      "origin": "Drive 03 Golden Standard, schema 2.1.0"
+      "origin": "Drive 03 Golden Standard, schema 2.1.0",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-human-reference",
-      "path": "baseline/sae-training/golden/AI_Governance_KB_A1_AP-A1_v1.0.0.pdf",
+      "path": "baseline/sae-training/Samples/Golden/AI_Governance_KB_A1_AP-A1_v1.0.0.pdf",
       "version": "1.0.0",
       "sha256": "66d77a7959400be9e2a485277feb696791f102797a22f4aad6b661b31b0007f0",
-      "origin": "Drive 03 Golden Standard"
+      "origin": "Drive 03 Golden Standard",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-manifest",
-      "path": "baseline/sae-training/golden/golden-standard-manifest.json",
+      "path": "baseline/sae-training/Samples/Golden/golden-standard-manifest.json",
       "version": "1.0.0",
       "sha256": "605b2b2b41886428e1e3da57a29c8f4ed31f2dcc1a2b35b2d323ee26d51d3c18",
-      "origin": "Drive 03 Golden Standard"
+      "origin": "Drive 03 Golden Standard",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-integrity-summary",
-      "path": "baseline/sae-training/golden/historical/A1_AP-A1_final_integrity_summary_v1.0.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/A1_AP-A1_final_integrity_summary_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "b1f48e972daae54f30dbea74b623a9424ea05e806260a7d9d7f31f1334c4f08e",
-      "origin": "Drive 99 Archive/2026-08_manual-pipeline"
+      "origin": "Drive 99 Archive/2026-08_manual-pipeline",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-release-manifest",
-      "path": "baseline/sae-training/golden/historical/A1_AP-A1_release_manifest_v1.0.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/A1_AP-A1_release_manifest_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "9f6edaff9785cac03452ccb93de9abe017818a74d2a9c4c833df95fe99502f20",
-      "origin": "Drive 99 Archive/2026-08_manual-pipeline"
+      "origin": "Drive 99 Archive/2026-08_manual-pipeline",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-release-validation",
-      "path": "baseline/sae-training/golden/historical/A1_AP-A1_release_validation_v1.0.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/A1_AP-A1_release_validation_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "53cfaa67cbcc9c974fd89c123924c13682402594686907bd21247059ee9ea3f3",
-      "origin": "Drive 99 Archive/2026-08_manual-pipeline"
+      "origin": "Drive 99 Archive/2026-08_manual-pipeline",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-source-register",
-      "path": "baseline/sae-training/golden/historical/AI_Governance_Global_Source_Register_v1.4.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Source_Register_v1.4.0.json",
       "version": "1.4.0",
       "sha256": "d3abfa10d1f0b4b1d383448c44c96c2fa664c9be8a613f0143e535e5aef83414",
-      "origin": "Drive Google AI Studio folder"
+      "origin": "Drive Google AI Studio folder",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-tactic-catalog",
-      "path": "baseline/sae-training/golden/historical/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
       "version": "1.8.0",
       "sha256": "1467d11cedac75f732b649317c64dc8f113ea7b47ac6bb8ac8eb66c3f77e8d84",
-      "origin": "Drive Google AI Studio folder"
+      "origin": "Drive Google AI Studio folder",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-id-register",
-      "path": "baseline/sae-training/golden/historical/id-register.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/id-register.json",
       "version": "2.0.0",
       "sha256": "4fea0f96cdc8ce5fd10bc9d18e44d1d50d8a11b7210c9b2603c99ebf1b4971bc",
-      "origin": "Drive 99 Archive/superseded"
+      "origin": "Drive 99 Archive/superseded",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-schema-catalog",
-      "path": "baseline/sae-training/golden/historical/schema-catalog.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/schema-catalog.json",
       "version": "2.1.0",
       "sha256": "9bb1edaf24739241fbc74255f54e6c8c1a7f9a94c167081d9a2ec1ec5f2454e2",
-      "origin": "Drive 99 Archive/superseded"
+      "origin": "Drive 99 Archive/superseded",
+      "usage": "calibration-only"
     },
     {
       "role": "golden-historical-tactic-schema",
-      "path": "baseline/sae-training/golden/historical/tactic-catalog.schema.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/tactic-catalog.schema.json",
       "version": "2.1.0",
       "sha256": "488f28948b61a61680ee89a79f6d66a823038ca0933b25fbedfb60d1b282f1df",
-      "origin": "Drive 99 Archive/superseded"
+      "origin": "Drive 99 Archive/superseded",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-a2",
-      "path": "baseline/sae-training/prior-outputs/A/A2_v1.0.0.json",
+      "role": "sample-a2",
+      "path": "baseline/sae-training/Samples/A/A2_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "96aa1eae185b8f89e20d5f97c5c7d8a70cd03a78d8e2fa3bb274cdfefa98ba1a",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-a3",
-      "path": "baseline/sae-training/prior-outputs/A/A3_v1.0.0.json",
+      "role": "sample-a3",
+      "path": "baseline/sae-training/Samples/A/A3_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "49278529e6912b48aacd533214a131c27d27e1f49369a1f2ce69c21b6330a1b8",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-a4",
-      "path": "baseline/sae-training/prior-outputs/A/A4_v1.0.0.json",
+      "role": "sample-a4",
+      "path": "baseline/sae-training/Samples/A/A4_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "c988ceb369d0ab662d72f93d6edfceb6557ab5193f2db114055c1fd4b0b2b306",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-a5",
-      "path": "baseline/sae-training/prior-outputs/A/A5_v1.0.0.json",
+      "role": "sample-a5",
+      "path": "baseline/sae-training/Samples/A/A5_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "c6b7f9ce81be956d3511bd6a2bdcf67f333096481b933c5a57183458bc93dc1a",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-domain-a-coverage-report",
-      "path": "baseline/sae-training/prior-outputs/A/AI_Governance_Domain_A_Coverage_Report_v1.0.0.json",
+      "role": "sample-domain-a-coverage-report",
+      "path": "baseline/sae-training/Samples/A/AI_Governance_Domain_A_Coverage_Report_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "47986fa2940634908daa104a9b004d628b9c29a496664a2421e3abd93fcd81e6",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "1.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-ap-a2",
-      "path": "baseline/sae-training/prior-outputs/A/AP-A2_v1.0.0.json",
+      "role": "sample-ap-a2",
+      "path": "baseline/sae-training/Samples/A/AP-A2_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "5603a4fec6e75ce85ed89a0f4efcda7e5ad027d0dee129aa6c3b19f751e03085",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-ap-a3",
-      "path": "baseline/sae-training/prior-outputs/A/AP-A3_v1.0.0.json",
+      "role": "sample-ap-a3",
+      "path": "baseline/sae-training/Samples/A/AP-A3_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "a989a49ff73a7e5542c5fde8ecdcc39bc4bdb013a64405adf8ce31a014b06229",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-ap-a4",
-      "path": "baseline/sae-training/prior-outputs/A/AP-A4_v1.0.0.json",
+      "role": "sample-ap-a4",
+      "path": "baseline/sae-training/Samples/A/AP-A4_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "97f9ba086a86373fdcb7e84bb76a4ca3c0a2bf187832ddda30f6389dd74d7e5e",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-ap-a5",
-      "path": "baseline/sae-training/prior-outputs/A/AP-A5_v1.0.0.json",
+      "role": "sample-ap-a5",
+      "path": "baseline/sae-training/Samples/A/AP-A5_v1.0.0.json",
       "version": "1.0.0",
       "sha256": "c1ecb18127c837c2e1b1965795825d1724ee8c6e7674855a016d7f7aff70a79a",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-ap-b1",
-      "path": "baseline/sae-training/prior-outputs/B/AP-B1_v1.0.1.json",
+      "role": "sample-ap-b1",
+      "path": "baseline/sae-training/Samples/B/AP-B1_v1.0.1.json",
       "version": "1.0.1",
       "sha256": "14db92bc3e443153fab7f64444d98ae3340b2c94f60812edb7ad23d0be84086e",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-ap-b2",
-      "path": "baseline/sae-training/prior-outputs/B/AP-B2_v1.0.1.json",
+      "role": "sample-ap-b2",
+      "path": "baseline/sae-training/Samples/B/AP-B2_v1.0.1.json",
       "version": "1.0.1",
       "sha256": "5b2a3874db7de08fd3f11594111db843426e72b5539ad140712c26bbc45253e3",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-b1",
-      "path": "baseline/sae-training/prior-outputs/B/B1_v1.0.1.json",
+      "role": "sample-b1",
+      "path": "baseline/sae-training/Samples/B/B1_v1.0.1.json",
       "version": "1.0.1",
       "sha256": "f9c13861e4c6c2b44e215e99ac10fa9ac7f71a5cf54f4265716d598808f84ef2",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-b2",
-      "path": "baseline/sae-training/prior-outputs/B/B2_v1.0.1.json",
+      "role": "sample-b2",
+      "path": "baseline/sae-training/Samples/B/B2_v1.0.1.json",
       "version": "1.0.1",
       "sha256": "89cf9c12e226ce803a2eebcec8ebef5ad5517ca0f3bdb98aaf41ffef1e3dc9a1",
       "origin": "Drive Google AI Studio folder",
       "schema_version": "2.0.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-ap-d3",
-      "path": "baseline/sae-training/prior-outputs/D/AP-D3_v1.2.0.json",
+      "role": "sample-ap-d3",
+      "path": "baseline/sae-training/Samples/D/AP-D3_v1.2.0.json",
       "version": "1.2.0",
       "sha256": "7259f94a498a216af35486b6822972e7c496e82ef4e32e2250d0d440115d37cf",
       "origin": "Drive 99 Archive/Samples and Calibration/Sample Documents",
       "schema_version": "1.1.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-output-d3",
-      "path": "baseline/sae-training/prior-outputs/D/D3_v1.2.0.json",
+      "role": "sample-d3",
+      "path": "baseline/sae-training/Samples/D/D3_v1.2.0.json",
       "version": "1.2.0",
       "sha256": "c3bcfef7aaacfa2e501db27873b2ccf8c699af9c84e01947ef7b7a925976fbd9",
       "origin": "Drive 99 Archive/Samples and Calibration/Sample Documents",
       "schema_version": "1.1.0",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     },
     {
-      "role": "prior-d3-tactic-catalog",
-      "path": "baseline/sae-training/prior-outputs/D/Governance_Tactic_Catalog_v1.1.0.json",
+      "role": "sample-d3-tactic-catalog",
+      "path": "baseline/sae-training/Samples/D/Governance_Tactic_Catalog_v1.1.0.json",
       "version": "1.1.0",
       "sha256": "133838fd1d92d95ea0d59fb4d87bf48569ecab585e68c3c3cb47b7c3ce6bba9c",
       "origin": "Drive 99 Archive/Samples and Calibration/Sample Documents/approved-publications",
-      "original_status": "APPROVED"
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
     }
   ],
   "owner_decision": {
@@ -382,7 +410,7 @@
     },
     {
       "original_path": "03 Schemas/tactic-catalog.schema.json",
-      "path": "baseline/sae-training/golden/historical/tactic-catalog.schema.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/tactic-catalog.schema.json",
       "sha256": "488f28948b61a61680ee89a79f6d66a823038ca0933b25fbedfb60d1b282f1df"
     },
     {
@@ -392,7 +420,7 @@
     },
     {
       "original_path": "03 Schemas/schema-catalog.json",
-      "path": "baseline/sae-training/golden/historical/schema-catalog.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/schema-catalog.json",
       "sha256": "9bb1edaf24739241fbc74255f54e6c8c1a7f9a94c167081d9a2ec1ec5f2454e2"
     },
     {
@@ -402,17 +430,17 @@
     },
     {
       "original_path": "04 Global Registers/id-register.json",
-      "path": "baseline/sae-training/golden/historical/id-register.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/id-register.json",
       "sha256": "4fea0f96cdc8ce5fd10bc9d18e44d1d50d8a11b7210c9b2603c99ebf1b4971bc"
     },
     {
       "original_path": "04 Global Registers/AI_Governance_Global_Source_Register_v1.4.0.json",
-      "path": "baseline/sae-training/golden/historical/AI_Governance_Global_Source_Register_v1.4.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Source_Register_v1.4.0.json",
       "sha256": "d3abfa10d1f0b4b1d383448c44c96c2fa664c9be8a613f0143e535e5aef83414"
     },
     {
       "original_path": "04 Global Registers/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
-      "path": "baseline/sae-training/golden/historical/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
       "sha256": "1467d11cedac75f732b649317c64dc8f113ea7b47ac6bb8ac8eb66c3f77e8d84"
     }
   ]
