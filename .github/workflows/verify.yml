@@ -1,6 +1,5 @@
-# Node 20 is the package.json engines floor (">=20").
-# Railway's deployed Node major is not declared in this repo
-# (no railway.toml, nixpacks.toml, or application Dockerfile), so CI stays on that floor.
+# Verification uses Node 22 to match the locked Vitest 5 toolchain and local development image.
+# This does not change the application runtime or deployment configuration.
 name: verify
 
 on:
@@ -39,7 +38,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install

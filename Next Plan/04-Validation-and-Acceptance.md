@@ -13,15 +13,17 @@ During transition, retain existing verification and add the Creator tests to it.
 | ID | Scenario | Required result | Task |
 | --- | --- | --- | --- |
 | I-01 | All specified inputs available with valid versions | Pinned input set and exact output plan | DC-01 |
-| I-02 | Required Vercel cognitive model, schema, or either Golden Reference pair member missing | Precise missing-object finding; no generation starts | DC-01 |
+| I-02 | Required selected cognitive model, schema, or Golden Reference pair member missing | Precise missing-object finding; no generation starts | DC-01 |
 | I-03 | Same ID appears twice or points to missing domain/criterion | Validation fails with exact object/path | DC-01 |
 | I-04 | Same local object ID appears in two different KBs | Separate namespaces; no collisions | DC-01 |
 | I-05 | Profile uses domains outside A–F and different object counts | Correct enumeration without code changes | DC-01/06 |
 | I-06 | Cognitive model and taxonomy/schema disagree | Conflict surfaced; affected delivery blocked | DC-01 |
 | I-07 | Input bytes change while run is active | Existing run uses verified pinned bytes; otherwise pauses without mixing versions | DC-01/04 |
-| I-08 | Local samples exist but corresponding Vercel inputs are unavailable | Development tests may run; production generation remains unready; no fallback | DC-01 |
-| I-09 | Vercel input objects exist but an output prefix has no folder marker | Validate permissions/path configuration; do not falsely reject an empty logical prefix | DC-01/05 |
+| I-08 | Local profile is explicitly selected; remote connection is absent | Pilot validation works; a separately selected remote configuration never falls back to local | DC-01 |
+| I-09 | Output location is empty or outside the allowed scope | Empty is valid; reject unconfigured destinations and path escapes | DC-01/05 |
 | I-10 | Supplied sample format differs from an assumed JSON schema | Adapter follows documented sample contract; no forced source-document rewrite | DC-01 |
+| I-11 | Same-version root shared definitions replace the pinned SAE schema, or two loaded schemas share an ID | Report schema identity/content mismatch; no silent substitution or network resolution | DC-01 |
+| I-12 | Selected SAE instrument references the missing internal source or has empty detailed criteria | Report the exact gap; questions still plan correctly; required unsupported claims block final delivery | DC-01/02/05 |
 | S-01 | Real registered text/PDF passage available | Actual content and exact locator retained in authoring input | DC-02 |
 | S-02 | Register contains title/URL but no readable source content | Unsupported claims remain unresolved | DC-02/03 |
 | S-03 | Source is scanned, truncated, inaccessible, or unsupported | Accurate extraction status and affected coverage gaps | DC-02 |
@@ -51,19 +53,19 @@ During transition, retain existing verification and add the Creator tests to it.
 | O-04 | Different content targets an existing version | Conflict; previous bytes unchanged | DC-05 |
 | O-05 | Path traversal or write outside configured root | Rejected before storage write | DC-05 |
 | O-06 | Drafts/inputs/Golden files coexist with ready documents | Handoff explicitly excludes non-document prefixes | DC-05/06 |
-| O-07 | Generation and delivery complete | Input/schema/Golden bytes unchanged; writes restricted to Vercel output/operations | DC-05 |
+| O-07 | Generation and delivery complete | Input/schema/Golden bytes unchanged; writes restricted to the selected local output/operations paths | DC-05 |
 | O-08 | Delivered set is observed by a later tool | No Creator-issued Hub approval or Master Table mutation | DC-05/07 |
 | B-01 | Domain batch contains one failed pair | Accurate per-document progress; batch incomplete, good work retained | DC-06 |
 | B-02 | New input baseline used for regeneration | New draft/version with diff and provenance; old documents intact | DC-06 |
 | M-01 | Document application mode starts | No old pipeline auto-resume, Drive sync, or register maintenance write | DC-04/07 |
-| M-02 | Legacy code removed | No dangling imports/routes; retained assertions still tested; historical data untouched | DC-07 |
+| M-02 | Local pilot passes before separately authorized legacy retirement | Existing rollback path and historical data preserved; later removal has no dangling imports/routes and preserves meaningful assertions | DC-07 / follow-up |
 | P-01 | Optional PDF export | Readable complete pages and extractable sections; rendition linkage | DC-08 |
 
 Deterministic tests can validate mechanics and known negative cases; they do not establish general semantic accuracy. Reviewer evaluation needs labeled examples and human adjudication. Track false accepts and false alarms, not just the reviewer model's own confidence.
 
 ## 3. First live evaluation
 
-Select one fresh pair from the supplied SAE taxonomy that differs from the owner-supplied Golden Reference pair. Use the exact Vercel input set and its actual source content. Do not assume particular sample IDs or replay the reference text as newly generated content. The first live run requires the owner-prepared storage and input materials to be ready.
+Select one fresh pair from the supplied SAE taxonomy that differs from the owner-supplied Golden Reference pair. Use the pinned local input set and actual permitted source passages. Do not replay recovered samples as newly generated content. Deliver to the explicit local output destination; no Vercel access is required. Any paid model call or submission of source content to a provider requires explicit authorization and source-use checks.
 
 Record:
 
@@ -89,7 +91,7 @@ For PDF, render all pages and inspect representative short, long, and table-heav
 
 ## 5. Cutover and rollback
 
-Before making document mode the default:
+Before making document mode the default locally, record the rollback configuration, pass the full suite and local acceptance, and verify one fresh delivery in `knowledge-base/`. Before any later, explicitly authorized production cutover:
 
 1. Tag or otherwise record the working legacy commit and deployment configuration.
 2. Inventory existing storage prefixes and database tables; preserve them.

@@ -2,7 +2,7 @@
 
 Execute one task per branch/PR. Use branch names `phase<N>-dc-<short-slug>` and include the DC task ID in commit messages. Record files changed, validation results, remaining gaps, and rollback instructions in each PR. Do not mark a phase complete from compilation alone.
 
-Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the owner for actual missing content, credentials, source-use decisions, or product decisions that block the current task. Routine implementation details follow this plan. Do not request approval repeatedly for the already selected three-tool architecture.
+Implement DC-00 through DC-07 in order for the local pilot. Do not access Vercel. Remote destination validation and production cutover are separate, explicitly authorized follow-ups. DC-08 (PDF) is optional. Only ask the owner for actual missing content, credentials, source-use decisions, or product decisions that block the current task. Routine implementation details follow this plan. Do not request approval repeatedly for the already selected three-tool architecture.
 
 ## DC-00 — Establish the new baseline and scope
 
@@ -16,7 +16,7 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 - Run the existing verification command with a disposable Postgres database equivalent to CI. Never run test cleanup against production.
 - Record the actual current baseline, including environment failures and tests not executed.
 - Identify deployment/startup side effects, active routes, database migrations, and writes that must be isolated from document mode.
-- Inspect the owner-supplied SAE samples and map their actual structures, fields, identifiers, and relationships. Prepare the sample-to-contract matrix in `06-Storage-and-Sample-Onboarding.md`. Inspect Vercel readiness when configured; distinguish development samples received from runtime files available. Do not assume the repository contains the current input documentation or infer its status from older copies.
+- Inspect the owner-supplied SAE samples and map their actual structures, fields, identifiers, and relationships. Prepare the sample-to-contract matrix in `06-Storage-and-Sample-Onboarding.md`. Verify the exact pinned files and the selected local output root. Distinguish active inputs, historical references, and missing source content. Do not inspect remote storage.
 - Create a short transition decision record and map useful assertions to their future tests. Preserve existing behavior at this stage.
 
 **Allowed changes:** planning/decision documentation and test-environment setup needed to run the existing checks. No baseline edits, deletes, or application cutover.
@@ -30,11 +30,11 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 **Work:**
 
 - Implement the minimal profile/input schemas from `02-Contracts.md` in a new Creator-owned schema namespace. Do not edit legacy schemas in place.
-- Add production loaders for the configured Vercel input/schema/Golden prefixes, with versions, hashes, read permissions, and output-scope readiness checks. Local samples support development/tests only; production has no bundled repository fallback.
+- Add an explicit local SAE profile that loads the pinned inventory roles, verifies read permissions, versions and hashes, and checks the configured local output path without writing. No production or bundled-input fallback. Defer remote loaders to a separately approved task.
 - Build the first profile from the owner-supplied SAE samples: Source Register, taxonomy/criteria, cognitive model, final linked Tactic Playbook, schemas, and one Golden Reference capability/anti-pattern pair. Preserve actual formats and IDs. Bind the already-confirmed final-playbook decision to its selected version/hash without requesting approval again.
 - Implement conflict reporting, source-coverage matrix, tactic association versus activation distinction, and deterministic requested-document enumeration.
 - Build a small synthetic second profile with non-A–F domain IDs and non-five object counts for tests. Clearly label its content synthetic; do not pass it off as approved domain knowledge.
-- Add Input and Document Plan UI/API operations. Display precise missing-input findings.
+- Add Input and Document Plan operations. Display precise missing-input findings. Any routes registered at this stage must be isolated and authorized from first exposure; do not start the legacy app just to exercise the Creator planner.
 
 **Allowed changes:** `src/document-creator/` profile/input/plan/UI modules, new schema/profile fixtures, tests; narrowly scoped server registration for isolated Creator routes. No model calls or production delivery.
 
@@ -46,7 +46,7 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 
 **Work:**
 
-- Implement Vercel input reads and bounded registered-source URL acquisition for the formats demonstrated by the owner’s samples. A runtime upload workflow for authoritative inputs is not required; the owner places them in Vercel before a run.
+- Prepare exact permitted source passages for the chosen pair from explicitly selected local files or attributed human-verified excerpts. Test any registered-URL acquisition logic with mocks; do not reach remote services during the local pilot. No runtime upload workflow for authoritative inputs is required.
 - Preserve versions, locators, hashes, extraction warnings, and model-use boundaries.
 - Add the source-unit contract and cache/checkpoint policy scoped to a run/input set.
 - Reject unsupported/scanned sources explicitly or accept a separately attributed human-verified extraction.
@@ -98,11 +98,11 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 **Work:**
 
 - Implement connection configuration using secret references and destination identity/prefix checks.
-- Add local test adapter and adapt Vercel Blob immutable storage for Markdown.
+- Implement the local filesystem adapter for immutable Markdown delivery. Run automated write tests against temporary directories, and reserve `knowledge-base/` for the reviewed SAE pilot. Defer remote writes.
 - Generate taxonomy-derived paths, immutable version reservations, write/readback verification, and completion receipts.
 - Support partial failure and idempotent retry. Store operations metadata outside KB documents.
 - Add Delivery and History UI. Make creation review and Hub approval visibly distinct.
-- Verify input/schema/Golden prefixes remain read-only and unmodified. Write generated documents and receipts only within the owner-configured Vercel output/operations prefixes. Do not introduce Google Drive credentials, mirrors, or sync jobs.
+- Verify input/schema/Golden references remain read-only and unmodified. Write reviewed documents and receipts only within the selected local output/operations scope. Do not introduce Google Drive credentials, mirrors, or sync jobs.
 
 **Allowed changes:** `src/storage/` where appropriate, Creator delivery modules/UI/tests, additive persistence fields if required.
 
@@ -125,24 +125,22 @@ Implement DC-00 through DC-07 in order. DC-08 (PDF) is optional. Only ask the ow
 
 **Acceptance:** deterministic requested count matches outputs; one failure does not lose others; input change produces new versions rather than mutation; second-profile identities/folders work; no whole-domain approval dependency prevents delivery of a valid selected pair.
 
-## DC-07 — Prove the complete path and retire legacy operation
+## DC-07 — Prove the complete local path and prepare cutover
 
-**Purpose:** ship one coherent application rather than leave two half-integrated designs.
+**Purpose:** demonstrate the coherent Creator workflow locally and preserve rollback before any separately authorized production cutover.
 
 **Work:**
 
 - Run the full acceptance matrix and live evaluation in `04-Validation-and-Acceptance.md`.
-- Produce a fresh pair different from the owner-supplied Golden Reference pair, using the prepared Vercel input set and real permitted source content. Have the content reviewed against source passages.
-- Test deliberate missing support, a genuinely invalid link, interrupted generation, partial delivery, and absent/unreadable required Vercel inputs. Also test that obsolete approval wording does not block the owner-confirmed final playbook.
+- Produce a fresh pair different from the owner-supplied Golden Reference pair, using the pinned local input set and real permitted source content. Have the content reviewed against source passages.
+- Test deliberate missing support, a genuinely invalid link, interrupted generation, partial delivery, and absent/unreadable required selected inputs. Also test that obsolete approval wording does not block the owner-confirmed final playbook.
 - Verify standalone Markdown can be inspected/extracted by an independent reader. Where available, test a sample with the actual separate Master Table Creator/Hub. Document external Markdown support gaps honestly.
-- Capture rollback point and database/storage inventory. Change default application mode only after new-path success.
-- Remove old register-maintenance UI, old pipeline routes and boot hooks, and legacy task machinery no longer referenced.
-- Migrate valuable legacy test assertions before deleting redundant harnesses. Keep immutable Golden files and historical migrations/data.
-- Update root instructions, README, deployment configuration, scripts, and archived-plan labels so no active document directs new work to the legacy lifecycle-control workflow.
+- Capture a rollback point and inventory the local pilot database and storage. Make document mode the pilot default only after local success; do not change the deployed default or remove the rollback path.
+- Record what can be retired after a separately authorized remote acceptance test and cutover. At retirement, migrate valuable legacy assertions before deleting redundant harnesses and preserve immutable Golden files, historical migrations, and data.
 
-**Allowed changes:** explicitly includes retiring obsolete portions of `src/operator/`, `src/register/`, `src/cognitive/`, `src/sir/`, `src/orchestration/`, `src/release/`, `src/compiler/`, `src/validation/`, and old check scripts after dependency/coverage verification. This permission does not allow deleting retained helpers, governed assets, or stored data indiscriminately.
+**Allowed changes:** Creator integration, local mode configuration, tests and rollback documentation. Do not remove legacy modules, historical data, migrations, or the existing rollback path as part of the local pilot. A later retirement task must define its deletion scope after dependency and coverage verification.
 
-**Acceptance:** full verification green; live evidence attached; document mode is the default and has no runtime dependency on legacy control-plane code; storage/db rollback documented; no false claim that fixture parity proves fresh authoring; actual unsupported integration cases listed.
+**Acceptance:** full verification green; local reference-run evidence attached; document mode is the pilot default and has no runtime dependency on legacy control-plane execution; storage/DB rollback documented; no false claim that fixture parity proves fresh authoring; untested remote integration listed.
 
 ## DC-08 — Optional PDF rendition
 

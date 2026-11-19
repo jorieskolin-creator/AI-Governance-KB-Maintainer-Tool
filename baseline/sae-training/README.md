@@ -1,6 +1,6 @@
 # SAE training baseline
 
-This inventory pins the materials found for the Solution Assurance Engine (SAE) authoring exercise. It covers source selection, all 180 primary questions, the cognitive model, tactic selection, and a Golden Reference pair. [Input inventory](input-inventory.json) records the exact files, their SHA-256 hashes, and where they came from. Production inputs are resolved from the selected Vercel Blob configuration. [Creator input contract](../../Next%20Plan/02-Contracts.md#5-storage-contract-and-taxonomy-based-structure)
+This inventory pins the materials found for the Solution Assurance Engine (SAE) authoring exercise. It covers source selection, all 180 primary questions, the cognitive model, tactic selection, and a Golden Reference pair. [Input inventory](input-inventory.json) records the exact files, their SHA-256 hashes, and where they came from. The first pilot explicitly selects this inventory as its local baseline. Production must use an explicitly configured input set; this folder is not a fallback. [Creator input contract](../../Next%20Plan/02-Contracts.md#5-storage-contract-and-taxonomy-based-structure)
 
 ## Inputs and references
 
@@ -28,13 +28,13 @@ This inventory pins the materials found for the Solution Assurance Engine (SAE) 
 
 [knowledge-base](knowledge-base/) starts with empty output folders for [A](knowledge-base/A/), [B](knowledge-base/B/), [C](knowledge-base/C/), [D](knowledge-base/D/), [E](knowledge-base/E/) and [F](knowledge-base/F/). The `.gitkeep` files preserve the directory structure in Git.
 
-KB Document Creator will author fresh documents for **all 30 pairs**, including the eight with samples. Put newly generated test-run documents in the folder for their domain. For live runs, use the configured Vercel output location.
+Start with one fresh non-Golden pair. After it passes local review and delivery, expand toward all 30 pairs, including those with prior samples. Put reviewed Markdown under the relevant domain directory; keep receipts under `_operations/`. Automated tests use temporary directories. Do not use Vercel for this pilot.
 
 ## Gaps that affect use
 
 - **Catalog versions.** The Golden pair uses `GOV-PUR-001` through `GOV-PUR-004`. The recovered [release manifest](Samples/Golden/historical/A1_AP-A1_release_manifest_v1.0.0.json) pins the original catalog v1.8.0 and Source Register v1.4.0 bytes, and all 11 Golden tactic references are reciprocal in that catalog. For new documents use the selected v1.0.0 playbook and its explicit object links. Any request to carry forward exact historical finding-level links would need a verified crosswalk to the selected catalog.
 - **Shared schema.** The Drive Golden pair passes the Drive schema set. The current root shared definitions reject each document with six errors covering missing `supported_claim`, `applicability_conditions`, and `exclusions` in source mappings. Use the pinned Drive family for this calibration exercise.
 - **Detailed criteria and source support.** Primary questions exist for all 60 objects. The exported instrument's atomic subcriteria and anti-pattern tests are empty. The eight sample pairs provide examples of atomic criteria and tests. Ground each newly authored pair in its primary questions and exact supporting source passages. The instrument's runtime requirement records also refer to `SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026`, an ID absent from the selected Source Register. Treat that source as unresolved unless the authority and its content are supplied.
-- **Runtime readiness.** The original Drive manifest is an older development bootstrap inventory. The corresponding Vercel Blob input paths and source-content access remain unverified for this exercise. This inventory can be used for adapter and calibration work.
+- **Local readiness.** The inventory supports adapter and calibration work. The selected Source Register is metadata, not passage content. Before substantive pilot authoring, obtain permitted passages and exact edition/locators for the chosen pair. See the [DC-00 review](../../Next%20Plan/06-Storage-and-Sample-Onboarding.md#dc-00-review).
 
 The [historical Golden dependencies](Samples/Golden/historical/) and current playbook serve separate release contexts. The [six-tactic D3 catalog](Samples/D/Governance_Tactic_Catalog_v1.1.0.json) is scoped to the archived D3 release.

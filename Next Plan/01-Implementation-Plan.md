@@ -4,12 +4,12 @@
 
 KB Document Creator turns an explicitly selected input baseline into reviewed, source-supported knowledge documents and delivers those documents to a configured destination. An operator selects a KB profile, confirms inputs and requested outputs, reviews the result, fixes defects, and delivers a version.
 
-The first real KB is the owner’s Solution Assessment Engine reference case (SAE); supplied materials may retain the Solution Assurance Engine name. Use the actual IDs and titles from the owner’s input set. A small second profile should prove reuse without copying the application. Reusability comes from configurable taxonomy, document requirements, and storage, not a universal workflow designer.
+The first real KB is the owner’s Solution Assurance Engine reference case (SAE). Use the actual IDs and titles from the owner’s input set. A small second profile should prove reuse without copying the application. Reusability comes from configurable taxonomy, document requirements, and storage, not a universal workflow designer.
 
 ### In scope
 
-- Read and validate the owner-prepared Vercel input set; expose missing files, contradictory versions, and coverage gaps before starting generation.
-- Prepare source passages from the configured Vercel source-content files or registered source-publication locations.
+- Read and validate the explicitly selected input set; expose missing files, contradictory versions, and coverage gaps before starting generation.
+- Prepare permitted source passages from selected files or registered source-publication locations.
 - Create a deterministic output checklist from taxonomy and requested scope.
 - Author capability, anti-pattern, and optionally tactic documents.
 - Check structure and references deterministically; review meaning against available source content.
@@ -29,7 +29,7 @@ The first real KB is the owner’s Solution Assessment Engine reference case (SA
 - Creating, reorganizing, or populating the owner’s input folders automatically.
 - Automatic modification of a Knowledge Hub's statuses or catalog.
 
-Creator reads source inputs, schemas, and the Golden Reference from Vercel without modifying them. Report a concrete input problem and, if useful, export a proposed correction for the owner; the owner supplies a replacement version. Never silently repair an input authority. Honor the owner’s already-confirmed final SAE playbook decision; do not repeatedly request approval because of older labels.
+Creator reads the selected source inputs, schemas, and Golden Reference without modifying them. The first SAE pilot selects the repository training inventory and local `knowledge-base/` destination explicitly, with no remote storage. Future destinations require a user-selected location and verified access through a supported adapter. Report a concrete input problem and, if useful, export a proposed correction for the owner; the owner supplies a replacement version. Never silently repair an input authority. Honor the owner’s already-confirmed final SAE playbook decision; do not repeatedly request approval because of older labels.
 
 ## 2. Current code and the practical starting point
 
@@ -45,7 +45,7 @@ The baseline reviewed on 14 November is `b02a4bc9ad8507295505134cad42d20dc592fa6
 | Change-impact lookup is a placeholder | `src/register/service.ts`, `affectedPairsForSources()` | Do not present it as implemented maintenance capability; maintenance is out of scope. |
 | Immutable storage operations already exist | `src/storage/artifact-store.ts`; `src/storage/vercel-blob.ts` | Adapt rather than replace sound idempotency and integrity logic. |
 
-These are code-migration observations, not assertions about the documentation the owner will supply. DC-00 establishes a fresh complete test baseline with disposable Postgres. Design production input adapters from the owner’s supplied samples and Vercel files, not from assumptions about old repository assets.
+These are code-migration observations, not assertions about the documentation the owner will supply. DC-00 establishes a fresh complete test baseline with disposable Postgres. Design input adapters from the pinned SAE materials and observed formats, not from assumptions about old repository assets.
 
 ## 3. Output-format decision
 
@@ -65,7 +65,7 @@ The target Knowledge Hub must support Markdown before it can retrieve these docu
 
 ### 4.1 Select and confirm inputs
 
-Select the configured Vercel connection and a named KB input set. Before generation, check the owner-prepared prefixes, permissions, schemas, Source Register, taxonomy/criteria, cognitive model, playbook, and Golden Reference pair. The UI displays the resolved versions and output destination. A missing input leaves the workspace available with an exact readiness finding, but no model authoring starts. Pin the loaded versions and hashes for the run; show technical details in a secondary panel. See `06-Storage-and-Sample-Onboarding.md`.
+Select a named KB input set and a supported, configured destination. Before generation, check the owner-prepared prefixes, permissions, schemas, Source Register, taxonomy/criteria, cognitive model, playbook, and Golden Reference pair. The UI displays the resolved versions and output destination. A missing input leaves the workspace available with an exact readiness finding, but no model authoring starts. Pin the loaded versions and hashes for the run; show technical details in a secondary panel. See `06-Storage-and-Sample-Onboarding.md`.
 
 Validate identities and relationships first. Build a coverage matrix linking each requested object to taxonomy criteria, relevant cognitive requirements, supporting registered sources, sample roles, and tactic links. Missing source coverage is an authoring gap, not an invitation to invent a source.
 
@@ -81,7 +81,7 @@ Optional tactic rendering creates one document per requested tactic. It preserve
 
 ### 4.3 Prepare the source material
 
-Read the input documents and available source-content files from the configured Vercel locations. If the Source Register points to external normative publications, acquire permitted content from those registered locations through a bounded adapter; this does not make external locations alternative stores for the Creator’s input baseline or generated documents. Preserve original source version, exact locator, extraction result, and usage policy. Provide source context from the beginning of authoring, not only during a later mapping task.
+Read the selected input documents and configured source-content files. If permitted source content is not supplied locally, a later, explicitly enabled adapter can acquire it from registered publication locations; those are not alternative stores for the input baseline or generated documents. Preserve original source version, exact locator, extraction result, and usage policy. Provide source context from the beginning of authoring, not only during a later mapping task.
 
 A source title, URL, or `VERIFIED` register flag does not prove a claim. A metadata-only source can identify a reference, but it cannot supply unseen substantive requirements. If usable source material is unavailable, show the gap and keep affected claims unresolved. Human-supplied verified excerpts are an explicit alternative with provenance.
 
@@ -127,7 +127,7 @@ Create a self-contained `src/document-creator/` entry path with these logical mo
 
 | Module | Responsibility |
 | --- | --- |
-| `profile` and `inputs` | Sample-derived adapters, Vercel reads, readiness validation, pinned input set |
+| `profile` and `inputs` | Sample-derived adapters, explicitly selected reads, readiness validation, pinned input set |
 | `sources` | Permitted acquisition, extraction, source units and locators |
 | `plan` | Deterministic document list and coverage matrix |
 | `author` | Bounded provider call using prepared content |
@@ -151,7 +151,7 @@ Keep existing tables and applied migrations intact during migration. Add new tab
 
 | Existing area | Action | Boundary |
 | --- | --- | --- |
-| `baseline/`, root Source Register, `schemas/`, `golden/` | Development/history references only; preserve existing regression fixtures | Production uses the owner-selected Vercel versions; no bundled-input fallback. |
+| `baseline/`, root Source Register, `schemas/`, `golden/` | Preserve existing regression fixtures and read the pinned training inputs only in the explicit local pilot | Production uses configured sources; no bundled-input fallback. |
 | `src/assets/` | Reuse validation/loading concepts | Remove hardcoded default file dependence from the new path. |
 | `src/pipeline/` | Selectively reuse prompts and checks | Avoid inheriting the offline snapshot dependency. |
 | `src/compiler/` | Extract small identity/reference utilities if useful | New output must not require full legacy SIR compilation. |
@@ -165,7 +165,7 @@ Keep existing tables and applied migrations intact during migration. Add new tab
 
 Use `CREATOR_MODE=legacy|document` (or an equivalently explicit configuration) during migration. Do not allow both modes to write the same logical output version. Keep new storage paths separate. In document mode, legacy pipeline resume, register drift, and mandatory Drive sync must not start. Disabling legacy boot side effects is part of integration, not merely a navigation change.
 
-After DC-07 passes, use document mode as the default. Archive old code after a documented rollback checkpoint. Using Vercel as input and output storage does not require moving the running backend to Vercel; retain the existing suitable hosting arrangement.
+After local DC-07 acceptance, make document mode the default for the pilot only. Production cutover and legacy retirement still require a separately authorized destination verification and rollback checkpoint. Storage choice does not require changing backend hosting.
 
 ## 8. Completion and handoff
 

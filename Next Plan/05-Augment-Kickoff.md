@@ -8,9 +8,9 @@ Refine **KB Document Creator** to its document-only scope, following the owner's
 
 Read root `AGENTS.md`, then `Next Plan/README.md`, `01-Implementation-Plan.md`, `02-Contracts.md`, `03-Augment-Tasks.md`, `04-Validation-and-Acceptance.md`, and `06-Storage-and-Sample-Onboarding.md`. The revised KB Document Creator scope replaces the legacy lifecycle-control scope for this work. Keep the applicable safety, provenance, testing, and historical-data invariants.
 
-Begin with **DC-00 only**. Inspect the actual current repository; compare it to the reviewed baseline commit named in the plan. Establish a fresh verification baseline with a disposable Postgres test database. Report the active runtime path, any intervening changes, actual missing input materials, and proposed file changes. Offline fixture parity does not establish fresh live generation from the prepared Vercel input set.
+Begin with **DC-00 only**. Inspect the actual current repository; compare it to the reviewed baseline commit named in the plan. Establish a fresh verification baseline with a disposable Postgres test database. Report the active runtime path, any intervening changes, actual missing input materials, and proposed file changes. Offline fixture parity does not establish fresh generation from the pinned SAE input set.
 
-The first reference case is the owner’s Solution Assessment Engine KB, using supplied SAE materials (which may retain Solution Assurance Engine titles). The owner will share samples and prepare Vercel folders containing Source Register, taxonomy/criteria, cognitive model, final linked Tactic Playbook, schemas, and one Golden Reference capability/anti-pattern pair. Inspect those samples to define parsing/adapters and reusable standardized input contracts. At runtime, read the corresponding input files from Vercel before generation and write generated documents to the configured Vercel output structure. Google Drive is not used. Do not treat local development samples or older repository assets as production inputs.
+The first reference case is the owner’s Solution Assurance Engine KB. Use the explicitly selected inventory at `baseline/sae-training/input-inventory.json`, pin its active input bytes, and use the identified Golden pair only to calibrate structure and depth. The first reviewed Markdown delivery goes to `baseline/sae-training/knowledge-base/`; automated tests write only to temporary roots. Do not use Vercel or Google Drive for the pilot. Any later storage connection requires a user-supplied location and access through a supported adapter; no production fallback to local fixtures.
 
 Markdown is the primary document output. HTML is preview only. PDF is optional and derived from the same reviewed content. Internal JSON contracts and operational receipts are allowed; canonical JSON KB publication is not a requirement.
 
@@ -27,7 +27,7 @@ After DC-00, present its evidence and the next task's scope. Continue through la
 - Current commit and comparison with the reviewed baseline.
 - Verification results, including database setup and any limitations.
 - Sample-to-contract mapping for the owner’s supplied reference materials.
-- Vercel readiness checklist: exact input/schema/Golden pair paths, read permissions, and allowed output prefixes; missing runtime files distinguished from development samples received.
+- Local readiness checklist: exact input/schema/Golden pair paths, read permissions, destination scope, and missing source-material dependencies.
 - Legacy side effects to isolate from document mode.
 - DC-01 implementation scope and files to add/change.
 - No application cutover or production data changes yet.
