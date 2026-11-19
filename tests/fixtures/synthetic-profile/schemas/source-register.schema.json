@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synthetic-kb.local/schemas/source-register.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "synthetic_notice",
+    "version",
+    "sources"
+  ],
+  "properties": {
+    "synthetic_notice": {
+      "const": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    "version": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "official_location",
+          "licensing_storage_boundary",
+          "domain_coverage"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "official_location": {
+            "type": "string",
+            "format": "uri"
+          },
+          "licensing_storage_boundary": {
+            "type": "string"
+          },
+          "domain_coverage": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

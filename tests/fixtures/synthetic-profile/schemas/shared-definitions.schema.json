@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synthetic-kb.local/schemas/shared-definitions.schema.json",
+  "$defs": {
+    "objectId": {
+      "type": "string",
+      "minLength": 2
+    }
+  }
+}

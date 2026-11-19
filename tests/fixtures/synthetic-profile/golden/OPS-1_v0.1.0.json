@@ -1,0 +1,8 @@
+{
+  "synthetic_notice": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE",
+  "id": "OPS-1",
+  "version": "0.1.0-synthetic",
+  "domain": "OPS",
+  "object_type": "CAPABILITY",
+  "title": "Synthetic Runbook Readiness"
+}
