@@ -24,6 +24,17 @@ This inventory pins the materials found for the Solution Assurance Engine (SAE) 
 | B1, B2 and their anti-patterns | [Domain B samples](Samples/B/) |
 | D3 / AP-D3 | [Domain D samples](Samples/D/) and the catalog used for the archived D3 release |
 
+## Read-only plan preview
+
+From the repository root with dependencies installed, run:
+
+```sh
+npx --no-install tsx src/document-creator/local-preview.ts baseline/sae-training/input-inventory.json baseline/sae-training/knowledge-base PAIR-A2
+```
+
+This previews two Markdown paths and reports dependency gaps. It neither runs
+models nor creates files. `<version>` is a placeholder, not a reserved version.
+
 ## Knowledge Base test-run output
 
 [knowledge-base](knowledge-base/) starts with empty output folders for [A](knowledge-base/A/), [B](knowledge-base/B/), [C](knowledge-base/C/), [D](knowledge-base/D/), [E](knowledge-base/E/) and [F](knowledge-base/F/). The `.gitkeep` files preserve the directory structure in Git.
