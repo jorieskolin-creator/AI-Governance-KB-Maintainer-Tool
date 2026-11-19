@@ -1,0 +1,996 @@
+{
+  "schema_version": "1.1.0",
+  "catalog_id": "AI-GOV-TACTIC-CATALOG",
+  "version": "1.1.0",
+  "release_status": "APPROVED",
+  "mapping_source_of_truth": "AI-GOV-TACTIC-CATALOG@1.1.0",
+  "scope": [
+    "D3",
+    "AP-D3"
+  ],
+  "catalog_rules": [
+    "Reuse an existing tactic ID when objective, mechanism, artifacts, acceptance boundary, verification and reassessment are materially the same.",
+    "Criterion and anti-pattern objects contain generated reverse references only.",
+    "Runtime activation requires a locked eligible finding and contextual eligibility evaluation.",
+    "Tactic completion never changes finding state and never overrides a hard gate.",
+    "Cross-category reuse extends exact finding mappings; it does not create a second ID for the same remediation mechanism."
+  ],
+  "tactics": [
+    {
+      "id": "GOV-SEC-001",
+      "version": "1.0.0",
+      "title": "Establish AI-specific threat model and attack-surface baseline",
+      "objective": "Create a system-specific, lifecycle-aware model of assets, threat actors, AI-specific attack paths, consequences, existing controls and residual risk.",
+      "assessment_mappings": {
+        "capabilities": [
+          "D3"
+        ],
+        "antipatterns": [
+          "AP-D3"
+        ]
+      },
+      "eligible_finding_ids": [
+        "FND-D3-001",
+        "FND-AP-D3-001"
+      ],
+      "trigger_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN",
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "owners": [
+        "AI System Owner",
+        "Security Architect",
+        "AI/ML Lead",
+        "Risk Owner"
+      ],
+      "activities": [
+        "Define system assets, trust boundaries, untrusted inputs, external services, tools, data stores and privileged effects.",
+        "Select applicable predictive, generative, retrieval and agentic attack modules; record excluded modules with rationale.",
+        "Model attacker goals, capabilities and paths, including poisoning, evasion, privacy/confidentiality, misuse and prompt-injection paths where applicable.",
+        "Map each material path to preventive, detective, responsive and recovery controls and an accountable owner.",
+        "Define risk-based acceptance thresholds and adversarial test obligations for the target lifecycle transition."
+      ],
+      "artifacts": [
+        "AI security threat model",
+        "Attack-surface and trust-boundary inventory",
+        "Abuse-case register",
+        "Control and test mapping",
+        "Residual-risk record"
+      ],
+      "acceptance_criteria": [
+        "The complete deployed system, not only the model, is in scope.",
+        "All reachable untrusted-input and privileged-effect paths are represented or explicitly excluded with rationale.",
+        "Each material path has an owner, planned control and verification method.",
+        "Security and system owners approve the baseline for the target stage."
+      ],
+      "verification": [
+        "Independent architecture/security review",
+        "Trace sample attack paths from source to protected asset",
+        "Reconcile model against current component and data-flow inventories"
+      ],
+      "do_not_use_when": [
+        "The need is solely a general network or identity architecture redesign already governed under D1; link rather than duplicate that work."
+      ],
+      "reassessment_targets": [
+        "D3",
+        "AP-D3"
+      ],
+      "release_status": "APPROVED",
+      "approval_record": {
+        "approval_status": "APPROVED",
+        "approval_scope": "TACTIC_CONTENT_AND_MAPPING",
+        "approved_by_role": "AI_GOVERNANCE_OWNER",
+        "approved_on": "2026-07-31",
+        "effective_from": "2026-07-31",
+        "review_due_on": "2027-07-31",
+        "release_version": "1.0.0",
+        "supersedes": "GOV-SEC-001 sample content in catalog v1.0.0",
+        "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+        "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+      },
+      "mapping_details": [
+        {
+          "mapping_id": "MAP-D3-GOV-SEC-001-FND-D3-001",
+          "assessment_object_id": "D3",
+          "finding_id": "FND-D3-001",
+          "relationship": "REMEDIATES_CAPABILITY_GAP",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-001-FND-AP-D3-001",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-001",
+          "relationship": "SCOPES_REMEDIATION_AND_VERIFICATION",
+          "mapping_status": "APPROVED"
+        }
+      ],
+      "eligibility": {
+        "finding_must_be_locked": true,
+        "eligible_finding_ids": [
+          "FND-D3-001",
+          "FND-AP-D3-001"
+        ],
+        "trigger_states": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "UNKNOWN",
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT"
+        ],
+        "applicable_lifecycle_stages": [
+          "DESIGN_AND_DEVELOPMENT",
+          "VERIFICATION_AND_VALIDATION",
+          "DEPLOYMENT",
+          "OPERATION_AND_MONITORING",
+          "REVIEW_AND_EVALUATION"
+        ],
+        "required_context": [
+          "The system boundary and target transition are known.",
+          "The tactic objective and mechanism address the locked finding.",
+          "No do_not_use_when condition applies."
+        ],
+        "runtime_human_authorization_required": true
+      },
+      "source_refs": [
+        "SRC-EU-AIA-2024-1689",
+        "SRC-NIST-AI-100-1",
+        "SRC-NIST-AI-600-1",
+        "SRC-NIST-SP-800-218A",
+        "SRC-NCSC-CISA-SECURE-AI-2023",
+        "SRC-ENISA-AI-CYBER-2023"
+      ],
+      "completion_rule": "Completion produces new evidence and triggers reassessment. It never changes or closes a finding directly and never overrides a hard gate.",
+      "duplicate_prevention_fingerprint": {
+        "objective": "Create a system-specific, lifecycle-aware model of assets, threat actors, AI-specific attack paths, consequences, existing controls and residual risk.",
+        "mechanism_terms": [
+          "DEFINE",
+          "SELECT",
+          "MODEL",
+          "MAP",
+          "DEFINE"
+        ],
+        "artifact_classes": [
+          "AI_SECURITY_THREAT_MODEL",
+          "ATTACK-SURFACE_AND_TRUST-BOUNDARY_INVENTORY",
+          "ABUSE-CASE_REGISTER",
+          "CONTROL_AND_TEST_MAPPING",
+          "RESIDUAL-RISK_RECORD"
+        ],
+        "acceptance_signature": [
+          "GOV-SEC-001-AC-01",
+          "GOV-SEC-001-AC-02",
+          "GOV-SEC-001-AC-03",
+          "GOV-SEC-001-AC-04"
+        ]
+      }
+    },
+    {
+      "id": "GOV-SEC-002",
+      "version": "1.0.0",
+      "title": "Enforce untrusted AI output and downstream execution boundaries",
+      "objective": "Ensure generated output is treated as untrusted data and cannot become code, commands, markup, policy or privileged action without deterministic validation and constrained execution.",
+      "assessment_mappings": {
+        "capabilities": [
+          "D3"
+        ],
+        "antipatterns": [
+          "AP-D3"
+        ]
+      },
+      "eligible_finding_ids": [
+        "FND-D3-002",
+        "FND-AP-D3-001",
+        "FND-AP-D3-002",
+        "FND-AP-D3-003"
+      ],
+      "trigger_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "owners": [
+        "Application Security Lead",
+        "AI/ML Lead",
+        "Service Owner"
+      ],
+      "activities": [
+        "Inventory every interpreter, renderer, query builder, workflow engine and service that consumes model output.",
+        "Define typed schemas and allowlisted operations; reject unexpected fields, destinations, commands and encodings.",
+        "Apply context-appropriate escaping, parameterization, sandboxing and output encoding.",
+        "Separate suggestion generation from authorization and execution; require deterministic policy checks and human approval where consequence requires it.",
+        "Add negative tests for injection, unsafe rendering, path/URL manipulation, command generation and cross-context contamination."
+      ],
+      "artifacts": [
+        "Output-consumer inventory",
+        "Typed output schemas",
+        "Downstream validation policy",
+        "Negative test suite and results",
+        "Residual-risk record"
+      ],
+      "acceptance_criteria": [
+        "No security-relevant consumer executes free-form model output directly.",
+        "Invalid or unauthorized outputs fail closed and create observable events.",
+        "Representative injection and unsafe-output tests meet approved thresholds.",
+        "Bypass and fallback paths are included in testing."
+      ],
+      "verification": [
+        "Code and configuration review",
+        "Dynamic negative testing",
+        "Trace rejected and approved actions in telemetry"
+      ],
+      "do_not_use_when": [
+        "The system produces isolated text with no renderer, interpreter, retrieval write-back, external action or consequential decision path; record the narrower applicable controls instead."
+      ],
+      "reassessment_targets": [
+        "D3",
+        "AP-D3"
+      ],
+      "release_status": "APPROVED",
+      "approval_record": {
+        "approval_status": "APPROVED",
+        "approval_scope": "TACTIC_CONTENT_AND_MAPPING",
+        "approved_by_role": "AI_GOVERNANCE_OWNER",
+        "approved_on": "2026-07-31",
+        "effective_from": "2026-07-31",
+        "review_due_on": "2027-07-31",
+        "release_version": "1.0.0",
+        "supersedes": "GOV-SEC-002 sample content in catalog v1.0.0",
+        "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+        "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+      },
+      "mapping_details": [
+        {
+          "mapping_id": "MAP-D3-GOV-SEC-002-FND-D3-002",
+          "assessment_object_id": "D3",
+          "finding_id": "FND-D3-002",
+          "relationship": "REMEDIATES_CAPABILITY_GAP",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-002-FND-AP-D3-001",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-001",
+          "relationship": "REMEDIATES_MODEL_MEDIATED_BOUNDARY",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-002-FND-AP-D3-002",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-002",
+          "relationship": "REMEDIATES_MODEL_MEDIATED_BOUNDARY",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-002-FND-AP-D3-003",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-003",
+          "relationship": "REMEDIATES_MODEL_MEDIATED_BOUNDARY",
+          "mapping_status": "APPROVED"
+        }
+      ],
+      "eligibility": {
+        "finding_must_be_locked": true,
+        "eligible_finding_ids": [
+          "FND-D3-002",
+          "FND-AP-D3-001",
+          "FND-AP-D3-002",
+          "FND-AP-D3-003"
+        ],
+        "trigger_states": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT"
+        ],
+        "applicable_lifecycle_stages": [
+          "DESIGN_AND_DEVELOPMENT",
+          "VERIFICATION_AND_VALIDATION",
+          "DEPLOYMENT",
+          "OPERATION_AND_MONITORING",
+          "REVIEW_AND_EVALUATION"
+        ],
+        "required_context": [
+          "The system boundary and target transition are known.",
+          "The tactic objective and mechanism address the locked finding.",
+          "No do_not_use_when condition applies."
+        ],
+        "runtime_human_authorization_required": true
+      },
+      "source_refs": [
+        "SRC-EU-AIA-2024-1689",
+        "SRC-NIST-AI-600-1",
+        "SRC-NCSC-CISA-SECURE-AI-2023",
+        "SRC-OWASP-LLM-TOP10-2025"
+      ],
+      "completion_rule": "Completion produces new evidence and triggers reassessment. It never changes or closes a finding directly and never overrides a hard gate.",
+      "duplicate_prevention_fingerprint": {
+        "objective": "Ensure generated output is treated as untrusted data and cannot become code, commands, markup, policy or privileged action without deterministic validation and constrained execution.",
+        "mechanism_terms": [
+          "INVENTORY",
+          "DEFINE",
+          "APPLY",
+          "SEPARATE",
+          "ADD"
+        ],
+        "artifact_classes": [
+          "OUTPUT-CONSUMER_INVENTORY",
+          "TYPED_OUTPUT_SCHEMAS",
+          "DOWNSTREAM_VALIDATION_POLICY",
+          "NEGATIVE_TEST_SUITE_AND_RESULTS",
+          "RESIDUAL-RISK_RECORD"
+        ],
+        "acceptance_signature": [
+          "GOV-SEC-002-AC-01",
+          "GOV-SEC-002-AC-02",
+          "GOV-SEC-002-AC-03",
+          "GOV-SEC-002-AC-04"
+        ]
+      }
+    },
+    {
+      "id": "GOV-SEC-003",
+      "version": "1.0.0",
+      "title": "Operationalize AI-security monitoring and incident response",
+      "objective": "Detect, triage, contain, learn from and recover from AI-specific attacks and control failures in the intended operating context.",
+      "assessment_mappings": {
+        "capabilities": [
+          "D3"
+        ],
+        "antipatterns": [
+          "AP-D3"
+        ]
+      },
+      "eligible_finding_ids": [
+        "FND-D3-005",
+        "FND-AP-D3-003"
+      ],
+      "trigger_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN",
+        "CONFIRMED_PRESENT"
+      ],
+      "owners": [
+        "Security Operations",
+        "Incident Manager",
+        "AI System Owner",
+        "Service Owner"
+      ],
+      "activities": [
+        "Define AI-specific security events, detection signals and severity thresholds without logging unnecessary sensitive content.",
+        "Capture model, prompt, retrieval, tool, policy, decision and version identifiers needed for investigation.",
+        "Create containment actions such as tool disablement, route isolation, credential revocation, model rollback and safe-mode operation.",
+        "Integrate events into incident response, vulnerability disclosure, post-incident reassessment and regression testing.",
+        "Exercise at least one representative AI attack and one control-failure scenario before the target production transition."
+      ],
+      "artifacts": [
+        "AI-security event taxonomy",
+        "Detection and alert rules",
+        "Incident runbook",
+        "Exercise results",
+        "Post-incident and regression workflow"
+      ],
+      "acceptance_criteria": [
+        "Material AI attack paths have observable indicators and accountable responders.",
+        "Containment actions can be executed within the approved response objective.",
+        "An exercise demonstrates triage, containment, evidence preservation and reassessment.",
+        "Monitoring design respects privacy, confidentiality and retention requirements."
+      ],
+      "verification": [
+        "Tabletop or technical exercise",
+        "Alert-to-case trace",
+        "Evidence reconstruction review"
+      ],
+      "do_not_use_when": [
+        "The system is an isolated, non-operational experiment with no live users, sensitive data or external effects; define pre-production logging and future activation criteria instead."
+      ],
+      "reassessment_targets": [
+        "D3",
+        "AP-D3",
+        "D4",
+        "D5",
+        "F5"
+      ],
+      "release_status": "APPROVED",
+      "approval_record": {
+        "approval_status": "APPROVED",
+        "approval_scope": "TACTIC_CONTENT_AND_MAPPING",
+        "approved_by_role": "AI_GOVERNANCE_OWNER",
+        "approved_on": "2026-07-31",
+        "effective_from": "2026-07-31",
+        "review_due_on": "2027-07-31",
+        "release_version": "1.0.0",
+        "supersedes": "GOV-SEC-003 sample content in catalog v1.0.0",
+        "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+        "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+      },
+      "mapping_details": [
+        {
+          "mapping_id": "MAP-D3-GOV-SEC-003-FND-D3-005",
+          "assessment_object_id": "D3",
+          "finding_id": "FND-D3-005",
+          "relationship": "REMEDIATES_OPERATIONAL_CAPABILITY_GAP",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-003-FND-AP-D3-003",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-003",
+          "relationship": "CONTAINS_AND_MONITORS_CONFIRMED_ATTACK_PATH",
+          "mapping_status": "APPROVED"
+        }
+      ],
+      "eligibility": {
+        "finding_must_be_locked": true,
+        "eligible_finding_ids": [
+          "FND-D3-005",
+          "FND-AP-D3-003"
+        ],
+        "trigger_states": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "UNKNOWN",
+          "CONFIRMED_PRESENT"
+        ],
+        "applicable_lifecycle_stages": [
+          "DESIGN_AND_DEVELOPMENT",
+          "VERIFICATION_AND_VALIDATION",
+          "DEPLOYMENT",
+          "OPERATION_AND_MONITORING",
+          "REVIEW_AND_EVALUATION"
+        ],
+        "required_context": [
+          "The system boundary and target transition are known.",
+          "The tactic objective and mechanism address the locked finding.",
+          "No do_not_use_when condition applies."
+        ],
+        "runtime_human_authorization_required": true
+      },
+      "source_refs": [
+        "SRC-EU-AIA-2024-1689",
+        "SRC-NIST-AI-100-1",
+        "SRC-NIST-AI-600-1",
+        "SRC-NCSC-CISA-SECURE-AI-2023",
+        "SRC-ENISA-AI-CYBER-2023"
+      ],
+      "completion_rule": "Completion produces new evidence and triggers reassessment. It never changes or closes a finding directly and never overrides a hard gate.",
+      "duplicate_prevention_fingerprint": {
+        "objective": "Detect, triage, contain, learn from and recover from AI-specific attacks and control failures in the intended operating context.",
+        "mechanism_terms": [
+          "DEFINE",
+          "CAPTURE",
+          "CREATE",
+          "INTEGRATE",
+          "EXERCISE"
+        ],
+        "artifact_classes": [
+          "AI-SECURITY_EVENT_TAXONOMY",
+          "DETECTION_AND_ALERT_RULES",
+          "INCIDENT_RUNBOOK",
+          "EXERCISE_RESULTS",
+          "POST-INCIDENT_AND_REGRESSION_WORKFLOW"
+        ],
+        "acceptance_signature": [
+          "GOV-SEC-003-AC-01",
+          "GOV-SEC-003-AC-02",
+          "GOV-SEC-003-AC-03",
+          "GOV-SEC-003-AC-04"
+        ]
+      }
+    },
+    {
+      "id": "GOV-SEC-004",
+      "version": "1.0.0",
+      "title": "Enforce deterministic tool input and action validation",
+      "objective": "Prevent model-selected tools, arguments and actions from exceeding approved identity, data, destination and consequence boundaries.",
+      "assessment_mappings": {
+        "capabilities": [
+          "D3"
+        ],
+        "antipatterns": [
+          "AP-D3"
+        ]
+      },
+      "eligible_finding_ids": [
+        "FND-D3-002",
+        "FND-AP-D3-001",
+        "FND-AP-D3-002",
+        "FND-AP-D3-003"
+      ],
+      "trigger_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "owners": [
+        "Application Security Lead",
+        "Agent/Automation Owner",
+        "Identity and Access Owner"
+      ],
+      "activities": [
+        "Define per-tool typed contracts, caller identity, allowed resources, destinations, rates and read/write effects.",
+        "Validate arguments, authorization and business preconditions outside the model before each action.",
+        "Require human approval or two-step commit for irreversible, external or high-impact actions.",
+        "Enforce budgets, rate limits, idempotency, rollback and loop detection.",
+        "Test unauthorized tools, malformed arguments, privilege escalation, cross-tenant access, recursive calls and approval bypass."
+      ],
+      "artifacts": [
+        "Tool/action policy matrix",
+        "Typed tool schemas",
+        "Authorization policy",
+        "Negative authorization tests",
+        "Approval and rollback records"
+      ],
+      "acceptance_criteria": [
+        "Model output alone cannot authorize a tool or privileged action.",
+        "Every action is bound to an authenticated principal and scoped authorization decision.",
+        "Negative tests prove denial of representative unauthorized and malformed actions.",
+        "Consequential actions are reversible or require an approved human decision boundary."
+      ],
+      "verification": [
+        "Policy and code review",
+        "Negative authorization testing",
+        "Runtime action-log reconstruction"
+      ],
+      "do_not_use_when": [
+        "The identified issue is excessive authority assignment rather than adversarial validation; coordinate with C3 and reuse this tactic only for the enforcement portion."
+      ],
+      "reassessment_targets": [
+        "D3",
+        "AP-D3",
+        "C3"
+      ],
+      "release_status": "APPROVED",
+      "approval_record": {
+        "approval_status": "APPROVED",
+        "approval_scope": "TACTIC_CONTENT_AND_MAPPING",
+        "approved_by_role": "AI_GOVERNANCE_OWNER",
+        "approved_on": "2026-07-31",
+        "effective_from": "2026-07-31",
+        "review_due_on": "2027-07-31",
+        "release_version": "1.0.0",
+        "supersedes": "GOV-SEC-004 sample content in catalog v1.0.0",
+        "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+        "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+      },
+      "mapping_details": [
+        {
+          "mapping_id": "MAP-D3-GOV-SEC-004-FND-D3-002",
+          "assessment_object_id": "D3",
+          "finding_id": "FND-D3-002",
+          "relationship": "REMEDIATES_TOOL_AUTHORIZATION_GAP",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-004-FND-AP-D3-001",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-001",
+          "relationship": "REMEDIATES_TOOL_AND_ACTION_BOUNDARY",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-004-FND-AP-D3-002",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-002",
+          "relationship": "REMEDIATES_TOOL_AND_ACTION_BOUNDARY",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-004-FND-AP-D3-003",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-003",
+          "relationship": "REMEDIATES_TOOL_AND_ACTION_BOUNDARY",
+          "mapping_status": "APPROVED"
+        }
+      ],
+      "eligibility": {
+        "finding_must_be_locked": true,
+        "eligible_finding_ids": [
+          "FND-D3-002",
+          "FND-AP-D3-001",
+          "FND-AP-D3-002",
+          "FND-AP-D3-003"
+        ],
+        "trigger_states": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT"
+        ],
+        "applicable_lifecycle_stages": [
+          "DESIGN_AND_DEVELOPMENT",
+          "VERIFICATION_AND_VALIDATION",
+          "DEPLOYMENT",
+          "OPERATION_AND_MONITORING",
+          "REVIEW_AND_EVALUATION"
+        ],
+        "required_context": [
+          "The system boundary and target transition are known.",
+          "The tactic objective and mechanism address the locked finding.",
+          "No do_not_use_when condition applies."
+        ],
+        "runtime_human_authorization_required": true
+      },
+      "source_refs": [
+        "SRC-EU-AIA-2024-1689",
+        "SRC-NIST-AI-600-1",
+        "SRC-NCSC-CISA-SECURE-AI-2023",
+        "SRC-OWASP-LLM-TOP10-2025"
+      ],
+      "completion_rule": "Completion produces new evidence and triggers reassessment. It never changes or closes a finding directly and never overrides a hard gate.",
+      "duplicate_prevention_fingerprint": {
+        "objective": "Prevent model-selected tools, arguments and actions from exceeding approved identity, data, destination and consequence boundaries.",
+        "mechanism_terms": [
+          "DEFINE",
+          "VALIDATE",
+          "REQUIRE",
+          "ENFORCE",
+          "TEST"
+        ],
+        "artifact_classes": [
+          "TOOL_ACTION_POLICY_MATRIX",
+          "TYPED_TOOL_SCHEMAS",
+          "AUTHORIZATION_POLICY",
+          "NEGATIVE_AUTHORIZATION_TESTS",
+          "APPROVAL_AND_ROLLBACK_RECORDS"
+        ],
+        "acceptance_signature": [
+          "GOV-SEC-004-AC-01",
+          "GOV-SEC-004-AC-02",
+          "GOV-SEC-004-AC-03",
+          "GOV-SEC-004-AC-04"
+        ]
+      }
+    },
+    {
+      "id": "GOV-SEC-005",
+      "version": "1.0.0",
+      "title": "Establish retrieval and untrusted-content trust boundaries",
+      "objective": "Prevent retrieved, uploaded, browsed or third-party content from becoming trusted instructions or contaminating privileged context and downstream actions.",
+      "assessment_mappings": {
+        "capabilities": [
+          "D3"
+        ],
+        "antipatterns": [
+          "AP-D3"
+        ]
+      },
+      "eligible_finding_ids": [
+        "FND-D3-003",
+        "FND-AP-D3-002",
+        "FND-AP-D3-003"
+      ],
+      "trigger_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "owners": [
+        "AI/ML Lead",
+        "Data/Retrieval Owner",
+        "Application Security Lead"
+      ],
+      "activities": [
+        "Classify retrieval and content sources by trust, ownership, tenant, freshness and instruction risk.",
+        "Separate system instructions, user intent, retrieved evidence and external content in the execution design.",
+        "Restrict retrieval scope, connectors, URLs, file types, recursion and write-back; preserve source provenance.",
+        "Detect or neutralize instruction-like content where feasible, while treating detection as defense in depth rather than a security boundary.",
+        "Test indirect prompt injection, poisoned documents, cross-tenant retrieval, hidden instructions and malicious links across bypass paths."
+      ],
+      "artifacts": [
+        "Retrieval source inventory",
+        "Content trust-classification policy",
+        "Connector and retrieval controls",
+        "Indirect-injection test suite",
+        "Provenance and rejection logs"
+      ],
+      "acceptance_criteria": [
+        "Untrusted content cannot redefine system authority or bypass deterministic controls.",
+        "Retrieval is tenant-, purpose- and source-scoped with traceable provenance.",
+        "Representative indirect-injection and poisoned-content tests meet approved thresholds.",
+        "Fallback, caching, browsing and ingestion paths are covered."
+      ],
+      "verification": [
+        "Architecture and connector review",
+        "Indirect prompt-injection testing",
+        "Cross-tenant and provenance trace"
+      ],
+      "do_not_use_when": [
+        "The system has no retrieval, browsing, upload, external-content or memory path; record not applicable with evidence."
+      ],
+      "reassessment_targets": [
+        "D3",
+        "AP-D3",
+        "B1",
+        "B4"
+      ],
+      "release_status": "APPROVED",
+      "approval_record": {
+        "approval_status": "APPROVED",
+        "approval_scope": "TACTIC_CONTENT_AND_MAPPING",
+        "approved_by_role": "AI_GOVERNANCE_OWNER",
+        "approved_on": "2026-07-31",
+        "effective_from": "2026-07-31",
+        "review_due_on": "2027-07-31",
+        "release_version": "1.0.0",
+        "supersedes": "GOV-SEC-005 sample content in catalog v1.0.0",
+        "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+        "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+      },
+      "mapping_details": [
+        {
+          "mapping_id": "MAP-D3-GOV-SEC-005-FND-D3-003",
+          "assessment_object_id": "D3",
+          "finding_id": "FND-D3-003",
+          "relationship": "REMEDIATES_RETRIEVAL_TRUST_BOUNDARY_GAP",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-005-FND-AP-D3-002",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-002",
+          "relationship": "REMEDIATES_UNTRUSTED_CONTENT_BOUNDARY",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-005-FND-AP-D3-003",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-003",
+          "relationship": "REMEDIATES_UNTRUSTED_CONTENT_BOUNDARY",
+          "mapping_status": "APPROVED"
+        }
+      ],
+      "eligibility": {
+        "finding_must_be_locked": true,
+        "eligible_finding_ids": [
+          "FND-D3-003",
+          "FND-AP-D3-002",
+          "FND-AP-D3-003"
+        ],
+        "trigger_states": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT"
+        ],
+        "applicable_lifecycle_stages": [
+          "DESIGN_AND_DEVELOPMENT",
+          "VERIFICATION_AND_VALIDATION",
+          "DEPLOYMENT",
+          "OPERATION_AND_MONITORING",
+          "REVIEW_AND_EVALUATION"
+        ],
+        "required_context": [
+          "The system boundary and target transition are known.",
+          "The tactic objective and mechanism address the locked finding.",
+          "No do_not_use_when condition applies."
+        ],
+        "runtime_human_authorization_required": true
+      },
+      "source_refs": [
+        "SRC-EU-AIA-2024-1689",
+        "SRC-NIST-AI-600-1",
+        "SRC-NCSC-CISA-SECURE-AI-2023",
+        "SRC-OWASP-LLM-TOP10-2025",
+        "SRC-ENISA-AI-CYBER-2023"
+      ],
+      "completion_rule": "Completion produces new evidence and triggers reassessment. It never changes or closes a finding directly and never overrides a hard gate.",
+      "duplicate_prevention_fingerprint": {
+        "objective": "Prevent retrieved, uploaded, browsed or third-party content from becoming trusted instructions or contaminating privileged context and downstream actions.",
+        "mechanism_terms": [
+          "CLASSIFY",
+          "SEPARATE",
+          "RESTRICT",
+          "DETECT",
+          "TEST"
+        ],
+        "artifact_classes": [
+          "RETRIEVAL_SOURCE_INVENTORY",
+          "CONTENT_TRUST-CLASSIFICATION_POLICY",
+          "CONNECTOR_AND_RETRIEVAL_CONTROLS",
+          "INDIRECT-INJECTION_TEST_SUITE",
+          "PROVENANCE_AND_REJECTION_LOGS"
+        ],
+        "acceptance_signature": [
+          "GOV-SEC-005-AC-01",
+          "GOV-SEC-005-AC-02",
+          "GOV-SEC-005-AC-03",
+          "GOV-SEC-005-AC-04"
+        ]
+      }
+    },
+    {
+      "id": "GOV-SEC-006",
+      "version": "1.0.0",
+      "title": "Execute AI-specific adversarial evaluation and regression assurance",
+      "objective": "Demonstrate, within a defined scope and confidence boundary, how the complete AI system behaves under representative malicious and abusive conditions.",
+      "assessment_mappings": {
+        "capabilities": [
+          "D3"
+        ],
+        "antipatterns": [
+          "AP-D3"
+        ]
+      },
+      "eligible_finding_ids": [
+        "FND-D3-004",
+        "FND-AP-D3-001",
+        "FND-AP-D3-003",
+        "FND-AP-D3-004"
+      ],
+      "trigger_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN",
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "owners": [
+        "Security Testing Lead",
+        "AI/ML Evaluation Lead",
+        "AI System Owner"
+      ],
+      "activities": [
+        "Derive test cases from the approved threat model and select only applicable attack modules.",
+        "Cover direct and indirect prompt injection, unsafe output handling, retrieval poisoning, tool abuse and other predictive/generative attack classes that apply.",
+        "Define environments, versions, attack success criteria, severity, coverage, stopping rules and reproducibility requirements.",
+        "Execute tests against the complete system, including fallbacks, secondary paths and realistic privileges; preserve evidence.",
+        "Remediate, retest, baseline residual limitations and convert material cases into release-blocking regression tests."
+      ],
+      "artifacts": [
+        "Adversarial evaluation plan",
+        "Versioned attack corpus",
+        "Execution evidence",
+        "Finding and remediation register",
+        "Regression suite and residual-risk statement"
+      ],
+      "acceptance_criteria": [
+        "Tests trace to applicable threat-model paths and current system versions.",
+        "Attack success criteria and severity are defined before execution.",
+        "Material failures are remediated or explicitly escalated; retest evidence is preserved.",
+        "Critical cases become automated or repeatable regression tests and are rerun after material change.",
+        "A TESTED_ABSENT anti-pattern conclusion states the exact tested scope and does not imply universal immunity."
+      ],
+      "verification": [
+        "Independent review of plan and evidence",
+        "Reproduction of a sample of passing and failing cases",
+        "Regression execution in the release pipeline"
+      ],
+      "do_not_use_when": [
+        "A generic vulnerability scan is the only planned method; it does not establish AI-specific adversarial resilience."
+      ],
+      "reassessment_targets": [
+        "D3",
+        "AP-D3"
+      ],
+      "release_status": "APPROVED",
+      "approval_record": {
+        "approval_status": "APPROVED",
+        "approval_scope": "TACTIC_CONTENT_AND_MAPPING",
+        "approved_by_role": "AI_GOVERNANCE_OWNER",
+        "approved_on": "2026-07-31",
+        "effective_from": "2026-07-31",
+        "review_due_on": "2027-07-31",
+        "release_version": "1.0.0",
+        "supersedes": "GOV-SEC-006 sample content in catalog v1.0.0",
+        "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+        "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+      },
+      "mapping_details": [
+        {
+          "mapping_id": "MAP-D3-GOV-SEC-006-FND-D3-004",
+          "assessment_object_id": "D3",
+          "finding_id": "FND-D3-004",
+          "relationship": "ESTABLISHES_ADVERSARIAL_ASSURANCE",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-006-FND-AP-D3-001",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-001",
+          "relationship": "ESTABLISHES_PRESENCE_OR_TESTED_ABSENCE",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-006-FND-AP-D3-003",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-003",
+          "relationship": "ESTABLISHES_PRESENCE_OR_TESTED_ABSENCE",
+          "mapping_status": "APPROVED"
+        },
+        {
+          "mapping_id": "MAP-AP-D3-GOV-SEC-006-FND-AP-D3-004",
+          "assessment_object_id": "AP-D3",
+          "finding_id": "FND-AP-D3-004",
+          "relationship": "ESTABLISHES_PRESENCE_OR_TESTED_ABSENCE",
+          "mapping_status": "APPROVED"
+        }
+      ],
+      "eligibility": {
+        "finding_must_be_locked": true,
+        "eligible_finding_ids": [
+          "FND-D3-004",
+          "FND-AP-D3-001",
+          "FND-AP-D3-003",
+          "FND-AP-D3-004"
+        ],
+        "trigger_states": [
+          "PARTIALLY_SATISFIED",
+          "NOT_SATISFIED",
+          "UNKNOWN",
+          "CONFIRMED_PRESENT",
+          "PARTIALLY_PRESENT"
+        ],
+        "applicable_lifecycle_stages": [
+          "DESIGN_AND_DEVELOPMENT",
+          "VERIFICATION_AND_VALIDATION",
+          "DEPLOYMENT",
+          "OPERATION_AND_MONITORING",
+          "REVIEW_AND_EVALUATION"
+        ],
+        "required_context": [
+          "The system boundary and target transition are known.",
+          "The tactic objective and mechanism address the locked finding.",
+          "No do_not_use_when condition applies."
+        ],
+        "runtime_human_authorization_required": true
+      },
+      "source_refs": [
+        "SRC-EU-AIA-2024-1689",
+        "SRC-NIST-AI-100-1",
+        "SRC-NIST-AI-600-1",
+        "SRC-NIST-SP-800-218A",
+        "SRC-NCSC-CISA-SECURE-AI-2023",
+        "SRC-OWASP-LLM-TOP10-2025",
+        "SRC-ENISA-AI-CYBER-2023"
+      ],
+      "completion_rule": "Completion produces new evidence and triggers reassessment. It never changes or closes a finding directly and never overrides a hard gate.",
+      "duplicate_prevention_fingerprint": {
+        "objective": "Demonstrate, within a defined scope and confidence boundary, how the complete AI system behaves under representative malicious and abusive conditions.",
+        "mechanism_terms": [
+          "DERIVE",
+          "COVER",
+          "DEFINE",
+          "EXECUTE",
+          "REMEDIATE,"
+        ],
+        "artifact_classes": [
+          "ADVERSARIAL_EVALUATION_PLAN",
+          "VERSIONED_ATTACK_CORPUS",
+          "EXECUTION_EVIDENCE",
+          "FINDING_AND_REMEDIATION_REGISTER",
+          "REGRESSION_SUITE_AND_RESIDUAL-RISK_STATEMENT"
+        ],
+        "acceptance_signature": [
+          "GOV-SEC-006-AC-01",
+          "GOV-SEC-006-AC-02",
+          "GOV-SEC-006-AC-03",
+          "GOV-SEC-006-AC-04",
+          "GOV-SEC-006-AC-05"
+        ]
+      }
+    }
+  ],
+  "knowledge_content_approval_required": false,
+  "runtime_human_authorization_required": true,
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "GLOBAL_TACTIC_CONTENT_AND_D3_AP-D3_MAPPINGS",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-07-31",
+    "effective_from": "2026-07-31",
+    "review_due_on": "2027-07-31",
+    "release_version": "1.1.0",
+    "supersedes": "Governance_Tactic_Catalog_D3_AP-D3_v1.0.json",
+    "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+    "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+  },
+  "authority_boundary": "The catalog is approved remediation knowledge. Runtime use requires a locked eligible finding and contextual eligibility. No tactic proves the assessed state, changes a finding, waives a hard gate, accepts residual risk or authorizes a lifecycle transition.",
+  "$schema": "./schemas/tactic-catalog.schema.json"
+}

@@ -1,0 +1,603 @@
+{
+  "schema_version": "2.0.0",
+  "id": "A5",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "A5_CAPABILITY_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "CAPABILITY",
+  "title": "Lifecycle stage and transition boundary",
+  "canonical_definition": "The current lifecycle stage, permitted activities, target stage, acceptance criteria, evidence threshold, authorization boundary and rollback or retirement path are explicit and enforced from qualification through retirement.",
+  "applicability": {
+    "statement": "Applicable to every AI system and to every requested or de facto lifecycle transition, including qualification, development, validation, deployment, operation, material expansion, suspension, rollback and retirement.",
+    "conditions": [
+      "Identify the current lifecycle stage, requested target stage, system scope, environment, users, data, credentials, integrations, autonomy and permitted activities before relying on a stage label.",
+      "Define stage-specific acceptance criteria, required evidence, accountable owners, transition authority, expiry and rollback conditions before progression begins.",
+      "Enforce technical and operational separation between experiments and production, including data, credentials, access, integrations, infrastructure, users and decision consequences.",
+      "Treat accumulated real users, production data, persistent integrations, operational dependency or business-critical reliance as potential de facto progression requiring reassessment and authorization.",
+      "Maintain transition traceability, monitoring, rollback, suspension and retirement capability throughout the lifecycle."
+    ],
+    "exclusions": [
+      "A project-management label, repository branch, environment name or vendor release label does not by itself establish the governed lifecycle stage.",
+      "Completion of development work, a successful demonstration or a model-quality result does not authorize deployment or production operation.",
+      "A temporary exception does not redefine the lifecycle stage unless its scope, authority, expiry, controls and reassessment route are formally approved."
+    ],
+    "reassessment_triggers": [
+      "A new or expanded user group, affected population, customer, decision consequence or business dependency",
+      "Use of production, personal, confidential, regulated or representative operational data in an experiment or test environment",
+      "Introduction of production credentials, privileged access, live integrations, external APIs, automation or autonomous action",
+      "Material scale, availability, performance, cost, security, legal, provider, model, data or architecture change",
+      "Transition criteria, assumptions, evidence or approval expires, is contradicted or is bypassed",
+      "Incident, complaint, monitoring result or audit indicates boundary drift, hidden production use or loss of rollback capability",
+      "Suspension, rollback, redeployment, retirement or transfer to another owner or operating context"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "A5-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are the current and target lifecycle stages, system scope, permitted and prohibited activities, transition criteria and accountable authorization boundary explicitly defined?"
+    },
+    {
+      "id": "A5-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are stage-specific environment, data, credential, access, user, integration and decision boundaries technically and operationally enforced, with rollback and retirement remaining possible?"
+    },
+    {
+      "id": "A5-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence demonstrate that transition criteria are met, the correct authority approved progression, boundary drift is detected and the system can be suspended, rolled back or retired safely?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-A5-001",
+      "title": "Lifecycle stage and boundary record",
+      "claim_supported": "The current governed stage, target stage, system version and boundary, permitted and prohibited activities, users, environments, data classes, integrations and decision consequences are explicitly recorded.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Identifies the exact system version, component set, environment, owner, current stage, target stage and decision date.",
+        "Defines permitted and prohibited users, data, credentials, integrations, actions, scale, availability and external exposure for the current stage."
+      ],
+      "limitations": [
+        "A project plan, backlog status, environment name or informal statement that the system is a pilot is insufficient."
+      ]
+    },
+    {
+      "id": "EVD-A5-002",
+      "title": "Stage-specific technical and operational boundary evidence",
+      "claim_supported": "Technical and operational controls enforce separation between experimental, validation and production contexts.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Demonstrates distinct identities, credentials, access policies, secrets, data paths, infrastructure, integrations, logging and deployment controls for each material stage.",
+        "Shows that production users, data, credentials, live integrations and consequential actions cannot enter an earlier stage without an approved controlled path."
+      ],
+      "limitations": [
+        "Documentation without configuration, access, deployment or runtime evidence does not establish enforcement."
+      ]
+    },
+    {
+      "id": "EVD-A5-003",
+      "title": "Transition acceptance and evidence matrix",
+      "claim_supported": "Each requested transition has predefined acceptance criteria, evidence requirements, assurance thresholds, unresolved-condition treatment and accountable owners.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Criteria cover purpose, classification, value, roles, data, security, evaluation, human impact, operational readiness, monitoring and legal or contractual dependencies where applicable.",
+        "Criteria are defined before the transition decision and identify blocking, conditional and deferrable items."
+      ],
+      "limitations": [
+        "Criteria created after deployment or tailored only to evidence already available cannot establish an independent gate."
+      ]
+    },
+    {
+      "id": "EVD-A5-004",
+      "title": "Transition dossier and criteria results",
+      "claim_supported": "The transition dossier demonstrates the result of every applicable acceptance criterion and links each conclusion to current evidence.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Includes pass, fail, conditional, unknown and not-applicable outcomes with rationale, evidence IDs, owners and expiry.",
+        "Preserves unresolved conflicts and explicitly records constraints, remediation and reassessment conditions."
+      ],
+      "limitations": [
+        "A summary statement that testing passed or risks are acceptable is insufficient without criterion-level traceability."
+      ]
+    },
+    {
+      "id": "EVD-A5-005",
+      "title": "Lifecycle authorization and exception record",
+      "claim_supported": "The correct accountable authority approves, rejects or conditionally authorizes the exact transition, scope, version and operating boundary.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Names the decision authority, decision date, target stage, system version, permitted scope, conditions, expiry, residual-risk owner and rollback trigger.",
+        "Separates development approval, technical sign-off, business sponsorship, legal review and deployment authorization according to assigned authority."
+      ],
+      "limitations": [
+        "Attendance, funding, project sponsorship, development completion or an unscoped email does not establish lifecycle authorization."
+      ]
+    },
+    {
+      "id": "EVD-A5-006",
+      "title": "Boundary-drift and de facto progression monitoring",
+      "claim_supported": "Monitoring detects real users, production data or credentials, live integrations, expanded scale, operational dependency and other indicators of de facto lifecycle progression.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Uses technical telemetry, access records, integration inventory, data-flow evidence, usage records and ownership review rather than declarations alone.",
+        "Creates timely attributable cases, constraints and reassessment when a stage boundary is crossed or approached."
+      ],
+      "limitations": [
+        "Absence of a reported incident or formal deployment event does not establish absence of boundary drift."
+      ]
+    },
+    {
+      "id": "EVD-A5-007",
+      "title": "Rollback, suspension and retirement assurance",
+      "claim_supported": "The system can be suspended, rolled back, bypassed or retired without unacceptable loss of safety, compliance, evidence, service continuity or downstream control.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Defines decision thresholds, responsible authority, technical procedures, dependencies, data and record handling, communication and continuity arrangements.",
+        "Includes representative test or exercise evidence and records limitations, recovery time, irreversible dependencies and remediation."
+      ],
+      "limitations": [
+        "A written rollback plan that has not been tested against representative dependencies cannot exceed IMPLEMENTED assurance."
+      ]
+    },
+    {
+      "id": "EVD-A5-008",
+      "title": "Independent transition and lifecycle-control review",
+      "claim_supported": "A competent reviewer independent from the delivery pressure challenges stage classification, criteria, evidence, exceptions, approval authority, drift controls and reversibility.",
+      "evidence_class": "EXTERNAL_ATTESTATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Review independence and competence are appropriate to the consequence and target stage.",
+        "Material challenge, dissent, unresolved evidence and required constraints are recorded before progression."
+      ],
+      "limitations": [
+        "A review performed by the same person who owns delivery evidence does not establish independent assurance."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "A lifecycle stage cannot exceed DECLARED assurance until the exact system, environment, users, data, integrations, permitted activities and target decision are identified.",
+      "A transition cannot exceed IMPLEMENTED assurance until stage-specific boundaries and acceptance criteria exist and are enforced.",
+      "Deployment or production progression cannot exceed TESTED assurance without criterion-level results and formal authorization for the exact version and scope.",
+      "Operational boundary effectiveness and rollback readiness cannot exceed OPERATIONALLY_OBSERVED until representative runtime and exercise evidence exists.",
+      "Tactic completion, project status or model performance cannot authorize a lifecycle transition."
+    ],
+    "false_positive_guards": [
+      "Do not treat a controlled pilot as production merely because real users participate when scope, data, access, consequences, approvals and exit conditions are explicitly bounded.",
+      "Do not treat shared infrastructure as boundary failure when isolation, access, data, credentials, logging and deployment controls are demonstrably effective.",
+      "Do not require every transition to use identical criteria; require proportionate, predefined and traceable criteria for the actual risk and target stage.",
+      "Do not treat a formally constrained exception as uncontrolled drift when authority, scope, expiry, monitoring and rollback are explicit and current."
+    ],
+    "prohibited_inferences": [
+      "Do not infer lifecycle stage from environment names, repository branches, project labels, contracts, user counts or vendor terminology alone.",
+      "Do not infer deployment authorization from development completion, technical validation, funding, sponsorship or absence of objection.",
+      "Do not infer transition readiness from a single aggregate score, model benchmark or successful demonstration.",
+      "Do not infer rollback capability from backups, version control or a written procedure without dependency-aware test evidence.",
+      "Do not clear a hard gate because remediation is planned or a tactic has been selected."
+    ],
+    "contradiction_handling": [
+      "Observed users, data, credentials, integrations, availability or business dependency override a stale declared stage for present-state assessment.",
+      "Conflicting transition criteria, evidence or approvals keep the affected decision UNKNOWN and block or constrain progression until accountable adjudication.",
+      "Where technical configuration and approval records disagree, apply the more restrictive boundary and investigate potential de facto progression.",
+      "An exception that exceeds its scope or expiry is assessed as an uncontrolled boundary crossing, not as an approved continuation."
+    ],
+    "freshness_rules": [
+      "Revalidate the lifecycle record before every requested transition and after every material change or de facto progression indicator.",
+      "Transition evidence and approvals are version-, scope-, environment- and time-specific and expire when dependencies or assumptions change.",
+      "Boundary-drift monitoring and rollback tests must be current for the operational dependency, scale and consequence of the system.",
+      "Retirement and continuity arrangements must be reviewed when downstream dependencies or owners change."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block deployment, material expansion or consequential operation when the current or target lifecycle stage and permitted boundary are materially undefined.",
+      "Block transition when production data, credentials, users, integrations or consequential actions can cross into an earlier stage without an approved controlled path.",
+      "Block progression when applicable acceptance criteria, required evidence or independent review remain failed, conflicting or UNKNOWN without a formally approved constrained decision.",
+      "Block transition when the approving authority is absent, incorrect, expired or does not cover the exact system version, scope and target stage.",
+      "Block or constrain continued operation when boundary drift, hidden production dependency or loss of suspension, rollback or retirement capability is detected."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_SYSTEM_RISK_BUSINESS_CHANGE_AND_COMPLIANCE_AUTHORITIES"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-A5-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Recital 65; Articles 9, 17, 25, 43 and 72",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Requires continuous lifecycle risk management, documented quality and change-management procedures, reassessment after substantial modification, conformity decisions where applicable and post-market monitoring throughout the system lifetime.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-A5-NIST-AI-RMF-001",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023",
+      "exact_locator": "AI RMF Core GOVERN 1.4-1.7 and 2.3; MAP 1.1; MANAGE 1.1 and 4.1; Effectiveness section on explicit go/no-go commissioning and deployment decisions",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Supports explicit lifecycle governance, inventory, monitoring, executive responsibility, go/no-go decisions, safe decommissioning and iterative management across design, development, deployment, operation and retirement.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-A5-NCSC-CISA-001",
+      "source_id": "SRC-NCSC-CISA-SECURE-AI",
+      "source_version_or_date": "November 2023",
+      "exact_locator": "Guidelines overview; Secure development - identify, track and protect assets and manage technical debt; Secure deployment - secure infrastructure and release AI responsibly; Secure operation and maintenance - monitoring and secure updates",
+      "relationship": "GOVERNMENT_TECHNICAL_GUIDANCE",
+      "category_rationale": "Defines lifecycle-specific secure design, development, deployment and operation practices, including environment segregation, access controls, responsible release, monitoring, updates and continued protection.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-A5-001",
+      "title": "Current stage, target stage or permitted lifecycle boundary is materially undefined",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A5-SC-001",
+        "A5-SC-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-A5-001"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block consequential progression until the exact system, current stage, target stage, permitted activities and accountable boundary are defined and human-validated.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A5-002",
+      "title": "Stage-specific environment, data, credential, access, user or integration separation is ineffective",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A5-SC-003"
+      ],
+      "required_evidence_ids": [
+        "EVD-A5-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block transition or constrain operation until the affected technical and operational boundary is enforced and tested.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A5-003",
+      "title": "Transition acceptance criteria or criterion-level evidence is incomplete, retrospective or unresolved",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A5-SC-004",
+        "A5-SC-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-A5-003",
+        "EVD-A5-004"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block the requested transition unless failed, conflicting or unknown criteria are resolved or explicitly bounded by the correct authority.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A5-004",
+      "title": "Lifecycle transition lacks valid authorization for the exact version, scope and target stage",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A5-SC-006",
+        "A5-SC-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-A5-005",
+        "EVD-A5-008"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Do not treat the transition as authorized; require attributable formal decision, independent challenge where needed and renewed evidence.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A5-005",
+      "title": "Boundary-drift detection, rollback, suspension or retirement capability is ineffective",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A5-SC-007",
+        "A5-SC-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-A5-006",
+        "EVD-A5-007"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain continued operation or expansion and require drift investigation, dependency reduction and tested recovery or retirement controls before further reliance.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-A5-GOV-LIF-001-FND-A5-001-001",
+      "tactic_id": "GOV-LIF-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A5-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-A5-GOV-LIF-001-FND-A5-004-002",
+      "tactic_id": "GOV-LIF-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A5-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-A5-GOV-LIF-002-FND-A5-002-001",
+      "tactic_id": "GOV-LIF-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A5-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-A5-GOV-LIF-003-FND-A5-003-001",
+      "tactic_id": "GOV-LIF-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A5-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-A5-GOV-LIF-003-FND-A5-004-002",
+      "tactic_id": "GOV-LIF-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A5-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    },
+    {
+      "mapping_id": "MAP-A5-GOV-LIF-004-FND-A5-005-001",
+      "tactic_id": "GOV-LIF-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A5-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.6.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract lifecycle labels, environments, users, data classes, credentials, integrations, criteria, test results, approvals, exceptions, telemetry and change records.",
+      "Compare declared stage with technical and operational evidence and identify potential de facto progression, missing criteria, expired approvals and boundary contradictions.",
+      "Apply deterministic evidence ceilings and propose eligible finding states for accountable human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Authorize, reject or conditionally approve a lifecycle transition.",
+      "Treat project status, model quality, deployment automation, sponsor intent or absence of incident as proof of stage or readiness.",
+      "Waive acceptance criteria, select residual-risk tolerance, extend an exception or redefine the governed boundary.",
+      "Clear a hard gate, lock a finding, accept residual risk or authorize continued operation, rollback, redeployment or retirement."
+    ],
+    "human_authority_required_for": [
+      "Define the governed current and target lifecycle stage, permitted activities, acceptance criteria and authority model.",
+      "Determine whether evidence satisfies transition criteria and adjudicate conflicts, unknowns and exceptions.",
+      "Approve, reject, constrain, suspend, roll back, redeploy or retire the exact system version and operating scope.",
+      "Lock findings, accept residual risk and approve bounded exceptions with expiry and monitoring.",
+      "Determine whether observed use constitutes de facto progression and order corrective action."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "AP-A1",
+    "AP-A2",
+    "AP-A3",
+    "AP-A4",
+    "AP-A5",
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "E1",
+    "E3",
+    "E4",
+    "F1",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "governance_purpose": "Ensure that every AI system remains inside an explicit, evidence-backed and authorized lifecycle boundary and cannot drift from experiment to consequential production use without reassessment, control and accountable approval.",
+  "distinct_claim": "A5 owns the current lifecycle stage, stage-specific permitted boundary, transition acceptance criteria, transition evidence, authorization, rollback and retirement path. A1 owns intended purpose and use boundaries; A2 owns proportionality and value; A3 owns role and responsibility allocation; A4 owns risk, legal and regulatory classification and reclassification.",
+  "atomic_subcriteria": [
+    {
+      "id": "A5-SC-001",
+      "question_id": "A5-Q1",
+      "criterion": "The exact system version, current lifecycle stage, requested target stage and transition scope are explicitly identified and current.",
+      "required_evidence_ids": [
+        "EVD-A5-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-002",
+      "question_id": "A5-Q1",
+      "criterion": "Permitted and prohibited users, data, credentials, integrations, environments, actions, scale, availability and decision consequences are defined for the current and target stages.",
+      "required_evidence_ids": [
+        "EVD-A5-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-003",
+      "question_id": "A5-Q2",
+      "criterion": "Stage-specific technical and operational controls enforce separation of environment, data, credentials, access, users, integrations, infrastructure and consequential actions.",
+      "required_evidence_ids": [
+        "EVD-A5-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-004",
+      "question_id": "A5-Q1",
+      "criterion": "Transition acceptance criteria, required evidence, assurance thresholds, owners, blocking conditions, expiry and rollback triggers are predefined and proportionate to the target stage.",
+      "required_evidence_ids": [
+        "EVD-A5-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-005",
+      "question_id": "A5-Q3",
+      "criterion": "The transition dossier records criterion-level results, evidence, unresolved conflicts, constraints and reassessment conditions for the exact version and scope.",
+      "required_evidence_ids": [
+        "EVD-A5-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-006",
+      "question_id": "A5-Q3",
+      "criterion": "The correct accountable authority approves, rejects or conditionally authorizes the exact transition, version, scope, conditions, expiry and residual-risk ownership.",
+      "required_evidence_ids": [
+        "EVD-A5-005"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A5-SC-007",
+      "question_id": "A5-Q2",
+      "criterion": "Technical telemetry and governance review detect boundary drift and de facto progression through real users, production data or credentials, live integrations, scale or operational dependency.",
+      "required_evidence_ids": [
+        "EVD-A5-006"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-008",
+      "question_id": "A5-Q2",
+      "criterion": "Suspension, rollback, bypass and retirement procedures are dependency-aware, tested and capable of preserving required evidence, continuity and control.",
+      "required_evidence_ids": [
+        "EVD-A5-007"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-009",
+      "question_id": "A5-Q3",
+      "criterion": "A competent reviewer independent from delivery pressure challenges lifecycle classification, criteria, evidence, exceptions, authority and reversibility before consequential progression.",
+      "required_evidence_ids": [
+        "EVD-A5-008"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

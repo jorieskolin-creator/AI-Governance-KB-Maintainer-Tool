@@ -1,0 +1,542 @@
+{
+  "schema_version": "1.1.0",
+  "id": "AP-D3",
+  "version": "1.2.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "PRODUCTION_GOVERNANCE_CONTENT_AND_AUTHORING_STANDARD",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-07-31",
+    "effective_from": "2026-07-31",
+    "review_due_on": "2027-07-31",
+    "release_version": "1.2.0",
+    "supersedes": "AP-D3_v1.1.json",
+    "authority_statement": "This object is approved governance knowledge. Legal interpretation, finding lock, residual-risk acceptance, tactic execution and lifecycle authorization remain attributable decisions under the defined human authority boundary.",
+    "change_control": "A semantic or mapping change requires a new version, reciprocal validation and renewed approval."
+  },
+  "domain": "D",
+  "object_type": "ANTIPATTERN",
+  "title": "Prompt-only or model-mediated security boundary",
+  "canonical_definition": "A security-critical restriction depends mainly on instructions, refusals, model behavior or unverified model-mediated filters instead of independently enforceable controls and representative adversarial evidence.",
+  "failure_mechanism": "Untrusted data or model output influences a security-relevant decision while the principal restriction is probabilistic or controlled by the same model-mediated path. An attacker may therefore manipulate the mechanism expected to provide protection.",
+  "potential_consequences": [
+    "Unauthorized tool use or state change",
+    "Sensitive-data disclosure or cross-tenant exposure",
+    "Policy, approval or authorization bypass",
+    "Malicious retrieval or memory persistence",
+    "Unsafe downstream code, markup, query or command execution",
+    "False assurance and undetected recurrence"
+  ],
+  "applicability": {
+    "default_state": "POTENTIALLY_APPLICABLE",
+    "conditions": [
+      "Screen every AI solution for model-mediated security boundaries.",
+      "Assess as applicable when the system processes untrusted or attacker-influenced model inputs, retrieved content or generated outputs and a reachable path can affect confidentiality, integrity, availability, safety, authorization or a material decision.",
+      "Assess as not applicable only when architecture and test evidence establish that no model-influenced path reaches a security-relevant boundary."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "human_decision_authority": "SECURITY_AND_GOVERNANCE",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "prompt-only-security-boundary",
+    "model-mediated-security-decision",
+    "untrusted-content-privileged-boundary",
+    "prompt-injection-exploitability",
+    "missing-adversarial-boundary-test"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "AP-D3-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are any security-critical restrictions expressed mainly as prompts, model policies, refusals or model-mediated filters rather than independently enforceable controls?"
+    },
+    {
+      "id": "AP-D3-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Can untrusted input, retrieved content or generated output influence tools, data, privileges, interpreters or consequential decisions beyond the authorized boundary?"
+    },
+    {
+      "id": "AP-D3-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do representative adversarial tests establish presence or tested absence across the scoped attack surface, versions, identities, integrations and bypass paths?"
+    }
+  ],
+  "atomic_tests": [
+    {
+      "id": "AP-D3-T01",
+      "question_ref": "AP-D3-Q1",
+      "title": "Safety-prompt and refusal dependency inspection",
+      "description": "Trace every security-relevant restriction to the component that enforces it and identify restrictions enforced only through prompts, refusals or model behavior."
+    },
+    {
+      "id": "AP-D3-T02",
+      "question_ref": "AP-D3-Q2",
+      "title": "Direct and indirect instruction-injection test",
+      "description": "Exercise direct prompts, retrieved content, uploaded files, external content and other attacker-influenced instructions against reachable security boundaries."
+    },
+    {
+      "id": "AP-D3-T03",
+      "question_ref": "AP-D3-Q2",
+      "title": "Model-output to interpreter, tool and action trace",
+      "description": "Trace generated output into downstream parsers, interpreters, queries, tools, APIs and state-changing actions."
+    },
+    {
+      "id": "AP-D3-T04",
+      "question_ref": "AP-D3-Q2",
+      "title": "Tool argument and authorization bypass test",
+      "description": "Test whether model-generated tool selection, destinations or arguments can exceed deterministic allowlists, identity checks, scopes or transaction limits."
+    },
+    {
+      "id": "AP-D3-T05",
+      "question_ref": "AP-D3-Q2",
+      "title": "Retrieval, upload, browser and memory poisoning test",
+      "description": "Test whether untrusted persistent or retrieved content can alter privileged behavior during the same or later sessions."
+    },
+    {
+      "id": "AP-D3-T06",
+      "question_ref": "AP-D3-Q3",
+      "title": "Fallback and secondary-path bypass test",
+      "description": "Exercise retry, cache, fallback, error, degraded-service and secondary execution paths using realistic identities and permissions."
+    },
+    {
+      "id": "AP-D3-T07",
+      "question_ref": "AP-D3-Q3",
+      "title": "Sensitive-data and tenant-isolation test",
+      "description": "Test unauthorized disclosure across users, tenants, tools, memory, logs and provider boundaries."
+    },
+    {
+      "id": "AP-D3-T08",
+      "question_ref": "AP-D3-Q3",
+      "title": "Detection, containment and recovery verification",
+      "description": "Verify security-relevant activity is logged, alertable, containable and recoverable without relying on model cooperation."
+    }
+  ],
+  "antipattern_indicators": [
+    "A safety prompt or model refusal is presented as the principal security control.",
+    "Free-form model output reaches tools, interpreters, queries or external actions without deterministic mediation.",
+    "Untrusted retrieved, uploaded, browser or memory content can alter privileged behavior.",
+    "No representative adversarial testing covers the application, retrieval, tool and identity context.",
+    "A validator or policy component accepts model-defined destinations, permissions or operations outside an allowlist.",
+    "Content scanning is presented as complete protection despite reachable secondary or encoded bypass paths.",
+    "Only the model endpoint is tested while the surrounding application and downstream effects are excluded."
+  ],
+  "required_evidence": [
+    {
+      "id": "AP-D3-EV01",
+      "title": "Security-boundary architecture and data-flow record",
+      "description": "Versioned architecture identifies untrusted inputs, model-mediated paths, protected assets, trust boundaries, identities, privileges, tools and downstream actions.",
+      "minimum_strength": "IMPLEMENTED",
+      "accepted_source_types": [
+        "ARCHITECTURE_DOCUMENT",
+        "DATA_FLOW_DIAGRAM",
+        "THREAT_MODEL"
+      ]
+    },
+    {
+      "id": "AP-D3-EV02",
+      "title": "Deterministic enforcement evidence",
+      "description": "Code and configuration demonstrate external authorization, validation, allowlisting, least privilege and isolation for security-relevant effects.",
+      "minimum_strength": "IMPLEMENTED",
+      "accepted_source_types": [
+        "PRODUCTION_CODE",
+        "CONFIGURATION",
+        "INFRASTRUCTURE_AS_CODE"
+      ]
+    },
+    {
+      "id": "AP-D3-EV03",
+      "title": "Representative adversarial execution record",
+      "description": "Executed tests record scope, identities, privileges, integrations, versions, attack corpus, raw results, failures and retest status.",
+      "minimum_strength": "TESTED",
+      "accepted_source_types": [
+        "TEST_EXECUTION_RESULT",
+        "SECURITY_EVALUATION",
+        "PENETRATION_TEST_REPORT"
+      ]
+    },
+    {
+      "id": "AP-D3-EV04",
+      "title": "Operational detection and containment evidence",
+      "description": "Operational records demonstrate logging, alerting, containment, recovery and ownership for relevant attack and failure paths.",
+      "minimum_strength": "OPERATIONALLY_OBSERVED",
+      "accepted_source_types": [
+        "MONITORING_CONFIGURATION",
+        "INCIDENT_EXERCISE_RESULT",
+        "OPERATIONAL_LOG"
+      ]
+    }
+  ],
+  "absence_test_requirements": [
+    "Define the exact model-influenced, untrusted-input and security-relevant surfaces in scope.",
+    "Identify every protected asset, identity, privilege, integration, downstream interpreter and state-changing action in that scope.",
+    "Confirm that security decisions and privileged actions are enforced outside model discretion.",
+    "Execute representative direct and indirect manipulation tests using realistic identities, privileges, data and downstream integrations.",
+    "Include secondary, fallback, cache, retry, degraded-service and error paths.",
+    "Record versions, configurations, attack corpus, thresholds, raw results and known limitations.",
+    "Independently verify the test scope and successful result.",
+    "Use TESTED_ABSENT only for the tested surface, configuration, version and time; never claim universal immunity."
+  ],
+  "evidence_rules": {
+    "confirmed_present": [
+      "Verified code, configuration or architecture evidence establishes that a security-critical restriction is principally model-mediated.",
+      "A representative executed test demonstrates a material bypass or exploit path crossing a protected boundary."
+    ],
+    "partially_present": [
+      "A model-mediated restriction exists, but independently enforced controls materially bound its reachable effect.",
+      "A demonstrated manipulation changes behavior without yet establishing a material protected-boundary crossing."
+    ],
+    "tested_absent": [
+      "The defined reachable surface is covered by verified architecture evidence and a scoped, successful, representative adversarial test record.",
+      "All security-relevant decisions and effects in scope are independently enforced outside model discretion."
+    ],
+    "unknown": [
+      "No material exploit is shown, but coverage, realistic privileges, versions, integrations or secondary paths are insufficient.",
+      "Implementation is visible but executed adversarial results or their scope are unavailable."
+    ],
+    "contradictory": [
+      "Documentation claims deterministic enforcement while code, configuration, permissions or executed results show model-controlled behavior.",
+      "Different sources describe incompatible trust boundaries, privileges or reachable effects."
+    ],
+    "assurance_ceilings": [
+      "Prompts, policies, design statements and model refusals are DECLARED and cannot establish IMPLEMENTED or TESTED assurance.",
+      "Code and configuration may establish IMPLEMENTED assurance but not operational effectiveness.",
+      "A test file without attributable execution results cannot establish TESTED assurance.",
+      "Operational effectiveness requires attributable operational evidence for the assessed version and environment."
+    ]
+  },
+  "false_positive_guards": [
+    "A system prompt is not proof of this anti-pattern when it is only a usability layer and every security-relevant effect is independently enforced.",
+    "A successful instruction injection is not necessarily material when it cannot cross a protected boundary; record the reachable consequence and asset.",
+    "Lack of a red-team report does not alone confirm the anti-pattern; it establishes an assurance gap unless other evidence proves the boundary is model-mediated.",
+    "A content-filter failure does not prove the complete boundary is model-mediated when deterministic downstream controls contain the effect.",
+    "Editorial differences in control names do not establish contradictory architecture when the enforced mechanism and scope are equivalent."
+  ],
+  "prohibited_inferences": [
+    "Not detected means tested absent.",
+    "A refused sample proves absence.",
+    "A provider guardrail proves application security.",
+    "Human review proves authorization cannot be manipulated.",
+    "A policy statement proves the control is enabled in the assessed environment.",
+    "Remediation activity completion changes the anti-pattern state without new evidence and reassessment."
+  ],
+  "severity": "HIGH by default.",
+  "severity_escalation": {
+    "to": "CRITICAL",
+    "conditions": [
+      "Exploitation can execute privileged or irreversible actions.",
+      "Exploitation can expose sensitive multi-tenant, personal or special-category data.",
+      "Exploitation can alter a safety function or consequential decision.",
+      "A demonstrated path has uncontrolled external effects or materially defeats required human authority."
+    ]
+  },
+  "hard_gate_effect": {
+    "CONFIRMED_PRESENT": "Block Deployment and Operation when a material security-relevant path is reachable. Require deterministic containment, new evidence and reassessment before progression.",
+    "PARTIALLY_PRESENT": "Require human Security review and condition progression on bounded exposure, verified containment, monitoring and time-bound remediation.",
+    "UNKNOWN": "Block Deployment and Operation when the untested surface can reach a high-consequence boundary. Earlier work remains within an isolated environment until evidence closes the uncertainty.",
+    "CONTRADICTORY": "Block progression until the contradiction is resolved through verified implementation and test evidence.",
+    "TESTED_ABSENT": "Do not create an independent positive assurance conclusion. The paired D3 capability must still meet its lifecycle target."
+  },
+  "related_capability": "D3",
+  "related_criteria": [
+    "C3",
+    "D1",
+    "D4",
+    "D5",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "normative_source_mappings": [
+    {
+      "mapping_id": "MAP-AP-D3-EU-AIA-ART15",
+      "source_id": "SRC-EU-AIA-2024-1689",
+      "source_version": "2024-07-12",
+      "title": "Regulation (EU) 2024/1689 (Artificial Intelligence Act)",
+      "official_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689",
+      "authority_type": "BINDING_LAW_WHEN_APPLICABLE",
+      "relevant_locator": "Article 15(5)",
+      "mapping_relationship": "NORMATIVE_WHEN_APPLICABLE",
+      "mapping_rationale": "Supports the requirement, when applicable, to resist unauthorized exploitation of AI-system vulnerabilities.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-AP-D3-NIST-GENAI",
+      "source_id": "SRC-NIST-AI-600-1",
+      "source_version": "2024-07-26",
+      "title": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+      "official_url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+      "authority_type": "VOLUNTARY_FRAMEWORK",
+      "relevant_locator": "Section 2.9; MS-2.7-007; MS-2.7-009",
+      "mapping_relationship": "INFORMATIVE_FOR_GENERATIVE_AI",
+      "mapping_rationale": "Supports red-teaming and continuing verification of information-security measures.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-AP-D3-NIST-SSDF-AI",
+      "source_id": "SRC-NIST-SP-800-218A",
+      "source_version": "2024-07",
+      "title": "NIST SP 800-218A - Secure Software Development Practices for Generative AI and Dual-Use Foundation Models",
+      "official_url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218A.pdf",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "relevant_locator": "AI-specific augmentation of SP 800-218 practices and tasks",
+      "mapping_relationship": "INFORMATIVE",
+      "mapping_rationale": "Supports secure implementation and verification of model and application boundaries.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-AP-D3-NCSC-CISA",
+      "source_id": "SRC-NCSC-CISA-SECURE-AI-2023",
+      "source_version": "1.0 / 2023-11-27",
+      "title": "Guidelines for Secure AI System Development",
+      "official_url": "https://www.ncsc.gov.uk/collection/guidelines-secure-ai-system-development",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "relevant_locator": "Secure design, development, deployment, and operation and maintenance",
+      "mapping_relationship": "INFORMATIVE",
+      "mapping_rationale": "Supports enforceable security across the AI-system lifecycle.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-AP-D3-OWASP-LLM",
+      "source_id": "SRC-OWASP-LLM-TOP10-2025",
+      "source_version": "2025",
+      "title": "OWASP Top 10 for LLM Applications 2025",
+      "official_url": "https://genai.owasp.org/llm-top-10/",
+      "authority_type": "COMMUNITY_PRACTICE",
+      "relevant_locator": "LLM01, LLM05, LLM06 and LLM08",
+      "mapping_relationship": "THREAT_AND_MITIGATION_REFERENCE",
+      "mapping_rationale": "Supports the modeled failure mechanisms for instruction injection, unsafe output, excessive agency and retrieval weaknesses.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    },
+    {
+      "mapping_id": "MAP-AP-D3-ENISA",
+      "source_id": "SRC-ENISA-AI-CYBER-2023",
+      "source_version": "2023-06-07",
+      "title": "Multilayer Framework for Good Cybersecurity Practices for AI",
+      "official_url": "https://www.enisa.europa.eu/publications/multilayer-framework-for-good-cybersecurity-practices-for-ai",
+      "authority_type": "EU_AGENCY_GUIDANCE",
+      "relevant_locator": "AI-specific cybersecurity layer",
+      "mapping_relationship": "INFORMATIVE",
+      "mapping_rationale": "Supports AI-specific rather than purely generic cybersecurity analysis.",
+      "verification_status": "VERIFIED_PUBLIC_PRIMARY",
+      "last_verified_on": "2026-07-31"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-D3-001",
+      "assessment_object_id": "AP-D3",
+      "title": "Security-critical restriction relies primarily on prompt or model behavior",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "mapped_test_ids": [
+        "AP-D3-T01",
+        "AP-D3-T03",
+        "AP-D3-T04"
+      ],
+      "required_evidence_ids": [
+        "AP-D3-EV01",
+        "AP-D3-EV02"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Deployment and Operation remain blocked when the reachable effect is material."
+    },
+    {
+      "id": "FND-AP-D3-002",
+      "assessment_object_id": "AP-D3",
+      "title": "Untrusted content crosses a privileged, sensitive or execution boundary",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "mapped_test_ids": [
+        "AP-D3-T02",
+        "AP-D3-T03",
+        "AP-D3-T04",
+        "AP-D3-T05",
+        "AP-D3-T07"
+      ],
+      "required_evidence_ids": [
+        "AP-D3-EV01",
+        "AP-D3-EV02",
+        "AP-D3-EV03"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Deployment and Operation remain blocked until deterministic containment is verified."
+    },
+    {
+      "id": "FND-AP-D3-003",
+      "assessment_object_id": "AP-D3",
+      "title": "Representative adversarial testing confirms exploitability of the model-mediated boundary",
+      "eligible_states": [
+        "CONFIRMED_PRESENT"
+      ],
+      "mapped_test_ids": [
+        "AP-D3-T02",
+        "AP-D3-T04",
+        "AP-D3-T05",
+        "AP-D3-T06",
+        "AP-D3-T07"
+      ],
+      "required_evidence_ids": [
+        "AP-D3-EV03"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "The affected transition remains blocked until the exploit path is removed, retested and independently verified."
+    },
+    {
+      "id": "FND-AP-D3-004",
+      "assessment_object_id": "AP-D3",
+      "title": "Tested absence cannot be substantiated for the assessed attack surface",
+      "eligible_states": [
+        "UNKNOWN",
+        "CONTRADICTORY"
+      ],
+      "mapped_test_ids": [
+        "AP-D3-T01",
+        "AP-D3-T02",
+        "AP-D3-T03",
+        "AP-D3-T04",
+        "AP-D3-T05",
+        "AP-D3-T06",
+        "AP-D3-T07",
+        "AP-D3-T08"
+      ],
+      "required_evidence_ids": [
+        "AP-D3-EV01",
+        "AP-D3-EV02",
+        "AP-D3-EV03"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Deployment and Operation remain blocked when the untested surface can reach a high-consequence boundary."
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "GOV-SEC-001",
+      "tactic_version": "1.0.0",
+      "relationship": "SCOPES_REMEDIATION_AND_VERIFICATION",
+      "eligible_finding_ids": [
+        "FND-AP-D3-001"
+      ],
+      "mapping_id": "MAP-AP-D3-GOV-SEC-001",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-002",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_MODEL_MEDIATED_BOUNDARY",
+      "eligible_finding_ids": [
+        "FND-AP-D3-001",
+        "FND-AP-D3-002",
+        "FND-AP-D3-003"
+      ],
+      "mapping_id": "MAP-AP-D3-GOV-SEC-002",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-003",
+      "tactic_version": "1.0.0",
+      "relationship": "CONTAINS_AND_MONITORS_CONFIRMED_ATTACK_PATH",
+      "eligible_finding_ids": [
+        "FND-AP-D3-003"
+      ],
+      "mapping_id": "MAP-AP-D3-GOV-SEC-003",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-004",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_TOOL_AND_ACTION_BOUNDARY",
+      "eligible_finding_ids": [
+        "FND-AP-D3-001",
+        "FND-AP-D3-002",
+        "FND-AP-D3-003"
+      ],
+      "mapping_id": "MAP-AP-D3-GOV-SEC-004",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-005",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_UNTRUSTED_CONTENT_BOUNDARY",
+      "eligible_finding_ids": [
+        "FND-AP-D3-002",
+        "FND-AP-D3-003"
+      ],
+      "mapping_id": "MAP-AP-D3-GOV-SEC-005",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "GOV-SEC-006",
+      "tactic_version": "1.0.0",
+      "relationship": "ESTABLISHES_PRESENCE_OR_TESTED_ABSENCE",
+      "eligible_finding_ids": [
+        "FND-AP-D3-001",
+        "FND-AP-D3-003",
+        "FND-AP-D3-004"
+      ],
+      "mapping_id": "MAP-AP-D3-GOV-SEC-006",
+      "mapping_source": "AI-GOV-TACTIC-CATALOG@1.1.0",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "ai_role": "AI may extract evidence, identify candidate signals and propose a traceable assessment interpretation.",
+    "deterministic_role": "Applicability, assurance ceilings, conclusion-state rules, finding triggers, hard gates and tactic eligibility are applied deterministically.",
+    "human_role": "Named human authorities resolve legal interpretation, lock consequential findings, accept residual risk and authorize lifecycle transitions.",
+    "prohibited": [
+      "AI narrative cannot waive a hard gate.",
+      "A readiness score cannot authorize progression.",
+      "Tactic assignment or completion cannot change a finding state."
+    ]
+  },
+  "domain_title": "Architecture, security, robustness, safety and evaluation",
+  "conclusion_states": [
+    "CONFIRMED_PRESENT",
+    "PARTIALLY_PRESENT",
+    "TESTED_ABSENT",
+    "UNKNOWN",
+    "NOT_APPLICABLE",
+    "CONTRADICTORY"
+  ],
+  "evidence_assurance_states": [
+    "NONE",
+    "DECLARED",
+    "IMPLEMENTED",
+    "TESTED",
+    "OPERATIONALLY_OBSERVED",
+    "INDEPENDENTLY_VALIDATED",
+    "FORMALLY_APPROVED"
+  ],
+  "runtime_authority": "MIXED",
+  "human_authority_roles": [
+    "AI_SYSTEM_OWNER",
+    "SECURITY_RISK_OWNER",
+    "BUSINESS_RISK_ACCEPTANCE_AUTHORITY",
+    "LEGAL_OR_PRIVACY_AUTHORITY_WHEN_APPLICABLE"
+  ],
+  "$schema": "./schemas/antipattern.schema.json"
+}

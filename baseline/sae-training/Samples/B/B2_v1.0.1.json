@@ -1,0 +1,661 @@
+{
+  "schema_version": "2.0.0",
+  "id": "B2",
+  "version": "1.0.1",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "B2_CAPABILITY_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-03",
+    "effective_from": "2026-08-03",
+    "review_due_on": "2027-08-03",
+    "release_version": "1.0.1",
+    "supersedes": "B2_v1.0.0",
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability, publication-template or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "CAPABILITY",
+  "title": "Purpose limitation and data minimization",
+  "canonical_definition": "Only data demonstrably necessary, proportionate and purpose-bound for the declared use and lifecycle stage are collected, accessed, transformed, transmitted, exposed to providers or tools, placed in prompts or retrieval context, logged, retained, reused and disclosed. Lower-data alternatives, abstraction, selective disclosure, tokenisation, synthetic or anonymised data and shorter retention are preferred where they can satisfy the approved purpose, and scope or deletion changes propagate across all material copies and derived paths.",
+  "applicability": {
+    "statement": "Applicable to every AI system that processes organizational, personal, employee, customer, supplier, public, licensed, confidential, third-party or generated information at any lifecycle stage.",
+    "conditions": [
+      "Define the approved purpose, users, decision context, lifecycle stage and consequence profile before determining data necessity.",
+      "Establish a field-, element-, document-, context- and retention-level necessity rationale for every material collection, access, transfer, prompt, retrieval, log, memory, evaluation and output-reuse path.",
+      "Assess whether the purpose can be achieved with fewer fields, lower precision, selective disclosure, aggregation, tokenisation, pseudonymisation, anonymisation, synthetic data or local processing.",
+      "Configure and test minimisation at every interface, provider, tool, store, cache, backup, log, telemetry, memory and downstream reuse boundary.",
+      "Bind retention, deletion and reuse to the approved purpose and ensure changes propagate to copies, embeddings, derived data and archives where required.",
+      "Reassess necessity and proportionality after purpose, design, provider, model, data, population, output use, integration or lifecycle change."
+    ],
+    "exclusions": [
+      "B2 does not determine lawful basis, transparency, rights fulfilment or impact-assessment sufficiency for personal data; those conclusions are owned by B3.",
+      "B2 does not establish data provenance or lineage; B1 must separately show what data exists and where it flows.",
+      "Pseudonymisation, encryption or access control can reduce exposure but do not by themselves prove that collection, use or retention is necessary.",
+      "A performance improvement or lower engineering cost does not by itself establish necessity or proportionality.",
+      "A broad future-use statement, generic consent, vendor capability or storage availability does not convert convenience into an approved purpose."
+    ],
+    "reassessment_triggers": [
+      "New or materially changed purpose, user group, decision, population, jurisdiction, data source, provider, tool, model, prompt, retrieval or output-reuse path",
+      "Addition of a field, document class, precision level, logging dimension, memory feature, telemetry event, feedback loop or retention extension",
+      "Prototype, evaluation or test scope changes to include production, personal, confidential, special-category or otherwise protected data",
+      "Deletion, restriction, objection, licence, contract, ownership or policy change affecting permitted use or retention",
+      "Evidence that synthetic, anonymised, aggregated, tokenised, selectively disclosed or locally processed alternatives can satisfy the purpose",
+      "Incident, complaint, audit, red-team result or cost/latency analysis reveals unnecessary content, excessive context, hidden copies, stale retention or secondary use"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "B2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Is necessity and proportionality defined for each material data category, field, document, context element, use and retention period against an explicit approved purpose?"
+    },
+    {
+      "id": "B2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are minimisation, abstraction, selective disclosure, tokenisation, synthetic-data, retention and deletion controls implemented across every relevant store, interface, provider, tool, prompt, log and reuse path?"
+    },
+    {
+      "id": "B2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do tests and operational evidence show that unnecessary content is excluded, lower-data alternatives are used where effective, and purpose, retention or deletion changes propagate end to end?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-B2-001",
+      "title": "Purpose-to-data necessity and proportionality matrix",
+      "claim_supported": "Every material data element, document class, precision level, use, recipient and retention period is linked to an explicit approved purpose, necessity rationale, proportionality decision, owner and review trigger.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Uses the same stable data, system, interface and purpose identities as B1 and A1.",
+        "Records rejected lower-data alternatives, unresolved questions, decision owner, consequence profile, lifecycle stage and review trigger rather than treating all available data as necessary."
+      ],
+      "limitations": [
+        "A generic privacy notice, data inventory, contract or statement that more data improves performance does not establish necessity for the exact field and use."
+      ]
+    },
+    {
+      "id": "EVD-B2-002",
+      "title": "Field- and interface-level minimisation design",
+      "claim_supported": "Approved data elements and precision are technically constrained at collection, transformation, prompt, retrieval, provider, tool, output, logging and disclosure interfaces.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Defines allowlists, schemas, projection rules, redaction, selective disclosure, aggregation, truncation, context budgets and default-deny behavior for material paths.",
+        "Covers fallback, retry, error, debug, cache, memory, observability and manual-export paths, not only the primary happy path."
+      ],
+      "limitations": [
+        "A UI that hides fields or a policy that asks users to minimise data is insufficient when backend, provider or logging paths still receive them."
+      ]
+    },
+    {
+      "id": "EVD-B2-003",
+      "title": "Lower-data and synthetic-alternative assessment",
+      "claim_supported": "The organization has tested whether the approved purpose can be achieved with fewer, less precise, less identifiable, synthetic, anonymised, tokenised, aggregated or locally processed data.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Compares utility, risk, representativeness, quality and operational constraints for realistic alternatives.",
+        "Records why an alternative was accepted, rejected or limited and when the decision must be revisited."
+      ],
+      "limitations": [
+        "Synthetic or anonymised data are not automatically lower risk or fit for purpose; re-identification, bias, leakage and quality limits remain separately assessed."
+      ]
+    },
+    {
+      "id": "EVD-B2-004",
+      "title": "Prompt, retrieval, provider, tool, log and telemetry minimisation configuration",
+      "claim_supported": "Runtime context and operational records are limited to the fields and duration necessary for the approved purpose and support function.",
+      "evidence_class": "CONFIGURATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Shows field projections, context-window rules, retrieval filters, provider payload schemas, tool argument schemas, logging controls, sampling, masking and retention settings.",
+        "Distinguishes business-required auditability from convenience logging and prevents raw prompts, documents or outputs from being retained by default where protected metadata is sufficient."
+      ],
+      "limitations": [
+        "A provider statement or application setting without independent payload and retention verification cannot establish implementation effectiveness."
+      ]
+    },
+    {
+      "id": "EVD-B2-005",
+      "title": "Purpose-bound retention and deletion schedule",
+      "claim_supported": "Retention, archive, backup, cache, embedding, memory, derived-data and output-reuse periods are tied to explicit purposes and deletion or restriction triggers.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Defines the shortest justified period, legal or contractual constraints, accountable owner, review cadence, deletion method and downstream propagation requirements.",
+        "Separates operational, security, evaluation, incident, legal-hold and model-improvement purposes rather than assigning one default period to all data."
+      ],
+      "limitations": [
+        "Configured time-to-live without an approved necessity rationale and downstream propagation design does not establish purpose-bound retention."
+      ]
+    },
+    {
+      "id": "EVD-B2-006",
+      "title": "Retention, deletion and restriction propagation evidence",
+      "claim_supported": "Purpose expiry, deletion, restriction and scope changes execute across material stores, copies, caches, logs, embeddings, backups, derived datasets and downstream recipients.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Includes representative execution traces, exceptions, failures, residual copies, legal holds and accountable closure decisions.",
+        "Demonstrates propagation within approved service levels and records where irreversible model training or derived artifacts require separate risk treatment."
+      ],
+      "limitations": [
+        "A deletion request ticket, database deletion or vendor promise alone does not prove complete propagation."
+      ]
+    },
+    {
+      "id": "EVD-B2-007",
+      "title": "Runtime minimisation and overcollection test results",
+      "claim_supported": "Representative operation excludes unnecessary fields, full documents, excessive context, hidden metadata and over-retained logs across normal, error, fallback and high-load paths.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Tests declared-versus-observed payloads, prompt/context assembly, retrieval results, provider/tool calls, outputs, logs, telemetry, caches and exports.",
+        "Uses negative tests with seeded unnecessary fields and documents to verify rejection, redaction, truncation, non-retention and alerting."
+      ],
+      "limitations": [
+        "A small happy-path sample or manual code review cannot establish tested minimisation across all material paths."
+      ]
+    },
+    {
+      "id": "EVD-B2-008",
+      "title": "Purpose and data-scope change decision record",
+      "claim_supported": "Material purpose, design, data, provider, model, population, lifecycle, retention or output-use changes trigger renewed necessity, alternatives and propagation review before continued use.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Records changed assumptions, new or removed fields, secondary-use compatibility, affected parties, tests, conditions, rejected alternatives and accountable decision.",
+        "Blocks silent reuse of historical data or previously approved contexts when the new purpose or consequence profile is materially different."
+      ],
+      "limitations": [
+        "A change ticket, model release note or stakeholder meeting without a data-scope decision does not establish reauthorization."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "B2 cannot exceed DECLARED assurance until an explicit purpose and field-level necessity/proportionality record exists for every material data path.",
+      "B2 cannot exceed IMPLEMENTED assurance until minimisation controls are enforced at actual interfaces, providers, tools, prompts, retrieval, logs, memory and retention paths.",
+      "B2 cannot exceed TESTED assurance until lower-data alternatives and representative overcollection, deletion and scope-change tests have been executed.",
+      "Operational effectiveness cannot exceed OPERATIONALLY_OBSERVED without current runtime payload and deletion-propagation evidence across normal and exceptional paths.",
+      "A B2 conclusion does not establish privacy lawfulness, data-subject rights, confidentiality, intellectual-property permission, data quality or provenance; those require related-criterion evidence."
+    ],
+    "false_positive_guards": [
+      "Do not treat data as unnecessary merely because it is sensitive; necessity is determined against the approved purpose, risk and available alternatives.",
+      "Do not require destructive deletion where a documented legal hold, incident preservation duty or binding retention requirement applies; constrain access and record the separate authority.",
+      "Do not treat justified audit, security or safety telemetry as convenience accumulation when content, granularity, access and duration are proportionate and independently reviewed.",
+      "Do not treat pseudonymised, anonymised, synthetic or aggregated data as automatically sufficient; utility and residual risk must be tested for the intended use.",
+      "Do not require identical minimisation controls for every lifecycle stage; prototypes, evaluation and production may have different justified needs, but each must be explicitly bounded and tested."
+    ],
+    "prohibited_inferences": [
+      "Do not infer necessity from availability, low storage cost, model capability, improved benchmark score, vendor recommendation or possible future usefulness.",
+      "Do not infer minimisation from encryption, access control, pseudonymisation, a short prompt or a configured retention value alone.",
+      "Do not infer purpose compatibility from prior consent, prior contract, prior approval or similarity of data subjects or fields.",
+      "Do not infer deletion from expiry configuration, ticket closure or deletion in one system when material copies and derived paths remain untested.",
+      "Do not infer tested absence of convenience-driven accumulation from a clean incident history or absence of complaints."
+    ],
+    "contradiction_handling": [
+      "When a purpose or necessity record conflicts with observed payloads or retention, observed implementation and runtime evidence control the technical assurance ceiling.",
+      "When business, legal, privacy, security, model-quality and operational owners disagree on necessity, keep the affected conclusion UNKNOWN or NOT_SATISFIED until an attributable human decision resolves the conflict.",
+      "When minimisation reduces performance, record the trade-off and require an accountable proportionality decision rather than silently restoring broader data.",
+      "When deletion evidence conflicts across stores or providers, treat propagation as incomplete until the discrepancy is reconciled and independently verified."
+    ],
+    "freshness_rules": [
+      "Purpose and necessity records must be reviewed after every material purpose, field, model, provider, integration, population, output-use or lifecycle change.",
+      "Runtime payload, context and logging tests must represent the current deployed versions and include fallback and exception paths.",
+      "Retention and deletion propagation evidence must cover the current storage topology, providers, backups, embeddings and downstream recipients.",
+      "Alternative assessments must be revisited when privacy-enhancing, synthetic-data, local-processing or selective-disclosure capability materially improves."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "A material or consequential data use has no explicit approved purpose or field-level necessity and proportionality record.",
+      "Protected, special-category, confidential or high-consequence data are used in development, evaluation or production without documented lower-data alternatives and approved safeguards.",
+      "Observed provider, tool, prompt, retrieval, log, cache, memory or export payloads materially exceed the approved data boundary.",
+      "Required deletion, restriction or purpose expiry does not propagate across material stores, copies, embeddings, backups or recipients.",
+      "A material purpose, secondary-use, retention or scope change proceeds without renewed accountable authorization."
+    ],
+    "override_authority": "Only the accountable AI governance, data/privacy, legal or risk authority defined for the exact scope may approve a time-bounded exception; the exception cannot waive binding law and must preserve compensating controls, evidence, expiry and reassessment."
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-B2-EU-GDPR-001",
+      "source_id": "SRC-EU-GDPR",
+      "source_version_or_date": "Regulation (EU) 2016/679",
+      "exact_locator": "Article 5(1)(b), 5(1)(c), 5(1)(e), 25(1) and 25(2)",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "When personal data processing is in scope, these provisions establish purpose limitation, data minimisation, storage limitation and data-protection-by-design/default obligations that require necessity, proportionality and default restriction of amount, extent, retention and accessibility.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-B2-EU-AIA-002",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Article 10(2), 10(4), and 10(5)(a)-(f)",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "For applicable high-risk AI systems, Article 10 links data governance to intended purpose and imposes a strict-necessity, alternatives, reuse-limitation, access-control, non-transfer and deletion boundary for exceptional processing of special categories of personal data for bias detection and correction.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-B2-NIST-AI-RMF-003",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023",
+      "exact_locator": "AI RMF Core MAP 1.1, MAP 1.6, MAP 2.3 and MANAGE 1.1",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "These outcomes require intended purpose, privacy-related system requirements, data-collection and selection considerations, and a governed determination that the system achieves its intended purpose and should proceed.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    },
+    {
+      "mapping_id": "SRCMAP-B2-NIST-PRIVACY-FRAMEWORK-004",
+      "source_id": "SRC-NIST-PRIVACY-FRAMEWORK",
+      "source_version_or_date": "NIST Privacy Framework Version 1.0, January 2020",
+      "exact_locator": "ID.IM-P5; CT.PO-P2 and CT.PO-P4; CT.DM-P4, CT.DM-P5 and CT.DM-P8; CT.DP-P1 through CT.DP-P5",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "The cited outcomes connect purpose inventories, lifecycle-aligned data management, deletion, minimised audit records, selective collection or disclosure, and privacy-enhancing forms such as tokenisation, de-identification and derived attributes.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-03"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-B2-001",
+      "title": "Field-level purpose, necessity or proportionality is not established for material data use",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B2-SC-001",
+        "B2-SC-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-B2-001",
+        "EVD-B2-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Do not progress the affected data use or lifecycle transition until purpose, necessity, alternatives, proportionality and accountable ownership are human-validated.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B2-002",
+      "title": "Implemented collection, context, provider, tool, logging or disclosure exceeds the approved minimum",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B2-SC-003",
+        "B2-SC-004",
+        "B2-SC-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-B2-002",
+        "EVD-B2-004",
+        "EVD-B2-007"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block or constrain the affected interface and downstream use until field-level controls and representative negative tests meet the approved boundary.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B2-003",
+      "title": "Lower-data, selective-disclosure, synthetic or local-processing alternatives are not adequately assessed",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B2-SC-002",
+        "B2-SC-006"
+      ],
+      "required_evidence_ids": [
+        "EVD-B2-001",
+        "EVD-B2-003"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain the affected use to a bounded environment until realistic lower-data alternatives and trade-offs are tested and approved.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B2-004",
+      "title": "Retention, deletion, restriction or purpose expiry is not bound and propagated end to end",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B2-SC-007",
+        "B2-SC-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-B2-005",
+        "EVD-B2-006"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Stop further accumulation and close neither deletion nor retirement obligations until material copies, derived paths, exceptions and recipients are reconciled.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-B2-005",
+      "title": "Material purpose, secondary-use or data-scope change is not reauthorized",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "B2-SC-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-B2-008"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Suspend the changed use or transition until renewed purpose, necessity, alternatives, retention and affected-party review is formally approved.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-005-FND-B2-001-001",
+      "tactic_id": "GOV-DAT-005",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-PUR-002-FND-B2-001-002",
+      "tactic_id": "GOV-PUR-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-001-FND-B2-001-003",
+      "tactic_id": "GOV-DAT-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-006-FND-B2-002-004",
+      "tactic_id": "GOV-DAT-006",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-003-FND-B2-002-005",
+      "tactic_id": "GOV-DAT-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-005-FND-B2-003-006",
+      "tactic_id": "GOV-DAT-005",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-006-FND-B2-003-007",
+      "tactic_id": "GOV-DAT-006",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-007-FND-B2-004-008",
+      "tactic_id": "GOV-DAT-007",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-001-FND-B2-004-009",
+      "tactic_id": "GOV-DAT-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-DAT-008-FND-B2-005-010",
+      "tactic_id": "GOV-DAT-008",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    },
+    {
+      "mapping_id": "MAP-B2-GOV-PUR-004-FND-B2-005-011",
+      "tactic_id": "GOV-PUR-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-B2-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.8.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Compare approved purpose and field-level necessity records with observed payloads, contexts, logs, stores, retention and deletion traces.",
+      "Identify overcollection, overprecision, excessive context, unnecessary copies, stale retention, missing alternatives and unapproved secondary-use candidates.",
+      "Apply deterministic evidence ceilings and propose eligible capability conclusion states for accountable human lock.",
+      "Test exact approved tactic mappings only after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Define the legitimate purpose, lawful basis, proportionality threshold or acceptable privacy trade-off.",
+      "Assume that higher accuracy, lower cost, vendor defaults, encryption, pseudonymisation or future utility makes data necessary.",
+      "Delete, restrict, anonymise, retain or repurpose protected data without attributable authority and impact analysis.",
+      "Clear a hard gate, lock a finding, approve an exception, accept residual risk or authorize a lifecycle transition."
+    ],
+    "human_authority_required_for": [
+      "Approve purpose, necessity, proportionality, lower-data alternative and retention decisions for the exact scope.",
+      "Adjudicate conflicts among business utility, safety, fairness, privacy, security, legal, contractual and operational obligations.",
+      "Lock findings and decide isolation, deletion, restriction, redesign, reauthorization or bounded exception.",
+      "Approve residual risk and the exact lifecycle transition."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A4",
+    "A5",
+    "B1",
+    "B3",
+    "B4",
+    "B5",
+    "C1",
+    "C3",
+    "C4",
+    "D1",
+    "D3",
+    "D4",
+    "E1",
+    "E2",
+    "F1",
+    "F3",
+    "F5",
+    "AP-B1",
+    "AP-B2",
+    "AP-B3",
+    "AP-B4",
+    "AP-B5"
+  ],
+  "governance_purpose": "Ensure that data scope, granularity, exposure, context and retention are continuously limited to what is demonstrably necessary and proportionate for an explicit approved purpose, using technical enforcement and operational evidence rather than documentation alone.",
+  "distinct_claim": "B2 owns purpose-bound necessity, proportionality, minimisation, lower-data alternatives, retention and deletion propagation. B1 owns identity and lineage; B3 owns personal-data lawfulness, transparency and rights; B4 owns confidentiality and leakage protection; B5 owns intellectual-property and licensing boundaries.",
+  "atomic_subcriteria": [
+    {
+      "id": "B2-SC-001",
+      "question_id": "B2-Q1",
+      "criterion": "Every material data category, field, document, precision level, recipient, use and retention period is linked to an explicit approved purpose and accountable owner.",
+      "required_evidence_ids": [
+        "EVD-B2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-002",
+      "question_id": "B2-Q1",
+      "criterion": "Necessity and proportionality are justified against realistic lower-data, selective-disclosure, synthetic, anonymised, tokenised, aggregated or local-processing alternatives.",
+      "required_evidence_ids": [
+        "EVD-B2-001",
+        "EVD-B2-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-003",
+      "question_id": "B2-Q2",
+      "criterion": "Collection, transformation and disclosure interfaces use field-level allowlists, reduced precision, default-deny schemas and protected handling for out-of-scope content.",
+      "required_evidence_ids": [
+        "EVD-B2-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-004",
+      "question_id": "B2-Q2",
+      "criterion": "Prompt, retrieval, memory, provider and tool context is limited to the minimum content, tenant, purpose, duration and granularity required for the current task.",
+      "required_evidence_ids": [
+        "EVD-B2-002",
+        "EVD-B2-004",
+        "EVD-B2-007"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-005",
+      "question_id": "B2-Q2",
+      "criterion": "Logs, telemetry, traces, caches, error records, exports and human-review queues avoid unnecessary raw content and use minimised protected metadata where sufficient.",
+      "required_evidence_ids": [
+        "EVD-B2-004",
+        "EVD-B2-007"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-006",
+      "question_id": "B2-Q3",
+      "criterion": "Prototype, evaluation and test environments use synthetic, anonymised, tokenised or reduced data unless production or protected data are demonstrably necessary and formally approved.",
+      "required_evidence_ids": [
+        "EVD-B2-003",
+        "EVD-B2-008"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "B2-SC-007",
+      "question_id": "B2-Q2",
+      "criterion": "Retention periods and reuse rights are purpose-specific, shortest-justified, owner-approved and technically enforced across material stores and providers.",
+      "required_evidence_ids": [
+        "EVD-B2-005"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "B2-SC-008",
+      "question_id": "B2-Q3",
+      "criterion": "Deletion, restriction, purpose expiry and scope changes propagate to copies, caches, logs, embeddings, backups, derived data and downstream recipients within approved service levels.",
+      "required_evidence_ids": [
+        "EVD-B2-006",
+        "EVD-B2-007"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-009",
+      "question_id": "B2-Q3",
+      "criterion": "Material purpose, design, field, provider, population, output-use, retention or lifecycle changes trigger renewed data-scope review and formal reauthorization before continued use.",
+      "required_evidence_ids": [
+        "EVD-B2-008"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema_set_id": "AI-GOV-SCHEMA-SET",
+  "version": "2.1.0",
+  "active_schema_set_version": "2.1.0",
+  "draft": "2020-12",
+  "authority_lifecycle": "DEVELOPMENT_BOOTSTRAP",
+  "release_status": "DEVELOPMENT",
+  "schemas": [
+    "antipattern.schema.json",
+    "capability.schema.json",
+    "shared-definitions.schema.json",
+    "source-register.schema.json",
+    "tactic-catalog.schema.json",
+    "validation-report.schema.json"
+  ],
+  "semantic_validators_required": [
+    "unique IDs across arrays and registries",
+    "ID scope and prefix ownership",
+    "question ID/dimension exactness",
+    "atomic-item evidence existence and semantic fitness",
+    "finding-to-atomic evidence agreement",
+    "source existence/status/applicability/locator precision",
+    "tactic reciprocal mapping and version compatibility",
+    "duplicate tactic equivalence review",
+    "lifecycle and hard-gate proportionality",
+    "approval authority and version alignment",
+    "JSON/DOCX/PDF parity"
+  ]
+}

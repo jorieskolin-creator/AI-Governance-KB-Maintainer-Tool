@@ -1,0 +1,597 @@
+{
+  "schema_version": "2.0.0",
+  "id": "AP-A4",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "AP-A4_ANTIPATTERN_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Legal interpretation, evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "ANTIPATTERN",
+  "title": "Superficial or static classification",
+  "canonical_definition": "Classification is copied, model-centric, internally conflated, overconfident, disconnected from operational consequences or treated as a one-time formality, so actual use, jurisdiction, legal uncertainty and material change are not governed.",
+  "applicability": {
+    "statement": "Applicable to every AI system and actual use. Classification must cover the complete socio-technical system and be revisited after material change.",
+    "conditions": [
+      "Classify the complete system, actual intended and reasonably foreseeable use, affected persons, decision context, data, integrations, providers, jurisdictions and sector setting rather than the model in isolation.",
+      "Separate internal risk ratings from legal or regulatory classifications while maintaining traceable relationships between them.",
+      "Screen prohibited practices, role-dependent duties, risk classes, data-protection and automated-decision rules, product or sector obligations and other adjacent regimes that may apply.",
+      "Make uncertainty, assumptions, dissent, pending legal questions and effective-date dependencies visible and attributable.",
+      "Translate classification outcomes into controls, documentation duties, registrations, review routes and lifecycle constraints."
+    ],
+    "exclusions": [
+      "A vendor label, model card, procurement category or generic AI risk tier does not establish legal applicability for the actual system and use.",
+      "This criterion does not itself determine legal compliance, replace legal advice or transfer statutory responsibility.",
+      "Technical model risk classification alone is insufficient when system context, affected persons, jurisdiction or sector obligations are material."
+    ],
+    "reassessment_triggers": [
+      "Material change to intended purpose, actual use, user group, affected persons, decision authority or impact",
+      "New or changed jurisdiction, market, sector, customer, deployment location or legal role",
+      "New model, provider, component, data source, integration, autonomy level or substantial modification",
+      "Change in legal text, official guidance, applicable date, enforcement position or sector requirement",
+      "Incident, complaint, audit, evaluation or operational evidence contradicts a classification assumption",
+      "Lifecycle transition, scale expansion or retirement changes exposure, obligations or residual risk"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "AP-A4-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Is classification copied, model-centric, internally conflated or stated without system-specific analysis of actual use, jurisdiction and adjacent regimes?"
+    },
+    {
+      "id": "AP-A4-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are classification labels disconnected from required controls, documentation, review routes or lifecycle constraints?"
+    },
+    {
+      "id": "AP-A4-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Is classification stale, overconfident, unsupported, unreviewed or unchanged after material system, use, legal or jurisdictional change?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-A4-001",
+      "title": "Classification provenance and factual-basis comparison",
+      "claim_supported": "Classification content is copied, inherited or model-centric and lacks traceable analysis of the current complete system and actual use.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Compares classification text and factual inputs with provider material, templates, prior systems and current system evidence.",
+        "Identifies unsupported reuse, omitted context and model-only reasoning."
+      ],
+      "limitations": [
+        "Text similarity alone does not prove superficial classification; the missing system-specific analysis must be material."
+      ]
+    },
+    {
+      "id": "EVD-AP-A4-002",
+      "title": "Unsupported legal assertion and uncertainty-suppression evidence",
+      "claim_supported": "Unknown, disputed or conditional legal questions are presented as settled facts, or contrary views and assumptions are hidden.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Identifies the assertion, missing source or fact, contrary evidence, uncertainty and affected decision.",
+        "Shows absence of accountable review, expiry or interim constraint."
+      ],
+      "limitations": [
+        "A firm conclusion is not overconfidence when current facts, official sources and competent review support it."
+      ]
+    },
+    {
+      "id": "EVD-AP-A4-003",
+      "title": "Risk-class and adjacent-regime omission evidence",
+      "claim_supported": "Material prohibited-practice, risk-class, data-protection, automated-decision, product or sector triggers are omitted or collapsed into an internal rating.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Shows the omitted trigger and its relevance to actual use, affected persons, data, jurisdiction or sector.",
+        "Separates legal classification from internal risk taxonomy."
+      ],
+      "limitations": [
+        "Not every conceivable regime must be assessed; evidence must show a material and reasonably applicable omission."
+      ]
+    },
+    {
+      "id": "EVD-AP-A4-004",
+      "title": "Classification-to-operation disconnect evidence",
+      "claim_supported": "Classification outcomes do not drive required controls, documentation, reviews, registrations or lifecycle constraints.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Traces selected classification conclusions to missing or contradictory owners, controls, artifacts, approvals or gates.",
+        "Includes bypass, exception and fallback paths."
+      ],
+      "limitations": [
+        "A phased implementation plan is not a disconnect when the current lifecycle boundary prevents premature use and obligations are time-bounded."
+      ]
+    },
+    {
+      "id": "EVD-AP-A4-005",
+      "title": "Stale classification and missed reclassification evidence",
+      "claim_supported": "A material system, use, provider, data, jurisdiction, legal or lifecycle change occurred without timely reclassification and downstream update.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Links a dated material change to unchanged or obsolete classification assumptions and affected operation.",
+        "Shows missing trigger, delayed review, continued reliance or inconsistent downstream controls."
+      ],
+      "limitations": [
+        "A change is not material merely because a version number changed; it must affect classification facts, obligations, exposure or decision boundaries."
+      ]
+    },
+    {
+      "id": "EVD-AP-A4-006",
+      "title": "Scoped tested-absence package",
+      "claim_supported": "A current, executed and independently verified test demonstrates that AP-A4 failure mechanisms are absent across the defined system and classification boundary.",
+      "evidence_class": "TEST_RESULT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers provenance, actual-use analysis, legal uncertainty, adjacent-regime screening, implementation consequences and reclassification triggers.",
+        "Includes negative cases, source and fact sampling, material-change replay and independent review."
+      ],
+      "limitations": [
+        "Silence, no incident, one legal memo or a complete-looking form cannot establish TESTED_ABSENT."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "Superficial classification cannot be confirmed solely from missing documentation without a scoped search for current analysis and implementation evidence.",
+      "A copied label or provider statement cannot exceed DECLARED until material absence of system-specific analysis is demonstrated.",
+      "Implementation disconnect requires evidence of a material missing control, duty, review or lifecycle consequence.",
+      "TESTED_ABSENT requires the complete current absence-test contract and cannot be inferred from no enforcement event or no incident."
+    ],
+    "false_positive_guards": [
+      "Do not classify standardized templates or provider inputs as superficial when they are explicitly adapted, challenged and supplemented with actual-use analysis.",
+      "Do not treat an internal risk tier as confusion when its relationship to legal classes is explicit and correctly bounded.",
+      "Do not classify a stable legal conclusion as static merely because it has not changed; require evidence of a material change or stale assumption.",
+      "Do not classify visible uncertainty as failure when it is owned, constrained, time-bounded and subject to competent review."
+    ],
+    "prohibited_inferences": [
+      "Do not infer legal misclassification from model type, vendor label or risk score alone.",
+      "Do not infer tested absence from a completed form, approval stamp, no complaint or no regulator contact.",
+      "Do not infer that a classification is operational because a policy references it.",
+      "Do not close a finding because legal review, control implementation or reclassification is planned."
+    ],
+    "contradiction_handling": [
+      "Conflicting classification records, system facts, legal opinions or operational controls retain UNKNOWN or support partial/present findings pending human adjudication.",
+      "Observed actual use and material change evidence override stale declared classifications for present-state conclusions.",
+      "Where the anti-pattern appears only in one regime or lifecycle decision, scope the finding precisely rather than generalizing to the entire system."
+    ],
+    "freshness_rules": [
+      "Use the classification and system facts current for the assessed operation and decision date.",
+      "Re-run AP-A4 tests after material system, use, jurisdiction, provider, data, legal or lifecycle change.",
+      "Absence testing expires when source versions, key facts, responsible reviewers or downstream obligations materially change."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block consequential deployment when AP-A4 is confirmed for prohibited-practice, high-risk or other material legal classification.",
+      "Block or constrain operation when classification is disconnected from mandatory controls, documentation, review or registration duties.",
+      "Block material expansion when a stale classification has not been requalified after a material change.",
+      "Do not report TESTED_ABSENT unless the complete scoped, current and independently verified absence-test contract passes."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_LEGAL_COMPLIANCE_RISK_AND_SYSTEM_OWNER"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-AP-A4-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Articles 2-3; Article 5; Article 6; Annex I; Annex III; Article 49; Article 113",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "The Regulation requires system- and use-specific scope, prohibited-practice and high-risk analysis; copied or static classification can miss role, use, annex and effective-date conditions.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-A4-EU-GDPR-001",
+      "source_id": "SRC-EU-GDPR",
+      "source_version_or_date": "Regulation (EU) 2016/679",
+      "exact_locator": "Articles 5-6, 9, 22, 25, 32 and 35",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Omitting personal-data, special-category, automated-decision, privacy-by-design, security or DPIA triggers can make classification superficial or operationally incomplete.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-AP-A4-NIST-AI-RMF-001",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023",
+      "exact_locator": "AI RMF Core GOVERN 1.1 and 1.3; MAP 1.1, 2.1, 3.3, 4.1 and 5.1; MANAGE 1.1",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "NIST requires current context, legal requirements, system categorization, component and impact risk mapping and go/no-go decisions; superficial or static classification conflicts with those outcomes.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-A4-001",
+      "title": "Classification is copied, inherited or model-centric without material actual-use analysis",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A4-AT-001",
+        "AP-A4-AT-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A4-001"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block consequential reliance on the classification until system-specific factual and applicability analysis is completed and approved.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A4-002",
+      "title": "Unknown or disputed legal questions are stated as settled facts or material uncertainty is suppressed",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A4-AT-003"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A4-002"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain affected decisions, expose uncertainty and require accountable legal or compliance adjudication.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A4-003",
+      "title": "Material risk classes or adjacent legal regimes are omitted or conflated with an internal rating",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A4-AT-004",
+        "AP-A4-AT-005"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A4-003"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block or constrain the affected use until material omitted regimes and classification consequences are assessed.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A4-004",
+      "title": "Classification is disconnected from required controls, documentation, review or lifecycle constraints",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A4-AT-006",
+        "AP-A4-AT-007"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A4-004"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block transition or constrain operation until classification consequences are operationally implemented and verified.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A4-005",
+      "title": "Classification remained unchanged after material system, use, legal or jurisdictional change",
+      "eligible_conclusion_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A4-AT-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A4-005"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Freeze affected progression or constrain operation pending reclassification, approval and downstream update.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-AP-A4-006",
+      "title": "Absence of superficial or static classification is not established by a scoped current test",
+      "eligible_conclusion_states": [
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "AP-A4-AT-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-AP-A4-006"
+      ],
+      "default_severity": "MEDIUM",
+      "lifecycle_consequence": "Retain UNKNOWN and do not claim tested absence until the complete absence-test contract passes.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-AP-A4-GOV-CLS-001-FND-AP-A4-001-003",
+      "tactic_id": "GOV-CLS-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A4-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A4-GOV-CLS-001-FND-AP-A4-002-004",
+      "tactic_id": "GOV-CLS-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A4-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A4-GOV-CLS-002-FND-AP-A4-003-002",
+      "tactic_id": "GOV-CLS-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A4-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A4-GOV-CLS-003-FND-AP-A4-004-002",
+      "tactic_id": "GOV-CLS-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A4-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A4-GOV-CLS-004-FND-AP-A4-002-003",
+      "tactic_id": "GOV-CLS-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A4-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A4-GOV-CLS-004-FND-AP-A4-005-004",
+      "tactic_id": "GOV-CLS-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A4-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-AP-A4-GOV-CLS-004-FND-AP-A4-006-005",
+      "tactic_id": "GOV-CLS-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-AP-A4-006",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract system facts, jurisdictions, roles, source locators, classification statements, assumptions, controls and change records.",
+      "Compare classification records with actual use, current evidence and approved source mappings; identify omissions, contradictions and stale assumptions.",
+      "Apply deterministic evidence ceilings and propose eligible finding states for human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Determine legal applicability, prohibited-practice status, regulatory risk class, actor role or compliance.",
+      "Convert uncertainty into a definitive legal statement or select a jurisdictional interpretation without accountable human authority.",
+      "Treat vendor classification, model type, internal risk tier or automated output as authoritative legal classification.",
+      "Clear a hard gate, lock a finding, accept residual risk or authorize a lifecycle transition."
+    ],
+    "human_authority_required_for": [
+      "Determine applicable jurisdictions, legal roles, prohibited-practice status, regulatory classes and adjacent regimes.",
+      "Approve classification rationale, non-applicability conclusions, uncertainty treatment and interim operating constraints.",
+      "Adjudicate conflicting legal, factual, sector or provider interpretations.",
+      "Lock findings, accept residual risk and approve bounded exceptions.",
+      "Authorize deployment, continued operation, reclassification, transition or retirement."
+    ]
+  },
+  "related_criteria": [
+    "A4",
+    "A1",
+    "A2",
+    "A3",
+    "A5",
+    "AP-A1",
+    "AP-A2",
+    "AP-A3",
+    "AP-A5",
+    "B1",
+    "B2",
+    "B5",
+    "C1",
+    "C3",
+    "C5",
+    "D2",
+    "D4",
+    "E1",
+    "E2",
+    "E4",
+    "F1",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "failure_mechanism": "Classification is inherited from a provider, template, model label or internal risk tier; incomplete facts and legal uncertainty are hidden; outcomes are not translated into controls; and material changes do not reopen the decision, allowing obligations and prohibited or high-risk uses to be missed.",
+  "atomic_tests": [
+    {
+      "id": "AP-A4-AT-001",
+      "question_id": "AP-A4-Q1",
+      "test": "Test whether classification text, conclusions or rationale are copied from provider material, templates or another system without explicit adaptation to current facts.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A4-AT-002",
+      "question_id": "AP-A4-Q1",
+      "test": "Test whether the classification focuses on the model while omitting actual use, affected persons, decisions, data, integrations, jurisdictions or sector context.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A4-AT-003",
+      "question_id": "AP-A4-Q1",
+      "test": "Test whether conditional, disputed, unknown or future-effective legal questions are presented as settled facts without competent review, evidence needs or interim constraints.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A4-AT-004",
+      "question_id": "AP-A4-Q1",
+      "test": "Test whether prohibited-practice or regulatory risk-class analysis is missing, incomplete or based on model type rather than actual use and legal trigger facts.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A4-AT-005",
+      "question_id": "AP-A4-Q1",
+      "test": "Test whether adjacent data-protection, automated-decision, product, consumer, employment, safety or sector regimes are materially omitted or collapsed into an internal risk rating.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A4-AT-006",
+      "question_id": "AP-A4-Q2",
+      "test": "Test whether classification conclusions lack traceable implementation through accountable controls, documentation, review, registration or transparency duties.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-004"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A4-AT-007",
+      "question_id": "AP-A4-Q2",
+      "test": "Test whether unresolved classification matters fail to constrain deployment, operation, scale or lifecycle transition.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-002",
+        "EVD-AP-A4-004"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-A4-AT-008",
+      "question_id": "AP-A4-Q3",
+      "test": "Test whether a material system, use, provider, data, jurisdiction, legal or lifecycle change occurred without timely reclassification and downstream update.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-005"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A4-AT-009",
+      "question_id": "AP-A4-Q3",
+      "test": "Test whether a current, scoped, successful and independently verified absence test covers all AP-A4 failure mechanisms and representative material-change cases.",
+      "required_evidence_ids": [
+        "EVD-AP-A4-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Current complete-system and actual-use classification dossier",
+      "Classification provenance and source trace",
+      "Prohibited-practice, risk-class and adjacent-regime screen",
+      "Classification-to-control implementation sample",
+      "Uncertainty and dissent sample",
+      "Material-change replay and reclassification sample",
+      "Independent absence-test review and approval"
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

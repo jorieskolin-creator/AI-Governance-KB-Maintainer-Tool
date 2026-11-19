@@ -1,0 +1,598 @@
+{
+  "schema_version": "2.0.0",
+  "id": "A4",
+  "version": "1.0.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approval_status": "APPROVED",
+    "approval_scope": "A4_CAPABILITY_CONTENT_AND_PRODUCTION_USE",
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-02",
+    "effective_from": "2026-08-02",
+    "review_due_on": "2027-08-02",
+    "release_version": "1.0.0",
+    "supersedes": null,
+    "authority_statement": "Approved governance knowledge for immediate production use within the defined authority boundary. Legal interpretation, evidence adjudication, finding lock, residual-risk acceptance and lifecycle authorization remain attributable human decisions.",
+    "change_control": "Any semantic, state, gate, finding, source-applicability or tactic-mapping change requires a new version, dependency update, reciprocal validation and renewed approval."
+  },
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "CAPABILITY",
+  "title": "Risk, legal and regulatory classification",
+  "canonical_definition": "The complete AI system and actual use are classified through a reviewable applicability analysis covering roles, jurisdictions, prohibited practices, risk classes, data and impact rules, sector obligations and adjacent legal regimes, with outcomes implemented and reclassified after material change.",
+  "applicability": {
+    "statement": "Applicable to every AI system and actual use. Classification must cover the complete socio-technical system and be revisited after material change.",
+    "conditions": [
+      "Classify the complete system, actual intended and reasonably foreseeable use, affected persons, decision context, data, integrations, providers, jurisdictions and sector setting rather than the model in isolation.",
+      "Separate internal risk ratings from legal or regulatory classifications while maintaining traceable relationships between them.",
+      "Screen prohibited practices, role-dependent duties, risk classes, data-protection and automated-decision rules, product or sector obligations and other adjacent regimes that may apply.",
+      "Make uncertainty, assumptions, dissent, pending legal questions and effective-date dependencies visible and attributable.",
+      "Translate classification outcomes into controls, documentation duties, registrations, review routes and lifecycle constraints."
+    ],
+    "exclusions": [
+      "A vendor label, model card, procurement category or generic AI risk tier does not establish legal applicability for the actual system and use.",
+      "This criterion does not itself determine legal compliance, replace legal advice or transfer statutory responsibility.",
+      "Technical model risk classification alone is insufficient when system context, affected persons, jurisdiction or sector obligations are material."
+    ],
+    "reassessment_triggers": [
+      "Material change to intended purpose, actual use, user group, affected persons, decision authority or impact",
+      "New or changed jurisdiction, market, sector, customer, deployment location or legal role",
+      "New model, provider, component, data source, integration, autonomy level or substantial modification",
+      "Change in legal text, official guidance, applicable date, enforcement position or sector requirement",
+      "Incident, complaint, audit, evaluation or operational evidence contradicts a classification assumption",
+      "Lifecycle transition, scale expansion or retirement changes exposure, obligations or residual risk"
+    ]
+  },
+  "primary_questions": [
+    {
+      "id": "A4-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are applicable jurisdictions, actor roles, prohibited-practice screens, risk classes and adjacent legal or sector regimes identified from the complete system and actual use?"
+    },
+    {
+      "id": "A4-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are classification outcomes implemented as controls, documentation duties, registrations, review routes and lifecycle transition constraints?"
+    },
+    {
+      "id": "A4-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Is the classification rationale current, evidence-backed, independently reviewed where needed and linked to effective reclassification triggers?"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-A4-001",
+      "title": "System and actual-use classification dossier",
+      "claim_supported": "The complete socio-technical system, actual use, affected persons, decision context, jurisdictions and material actors are documented as the factual basis for classification.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Defines the system boundary, intended and reasonably foreseeable use, users, affected persons, decisions, outputs, integrations, providers, data and deployment locations.",
+        "Distinguishes factual inputs, assumptions, unresolved questions and legal conclusions."
+      ],
+      "limitations": [
+        "A model name, architecture diagram or generic use-case label alone does not establish the factual basis."
+      ]
+    },
+    {
+      "id": "EVD-A4-002",
+      "title": "Jurisdiction, role and legal-applicability analysis",
+      "claim_supported": "Applicable jurisdictions, territorial connections, actor roles, exclusions, effective dates and role-dependent duties are assessed for the actual system and use.",
+      "evidence_class": "HUMAN_DECISION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Uses current official sources and exact locators for material conclusions.",
+        "Records non-applicability rationale, uncertainty, dissent and accountable legal or compliance review."
+      ],
+      "limitations": [
+        "Automated extraction may support the analysis but cannot determine legal applicability or actor status."
+      ]
+    },
+    {
+      "id": "EVD-A4-003",
+      "title": "Prohibited-practice and exclusion screen",
+      "claim_supported": "Applicable prohibited-practice rules, exclusions and special conditions are systematically screened against actual functionality, purpose, context and effects.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Covers every relevant prohibited-practice category and records evidence, rationale and unresolved ambiguity.",
+        "Includes foreseeable use and material system behavior, not only declared intent."
+      ],
+      "limitations": [
+        "A provider statement that a model is compliant does not establish system-level absence of a prohibited practice."
+      ]
+    },
+    {
+      "id": "EVD-A4-004",
+      "title": "Risk-class and adjacent-regime matrix",
+      "claim_supported": "AI risk classification and adjacent legal, data-protection, automated-decision, product, consumer, employment, safety or sector regimes are screened and linked to actual triggers.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Separates binding legal classes, internal risk tiers and voluntary framework categories.",
+        "Records exact trigger facts, exclusions, dependencies and responsible reviewers for each considered regime."
+      ],
+      "limitations": [
+        "A broad legal inventory without system-specific trigger analysis is insufficient."
+      ]
+    },
+    {
+      "id": "EVD-A4-005",
+      "title": "Classification-to-control and obligation implementation matrix",
+      "claim_supported": "Every material classification outcome is translated into applicable controls, documentation, registration, assessment, review, transparency, oversight and transition requirements.",
+      "evidence_class": "IMPLEMENTATION",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Maps each classification conclusion to an accountable owner, due date, evidence artifact, control and lifecycle effect.",
+        "Distinguishes mandatory obligations, voluntary controls and unresolved pending requirements."
+      ],
+      "limitations": [
+        "A classification label without downstream implementation does not establish operational governance."
+      ]
+    },
+    {
+      "id": "EVD-A4-006",
+      "title": "Uncertainty, dissent and legal-question register",
+      "claim_supported": "Material uncertainty, conflicting interpretations, missing facts, dissent and pending legal questions are visible, owned, time-bounded and linked to constrained decisions.",
+      "evidence_class": "DOCUMENT",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Names the question, affected decision, interim constraint, evidence need, accountable owner and review date.",
+        "Prevents UNKNOWN matters from being silently converted into definitive classifications."
+      ],
+      "limitations": [
+        "A note that legal review is pending is insufficient without an interim operating boundary and responsible authority."
+      ]
+    },
+    {
+      "id": "EVD-A4-007",
+      "title": "Independent classification review and approval record",
+      "claim_supported": "A competent independent or second-line review challenges material classifications, assumptions, exclusions and control consequences before consequential progression.",
+      "evidence_class": "EXTERNAL_ATTESTATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED",
+      "acceptance_conditions": [
+        "Reviewer competence and independence are appropriate to the risk and legal question.",
+        "Review findings, dissent, required corrections and final approval are attributable and retained."
+      ],
+      "limitations": [
+        "Peer acknowledgement without challenge evidence or decision authority is not independent review."
+      ]
+    },
+    {
+      "id": "EVD-A4-008",
+      "title": "Change-trigger and reclassification execution records",
+      "claim_supported": "Material changes and legal updates are detected, assessed and used to re-open classification before affected operation or lifecycle progression.",
+      "evidence_class": "OPERATIONAL_RECORD",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED",
+      "acceptance_conditions": [
+        "Shows representative change events from detection through impact assessment, reclassification, approval and downstream update.",
+        "Includes version, effective date, changed assumptions, affected controls and communication."
+      ],
+      "limitations": [
+        "A documented trigger list without executed cases cannot establish operational effectiveness."
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "evidence_ceilings": [
+      "A classification cannot exceed DECLARED assurance until factual inputs, exact legal locators and accountable human review are complete.",
+      "Legal or regulatory classification cannot be raised by model output, provider assurance, internal risk scores or tactic completion.",
+      "Implementation evidence can establish that classification consequences are operationalized but cannot prove the legal conclusion itself.",
+      "Operational reclassification effectiveness cannot exceed TESTED before representative material-change cases exist."
+    ],
+    "false_positive_guards": [
+      "Do not treat a system as unclassified merely because a particular legal regime is not applicable when the non-applicability rationale is current and reviewable.",
+      "Do not confuse conservative uncertainty or a bounded pending decision with governance failure when interim constraints and ownership are explicit.",
+      "Do not infer a high-risk legal class solely from a high internal risk rating, or the reverse.",
+      "Do not require every possible regime to be fully analysed; require a reasoned, system-specific screening method and documented exclusions."
+    ],
+    "prohibited_inferences": [
+      "Do not determine legal applicability, prohibited-practice status, actor role or compliance from keywords or model type alone.",
+      "Do not infer non-applicability from provider location, customer location or contract wording without territorial and actual-use analysis.",
+      "Do not conclude that classification is current because no incident, complaint or regulatory inquiry has occurred.",
+      "Do not clear a classification or hard-gate finding because remediation is planned or a tactic has been selected."
+    ],
+    "contradiction_handling": [
+      "Conflicting system facts, legal opinions, provider claims or jurisdictional conclusions keep the affected classification UNKNOWN until accountable adjudication.",
+      "Observed actual use or capability that differs from the classification dossier overrides stale declared assumptions for present-state assessment.",
+      "Where adjacent regimes impose stricter or different obligations, retain both analyses and escalate conflict rather than collapsing them into one internal rating."
+    ],
+    "freshness_rules": [
+      "Revalidate classification after every material system, use, jurisdiction, role, data, provider, legal or lifecycle change.",
+      "Use sources and guidance current for the relevant decision date and record future effective-date dependencies separately.",
+      "Classification approval expires or reopens when factual assumptions, legal locators or responsible reviewers are no longer current."
+    ]
+  },
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block consequential deployment or material expansion when prohibited-practice screening is incomplete or indicates a potentially prohibited use pending authoritative determination.",
+      "Block lifecycle progression when applicable risk class, role-dependent duties or adjacent legal obligations material to the transition remain unresolved without an approved constrained path.",
+      "Block or constrain operation when classification consequences are not implemented as required controls, documentation, review or registration duties.",
+      "Require reclassification before relying on a materially changed system, use, jurisdiction, provider, data source or legal basis."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_LEGAL_COMPLIANCE_RISK_AND_SYSTEM_OWNER"
+  },
+  "normative_source_mappings": [
+    {
+      "mapping_id": "SRCMAP-A4-EU-AIA-001",
+      "source_id": "SRC-EU-AIA",
+      "source_version_or_date": "Regulation (EU) 2024/1689",
+      "exact_locator": "Articles 2-3; Article 5; Article 6; Annex I; Annex III; Article 49; Article 113",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Establishes scope and definitions, prohibited practices, high-risk classification rules, relevant annexes, registration consequences and staged applicability that require system- and use-specific classification.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-A4-EU-GDPR-001",
+      "source_id": "SRC-EU-GDPR",
+      "source_version_or_date": "Regulation (EU) 2016/679",
+      "exact_locator": "Articles 5-6, 9, 22, 25, 32 and 35",
+      "relationship": "BINDING_LAW_WHEN_APPLICABLE",
+      "category_rationale": "Provides adjacent data-protection, special-category data, automated-decision, privacy-by-design, security and impact-assessment triggers that may alter system obligations and classification consequences.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    },
+    {
+      "mapping_id": "SRCMAP-A4-NIST-AI-RMF-001",
+      "source_id": "SRC-NIST-AI-RMF",
+      "source_version_or_date": "NIST AI 100-1, January 2023",
+      "exact_locator": "AI RMF Core GOVERN 1.1 and 1.3; MAP 1.1, 2.1, 3.3, 4.1 and 5.1; MANAGE 1.1",
+      "relationship": "AUTHORITATIVE_VOLUNTARY_GUIDANCE",
+      "category_rationale": "Requires legal and regulatory requirements to be understood and documented, context and system categorization to be established, component and impact risks to be mapped and progression decisions to be made from current analysis.",
+      "verification_status": "VERIFIED",
+      "last_verified_date": "2026-08-02"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-A4-001",
+      "title": "System, use, jurisdiction or role applicability classification is materially incomplete",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A4-SC-001",
+        "A4-SC-002"
+      ],
+      "required_evidence_ids": [
+        "EVD-A4-001",
+        "EVD-A4-002"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block consequential progression until the factual and legal applicability basis is complete, human-reviewed and bounded.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A4-002",
+      "title": "Prohibited-practice, risk-class or adjacent-regime screen is unsupported or incomplete",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A4-SC-003"
+      ],
+      "required_evidence_ids": [
+        "EVD-A4-003",
+        "EVD-A4-004"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Block or constrain the affected use until prohibited-practice and material legal-regime uncertainty is resolved or formally bounded.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A4-003",
+      "title": "Classification outcomes are not implemented as controls, duties or lifecycle constraints",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A4-SC-004",
+        "A4-SC-005",
+        "A4-SC-006"
+      ],
+      "required_evidence_ids": [
+        "EVD-A4-005",
+        "EVD-A4-006"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Block transition where missing implementation is legally or materially required; otherwise require controlled remediation and reassessment.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A4-004",
+      "title": "Classification rationale is stale, overconfident, insufficiently evidenced or not independently reviewed",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A4-SC-007",
+        "A4-SC-008"
+      ],
+      "required_evidence_ids": [
+        "EVD-A4-002",
+        "EVD-A4-006",
+        "EVD-A4-007"
+      ],
+      "default_severity": "HIGH",
+      "lifecycle_consequence": "Constrain reliance on the classification and require competent review, uncertainty disposition and renewed approval.",
+      "human_lock_required": true
+    },
+    {
+      "id": "FND-A4-005",
+      "title": "Material change or legal update has not triggered timely reclassification",
+      "eligible_conclusion_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "mapped_atomic_item_ids": [
+        "A4-SC-009"
+      ],
+      "required_evidence_ids": [
+        "EVD-A4-008"
+      ],
+      "default_severity": "BLOCKING",
+      "lifecycle_consequence": "Freeze affected progression or constrain operation until reclassification and downstream control updates are completed and approved.",
+      "human_lock_required": true
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "mapping_id": "MAP-A4-GOV-CLS-001-FND-A4-001-001",
+      "tactic_id": "GOV-CLS-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A4-001",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-A4-GOV-CLS-001-FND-A4-004-002",
+      "tactic_id": "GOV-CLS-001",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A4-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-A4-GOV-CLS-002-FND-A4-002-001",
+      "tactic_id": "GOV-CLS-002",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A4-002",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-A4-GOV-CLS-003-FND-A4-003-001",
+      "tactic_id": "GOV-CLS-003",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A4-003",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-A4-GOV-CLS-004-FND-A4-004-001",
+      "tactic_id": "GOV-CLS-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A4-004",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    },
+    {
+      "mapping_id": "MAP-A4-GOV-CLS-004-FND-A4-005-002",
+      "tactic_id": "GOV-CLS-004",
+      "tactic_version": "1.0.0",
+      "finding_id": "FND-A4-005",
+      "relationship": "REMEDIATES",
+      "mapping_status": "APPROVED",
+      "catalog_version": "1.5.0"
+    }
+  ],
+  "runtime_decision_boundary": {
+    "machine_may": [
+      "Extract system facts, jurisdictions, roles, source locators, classification statements, assumptions, controls and change records.",
+      "Compare classification records with actual use, current evidence and approved source mappings; identify omissions, contradictions and stale assumptions.",
+      "Apply deterministic evidence ceilings and propose eligible finding states for human lock.",
+      "Test exact approved tactic mappings after a finding is locked."
+    ],
+    "machine_must_not": [
+      "Determine legal applicability, prohibited-practice status, regulatory risk class, actor role or compliance.",
+      "Convert uncertainty into a definitive legal statement or select a jurisdictional interpretation without accountable human authority.",
+      "Treat vendor classification, model type, internal risk tier or automated output as authoritative legal classification.",
+      "Clear a hard gate, lock a finding, accept residual risk or authorize a lifecycle transition."
+    ],
+    "human_authority_required_for": [
+      "Determine applicable jurisdictions, legal roles, prohibited-practice status, regulatory classes and adjacent regimes.",
+      "Approve classification rationale, non-applicability conclusions, uncertainty treatment and interim operating constraints.",
+      "Adjudicate conflicting legal, factual, sector or provider interpretations.",
+      "Lock findings, accept residual risk and approve bounded exceptions.",
+      "Authorize deployment, continued operation, reclassification, transition or retirement."
+    ]
+  },
+  "related_criteria": [
+    "A1",
+    "A2",
+    "A3",
+    "A5",
+    "AP-A1",
+    "AP-A2",
+    "AP-A3",
+    "AP-A4",
+    "AP-A5",
+    "B1",
+    "B2",
+    "B5",
+    "C1",
+    "C3",
+    "C5",
+    "D2",
+    "D4",
+    "E1",
+    "E2",
+    "E4",
+    "F1",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "governance_purpose": "Ensure that every AI system is governed according to a current, reviewable and system-specific understanding of applicable risk, legal, regulatory, data, impact and sector obligations.",
+  "distinct_claim": "A4 owns system- and use-specific risk, legal and regulatory classification, implementation of classification consequences and reclassification after material change. A1 owns intended purpose and use boundaries; A2 owns suitability and value; A3 owns value-chain roles and responsibility; A5 owns lifecycle stage and transition authorization.",
+  "atomic_subcriteria": [
+    {
+      "id": "A4-SC-001",
+      "question_id": "A4-Q1",
+      "criterion": "The complete system and actual use are factually described across purpose, users, affected persons, decisions, data, components, providers, integrations and deployment locations.",
+      "required_evidence_ids": [
+        "EVD-A4-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A4-SC-002",
+      "question_id": "A4-Q1",
+      "criterion": "Applicable jurisdictions, territorial links, actor roles, exclusions, effective dates and role-dependent duties are determined from current facts and official sources.",
+      "required_evidence_ids": [
+        "EVD-A4-001",
+        "EVD-A4-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A4-SC-003",
+      "question_id": "A4-Q1",
+      "criterion": "Prohibited practices, regulatory risk classes and adjacent data, impact, product, consumer, employment, safety and sector regimes are screened with documented trigger and exclusion rationale.",
+      "required_evidence_ids": [
+        "EVD-A4-003",
+        "EVD-A4-004"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A4-SC-004",
+      "question_id": "A4-Q2",
+      "criterion": "Each material classification conclusion is mapped to concrete controls, documentation, assessment, registration, transparency, oversight and review duties.",
+      "required_evidence_ids": [
+        "EVD-A4-005"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A4-SC-005",
+      "question_id": "A4-Q2",
+      "criterion": "Classification uncertainty, dissent and pending legal questions have accountable owners, evidence needs, expiry dates and interim operating constraints.",
+      "required_evidence_ids": [
+        "EVD-A4-006"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A4-SC-006",
+      "question_id": "A4-Q2",
+      "criterion": "Lifecycle progression, deployment scope and operating boundaries are constrained consistently with classification outcomes and unresolved obligations.",
+      "required_evidence_ids": [
+        "EVD-A4-005",
+        "EVD-A4-006"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A4-SC-007",
+      "question_id": "A4-Q3",
+      "criterion": "Material classification conclusions are traceable to current system facts, exact official source locators, stated assumptions and reviewable reasoning.",
+      "required_evidence_ids": [
+        "EVD-A4-001",
+        "EVD-A4-002",
+        "EVD-A4-003",
+        "EVD-A4-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A4-SC-008",
+      "question_id": "A4-Q3",
+      "criterion": "A competent independent or second-line reviewer challenges material classifications, exclusions, uncertainty and control consequences before consequential progression.",
+      "required_evidence_ids": [
+        "EVD-A4-007"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A4-SC-009",
+      "question_id": "A4-Q3",
+      "criterion": "Material system, use, jurisdiction, provider, data, legal and lifecycle changes trigger timely reclassification, approval and downstream control updates.",
+      "required_evidence_ids": [
+        "EVD-A4-008"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ]
+}

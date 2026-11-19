@@ -1,0 +1,447 @@
+{
+  "purpose": "SAE training input inventory",
+  "status": "development-reference",
+  "reviewed_on": "2026-11-19",
+  "upstream": {
+    "repository": "https://github.com/jorieskolin-creator/AI-Governance-Engine",
+    "commit": "30772ccfc77cecc28e42790363536deccb7b3f49",
+    "instrument_path": "src/knowledge/assessment-instrument.js",
+    "thinking_flow_path": "docs/thinking-flow.html",
+    "cognitive_contract_path": "src/cognitive/contracts.js"
+  },
+  "knowledge_hub_verification": [
+    {
+      "id": "private:01-solutions/solution-assurance-documentation-support/Solution Assurance Engine — Thinking Flow.html",
+      "sha256": "5fb3b087e089f3c2a48ce1dab4fab671d2add1e2148fe8fe4f38abe142ef2cf1"
+    },
+    {
+      "id": "private:01-solutions/solution-assurance-documentation-support/Solution_Assurance_Engine_Thinking_Flow.html",
+      "sha256": "4e35241d7cc60f3b40a980e712c1a7bd2f7367e13c8a92d83336be0f0836febf"
+    }
+  ],
+  "files": [
+    {
+      "role": "source-register",
+      "path": "AI_Governance_Global_Source_Register_v1.5.0.json",
+      "version": "1.5.0",
+      "sha256": "0c1d154dc9774d7e2976b637aa865c6bf932b2fd4ae9ac546b7fb8de092fe764",
+      "origin": "Git and Drive, identical bytes"
+    },
+    {
+      "role": "source-register-reference",
+      "path": "baseline/sae-training/references/AI_Governance_Global_Source_Register_v1.5.0.pdf",
+      "version": "1.5.0",
+      "sha256": "e97fb4b46b9a0080a7345635a874682d094969fa01ea4f0c128c57706bb8fb4a",
+      "origin": "ChatGPT attachment and Drive, identical bytes"
+    },
+    {
+      "role": "taxonomy",
+      "path": "baseline/taxonomy-register.json",
+      "version": "2.0.0",
+      "sha256": "12adccc78423dbe8e778801fa29f1d3f2b8676d6616853ff659875bac9dfac84",
+      "origin": "Git, Drive, and ChatGPT attachment, identical bytes"
+    },
+    {
+      "role": "id-register",
+      "path": "baseline/id-register.json",
+      "version": "2.1.0",
+      "sha256": "4fd367a97fa0ae66e8b344acdc73525ef08f857a9c44ee1a2a45eb4c175a4209",
+      "origin": "Git and Drive, identical bytes"
+    },
+    {
+      "role": "criteria-reference",
+      "path": "baseline/sae-training/criteria/AI_Governance_Categories_and_Anti-Patterns_v1.1.pdf",
+      "version": "1.1.0",
+      "sha256": "1101106e3d4d6c73f429c4a2596bf7fd07eca84f976027bd8ac223c078b9b8af",
+      "origin": "ChatGPT attachment, 44-page rendition"
+    },
+    {
+      "role": "criteria-instrument",
+      "path": "baseline/sae-training/criteria/assessment-instrument-1.0.0.json",
+      "version": "assessment-instrument-1.0.0",
+      "sha256": "44f1843e375f69a66ce2b6f5728519cc46fa693965b1685eb62207d94a1eff11",
+      "origin": "JSON export of the upstream ASSESSMENT_INSTRUMENT object"
+    },
+    {
+      "role": "cognitive-model",
+      "path": "baseline/sae-training/cognitive/Solution_Assurance_Engine_Thinking_Flow.html",
+      "version": "3.1.0",
+      "sha256": "b042e0f4c4824c5d6185c95bd2eb95821d4f6bb89e54a2540d58d7d3f24f8119",
+      "origin": "Public upstream docs/thinking-flow.html"
+    },
+    {
+      "role": "tactic-playbook",
+      "path": "baseline/AI_Governance_Tactic_Playbook_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "98ba7390ac81351287ec633add49b7349f5bf5989d7fa5a1d259b2a4a4c7486e",
+      "origin": "Git and Drive, identical bytes"
+    },
+    {
+      "role": "tactic-source-snapshot",
+      "path": "baseline/sae-training/references/AI_Governance_Tactic_Playbook_Current_Candidate_Snapshot_2026-08-20.pdf",
+      "version": "2026-08-20",
+      "sha256": "b74dda0d25ceba8679bb2e182bf85a28a8c8157b0481207ae3ba1d207314bf93",
+      "origin": "ChatGPT attachment, matches approved catalog source_document.sha256"
+    },
+    {
+      "role": "capability-schema",
+      "path": "baseline/sae-training/schemas/capability.schema.json",
+      "version": "2.1.0",
+      "sha256": "420f132d654ac5467bee924095f9b06f100559f055261f7232fb315f121d6c9e",
+      "origin": "Drive 02 Authorities/schemas"
+    },
+    {
+      "role": "antipattern-schema",
+      "path": "baseline/sae-training/schemas/antipattern.schema.json",
+      "version": "2.1.0",
+      "sha256": "de916278d9743a948c396d6faf81464dad601d5386b4630e6700a4f1160fea61",
+      "origin": "Drive 02 Authorities/schemas"
+    },
+    {
+      "role": "shared-definitions",
+      "path": "baseline/sae-training/schemas/shared-definitions.schema.json",
+      "version": "2.1.0",
+      "sha256": "0011d4864e3ebcc5f25339421545d8e4f0f53e8ab7a881402dc64dc2a53d7cbf",
+      "origin": "Drive 02 Authorities/schemas"
+    },
+    {
+      "role": "source-register-schema",
+      "path": "schemas/source-register.schema.json",
+      "version": "2.1.0",
+      "sha256": "488acaa51b31ff697e761d8fd5b9c9f6f5b39b6efba1ecc61ea2983994b27b31",
+      "origin": "Git and Drive, identical bytes"
+    },
+    {
+      "role": "tactic-playbook-schema",
+      "path": "schemas/tactic-playbook.schema.json",
+      "version": "1.0.0",
+      "sha256": "715ffcb58e5c5355cccc9e333447b7e8e7892086cfb70acb5f198a72d35cf33b",
+      "origin": "Git and Drive, identical bytes"
+    },
+    {
+      "role": "validation-report-schema",
+      "path": "schemas/validation-report.schema.json",
+      "version": "2.1.0",
+      "sha256": "bdf73535f0dac17c313c2c7baa835028ed4b5d5e5ce5948c58f31d164fa2ce93",
+      "origin": "Git and Drive, identical bytes"
+    },
+    {
+      "role": "golden-capability",
+      "path": "baseline/sae-training/Samples/Golden/A1_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "1731b661153d0e41e59f1e052962e74446572ee4484171690ad40c2cf701dde4",
+      "origin": "Drive 03 Golden Standard, schema 2.1.0",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-antipattern",
+      "path": "baseline/sae-training/Samples/Golden/AP-A1_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "973e9423402b880eca22850bae76aa54afcfdec6f99becbbaf0bf6fe67552b40",
+      "origin": "Drive 03 Golden Standard, schema 2.1.0",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-human-reference",
+      "path": "baseline/sae-training/Samples/Golden/AI_Governance_KB_A1_AP-A1_v1.0.0.pdf",
+      "version": "1.0.0",
+      "sha256": "66d77a7959400be9e2a485277feb696791f102797a22f4aad6b661b31b0007f0",
+      "origin": "Drive 03 Golden Standard",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-manifest",
+      "path": "baseline/sae-training/Samples/Golden/golden-standard-manifest.json",
+      "version": "1.0.0",
+      "sha256": "605b2b2b41886428e1e3da57a29c8f4ed31f2dcc1a2b35b2d323ee26d51d3c18",
+      "origin": "Drive 03 Golden Standard",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-integrity-summary",
+      "path": "baseline/sae-training/Samples/Golden/historical/A1_AP-A1_final_integrity_summary_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "b1f48e972daae54f30dbea74b623a9424ea05e806260a7d9d7f31f1334c4f08e",
+      "origin": "Drive 99 Archive/2026-08_manual-pipeline",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-release-manifest",
+      "path": "baseline/sae-training/Samples/Golden/historical/A1_AP-A1_release_manifest_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "9f6edaff9785cac03452ccb93de9abe017818a74d2a9c4c833df95fe99502f20",
+      "origin": "Drive 99 Archive/2026-08_manual-pipeline",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-release-validation",
+      "path": "baseline/sae-training/Samples/Golden/historical/A1_AP-A1_release_validation_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "53cfaa67cbcc9c974fd89c123924c13682402594686907bd21247059ee9ea3f3",
+      "origin": "Drive 99 Archive/2026-08_manual-pipeline",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-source-register",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Source_Register_v1.4.0.json",
+      "version": "1.4.0",
+      "sha256": "d3abfa10d1f0b4b1d383448c44c96c2fa664c9be8a613f0143e535e5aef83414",
+      "origin": "Drive Google AI Studio folder",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-tactic-catalog",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
+      "version": "1.8.0",
+      "sha256": "1467d11cedac75f732b649317c64dc8f113ea7b47ac6bb8ac8eb66c3f77e8d84",
+      "origin": "Drive Google AI Studio folder",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-id-register",
+      "path": "baseline/sae-training/Samples/Golden/historical/id-register.json",
+      "version": "2.0.0",
+      "sha256": "4fea0f96cdc8ce5fd10bc9d18e44d1d50d8a11b7210c9b2603c99ebf1b4971bc",
+      "origin": "Drive 99 Archive/superseded",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-schema-catalog",
+      "path": "baseline/sae-training/Samples/Golden/historical/schema-catalog.json",
+      "version": "2.1.0",
+      "sha256": "9bb1edaf24739241fbc74255f54e6c8c1a7f9a94c167081d9a2ec1ec5f2454e2",
+      "origin": "Drive 99 Archive/superseded",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "golden-historical-tactic-schema",
+      "path": "baseline/sae-training/Samples/Golden/historical/tactic-catalog.schema.json",
+      "version": "2.1.0",
+      "sha256": "488f28948b61a61680ee89a79f6d66a823038ca0933b25fbedfb60d1b282f1df",
+      "origin": "Drive 99 Archive/superseded",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-a2",
+      "path": "baseline/sae-training/Samples/A/A2_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "96aa1eae185b8f89e20d5f97c5c7d8a70cd03a78d8e2fa3bb274cdfefa98ba1a",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-a3",
+      "path": "baseline/sae-training/Samples/A/A3_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "49278529e6912b48aacd533214a131c27d27e1f49369a1f2ce69c21b6330a1b8",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-a4",
+      "path": "baseline/sae-training/Samples/A/A4_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "c988ceb369d0ab662d72f93d6edfceb6557ab5193f2db114055c1fd4b0b2b306",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-a5",
+      "path": "baseline/sae-training/Samples/A/A5_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "c6b7f9ce81be956d3511bd6a2bdcf67f333096481b933c5a57183458bc93dc1a",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-domain-a-coverage-report",
+      "path": "baseline/sae-training/Samples/A/AI_Governance_Domain_A_Coverage_Report_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "47986fa2940634908daa104a9b004d628b9c29a496664a2421e3abd93fcd81e6",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "1.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-ap-a2",
+      "path": "baseline/sae-training/Samples/A/AP-A2_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "5603a4fec6e75ce85ed89a0f4efcda7e5ad027d0dee129aa6c3b19f751e03085",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-ap-a3",
+      "path": "baseline/sae-training/Samples/A/AP-A3_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "a989a49ff73a7e5542c5fde8ecdcc39bc4bdb013a64405adf8ce31a014b06229",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-ap-a4",
+      "path": "baseline/sae-training/Samples/A/AP-A4_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "97f9ba086a86373fdcb7e84bb76a4ca3c0a2bf187832ddda30f6389dd74d7e5e",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-ap-a5",
+      "path": "baseline/sae-training/Samples/A/AP-A5_v1.0.0.json",
+      "version": "1.0.0",
+      "sha256": "c1ecb18127c837c2e1b1965795825d1724ee8c6e7674855a016d7f7aff70a79a",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-ap-b1",
+      "path": "baseline/sae-training/Samples/B/AP-B1_v1.0.1.json",
+      "version": "1.0.1",
+      "sha256": "14db92bc3e443153fab7f64444d98ae3340b2c94f60812edb7ad23d0be84086e",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-ap-b2",
+      "path": "baseline/sae-training/Samples/B/AP-B2_v1.0.1.json",
+      "version": "1.0.1",
+      "sha256": "5b2a3874db7de08fd3f11594111db843426e72b5539ad140712c26bbc45253e3",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-b1",
+      "path": "baseline/sae-training/Samples/B/B1_v1.0.1.json",
+      "version": "1.0.1",
+      "sha256": "f9c13861e4c6c2b44e215e99ac10fa9ac7f71a5cf54f4265716d598808f84ef2",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-b2",
+      "path": "baseline/sae-training/Samples/B/B2_v1.0.1.json",
+      "version": "1.0.1",
+      "sha256": "89cf9c12e226ce803a2eebcec8ebef5ad5517ca0f3bdb98aaf41ffef1e3dc9a1",
+      "origin": "Drive Google AI Studio folder",
+      "schema_version": "2.0.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-ap-d3",
+      "path": "baseline/sae-training/Samples/D/AP-D3_v1.2.0.json",
+      "version": "1.2.0",
+      "sha256": "7259f94a498a216af35486b6822972e7c496e82ef4e32e2250d0d440115d37cf",
+      "origin": "Drive 99 Archive/Samples and Calibration/Sample Documents",
+      "schema_version": "1.1.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-d3",
+      "path": "baseline/sae-training/Samples/D/D3_v1.2.0.json",
+      "version": "1.2.0",
+      "sha256": "c3bcfef7aaacfa2e501db27873b2ccf8c699af9c84e01947ef7b7a925976fbd9",
+      "origin": "Drive 99 Archive/Samples and Calibration/Sample Documents",
+      "schema_version": "1.1.0",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    },
+    {
+      "role": "sample-d3-tactic-catalog",
+      "path": "baseline/sae-training/Samples/D/Governance_Tactic_Catalog_v1.1.0.json",
+      "version": "1.1.0",
+      "sha256": "133838fd1d92d95ea0d59fb4d87bf48569ecab585e68c3c3cb47b7c3ce6bba9c",
+      "origin": "Drive 99 Archive/Samples and Calibration/Sample Documents/approved-publications",
+      "original_status": "APPROVED",
+      "usage": "calibration-only"
+    }
+  ],
+  "owner_decision": {
+    "role": "tactic-playbook",
+    "version": "1.0.0",
+    "sha256": "98ba7390ac81351287ec633add49b7349f5bf5989d7fa5a1d259b2a4a4c7486e",
+    "scope": "Use of supplied playbook and its explicit object links for the SAE training reference case."
+  },
+  "golden_historical_dependencies": [
+    {
+      "original_path": "03 Schemas/capability.schema.json",
+      "path": "baseline/sae-training/schemas/capability.schema.json",
+      "sha256": "420f132d654ac5467bee924095f9b06f100559f055261f7232fb315f121d6c9e"
+    },
+    {
+      "original_path": "03 Schemas/antipattern.schema.json",
+      "path": "baseline/sae-training/schemas/antipattern.schema.json",
+      "sha256": "de916278d9743a948c396d6faf81464dad601d5386b4630e6700a4f1160fea61"
+    },
+    {
+      "original_path": "03 Schemas/shared-definitions.schema.json",
+      "path": "baseline/sae-training/schemas/shared-definitions.schema.json",
+      "sha256": "0011d4864e3ebcc5f25339421545d8e4f0f53e8ab7a881402dc64dc2a53d7cbf"
+    },
+    {
+      "original_path": "03 Schemas/source-register.schema.json",
+      "path": "schemas/source-register.schema.json",
+      "sha256": "488acaa51b31ff697e761d8fd5b9c9f6f5b39b6efba1ecc61ea2983994b27b31"
+    },
+    {
+      "original_path": "03 Schemas/tactic-catalog.schema.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/tactic-catalog.schema.json",
+      "sha256": "488f28948b61a61680ee89a79f6d66a823038ca0933b25fbedfb60d1b282f1df"
+    },
+    {
+      "original_path": "03 Schemas/validation-report.schema.json",
+      "path": "schemas/validation-report.schema.json",
+      "sha256": "bdf73535f0dac17c313c2c7baa835028ed4b5d5e5ce5948c58f31d164fa2ce93"
+    },
+    {
+      "original_path": "03 Schemas/schema-catalog.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/schema-catalog.json",
+      "sha256": "9bb1edaf24739241fbc74255f54e6c8c1a7f9a94c167081d9a2ec1ec5f2454e2"
+    },
+    {
+      "original_path": "05 Taxonomy/taxonomy-register.json",
+      "path": "baseline/taxonomy-register.json",
+      "sha256": "12adccc78423dbe8e778801fa29f1d3f2b8676d6616853ff659875bac9dfac84"
+    },
+    {
+      "original_path": "04 Global Registers/id-register.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/id-register.json",
+      "sha256": "4fea0f96cdc8ce5fd10bc9d18e44d1d50d8a11b7210c9b2603c99ebf1b4971bc"
+    },
+    {
+      "original_path": "04 Global Registers/AI_Governance_Global_Source_Register_v1.4.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Source_Register_v1.4.0.json",
+      "sha256": "d3abfa10d1f0b4b1d383448c44c96c2fa664c9be8a613f0143e535e5aef83414"
+    },
+    {
+      "original_path": "04 Global Registers/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
+      "path": "baseline/sae-training/Samples/Golden/historical/AI_Governance_Global_Tactic_Catalog_v1.8.0.json",
+      "sha256": "1467d11cedac75f732b649317c64dc8f113ea7b47ac6bb8ac8eb66c3f77e8d84"
+    }
+  ]
+}
