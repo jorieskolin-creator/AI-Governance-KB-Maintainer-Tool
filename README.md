@@ -1,9 +1,17 @@
-> **SUPERSEDED — 2026-09-21.** This document describes the original 14-task design and is
-> kept for historical reference only. The current binding plan is
-> `docs/MAINTAINER_IMPLEMENTATION_PLAN.md`; working rules are in `AGENTS.md`.
-> Do not implement from this document.
-
 # KB Document Creator
+
+KB Document Creator is being refined to create reviewed Markdown knowledge
+documents from selected inputs and deliver them to an explicitly configured
+location. Start with [Next Plan](Next%20Plan/README.md) and [AGENTS.md](AGENTS.md).
+The first SAE pilot uses local inputs and the explicitly selected
+[`knowledge-base`](baseline/sae-training/knowledge-base/) folder; no Vercel access
+is needed. This plan does not mean the Creator workflow is already implemented.
+
+## Legacy application reference
+
+The rest of this README describes the existing legacy 14-task application, not
+instructions or readiness claims for the new Creator workflow. Its historical
+plan is `docs/MAINTAINER_IMPLEMENTATION_PLAN.md`.
 
 Standalone operator tool that authors, validates, versions, and publishes AI Governance Knowledge Base category-pair documents.
 
@@ -11,7 +19,7 @@ It is a Knowledge Base production tool. It does not grant governance approval, l
 
 ## Status
 
-The KB Document Creator is the designed solution under validation. Treat it as almost ready: run it, observe it, and fix what the runs show. Do not treat built pipeline steps as pending features, and do not wait for an external approval layer.
+The following status and validation notes describe the legacy pipeline only.
 
 Offline predeploy verification is in place. Remaining work is test-runs, then focused fixes from findings. Cleaning of code, data, and storage comes after those runs hold.
 
@@ -51,8 +59,4 @@ Do not merge the 14 SIR tasks during this phase. Do not backfill fake revision h
 
 ## Local verification
 
-```bash
-npm run verify:build
-```
-
-That suite is the offline contract. Live test-runs are the remaining proof.
+On Node 22.12+ (Node 22 in CI), run `npm ci`, then `npm run verify` with `DATABASE_URL` pointing to a disposable Postgres 16 database. Never use a production database. `npm run verify:build` is a narrower legacy predeploy check, not the Creator acceptance suite.

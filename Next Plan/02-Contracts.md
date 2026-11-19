@@ -1,6 +1,6 @@
 # Input, document, and storage contracts
 
-These are implementation requirements for the new Creator path. Field names below are proposed v1 contracts, not claims that a schema or API already exists. Implement and validate the schemas in DC-01 before using them. Examples containing `EXAMPLE` or angle brackets are illustrative and must be rejected as production input.
+These are implementation requirements for the new Creator path. Field names below are proposed v1 contracts, not claims that a schema or API already exists. Implement and validate each Creator-owned schema in the DC task that first uses it (profile and input-set contracts in DC-01). Preserve the supplied schemas and historical examples; do not use their approval fields as new Creator requirements. Examples containing `EXAMPLE` or angle brackets are illustrative and must be rejected as production input.
 
 ## 1. KB profile and input set
 
@@ -10,15 +10,15 @@ A profile describes one solution's knowledge-document requirements. A run pins a
 | --- | --- |
 | `profile_id`, `profile_version`, `kb_id`, `kb_title` | Stable profile and KB identity; namespace all object IDs by KB. |
 | `language` | Output language; preserve original-language source locators and quotes where used. |
-| `input_refs` | Vercel object references for taxonomy/criteria, cognitive model, Source Register, Tactic Playbook, schemas, and the Golden Reference pair. Each has kind, ID, version where available, store/path, verified SHA-256, media type, and provenance. |
+| `input_refs` | Explicitly selected read-only file/object references for taxonomy/criteria, cognitive model, Source Register, Tactic Playbook, schemas, and the Golden Reference pair. Each has kind, ID, version where available, store/path, verified SHA-256, media type, and provenance. |
 | `owner_input_decisions` | Explicit, scoped owner decisions bound to input versions/hashes. Includes use of the supplied final SAE Tactic Playbook despite older incomplete-approval wording; never a global override for unrelated inputs. |
 | `output_spec` | Requested document types; required sections and applicability; primary format `markdown`; optional PDF flag; paired work-unit policy. |
-| `source_policy` | Permitted Vercel prefixes/source-publication hosts, usage boundaries, extraction limits, and model-egress constraints. |
+| `source_policy` | Permitted input roots/prefixes and source-publication hosts, usage boundaries, extraction limits, and model-egress constraints. |
 | `model_config_ref` | Reference to deployed author/reviewer configuration; never API keys. |
-| `storage_ref` | Vercel connection, owner-prepared input/schema/Golden/output prefixes, allowed operations per prefix, and secret references; no credentials or signed URLs in documents. |
+| `storage_ref` | Supported destination connection ID, selected location, allowed output/operations scope, and secret references for remote access; no credentials or signed URLs in documents. |
 | `limits` | Maximum objects per run, provider concurrency, request timeout, token/cost budget, repair iterations, and extraction bounds. |
 
-Input resolution reads the selected Vercel files and produces `input_set_id`, resolved versions/hashes, readiness findings, a coverage matrix, and the selected owner decisions. A hash establishes byte identity, not semantic correctness. The owner’s confirmed final SAE playbook status is already an input decision: record its application to the supplied file/version without asking for the same approval again. Keep original document wording and effective owner-confirmed usage status separately traceable.
+Input resolution reads the selected files and produces `input_set_id`, resolved versions/hashes, readiness findings, a coverage matrix, and the selected owner decisions. A hash establishes byte identity, not semantic correctness. The owner’s confirmed final SAE playbook status is already an input decision: record its application to the supplied file/version without asking for the same approval again. Keep original document wording and effective owner-confirmed usage status separately traceable.
 
 ### Input precedence and disagreement
 
@@ -33,7 +33,7 @@ If two inputs contradict each other, produce a concrete conflict report. These r
 
 ## 2. Accepted input forms
 
-Inspect the owner-supplied SAE samples before fixing input serialization. The samples demonstrate the actual schema files, Source Register, cognitive model, taxonomy/criteria, linked playbook, and Golden Reference pair. Implement adapters for their actual formats (for example JSON, Markdown, PDF, or static HTML), then document the reusable contracts. Do not require the owner to rewrite all input materials into a new JSON-only format. Internal normalized data may use JSON, independently of original file format. Production resolves the corresponding files from Vercel; local sample copies are test fixtures only.
+Inspect the owner-supplied SAE samples before fixing input serialization. The samples demonstrate the actual schema files, Source Register, cognitive model, taxonomy/criteria, linked playbook, and Golden Reference pair. Implement adapters for their actual formats (for example JSON, Markdown, PDF, or static HTML), then document the reusable contracts. Do not require the owner to rewrite all input materials into a new JSON-only format. Internal normalized data may use JSON, independently of original file format. The explicit local SAE profile selects the pinned inventory paths. Production resolves its explicitly configured inputs, not these local test files by default.
 
 Prefer deterministic parsing and schema validation using the structures established from the supplied samples, including PDF/HTML/Markdown inputs. Do not require repeated confirmation for unambiguous fields read by a validated adapter. If extraction requires a model to interpret ambiguous identity or relationship meaning, show the proposed interpretation with source locators for confirmation before using it. A model cannot silently establish the governing taxonomy. Unsupported/scanned content is reported as partial or unreadable; add OCR only where the supplied inputs actually require it and verify the extracted meaning.
 
@@ -44,6 +44,8 @@ The Creator needs only the input-format adapters demonstrated by the supplied re
 Require domain ID/title, object ID/type/title, pair relationships where present, criterion IDs and descriptions, applicability, and controlled vocabulary references. Permit arbitrary profile-defined domain names and object counts. A–F and five pairs are Solution Assurance data, not Creator code constants.
 
 Validate duplicate IDs, orphan criteria, ambiguous pair membership, circular containment, and unknown domain references. Cross-domain related-object links may be valid and must not be confused with containment cycles. An anti-pattern may be related to a capability without being its logical negation.
+
+For SAE, the taxonomy and ID register own object identities and pairing; the pinned instrument owns exact primary question IDs, dimensions, and wording, corroborated by the Thinking Flow. Older examples with different question wording never override the instrument. Trace each question to its parent object and applicable cognitive rules. Empty atomic tests, subcriteria, finding definitions, or evidence rules are not approved content; where required, author source-supported proposals for review, not new governing inputs.
 
 The output plan enumerates exact expected object IDs. Titles never serve as identities. Changes to published identity require an explicit upstream migration; ordinary title edits do not change IDs.
 
@@ -77,7 +79,7 @@ Use separate versioned contracts for profile, input set, internal document, sour
 
 The document contract has common metadata and type-specific required sections. Different profiles can require different evidence dimensions without changing the engine. Mandatory missing sections produce findings; optional sections may be omitted with explicit template rules.
 
-The minimum Golden Reference is exactly one owner-supplied capability document and its paired anti-pattern document in Vercel. Record their IDs, versions where present, pair relationship, compatible templates, paths, hashes, and provenance. Use this pair for structure and content-quality expectations. Do not require additional Golden roles or samples to start production. Optional synthetic negative tests belong in the test suite, not the owner’s required input folders. Golden Reference files are excluded from generated KB source inventory unless separately admitted by the Hub. Preserve historical repository fixtures independently; they do not substitute for the supplied Vercel reference.
+The minimum Golden Reference is exactly one owner-supplied capability document and its paired anti-pattern document in the selected input set. Record their IDs, versions where present, pair relationship, compatible templates, paths, hashes, and provenance. Use this pair for structure and content-quality expectations. Do not require additional Golden roles or samples to start production. For SAE, validate the pair with the complete pinned schema family in `baseline/sae-training/schemas/`. Resolve `$ref`s only against explicitly loaded, pinned schemas with unique IDs; do not substitute the same-version root shared definitions or fetch schemas from the network. New Markdown uses a Creator-owned content contract that distinguishes methodology interpretation from sourced claims and requires exact passage attribution and applicability boundaries; do not inherit legacy release approvals, historical tactic activation references, or machine-only fields by default. Optional synthetic negative tests belong in the test suite, not the owner’s required input folders. Golden Reference files are excluded from generated KB source inventory unless separately admitted by the Hub. Preserve historical repository fixtures independently; they do not substitute for the supplied Vercel reference.
 
 ## 3. Source-unit contract
 
@@ -94,7 +96,7 @@ Prepared source units need stable identity and auditable attribution:
 | `usage_policy`, `model_eligible` | Whether and how the content may enter provider requests. |
 | `retrieved_at`, `extractor_version`, `text_sha256` | Acquisition and transformation provenance. |
 
-Acquire metadata first, then permitted bytes. Read only configured Vercel objects and registered source-publication locations. Apply time/size/type limits, restrict redirects, and reject local-network/metadata-service destinations for server-side URL fetches. Never execute macros, document scripts, or embedded instructions. Apply access control to source reads and prepared excerpts.
+Acquire metadata first, then permitted bytes. Read only explicitly selected local files or configured remote objects, plus registered source-publication locations when enabled by policy. Apply time/size/type limits, restrict redirects, and reject local-network/metadata-service destinations for server-side URL fetches. Never execute macros, document scripts, or embedded instructions. Apply access control to source reads and prepared excerpts.
 
 Source ingestion may be incomplete. Show truncation and the exact affected claims; a truncated page must not be labeled complete. Hashing the selected excerpt does not prove completeness of the original. Retain only permitted source material under a configurable retention policy; output documents contain permitted citations and necessary text, not entire licensed publications by default.
 
@@ -156,7 +158,7 @@ Identity/version, intended outcome, related capability/anti-pattern IDs, exact m
 
 ## 5. Storage contract and taxonomy-based structure
 
-Vercel Blob is the production store for both input materials and generated documents. Google Drive is excluded, with no mirror or synchronization job. A local filesystem adapter is for development/tests only and never a silent production fallback. Storage is independent of backend hosting. The owner prepares the input/schema/Golden and output prefixes; Creator checks the configuration and writes only within the agreed output/operations scope.
+The SAE pilot explicitly selects a local filesystem reader and writer. The allowed output root is `baseline/sae-training/knowledge-base/`. Later, a user supplies a location and access for a supported remote connection; Vercel Blob is a candidate, not a prerequisite. Google Drive is excluded, with no mirror or synchronization job. Never fall back silently to local inputs or output in production. Input roots are read-only; output and operations rights are checked separately from input access.
 
 Connection settings: named connection ID, provider, credential-secret reference, expected store/account identity, access class, allowed root prefix, and path policy. A pasted link does not grant write access. Connection validation checks identity and access without enumerating unrelated stores. A write probe, if needed, uses a documented disposable prefix, confirms its exact path, and cleans up.
 
@@ -174,7 +176,9 @@ Recommended logical layout, mapped to the owner’s actual prepared prefixes rat
 
 Here `<type>` is `capabilities`, `antipatterns`, or `tactics`. Cross-domain tactics have one declared owning domain (or configured `shared` partition) and explicit related-domain metadata; do not duplicate the same tactic into multiple authoritative files. Taxonomy profile maps IDs to safe folder tokens. Do not hardcode A–F or infer identity from folder labels.
 
-Input materials, schemas, and the Golden Reference pair must be present at the configured Vercel locations before generation begins. They are primary runtime inputs, not optional mirrors. The input manifest/configuration resolves their exact object paths. Do not populate, overwrite, rename, or synchronize these inputs automatically. External source-publication URLs in the Source Register may be followed under source policy; missing licensed content is reported without inventing it or copying it into public storage. Blob “folders” are logical prefixes: validate actual input objects and output path permissions, not the existence of an empty directory object.
+For the explicit SAE local pilot, the already-selected `knowledge-base/` folder serves as the document root: `<domain-id>/<type>/<object-id>/<version>/document.md`. Put receipts in `knowledge-base/_operations/<run-id>/`. Do not write drafts or test fixtures as reviewed documents. Automated tests use temporary roots; the reviewed pilot alone uses the selected repository output folder. Reject path escapes, including local symlinks escaping their configured root.
+
+Input materials, schemas, and the Golden Reference pair must be present at the configured locations before generation begins. They are primary runtime inputs, not optional mirrors. The input manifest/configuration resolves their exact object paths. Do not populate, overwrite, rename, or synchronize these inputs automatically. External source-publication URLs in the Source Register may be followed under source policy; missing licensed content is reported without inventing it or copying it into public storage. Blob “folders” are logical prefixes: validate actual input objects and output path permissions, not the existence of an empty directory object.
 
 Path handling rejects traversal, absolute paths, unexpected separators, unsafe tokens, collisions, and writing outside the configured prefix. Unicode titles are content; normalized safe IDs drive paths. Reserve destination versions before writing to avoid concurrent collisions.
 

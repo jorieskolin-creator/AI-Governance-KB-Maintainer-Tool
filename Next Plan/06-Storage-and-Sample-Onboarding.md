@@ -1,61 +1,56 @@
-# Vercel readiness and sample onboarding
+# Storage readiness and SAE sample onboarding
 
 ## 1. Owner decisions
 
-- The owner prepares the Vercel storage layout and places input materials there before KB Document Creator starts generation.
-- Vercel holds both the runtime inputs and generated documents. Google Drive has no role in this implementation.
-- The first real KB is the owner's Solution Assessment Engine reference case. Supplied materials may use the name Solution Assurance Engine; preserve their actual names, object IDs, and relationships in the configured SAE profile.
-- The owner will share representative materials with Augment Code. Those samples establish the expected input structure and reading behavior. They are development references; the operational application reads the selected Vercel objects.
-- The Golden Reference consists of one capability and its paired anti-pattern. It establishes the expected quality and structure without prescribing identical wording or counts for other objects.
-- The owner has confirmed the supplied SAE Tactic Playbook is final even if older incomplete-approval wording appears inside it. That wording alone is not a creation blocker or a reason to seek approval again.
-
-This plan does not inventory or judge previously created documentation. Inspect the actual supplied samples and configured Vercel input set when implementing the readers.
+- The first **Solution Assurance Engine (SAE)** pilot is local. Select the [pinned inventory](../baseline/sae-training/input-inventory.json) explicitly. Write reviewed Markdown only to [knowledge-base](../baseline/sae-training/knowledge-base/). Do not use Vercel or Google Drive for this pilot.
+- For remote delivery later, the user supplies a location and access to a supported storage connection. Configure credentials server-side and constrain the writable scope; never infer permission from a link. There is no silent local fallback for remote runs.
+- Use the A1 and AP-A1 Golden Reference pair for quality and structure only. Treat other recovered documents and historical catalog versions as calibration, not new-generation authorities.
+- The owner has confirmed the selected SAE Tactic Playbook is final despite candidate wording in its source PDF. Bind the decision to the inventory's exact playbook version and hash. It covers explicit object links, not missing finding-level activation mappings.
 
 ## 2. Responsibility split
 
 | Owner prepares | Augment implements | KB Document Creator does at runtime |
 | --- | --- | --- |
-| Vercel store, access policy, and logical folder/prefix layout | Named connection configuration and scoped adapters | Checks the configured store identity and access |
+| Selected local folder for the pilot; location and authorization for later remote use | Explicit local profile and scoped storage adapter | Checks the selected input paths and output scope |
 | Schemas and document requirements | Schema readers and internal validation | Loads the selected schemas; reports missing or incompatible inputs |
 | Source Register and taxonomy/criteria | Readers preserving source and criterion identities | Loads and cross-checks coverage and relationships |
 | Cognitive model | Reader preserving reasoning/evidence distinctions | Uses it as document requirements, not a customer-analysis pipeline |
 | Final Tactic Playbook and explicit links | Reader for actual sample shape plus scoped owner-decision handling | Uses the supplied links; detects missing targets without inventing them |
 | Golden Reference capability/anti-pattern pair | Sample adapters and quality evaluation | Loads both files and uses them as references |
-| Output/operations prefixes and credentials through secret configuration | Scoped writer, path validation, retry and receipt logic | Writes reviewed documents and operational records only |
+| Output/operations boundaries and, for remote use, credentials through secret configuration | Scoped writer, path validation, retry and receipt logic | Writes reviewed documents and operational records only |
 
 The Creator does not upload or reorganize the input corpus, create a Source Register, create a Master Table, or change Hub approval status. A missing file is shown with its expected role/path so the owner can supply it.
 
 ## 3. Sample-to-contract matrix for Augment
 
-During DC-00/DC-01, complete this matrix from the supplied examples. Do not prefill facts from older repository versions.
+The inventory records exact file paths, versions, and SHA-256 hashes for these roles. Use explicit role selection; do not scan the corpus for a substitute.
 
-| Input role | Record from actual sample | Required adapter result |
+| Inventory roles | Supplied sample and verification | Required adapter result |
 | --- | --- | --- |
-| Source Register | File format, source IDs, editions, publisher/location, scope/coverage, usage metadata | Normalized source identities and registered source-content locations |
-| Taxonomy and per-object criteria | Domain/object IDs, capability/AP pairing, questions/criteria, cross-links | Exact requested object set and relationship graph |
-| Cognitive model | Sections, evidence dimensions, unknown handling, interpretation boundaries | Traceable document-content requirements |
-| Tactic Playbook | Tactic IDs, linked capabilities/APs, relationship scope, activities and conditions | Faithful tactic content and links, with applicable owner decision |
-| Schemas | Format, versions, required fields/sections, reference dependencies | Validated templates and content checks |
-| Golden capability | File format, headings, citation style, evidence detail | Structure/depth reference for capability outputs |
-| Golden anti-pattern | Pair ID, failure/absence logic, headings, reference style | Structure/depth reference for AP outputs |
+| `source-register` + `source-register-schema` | v1.5.0 JSON has 45 unique source records and validates against its schema. The companion PDF is the register, not the publications. | Preserve edition/date, registered location, authority, usage restrictions and coarse domain coverage; never count metadata as claim support. |
+| `taxonomy` + `id-register` + `criteria-instrument` | Taxonomy v2.0.0, ID Register v2.1.0 and instrument JSON contain 6 domains, 30 pairs and 180 unique primary questions. Instrument titles and object IDs agree with the taxonomy. `CTRL-*` and `REQ-*` are instrument IDs, not document IDs. | Map controls via `authoringObjectId`, anti-patterns via their own `id`, and preserve `pairedObjectId`, question IDs, dimensions and exact question text. Resolve requirement and related-control references. Use the Categories PDF for authoring guidance, not as a substitute for the instrument or normative publications. |
+| `cognitive-model` | Thinking Flow HTML (contract 3.1.0) corroborates all 180 question IDs and texts. It describes definition vs implementation vs evidence, unknown and contradiction handling, tested absence, and human decision boundaries. | Read supplied static content inertly, preserving locators. Extract document requirements only; do not execute the assessment workflow. |
+| `tactic-playbook` + `tactic-playbook-schema` | v1.0.0 JSON validates. Its 119 tactics declare 216 explicit links covering all 60 objects; the two representations of object links agree. No eligible finding IDs are assigned. The companion PDF matches the referenced source snapshot. | Normalize and validate exact object links and scope, preserving provenance and the owner decision. Keep activation out of Creator. |
+| `capability-schema` + `antipattern-schema` + `shared-definitions` | AJV resolves the complete supplied v2.1.0 family and accepts both Golden objects. Substituting root shared definitions rejects both (six missing mapping-field errors each). | Pin `$id` and hash, load one consistent family offline, and distinguish calibration validation from the new Markdown content contract. |
+| `golden-capability` + `golden-antipattern` | A1/AP-A1 v1.0.0 JSON and combined PDF. Both JSON samples validate; their exact citation locators and anti-pattern absence structure are examples, not new normative support. Four of their six question texts differ from the current instrument. | Calibrate detail, shape, and evidence boundaries; never copy old wording, approval or historical practice into current outputs. |
 
-For each row, also record its Vercel object path, content hash, extraction method, and any normalization rules. Write adapters only for observed formats needed by the reference case. JSON is suitable for internal normalized contracts but is not a requirement to rewrite all source inputs. If a sample contains a visual table or diagram with essential meaning, explicitly verify its extraction rather than assuming text extraction captured it.
+JSON is the primary machine-readable input for the register, taxonomy, instrument, playbook, and Golden pair. The four PDFs are text-extractable in this checkout; PDF extraction success alone does not prove table fidelity. Do not add a general PDF ingestion dependency to DC-01 just to read companion references.
 
 Test fixtures should exercise these actual shapes without publishing restricted owner materials to a public repository. Use permitted examples or faithful synthetic fixtures where required. Preserve the distinction between synthetic parser tests and live source-supported creation.
 
 ## 4. Runtime configuration and readiness
 
-The deployment needs a named Vercel connection, credential secret reference, configured input-set manifest/configuration path, and allowed output/operations prefixes. The owner prepares the manifest or supplies equivalent paths through configuration; neither is a Master Table.
+The local pilot requires an explicit inventory path and output root. A later remote setup additionally needs a supported named connection, location, and credential secret reference. Neither setup is a Master Table.
 
 Before generation:
 
-1. Resolve the expected store identity and authorized root/prefix map.
-2. Read the selected input manifest/configuration from Vercel and resolve every required role to an exact object, including both Golden Reference documents.
+1. Confirm the selected input reader and allowed output root; do not accept arbitrary filesystem paths from a web client.
+2. Read the selected inventory and resolve every required role to an exact file, including both Golden Reference documents.
 3. Read and hash the actual bytes; validate format and required schema dependencies. Do not trust a reported hash without comparing it to the bytes.
 4. Parse using the sample-derived adapters. Cross-check taxonomy, criteria, source coverage, and playbook link targets.
 5. Apply recorded owner decisions to their exact inputs. For the supplied final SAE playbook, preserve original wording as provenance and use the owner-confirmed effective status. This does not invent missing links, legal applicability, or customer-specific activation.
-6. Validate the configured write destination and taxonomy-to-prefix mapping. Do not require a literal empty folder object: Blob folders are logical prefixes. Do not create or rearrange the owner's input structure.
-7. Show a concise ready/not-ready result and exact gaps. Model authoring starts only when required inputs and destination readiness pass.
+6. Validate the configured `knowledge-base/` destination and taxonomy-to-path mapping without writing or rearranging inputs.
+7. Show planning readiness separately from authoring and delivery readiness. Missing passage support is not a reason to hide a valid plan or mark its documents ready.
 
 An unavailable input leaves the application usable for configuration and diagnostics but blocks the dependent run. Never fall back to bundled repository documents, old cached versions, or local development samples without an explicitly selected matching input set. A cache may serve only verified bytes for the pinned version/hash under the configured policy.
 
@@ -67,10 +62,16 @@ Read access applies to inputs, schemas, and Golden Reference prefixes. Write acc
 
 Any connectivity write probe belongs in an explicitly configured disposable output prefix and must be cleaned up. Never test writes by altering an input file. Do not expose secrets or expiring signed URLs in generated documents.
 
-External source-publication URLs in the Source Register remain usable under acquisition policy. This is source research for grounding, not an alternative production input store. The prepared register/cognitive model/taxonomy/playbook/schemas/Golden pair still come from Vercel.
+For the first pilot, supply permitted source passages locally with exact edition and locators, or use attributed human-verified excerpts. Treat external publication URLs as metadata during offline verification. For later remote delivery, a separately authorized connectivity test must use a disposable output scope.
 
 ## 6. First reference-case demonstration
 
-Use the owner-prepared SAE input set to generate a pair different from the Golden Reference pair. Demonstrate that the documents follow the supplied schemas, cognitive distinctions, criterion meanings, source support, and actual tactic relationships. Verify that the original Vercel input files remain byte-identical after generation and delivery.
+Generate and review one non-Golden pair. Demonstrate current question fidelity, cognitive distinctions, source support, and correct object-level tactic associations. Compare all pinned bytes before and after delivery. Only then expand toward 30 pairs. A small synthetic second profile demonstrates reuse without a second real KB.
 
-Only then expand to the rest of the SAE taxonomy. A small second test profile demonstrates reuse; building a second real KB is not a prerequisite for proving this reference case.
+## DC-00 review
+
+- Reviewed `b047f8a` (PR #34): supplied assets and the output skeleton were added since the branding commit; the legacy runtime is unchanged. Recomputed SHA-256 for all 43 inventory file entries and 11 historical dependency entries; all matched. No generated files were present in `knowledge-base/`.
+- `npm run verify` passed on Node 22.23.1 and disposable Postgres 16.15 bound to a temporary Unix socket: typecheck, 33 tests, build, and Golden regression. This does not prove fresh authoring. No application startup, live model calls, or storage API calls were made.
+- **Ready for DC-01 local planning.** Do not import legacy startup behavior: bundled register load, legacy operator/register routes, boot drift check, legacy resume and shutdown reclamation. The Golden projection remains a legacy regression check, not proof that a fresh response changes output.
+- **Not ready for source-supported delivery.** The normalized instrument has no atomic subcriteria/tests, finding definitions, or evidence rules. Author these only where the chosen template requires them, using source support and human review; use historical samples to calibrate depth only. If any of those details are meant to be pre-approved inputs, the owner must supply the current authorized versions.
+- All 30 instrument requirement records reference `SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026`, absent from the selected Source Register and supplied corpus. Do not silently drop or substitute it. Obtain the registered authority and permitted passages, or obtain a scoped clarification that it is a runtime placeholder and confirm the sources that govern the pilot pair. Do not request playbook reapproval or a historical finding-level crosswalk for this pilot.
