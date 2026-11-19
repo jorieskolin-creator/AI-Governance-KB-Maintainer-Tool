@@ -40,7 +40,7 @@
       "role": "criteria-reference",
       "path": "tests/fixtures/synthetic-profile/inputs/criteria-reference.pdf",
       "version": "0.1.0-synthetic",
-      "sha256": "0e580d5d46c7580c5b9971503d2e2e24ec15594561e5b2a65a60bf627e3070eb",
+      "sha256": "558adbc0cb54db2c5fa9d9a61f6ce752c902ba3d76bce51239bc564722a67774",
       "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
     },
     {
