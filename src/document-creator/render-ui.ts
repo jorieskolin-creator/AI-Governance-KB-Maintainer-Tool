@@ -1,4 +1,9 @@
-import type { DocumentPlan, KbProfile, ResolvedInputSet } from './contracts.js';
+import type {
+  DocumentPlan,
+  KbProfile,
+  ResolvedInputSet,
+  SourcePreparationBundle
+} from './contracts.js';
 
 export function escapeHtml(value: string): string {
   return value
@@ -9,10 +14,11 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
-function renderStageNav(activeStage: 'inputs' | 'plan'): string {
+function renderStageNav(activeStage: 'inputs' | 'plan' | 'sources'): string {
   const stages: ReadonlyArray<{ id: string; label: string; href?: string; status: string }> = [
     { id: 'inputs', label: '1. Inputs', href: '/creator', status: activeStage === 'inputs' ? 'Current' : 'Available' },
     { id: 'plan', label: '2. Document plan', href: '/creator/plan', status: activeStage === 'plan' ? 'Current' : 'Available' },
+    { id: 'sources', label: '2b. Source inspection', href: '/creator/sources', status: activeStage === 'sources' ? 'Current' : 'Available' },
     { id: 'documents', label: '3. Documents', status: 'Pending DC-03/04' },
     { id: 'delivery', label: '4. Delivery', status: 'Pending DC-05' },
     { id: 'history', label: '5. History', status: 'Pending DC-04/05' }
@@ -33,7 +39,7 @@ function renderStageNav(activeStage: 'inputs' | 'plan'): string {
   </nav>`;
 }
 
-function pageLayout(title: string, activeStage: 'inputs' | 'plan', bodyHtml: string): string {
+function pageLayout(title: string, activeStage: 'inputs' | 'plan' | 'sources', bodyHtml: string): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -299,4 +305,156 @@ export function renderDocumentPlanViewHtml(options: {
   `;
 
   return pageLayout('Document Plan', 'plan', body);
+}
+
+export function renderSourcePreparationViewHtml(options: {
+  profiles: ReadonlyArray<Pick<KbProfile, 'profile_id' | 'kb_id' | 'kb_title' | 'is_synthetic'>>;
+  selectedProfileId: string;
+  availablePairs: ReadonlyArray<{ pair_id: string; domain_id: string; title: string }>;
+  selectedPairId: string;
+  bundle: SourcePreparationBundle | null;
+  errorMessage?: string;
+}): string {
+  const { profiles, selectedProfileId, availablePairs, selectedPairId, bundle, errorMessage } = options;
+
+  const baselinesHtml = !bundle
+    ? `<p role="alert">${escapeHtml(errorMessage ?? 'Source preparation unavailable until required inputs pass readiness.')}</p>`
+    : bundle.pair_baselines
+        .map((pb) => {
+          const pdf = pb.criteria_from_pdf;
+          const tf = pb.thinking_flow_baseline;
+          return `<article>
+            <h3>${escapeHtml(pb.pair_id)} (Domain ${escapeHtml(pb.domain_id)})</h3>
+            ${
+              pdf
+                ? `<p>Criteria locator: <code>${escapeHtml(pdf.locator)}</code> · Applicability: ${escapeHtml(pdf.applicability)}</p>
+                   <p><strong>${escapeHtml(pdf.capability_id)} — ${escapeHtml(pdf.capability_title)}:</strong> ${escapeHtml(pdf.capability_definition)}</p>
+                   <p>Capability indicators: ${escapeHtml(pdf.capability_indicators.join(' · '))}</p>
+                   <p><strong>${escapeHtml(pdf.antipattern_id)} — ${escapeHtml(pdf.antipattern_title)}:</strong> ${escapeHtml(pdf.antipattern_definition)}</p>
+                   <p>Anti-pattern indicators: ${escapeHtml(pdf.antipattern_indicators.join(' · '))}</p>`
+                : '<p role="alert">Missing PDF criteria section for this pair.</p>'
+            }
+            <p>Thinking Flow v${escapeHtml(tf.cognitive_model_version)} questions: <code>${escapeHtml([...tf.capability_questions, ...tf.antipattern_questions].map((q) => q.id).join(', '))}</code></p>
+          </article>`;
+        })
+        .join('');
+
+  const supportHtml = !bundle
+    ? ''
+    : `<table>
+        <thead>
+          <tr>
+            <th>Object</th>
+            <th>Criteria Locator</th>
+            <th>Questions</th>
+            <th>Support Status</th>
+            <th>Model-Eligible Passages</th>
+            <th>Metadata-Only Sources</th>
+            <th>Unavailable / Blocked</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${bundle.criterion_support
+            .map(
+              (cs) =>
+                `<tr>
+                  <td><code>${escapeHtml(cs.object_id)}</code> (${escapeHtml(cs.object_type)})</td>
+                  <td>${cs.criteria_locator ? `<code>${escapeHtml(cs.criteria_locator)}</code>` : 'Missing'}</td>
+                  <td><code>${escapeHtml(cs.question_ids.join(', '))}</code></td>
+                  <td><strong>${escapeHtml(cs.support_status)}</strong></td>
+                  <td>${String(cs.usable_source_unit_ids.length)}</td>
+                  <td>${cs.metadata_only_source_ids.length > 0 ? escapeHtml(cs.metadata_only_source_ids.join(', ')) : '0'}</td>
+                  <td>${cs.unavailable_source_ids.length > 0 ? escapeHtml(cs.unavailable_source_ids.join(', ')) : '0'}</td>
+                </tr>`
+            )
+            .join('')}
+        </tbody>
+      </table>`;
+
+  const unitsHtml = !bundle
+    ? ''
+    : `<table>
+        <thead>
+          <tr>
+            <th>Source ID / Edition</th>
+            <th>Origin</th>
+            <th>Locator</th>
+            <th>Status</th>
+            <th>Model Eligible</th>
+            <th>Warnings / Excerpt Preview</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${bundle.source_units
+            .map((u) => {
+              const maxPreviewChars = 200;
+              const preview = u.text
+                ? `${u.text.slice(0, maxPreviewChars)}${u.text.length > maxPreviewChars ? '…' : ''}`
+                : 'No passage text';
+              const warnings = [...u.limitations, ...u.untrusted_content_flags].join('; ');
+              return `<tr>
+                <td><code>${escapeHtml(u.source_id)}</code> (${escapeHtml(u.source_version)})</td>
+                <td>${escapeHtml(u.origin_kind)}</td>
+                <td><code>${escapeHtml(u.locator.label)}</code></td>
+                <td><code>${escapeHtml(u.extraction_status)}</code></td>
+                <td>${u.model_eligible ? 'Yes' : 'No'}</td>
+                <td>${warnings ? `<div><em>${escapeHtml(warnings)}</em></div>` : ''}<div>${escapeHtml(preview)}</div></td>
+              </tr>`;
+            })
+            .join('')}
+        </tbody>
+      </table>`;
+
+  const body = `
+    <section aria-labelledby="source-inspect-heading">
+      <h2 id="source-inspect-heading">Source preparation &amp; criterion support</h2>
+      <form class="controls" method="get" action="/creator/sources">
+        <label>
+          KB Profile
+          <select name="profileId">
+            ${profiles
+              .map(
+                (p) =>
+                  `<option value="${escapeHtml(p.profile_id)}"${p.profile_id === selectedProfileId ? ' selected' : ''}>${escapeHtml(p.kb_title)} (${escapeHtml(p.profile_id)})</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <label>
+          Pair ID
+          <select name="pairId">
+            ${availablePairs
+              .map(
+                (pair) =>
+                  `<option value="${escapeHtml(pair.pair_id)}"${pair.pair_id === selectedPairId ? ' selected' : ''}>${escapeHtml(pair.pair_id)} (${escapeHtml(pair.domain_id)} — ${escapeHtml(pair.title)})</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <button class="primary" type="submit">Inspect prepared sources</button>
+      </form>
+      ${
+        bundle
+          ? `<p>Criteria &amp; questions ready: <strong>${bundle.readiness.criteria_and_questions_ready ? 'YES' : 'NO'}</strong> · Substantive passages ready: <strong>${bundle.readiness.substantive_source_passages_ready ? 'YES' : 'GAPS_PRESENT'}</strong> · Model-eligible passages in packet: <strong>${String(bundle.model_ready_packet.eligible_passages.length)}</strong></p>`
+          : ''
+      }
+    </section>
+
+    <section aria-labelledby="pair-criteria-heading">
+      <h2 id="pair-criteria-heading">Extracted pair criteria &amp; Thinking Flow baseline</h2>
+      ${baselinesHtml}
+    </section>
+
+    <section aria-labelledby="criterion-support-heading">
+      <h2 id="criterion-support-heading">Criterion support matrix</h2>
+      ${supportHtml}
+    </section>
+
+    <section aria-labelledby="source-units-heading">
+      <h2 id="source-units-heading">Prepared source units</h2>
+      ${unitsHtml}
+    </section>
+  `;
+
+  return pageLayout('Source Inspection', 'sources', body);
 }

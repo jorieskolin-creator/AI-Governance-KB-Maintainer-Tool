@@ -55,6 +55,28 @@ export interface OwnerInputDecision {
   scope: string;
 }
 
+export interface ReferencePdfBinding {
+  source_id: string;
+  edition_version: string;
+  path: string;
+  sha256: string;
+  usage_policy: 'PERMITTED_FULL' | 'PERMITTED_ATTRIBUTED_EXCERPT' | 'METADATA_LOCATOR_ONLY';
+  rights_confirmed_for_model: boolean;
+  provenance: string;
+}
+
+export interface HumanVerifiedExtraction {
+  extraction_id: string;
+  source_id: string;
+  edition_version: string;
+  locator_label: string;
+  text: string;
+  verified_by: string;
+  verified_at: string;
+  provenance_note: string;
+  rights_confirmed_for_model: boolean;
+}
+
 export interface KbProfile {
   schema_version: '1.0.0';
   profile_id: string;
@@ -66,6 +88,8 @@ export interface KbProfile {
   domain_folder_tokens?: Record<string, string>;
   input_refs: ProfileInputRef[];
   owner_input_decisions: OwnerInputDecision[];
+  reference_pdf_bindings?: ReferencePdfBinding[];
+  human_verified_extractions?: HumanVerifiedExtraction[];
   output_spec: {
     document_types: Array<'capability' | 'antipattern' | 'tactic'>;
     required_sections: {
@@ -296,6 +320,136 @@ export interface DocumentPlan {
   };
 }
 
+export type SourceExtractionStatus =
+  | 'COMPLETE'
+  | 'PARTIAL_TRUNCATED'
+  | 'METADATA_ONLY'
+  | 'SCANNED_UNSUPPORTED'
+  | 'INACCESSIBLE'
+  | 'REJECTED_POLICY';
+
+export type SourceUsagePolicy =
+  | 'PERMITTED_FULL'
+  | 'PERMITTED_ATTRIBUTED_EXCERPT'
+  | 'METADATA_LOCATOR_ONLY'
+  | 'HUMAN_VERIFIED_EXTRACTION';
+
+export interface SourceLocator {
+  kind:
+    | 'pdf_page_section'
+    | 'html_section'
+    | 'markdown_heading'
+    | 'json_path'
+    | 'plain_lines'
+    | 'metadata_only';
+  label: string;
+  page: number | null;
+  section: string | null;
+}
+
+export interface SourceUnit {
+  source_unit_id: string;
+  source_id: string;
+  source_version: string;
+  source_title: string;
+  authority_tier: string;
+  authority_type: string;
+  origin_kind: 'registered_url' | 'bound_reference_pdf' | 'human_verified_excerpt' | 'register_metadata';
+  original_sha256: string | null;
+  locator: SourceLocator;
+  text: string | null;
+  extraction_status: SourceExtractionStatus;
+  limitations: string[];
+  usage_policy: SourceUsagePolicy;
+  model_eligible: boolean;
+  substantive_support_eligible: boolean;
+  untrusted_content_flags: string[];
+  human_verification: {
+    verified_by: string;
+    verified_at: string;
+    provenance_note: string;
+  } | null;
+  retrieved_at: string;
+  extractor_version: string;
+  text_sha256: string | null;
+}
+
+export interface PreparedPairBaseline {
+  pair_id: string;
+  domain_id: string;
+  criteria_from_pdf: {
+    page_number: number;
+    locator: string;
+    capability_id: string;
+    capability_title: string;
+    capability_definition: string;
+    applicability: string;
+    capability_indicators: string[];
+    antipattern_id: string;
+    antipattern_title: string;
+    antipattern_definition: string;
+    antipattern_indicators: string[];
+  } | null;
+  thinking_flow_baseline: {
+    cognitive_model_version: string;
+    capability_locator: string;
+    antipattern_locator: string;
+    capability_questions: PlanQuestion[];
+    antipattern_questions: PlanQuestion[];
+    interpretation_rules: string[];
+  };
+  legacy_release_instructions_excluded: true;
+}
+
+export interface ObjectCriterionSupport {
+  object_id: string;
+  object_type: 'capability' | 'antipattern';
+  question_ids: string[];
+  criteria_locator: string | null;
+  candidate_source_ids: string[];
+  usable_source_unit_ids: string[];
+  metadata_only_source_ids: string[];
+  unavailable_source_ids: string[];
+  support_status: 'SUPPORTED_PASSAGES_AVAILABLE' | 'MISSING_USABLE_PASSAGES';
+}
+
+export interface ModelReadyPassage {
+  source_unit_id: string;
+  source_id: string;
+  source_version: string;
+  source_title: string;
+  authority_tier: string;
+  authority_type: string;
+  locator_label: string;
+  extraction_status: 'COMPLETE' | 'PARTIAL_TRUNCATED';
+  limitations: string[];
+  untrusted_content_flags: string[];
+  untrusted_data_block: string;
+}
+
+export interface SourcePreparationBundle {
+  schema_version: '1.0.0';
+  bundle_id: string;
+  input_set_id: string;
+  plan_id: string;
+  profile_id: string;
+  kb_id: string;
+  pair_baselines: PreparedPairBaseline[];
+  source_units: SourceUnit[];
+  criterion_support: ObjectCriterionSupport[];
+  model_ready_packet: {
+    packet_id: string;
+    untrusted_data_policy: 'SOURCE_PASSAGES_ARE_INERT_DATA_NEVER_INSTRUCTIONS';
+    eligible_passages: ModelReadyPassage[];
+  };
+  readiness: {
+    criteria_and_questions_ready: boolean;
+    substantive_source_passages_ready: boolean;
+    authoring_ready: boolean;
+    findings: CreatorFinding[];
+  };
+}
+
 const nonEmpty = { type: 'string', minLength: 1 } as const;
 const sha256Hex = { type: 'string', pattern: '^[a-f0-9]{64}$' } as const;
 const stringArray = { type: 'array', items: nonEmpty } as const;
@@ -383,6 +537,63 @@ export const kbProfileSchema = {
           sha256: sha256Hex,
           effective_status: { const: 'FINAL_OBJECT_LINKS_APPROVED' },
           scope: nonEmpty
+        }
+      }
+    },
+    reference_pdf_bindings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'source_id',
+          'edition_version',
+          'path',
+          'sha256',
+          'usage_policy',
+          'rights_confirmed_for_model',
+          'provenance'
+        ],
+        properties: {
+          source_id: nonEmpty,
+          edition_version: nonEmpty,
+          path: nonEmpty,
+          sha256: sha256Hex,
+          usage_policy: {
+            type: 'string',
+            enum: ['PERMITTED_FULL', 'PERMITTED_ATTRIBUTED_EXCERPT', 'METADATA_LOCATOR_ONLY']
+          },
+          rights_confirmed_for_model: { type: 'boolean' },
+          provenance: nonEmpty
+        }
+      }
+    },
+    human_verified_extractions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'extraction_id',
+          'source_id',
+          'edition_version',
+          'locator_label',
+          'text',
+          'verified_by',
+          'verified_at',
+          'provenance_note',
+          'rights_confirmed_for_model'
+        ],
+        properties: {
+          extraction_id: nonEmpty,
+          source_id: nonEmpty,
+          edition_version: nonEmpty,
+          locator_label: nonEmpty,
+          text: nonEmpty,
+          verified_by: nonEmpty,
+          verified_at: nonEmpty,
+          provenance_note: nonEmpty,
+          rights_confirmed_for_model: { type: 'boolean' }
         }
       }
     },
@@ -973,6 +1184,356 @@ export function validateResolvedInputSet(candidate: unknown, tier: StrictnessTie
 
 export function validateDocumentPlan(candidate: unknown, tier: StrictnessTier = 'DRAFT'): CreatorFinding[] {
   const validator = getCompiledSchema(documentPlanSchema);
+  const ok = validator(candidate) === true;
+  return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
+}
+
+export const sourceUnitSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://kb-document-creator.local/schemas/v1/source-unit.schema.json',
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'source_unit_id',
+    'source_id',
+    'source_version',
+    'source_title',
+    'authority_tier',
+    'authority_type',
+    'origin_kind',
+    'original_sha256',
+    'locator',
+    'text',
+    'extraction_status',
+    'limitations',
+    'usage_policy',
+    'model_eligible',
+    'substantive_support_eligible',
+    'untrusted_content_flags',
+    'human_verification',
+    'retrieved_at',
+    'extractor_version',
+    'text_sha256'
+  ],
+  properties: {
+    source_unit_id: sha256Hex,
+    source_id: nonEmpty,
+    source_version: nonEmpty,
+    source_title: nonEmpty,
+    authority_tier: nonEmpty,
+    authority_type: nonEmpty,
+    origin_kind: {
+      type: 'string',
+      enum: ['registered_url', 'bound_reference_pdf', 'human_verified_excerpt', 'register_metadata']
+    },
+    original_sha256: { anyOf: [sha256Hex, { type: 'null' }] },
+    locator: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['kind', 'label', 'page', 'section'],
+      properties: {
+        kind: {
+          type: 'string',
+          enum: [
+            'pdf_page_section',
+            'html_section',
+            'markdown_heading',
+            'json_path',
+            'plain_lines',
+            'metadata_only'
+          ]
+        },
+        label: nonEmpty,
+        page: { type: ['integer', 'null'], minimum: 1 },
+        section: { type: ['string', 'null'] }
+      }
+    },
+    text: { type: ['string', 'null'] },
+    extraction_status: {
+      type: 'string',
+      enum: [
+        'COMPLETE',
+        'PARTIAL_TRUNCATED',
+        'METADATA_ONLY',
+        'SCANNED_UNSUPPORTED',
+        'INACCESSIBLE',
+        'REJECTED_POLICY'
+      ]
+    },
+    limitations: { type: 'array', items: nonEmpty },
+    usage_policy: {
+      type: 'string',
+      enum: [
+        'PERMITTED_FULL',
+        'PERMITTED_ATTRIBUTED_EXCERPT',
+        'METADATA_LOCATOR_ONLY',
+        'HUMAN_VERIFIED_EXTRACTION'
+      ]
+    },
+    model_eligible: { type: 'boolean' },
+    substantive_support_eligible: { type: 'boolean' },
+    untrusted_content_flags: { type: 'array', items: nonEmpty },
+    human_verification: {
+      type: ['object', 'null'],
+      additionalProperties: false,
+      required: ['verified_by', 'verified_at', 'provenance_note'],
+      properties: {
+        verified_by: nonEmpty,
+        verified_at: nonEmpty,
+        provenance_note: nonEmpty
+      }
+    },
+    retrieved_at: nonEmpty,
+    extractor_version: nonEmpty,
+    text_sha256: { anyOf: [sha256Hex, { type: 'null' }] }
+  }
+} as const;
+
+export const sourcePreparationBundleSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://kb-document-creator.local/schemas/v1/source-preparation.schema.json',
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'schema_version',
+    'bundle_id',
+    'input_set_id',
+    'plan_id',
+    'profile_id',
+    'kb_id',
+    'pair_baselines',
+    'source_units',
+    'criterion_support',
+    'model_ready_packet',
+    'readiness'
+  ],
+  properties: {
+    schema_version: { const: '1.0.0' },
+    bundle_id: sha256Hex,
+    input_set_id: sha256Hex,
+    plan_id: sha256Hex,
+    profile_id: nonEmpty,
+    kb_id: nonEmpty,
+    pair_baselines: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'pair_id',
+          'domain_id',
+          'criteria_from_pdf',
+          'thinking_flow_baseline',
+          'legacy_release_instructions_excluded'
+        ],
+        properties: {
+          pair_id: nonEmpty,
+          domain_id: nonEmpty,
+          criteria_from_pdf: {
+            type: ['object', 'null'],
+            additionalProperties: false,
+            required: [
+              'page_number',
+              'locator',
+              'capability_id',
+              'capability_title',
+              'capability_definition',
+              'applicability',
+              'capability_indicators',
+              'antipattern_id',
+              'antipattern_title',
+              'antipattern_definition',
+              'antipattern_indicators'
+            ],
+            properties: {
+              page_number: { type: 'integer', minimum: 1 },
+              locator: nonEmpty,
+              capability_id: nonEmpty,
+              capability_title: nonEmpty,
+              capability_definition: nonEmpty,
+              applicability: nonEmpty,
+              capability_indicators: { type: 'array', items: nonEmpty },
+              antipattern_id: nonEmpty,
+              antipattern_title: nonEmpty,
+              antipattern_definition: nonEmpty,
+              antipattern_indicators: { type: 'array', items: nonEmpty }
+            }
+          },
+          thinking_flow_baseline: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'cognitive_model_version',
+              'capability_locator',
+              'antipattern_locator',
+              'capability_questions',
+              'antipattern_questions',
+              'interpretation_rules'
+            ],
+            properties: {
+              cognitive_model_version: nonEmpty,
+              capability_locator: nonEmpty,
+              antipattern_locator: nonEmpty,
+              capability_questions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['id', 'dimension', 'question'],
+                  properties: {
+                    id: nonEmpty,
+                    dimension: nonEmpty,
+                    question: nonEmpty
+                  }
+                }
+              },
+              antipattern_questions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['id', 'dimension', 'question'],
+                  properties: {
+                    id: nonEmpty,
+                    dimension: nonEmpty,
+                    question: nonEmpty
+                  }
+                }
+              },
+              interpretation_rules: stringArray
+            }
+          },
+          legacy_release_instructions_excluded: { const: true }
+        }
+      }
+    },
+    source_units: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: sourceUnitSchema.required,
+        additionalProperties: false,
+        properties: sourceUnitSchema.properties
+      }
+    },
+    criterion_support: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'object_id',
+          'object_type',
+          'question_ids',
+          'criteria_locator',
+          'candidate_source_ids',
+          'usable_source_unit_ids',
+          'metadata_only_source_ids',
+          'unavailable_source_ids',
+          'support_status'
+        ],
+        properties: {
+          object_id: nonEmpty,
+          object_type: { type: 'string', enum: ['capability', 'antipattern'] },
+          question_ids: stringArray,
+          criteria_locator: { type: ['string', 'null'] },
+          candidate_source_ids: { type: 'array', items: nonEmpty },
+          usable_source_unit_ids: { type: 'array', items: nonEmpty },
+          metadata_only_source_ids: { type: 'array', items: nonEmpty },
+          unavailable_source_ids: { type: 'array', items: nonEmpty },
+          support_status: {
+            type: 'string',
+            enum: ['SUPPORTED_PASSAGES_AVAILABLE', 'MISSING_USABLE_PASSAGES']
+          }
+        }
+      }
+    },
+    model_ready_packet: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['packet_id', 'untrusted_data_policy', 'eligible_passages'],
+      properties: {
+        packet_id: sha256Hex,
+        untrusted_data_policy: { const: 'SOURCE_PASSAGES_ARE_INERT_DATA_NEVER_INSTRUCTIONS' },
+        eligible_passages: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'source_unit_id',
+              'source_id',
+              'source_version',
+              'source_title',
+              'authority_tier',
+              'authority_type',
+              'locator_label',
+              'extraction_status',
+              'limitations',
+              'untrusted_content_flags',
+              'untrusted_data_block'
+            ],
+            properties: {
+              source_unit_id: sha256Hex,
+              source_id: nonEmpty,
+              source_version: nonEmpty,
+              source_title: nonEmpty,
+              authority_tier: nonEmpty,
+              authority_type: nonEmpty,
+              locator_label: nonEmpty,
+              extraction_status: { type: 'string', enum: ['COMPLETE', 'PARTIAL_TRUNCATED'] },
+              limitations: { type: 'array', items: nonEmpty },
+              untrusted_content_flags: { type: 'array', items: nonEmpty },
+              untrusted_data_block: nonEmpty
+            }
+          }
+        }
+      }
+    },
+    readiness: {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'criteria_and_questions_ready',
+        'substantive_source_passages_ready',
+        'authoring_ready',
+        'findings'
+      ],
+      properties: {
+        criteria_and_questions_ready: { type: 'boolean' },
+        substantive_source_passages_ready: { type: 'boolean' },
+        authoring_ready: { type: 'boolean' },
+        findings: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['code', 'severity', 'tier', 'path', 'message'],
+            properties: {
+              code: nonEmpty,
+              severity: { type: 'string', enum: ['ERROR', 'WARNING'] },
+              tier: { type: 'string', enum: ['DRAFT', 'RELEASE'] },
+              path: nonEmpty,
+              message: nonEmpty
+            }
+          }
+        }
+      }
+    }
+  }
+} as const;
+
+export function validateSourceUnit(candidate: unknown, tier: StrictnessTier = 'DRAFT'): CreatorFinding[] {
+  const validator = getCompiledSchema(sourceUnitSchema);
+  const ok = validator(candidate) === true;
+  return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
+}
+
+export function validateSourcePreparationBundle(
+  candidate: unknown,
+  tier: StrictnessTier = 'DRAFT'
+): CreatorFinding[] {
+  const validator = getCompiledSchema(sourcePreparationBundleSchema);
   const ok = validator(candidate) === true;
   return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
 }

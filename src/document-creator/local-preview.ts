@@ -1,5 +1,6 @@
 import { createDocumentPlan } from './plan.js';
 import { buildProfileFromInventoryFile, buildSaeLocalPilotProfile, resolveProfileInputSet } from './profiles.js';
+import { prepareSourcesForPlan } from './sources.js';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -44,6 +45,13 @@ async function main(): Promise<void> {
     include_tactics: false
   });
 
+  const sourceBundle = await prepareSourcesForPlan({
+    workspaceRoot,
+    runtime,
+    plan,
+    enableUrlAcquisition: false
+  });
+
   console.log(
     JSON.stringify(
       {
@@ -51,7 +59,9 @@ async function main(): Promise<void> {
         readiness: runtime.inputSet.readiness,
         golden_reference: runtime.inputSet.golden_reference,
         applied_owner_decisions: runtime.inputSet.applied_owner_decisions,
-        plan
+        plan,
+        pair_baselines: sourceBundle.pair_baselines,
+        source_readiness: sourceBundle.readiness
       },
       null,
       2

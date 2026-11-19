@@ -91,6 +91,7 @@ const REQUIRED_PROFILE_ROLES: ReadonlyArray<{
   required: boolean;
 }> = [
   { role: 'source-register', kind: 'source-register', mediaType: 'application/json', required: true },
+  { role: 'source-register-reference', kind: 'companion-reference', mediaType: 'application/pdf', required: false },
   { role: 'source-register-schema', kind: 'schema', mediaType: 'application/schema+json', required: true },
   { role: 'taxonomy', kind: 'taxonomy', mediaType: 'application/json', required: true },
   { role: 'id-register', kind: 'id-register', mediaType: 'application/json', required: true },
