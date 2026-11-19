@@ -23,13 +23,16 @@ During transition, retain existing verification and add the Creator tests to it.
 | I-09 | Output location is empty or outside the allowed scope | Empty is valid; reject unconfigured destinations and path escapes | DC-01/05 |
 | I-10 | Supplied sample format differs from an assumed JSON schema | Adapter follows documented sample contract; no forced source-document rewrite | DC-01 |
 | I-11 | Same-version root shared definitions replace the pinned SAE schema, or two loaded schemas share an ID | Report schema identity/content mismatch; no silent substitution or network resolution | DC-01 |
-| I-12 | Selected SAE instrument references the missing internal source or has empty detailed criteria | Report the exact gap; questions still plan correctly; required unsupported claims block final delivery | DC-01/02/05 |
-| S-01 | Real registered text/PDF passage available | Actual content and exact locator retained in authoring input | DC-02 |
+| I-12 | Instrument has empty `sourceIds` or detailed output arrays | Still plan from the supplied criteria PDF and cognitive model; source support is assessed using the selected register and actual passages | DC-01/02 |
+| I-13 | A nonempty `sourceIds` entry is absent from the selected Source Register | Report the unresolved ID; do not use it or silently substitute another source | DC-01 |
+| S-01 | Permitted publication content is available at a registered URL or in a bound PDF under `references/` | Actual content, registered ID, exact edition and locator retained in authoring input; automated tests use mocks/fixtures | DC-02 |
 | S-02 | Register contains title/URL but no readable source content | Unsupported claims remain unresolved | DC-02/03 |
 | S-03 | Source is scanned, truncated, inaccessible, or unsupported | Accurate extraction status and affected coverage gaps | DC-02 |
 | S-04 | Source content tells the model to ignore instructions or publish | Treated as data; no tool/approval/state change | DC-02/04 |
 | S-05 | URL redirects outside policy or targets a private network | Fetch rejected with bounded, safe error | DC-02 |
 | S-06 | Restricted source would enter a disallowed model request or public mirror | Egress/write prevented; usable alternative or gap reported | DC-02/05 |
+| S-07 | A PDF exists but lacks a matching register binding, or a file is bound outside `references/` | It cannot support claims; report the missing or invalid binding | DC-02 |
+| S-08 | SAE criteria PDF and Thinking Flow both apply to a selected pair | Criteria, indicators and applicability are traceable to PDF pages; exact question text and interpretation boundaries are retained independently | DC-02/03 |
 | D-01 | Controlled fresh author response changes a substantive section | Rendered Markdown changes accordingly; no snapshot substitution | DC-03 |
 | D-02 | Model invents source/tactic/object ID or source locator | Rejected or unresolved; never silently accepted | DC-03 |
 | D-03 | Capability is not satisfied but AP evidence is missing | Text preserves independent AP unknown handling | DC-03/04 |
@@ -65,7 +68,7 @@ Deterministic tests can validate mechanics and known negative cases; they do not
 
 ## 3. First live evaluation
 
-Select one fresh pair from the supplied SAE taxonomy that differs from the owner-supplied Golden Reference pair. Use the pinned local input set and actual permitted source passages. Do not replay recovered samples as newly generated content. Deliver to the explicit local output destination; no Vercel access is required. Any paid model call or submission of source content to a provider requires explicit authorization and source-use checks.
+Select one fresh pair from the supplied SAE taxonomy that differs from the owner-supplied Golden Reference pair. Use the pinned local input set and acquire actual permitted source passages from official registered URLs or bound PDFs in `references/`. The pilot can read registered publication URLs without changing the local storage setup. Do not replay recovered samples as newly generated content. Deliver to the explicit local output destination; no Vercel access is required. Any paid model call or submission of source content to a provider requires explicit authorization and source-use checks.
 
 Record:
 

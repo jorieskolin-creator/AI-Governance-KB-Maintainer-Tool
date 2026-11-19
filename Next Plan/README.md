@@ -2,7 +2,7 @@
 
 Updated: 19 November 2026
 
-Plan version: 1.2 — Local SAE pilot and explicitly configured storage
+Plan version: 1.3 — Local SAE pilot with registered source acquisition
 
 Audience: Augment Code and the repository owner  
 Reviewed starting point: `b02a4bc9ad8507295505134cad42d20dc592fa69`
@@ -24,11 +24,11 @@ The consuming analysis solution reads Packages from its Knowledge Hub. It does n
 ## Decisions in this plan
 
 - **Markdown (`.md`) is the primary delivered document format.** HTML is a sanitized UI preview, not another KB source. PDF is an optional later rendition generated from the same reviewed content.
-- **The first SAE pilot is local-only.** Select `baseline/sae-training/input-inventory.json` as the pinned training baseline and `baseline/sae-training/knowledge-base/` as the output root. Do not access Vercel or Google Drive. This explicit test configuration is not a production fallback.
+- **The first SAE pilot uses local input and output folders.** Select `baseline/sae-training/input-inventory.json` and deliver reviewed Markdown to `baseline/sae-training/knowledge-base/`. Read permitted publication content at Source Register URLs during an explicitly invoked pilot; keep automated tests offline. Do not use Vercel or Google Drive.
 - **Later delivery uses the user's selected storage.** The user supplies a location and access through a supported connection configured server-side. A link alone does not grant access. Keep the input selection and output authorization separate. Vercel Blob may be enabled later for a separately authorized test; Google Drive is excluded.
 - The first profile is **Solution Assurance Engine (SAE)**. Preserve supplied titles and IDs. Use the pinned Source Register, cognitive model, taxonomy and assessment instrument, linked Tactic Playbook, schema family, and **one Golden Reference capability/anti-pattern pair**. Other recovered documents are calibration only.
 - The owner has confirmed the supplied SAE Tactic Playbook is final. Older incomplete-approval wording is not a blocker. Record this decision against the supplied version/hash, preserve original bytes, and validate the actual links without imposing a new approval process.
-- Source Register entries alone are not sufficient grounding. The Creator needs usable source content, exact locators, and recorded usage boundaries.
+- The Categories and Anti-Patterns PDF defines SAE criteria, while the Thinking Flow and verified instrument supply the questions and interpretation rules. The Source Register is the sole list of eligible supporting publications. Read their actual content, with exact locators and usage boundaries. PDFs used as sources belong under `references/` and must be bound to an entry in the selected register.
 - One capability and one anti-pattern are separate output documents, optionally authored and reviewed together. Tactic documents are separate, created only when requested in the output plan.
 - Schema-defined internal data is permitted. Canonical JSON KB publication is not a product requirement. Operational manifests are technical receipts, not a Master Table.
 - Creation review permits delivery of the reviewed bytes. It does not grant Hub approval, legal assurance, customer findings, or tactic activation.

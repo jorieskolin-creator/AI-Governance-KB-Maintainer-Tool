@@ -57,10 +57,10 @@
     },
     {
       "role": "criteria-instrument",
-      "path": "baseline/sae-training/criteria/assessment-instrument-1.0.0.json",
-      "version": "assessment-instrument-1.0.0",
-      "sha256": "44f1843e375f69a66ce2b6f5728519cc46fa693965b1685eb62207d94a1eff11",
-      "origin": "JSON export of the upstream ASSESSMENT_INSTRUMENT object"
+      "path": "baseline/sae-training/criteria/assessment-instrument-1.0.0-sae.1.json",
+      "version": "assessment-instrument-1.0.0-sae.1",
+      "sha256": "74ce06528ed2da45a68eeaa97caabc429809fadbf4c2d5408e0a116bc74f968c",
+      "origin": "Local derivative of upstream ASSESSMENT_INSTRUMENT 1.0.0: retired internal source removed from 30 requirement records by owner direction; questions and criteria unchanged"
     },
     {
       "role": "cognitive-model",

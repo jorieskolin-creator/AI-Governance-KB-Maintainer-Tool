@@ -22,9 +22,9 @@ Input resolution reads the selected files and produces `input_set_id`, resolved 
 
 ### Input precedence and disagreement
 
-- Taxonomy owns object IDs, domain membership, pair membership, and criterion identities.
-- The cognitive model owns intended reasoning distinctions and interpretation boundaries.
-- The Source Register identifies permitted sources and source-use conditions; actual source material supports substantive claims.
+- Taxonomy owns object IDs, domain membership and pair membership. The configured criteria input owns what each document must cover.
+- The cognitive model owns questions and interpretation boundaries; the assessment instrument pins the machine-readable question IDs, dimensions, and wording.
+- The selected Source Register is the only allowlist for supporting publications. Only actual permitted passages support claims attributed to those publications.
 - The Tactic Playbook owns tactic identity, supplied tactic content, and declared mapping scope/status.
 - Document schemas specify required structure and field constraints.
 - Golden Samples demonstrate quality; they do not silently override any of the above.
@@ -45,7 +45,7 @@ Require domain ID/title, object ID/type/title, pair relationships where present,
 
 Validate duplicate IDs, orphan criteria, ambiguous pair membership, circular containment, and unknown domain references. Cross-domain related-object links may be valid and must not be confused with containment cycles. An anti-pattern may be related to a capability without being its logical negation.
 
-For SAE, the taxonomy and ID register own object identities and pairing; the pinned instrument owns exact primary question IDs, dimensions, and wording, corroborated by the Thinking Flow. Older examples with different question wording never override the instrument. Trace each question to its parent object and applicable cognitive rules. Empty atomic tests, subcriteria, finding definitions, or evidence rules are not approved content; where required, author source-supported proposals for review, not new governing inputs.
+For SAE, read the Criteria folder's Categories and Anti-Patterns v1.1 PDF for definitions, applicability, indicators and authoring criteria, with page/section locators for the selected pair. Read the Thinking Flow as the question and interpretation baseline and verify the pinned JSON instrument's exact question IDs, dimensions and text against it. Trace each output to both inputs and preserve independent capability/anti-pattern assessment. Where the template requires atomic tests, subcriteria, finding definitions or evidence rules, derive reviewable content from those inputs and relevant registered passages; blank arrays do not mean missing primary criteria. Do not inherit legacy JSON publication, PDF parity, runtime compilation, or approval workflow from the criteria PDF.
 
 The output plan enumerates exact expected object IDs. Titles never serve as identities. Changes to published identity require an explicit upstream migration; ordinary title edits do not change IDs.
 
@@ -53,7 +53,9 @@ The output plan enumerates exact expected object IDs. Titles never serve as iden
 
 Require source ID, title, publisher/authority, version/date, official location or verified upload reference, effective status, verification provenance/date, scope/applicability, licensing/model-use policy, and domain/object/criterion coverage references. Where coverage currently exists only at domain level, identify that as coarse coverage and require actual claim support during authoring.
 
-Do not require every registered source to support every document. Report sources unused by the selected scope and requested criteria with no available support. The tool does not search for and approve new authorities automatically.
+Use the register's coverage and applicability to shortlist relevant publications, then read the actual content behind their official links. Domain coverage alone does not prove a claim. An empty instrument `sourceIds` array asserts no predefined mapping; nonempty IDs must resolve in the selected register. Do not use a fixed substitute source, the criteria PDF's embedded historical source list, or links from examples. Report criteria without available support and do not register new authorities automatically.
+
+For file-based support, require a PDF already present under the configured `references/` input folder. Bind `source_id`, exact edition/version, relative PDF path, SHA-256, and applicable use rights in the selected input configuration. The binding must resolve to a Source Register entry; never auto-enroll a PDF or infer its edition from the filename. Cite the supporting page/section. Publication URLs do not need PDF mirrors; do not archive or redistribute fetched content by default. Companion PDFs for other input roles are not supporting publications just because they are in `references/`.
 
 Separate source-register approval, source accessibility, source version identity, and semantic support. A previously approved entry can be inaccessible, superseded, or unsuitable for the selected scope.
 
@@ -166,7 +168,8 @@ Recommended logical layout, mapped to the owner’s actual prepared prefixes rat
 
 | Prefix | Content | Eligible as generated KB source? |
 | --- | --- | --- |
-| `<root>/<kb-id>/inputs/<input-set-id>/` | Owner-prepared Source Register, taxonomy/criteria, cognitive model, playbook, and input manifest | No, unless separately admitted by Hub |
+| `<root>/<kb-id>/inputs/<input-set-id>/` | Pre-existing Source Register, `criteria/`, `cognitive/`, playbook, and input manifest | No, unless separately admitted by Hub |
+| `<root>/<kb-id>/inputs/<input-set-id>/references/` | Owner-prepared PDFs bound to registered source IDs and editions, plus explicitly labeled companion inputs | No |
 | `<root>/<kb-id>/schemas/<schema-id>/<version>/` | Owner-prepared schemas used for the run; read-only to Creator | No |
 | `<root>/<kb-id>/golden-reference/<pair-id>/<version>/` | Owner-prepared capability + anti-pattern Golden Reference pair; read-only to Creator | No |
 | `<root>/<kb-id>/drafts/<run-id>/` | Optional incomplete drafts; private working storage | No |

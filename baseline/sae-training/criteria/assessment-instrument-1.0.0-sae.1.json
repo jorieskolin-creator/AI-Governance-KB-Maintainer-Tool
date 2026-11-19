@@ -1,5 +1,5 @@
 {
-  "version": "assessment-instrument-1.0.0",
+  "version": "assessment-instrument-1.0.0-sae.1",
   "source": "AI_Governance_Categories_and_Anti-Patterns_v1.1",
   "instrumentStatus": "LOADED",
   "knowledgeBaseStatus": "NOT_PUBLISHED",
@@ -8,9 +8,7 @@
       "id": "REQ-A1",
       "domain": "A",
       "title": "Intended purpose and use boundaries",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -32,9 +30,7 @@
       "id": "REQ-A2",
       "domain": "A",
       "title": "AI suitability, proportionality and value hypothesis",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -56,9 +52,7 @@
       "id": "REQ-A3",
       "domain": "A",
       "title": "Value-chain roles and responsibility boundaries",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -80,9 +74,7 @@
       "id": "REQ-A4",
       "domain": "A",
       "title": "Risk, legal and regulatory classification",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "MIXED",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -104,9 +96,7 @@
       "id": "REQ-A5",
       "domain": "A",
       "title": "Lifecycle stage and transition boundary",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -128,9 +118,7 @@
       "id": "REQ-B1",
       "domain": "B",
       "title": "Data inventory, provenance and lineage",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -152,9 +140,7 @@
       "id": "REQ-B2",
       "domain": "B",
       "title": "Purpose limitation and data minimization",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -176,9 +162,7 @@
       "id": "REQ-B3",
       "domain": "B",
       "title": "Privacy and data-subject governance",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "MIXED",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -200,9 +184,7 @@
       "id": "REQ-B4",
       "domain": "B",
       "title": "Confidentiality and information-boundary control",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -224,9 +206,7 @@
       "id": "REQ-B5",
       "domain": "B",
       "title": "Intellectual property, licensing and content rights",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "MIXED",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -248,9 +228,7 @@
       "id": "REQ-C1",
       "domain": "C",
       "title": "Model, agent and component inventory",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -272,9 +250,7 @@
       "id": "REQ-C2",
       "domain": "C",
       "title": "Model and provider suitability",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -296,9 +272,7 @@
       "id": "REQ-C3",
       "domain": "C",
       "title": "Agent autonomy and tool permissioning",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -320,9 +294,7 @@
       "id": "REQ-C4",
       "domain": "C",
       "title": "Provider, vendor and contractual governance",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -344,9 +316,7 @@
       "id": "REQ-C5",
       "domain": "C",
       "title": "AI supply-chain integrity and change control",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -368,9 +338,7 @@
       "id": "REQ-D1",
       "domain": "D",
       "title": "Secure and isolated AI architecture",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -392,9 +360,7 @@
       "id": "REQ-D2",
       "domain": "D",
       "title": "Functional quality, accuracy and reliability",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -416,9 +382,7 @@
       "id": "REQ-D3",
       "domain": "D",
       "title": "AI-specific security and adversarial resilience",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -440,9 +404,7 @@
       "id": "REQ-D4",
       "domain": "D",
       "title": "Traceability, reproducibility and observability",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -464,9 +426,7 @@
       "id": "REQ-D5",
       "domain": "D",
       "title": "Safety, failure handling and recovery",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -488,9 +448,7 @@
       "id": "REQ-E1",
       "domain": "E",
       "title": "Human and fundamental-rights impact",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -512,9 +470,7 @@
       "id": "REQ-E2",
       "domain": "E",
       "title": "Fairness and non-discrimination",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -536,9 +492,7 @@
       "id": "REQ-E3",
       "domain": "E",
       "title": "Transparency and communication",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -560,9 +514,7 @@
       "id": "REQ-E4",
       "domain": "E",
       "title": "Meaningful human oversight",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -584,9 +536,7 @@
       "id": "REQ-E5",
       "domain": "E",
       "title": "Contestability, correction, accessibility and AI literacy",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -608,9 +558,7 @@
       "id": "REQ-F1",
       "domain": "F",
       "title": "Ownership and accountable operating model",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -632,9 +580,7 @@
       "id": "REQ-F2",
       "domain": "F",
       "title": "Compliance evidence and documentation integrity",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -656,9 +602,7 @@
       "id": "REQ-F3",
       "domain": "F",
       "title": "Risk, control and residual-risk management",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -680,9 +624,7 @@
       "id": "REQ-F4",
       "domain": "F",
       "title": "Decision rights, authorization and escalation",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
@@ -704,9 +646,7 @@
       "id": "REQ-F5",
       "domain": "F",
       "title": "Monitoring, incidents, change, re-evaluation and retirement",
-      "sourceIds": [
-        "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026"
-      ],
+      "sourceIds": [],
       "authority": "INTERNAL_PROCESS",
       "lifecycleStages": [
         "QUALIFICATION_AND_REGISTRATION",
