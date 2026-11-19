@@ -1,0 +1,178 @@
+{
+  "synthetic_notice": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE",
+  "version": "0.1.0-synthetic",
+  "requirements": [
+    {
+      "id": "SYN-REQ-OPS-1",
+      "domain": "OPS",
+      "authoringObjectId": "OPS-1",
+      "sourceIds": [
+        "SYN-SRC-OPS-01"
+      ]
+    },
+    {
+      "id": "SYN-REQ-OPS-2",
+      "domain": "OPS",
+      "authoringObjectId": "OPS-2",
+      "sourceIds": []
+    },
+    {
+      "id": "SYN-REQ-SEC-1",
+      "domain": "SEC",
+      "authoringObjectId": "SEC-1",
+      "sourceIds": []
+    }
+  ],
+  "controls": [
+    {
+      "id": "SYN-CTRL-OPS-1",
+      "domain": "OPS",
+      "title": "Synthetic Runbook Readiness",
+      "authoringObjectId": "OPS-1",
+      "pairedObjectId": "AP-OPS-1",
+      "requirementIds": [
+        "SYN-REQ-OPS-1"
+      ],
+      "questions": [
+        {
+          "id": "OPS-1-D1",
+          "dimension": "SPECIFICATION",
+          "question": "[Synthetic] Is Synthetic Runbook Readiness specified explicitly?"
+        },
+        {
+          "id": "OPS-1-D2",
+          "dimension": "VERIFICATION",
+          "question": "[Synthetic] Is Synthetic Runbook Readiness verified by test records?"
+        }
+      ],
+      "atomicSubcriteria": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "SYN-CTRL-OPS-2",
+      "domain": "OPS",
+      "title": "Synthetic Failover Drills",
+      "authoringObjectId": "OPS-2",
+      "pairedObjectId": "AP-OPS-2",
+      "requirementIds": [
+        "SYN-REQ-OPS-2"
+      ],
+      "questions": [
+        {
+          "id": "OPS-2-D1",
+          "dimension": "SPECIFICATION",
+          "question": "[Synthetic] Is Synthetic Failover Drills specified explicitly?"
+        },
+        {
+          "id": "OPS-2-D2",
+          "dimension": "VERIFICATION",
+          "question": "[Synthetic] Is Synthetic Failover Drills verified by test records?"
+        }
+      ],
+      "atomicSubcriteria": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "SYN-CTRL-SEC-1",
+      "domain": "SEC",
+      "title": "Synthetic Service Token Isolation",
+      "authoringObjectId": "SEC-1",
+      "pairedObjectId": "AP-SEC-1",
+      "requirementIds": [
+        "SYN-REQ-SEC-1"
+      ],
+      "questions": [
+        {
+          "id": "SEC-1-D1",
+          "dimension": "SPECIFICATION",
+          "question": "[Synthetic] Is Synthetic Service Token Isolation specified explicitly?"
+        },
+        {
+          "id": "SEC-1-D2",
+          "dimension": "VERIFICATION",
+          "question": "[Synthetic] Is Synthetic Service Token Isolation verified by test records?"
+        }
+      ],
+      "atomicSubcriteria": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    }
+  ],
+  "antipatterns": [
+    {
+      "id": "AP-OPS-1",
+      "domain": "OPS",
+      "title": "Synthetic Untested Runbook Drift",
+      "pairedObjectId": "OPS-1",
+      "relatedControlIds": [
+        "SYN-CTRL-OPS-1"
+      ],
+      "questions": [
+        {
+          "id": "AP-OPS-1-D1",
+          "dimension": "SPECIFICATION",
+          "question": "[Synthetic] Is Synthetic Untested Runbook Drift specified explicitly?"
+        },
+        {
+          "id": "AP-OPS-1-D2",
+          "dimension": "VERIFICATION",
+          "question": "[Synthetic] Is Synthetic Untested Runbook Drift verified by test records?"
+        }
+      ],
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-OPS-2",
+      "domain": "OPS",
+      "title": "Synthetic Paper-Only Failover",
+      "pairedObjectId": "OPS-2",
+      "relatedControlIds": [
+        "SYN-CTRL-OPS-2"
+      ],
+      "questions": [
+        {
+          "id": "AP-OPS-2-D1",
+          "dimension": "SPECIFICATION",
+          "question": "[Synthetic] Is Synthetic Paper-Only Failover specified explicitly?"
+        },
+        {
+          "id": "AP-OPS-2-D2",
+          "dimension": "VERIFICATION",
+          "question": "[Synthetic] Is Synthetic Paper-Only Failover verified by test records?"
+        }
+      ],
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    },
+    {
+      "id": "AP-SEC-1",
+      "domain": "SEC",
+      "title": "Synthetic Shared Ambient Credentials",
+      "pairedObjectId": "SEC-1",
+      "relatedControlIds": [
+        "SYN-CTRL-SEC-1",
+        "SYN-CTRL-OPS-1"
+      ],
+      "questions": [
+        {
+          "id": "AP-SEC-1-D1",
+          "dimension": "SPECIFICATION",
+          "question": "[Synthetic] Is Synthetic Shared Ambient Credentials specified explicitly?"
+        },
+        {
+          "id": "AP-SEC-1-D2",
+          "dimension": "VERIFICATION",
+          "question": "[Synthetic] Is Synthetic Shared Ambient Credentials verified by test records?"
+        }
+      ],
+      "atomicTests": [],
+      "findingDefinitions": [],
+      "evidenceRules": null
+    }
+  ]
+}

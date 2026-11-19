@@ -1,0 +1,24 @@
+{
+  "synthetic_notice": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE",
+  "version": "0.1.0-synthetic",
+  "sources": [
+    {
+      "id": "SYN-SRC-OPS-01",
+      "title": "Synthetic Operational Runbook Guide (Test Only)",
+      "official_location": "https://example.org/synthetic/ops-guide",
+      "licensing_storage_boundary": "Synthetic test text permitted for offline parser tests only.",
+      "domain_coverage": [
+        "OPS"
+      ]
+    },
+    {
+      "id": "SYN-SRC-SEC-01",
+      "title": "Synthetic Mesh Boundary Spec (Test Only)",
+      "official_location": "https://example.org/synthetic/sec-spec",
+      "licensing_storage_boundary": "Metadata and locator only.",
+      "domain_coverage": [
+        "SEC"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,10 @@
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import { loadSourceRegister } from './assets/load.js';
 import { checkDatabaseReady, closeDatabase } from './db/client.js';
 import { runMigrations } from './db/migrate.js';
+import { buildCreatorApp } from './document-creator/app.js';
 import { buildOperatorStatus } from './operator/board.js';
 import { loadDomainOverlay } from './operator/overlay.js';
 import { registerOperatorRoutes } from './operator/routes.js';
@@ -12,7 +15,21 @@ import { operatorLog } from './operator/log.js';
 import { checkRegisterDriftOnBoot } from './register/drift.js';
 import { registerRegisterRoutes } from './register/routes.js';
 
-export async function buildApp() {
+export type CreatorApplicationMode = 'legacy' | 'document';
+
+export function resolveCreatorMode(raw = process.env.CREATOR_MODE): CreatorApplicationMode {
+  const normalized = (raw ?? 'legacy').trim().toLowerCase();
+  if (normalized === 'document') return 'document';
+  if (normalized === 'legacy' || normalized === '') return 'legacy';
+  throw new Error(`Unsupported CREATOR_MODE "${String(raw)}"; expected "legacy" or "document".`);
+}
+
+export async function buildApp(modeOverride?: CreatorApplicationMode) {
+  const mode = modeOverride ?? resolveCreatorMode();
+  if (mode === 'document') {
+    return buildCreatorApp({ logger: true });
+  }
+
   const loadedRegister = loadSourceRegister();
   const app = Fastify({ logger: true });
   app.log.info(
@@ -92,14 +109,27 @@ export async function buildApp() {
   return app;
 }
 
-const app = await buildApp();
-const port = Number(process.env.PORT ?? 3000);
-await app.listen({ port, host: '0.0.0.0' });
-if (process.env.DATABASE_URL?.trim()) {
+function isMainEntrypoint(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
   try {
-    const resumed = await resumeOpenDomainPipelines();
-    operatorLog('operator.pipeline.boot', resumed);
-  } catch (error) {
-    app.log.error(error);
+    return realpathSync(entry) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainEntrypoint()) {
+  const mode = resolveCreatorMode();
+  const app = await buildApp(mode);
+  const port = Number(process.env.PORT ?? 3000);
+  await app.listen({ port, host: '0.0.0.0' });
+  if (mode === 'legacy' && process.env.DATABASE_URL?.trim()) {
+    try {
+      const resumed = await resumeOpenDomainPipelines();
+      operatorLog('operator.pipeline.boot', resumed);
+    } catch (error) {
+      app.log.error(error);
+    }
   }
 }

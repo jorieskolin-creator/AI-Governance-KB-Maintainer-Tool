@@ -1,0 +1,66 @@
+{
+  "synthetic_notice": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE",
+  "version": "0.1.0-synthetic",
+  "domains": [
+    {
+      "domain_id": "OPS",
+      "title": "Synthetic Operational Continuity (Test Only)",
+      "capability_ids": [
+        "OPS-1",
+        "OPS-2"
+      ],
+      "antipattern_ids": [
+        "AP-OPS-1",
+        "AP-OPS-2"
+      ]
+    },
+    {
+      "domain_id": "SEC",
+      "title": "Synthetic Boundary Containment (Test Only)",
+      "capability_ids": [
+        "SEC-1"
+      ],
+      "antipattern_ids": [
+        "AP-SEC-1"
+      ]
+    }
+  ],
+  "category_pairs": [
+    {
+      "pair_id": "SYN-PAIR-OPS-1",
+      "domain": "OPS",
+      "capability": {
+        "id": "OPS-1",
+        "title": "Synthetic Runbook Readiness"
+      },
+      "antipattern": {
+        "id": "AP-OPS-1",
+        "title": "Synthetic Untested Runbook Drift"
+      }
+    },
+    {
+      "pair_id": "SYN-PAIR-OPS-2",
+      "domain": "OPS",
+      "capability": {
+        "id": "OPS-2",
+        "title": "Synthetic Failover Drills"
+      },
+      "antipattern": {
+        "id": "AP-OPS-2",
+        "title": "Synthetic Paper-Only Failover"
+      }
+    },
+    {
+      "pair_id": "SYN-PAIR-SEC-1",
+      "domain": "SEC",
+      "capability": {
+        "id": "SEC-1",
+        "title": "Synthetic Service Token Isolation"
+      },
+      "antipattern": {
+        "id": "AP-SEC-1",
+        "title": "Synthetic Shared Ambient Credentials"
+      }
+    }
+  ]
+}

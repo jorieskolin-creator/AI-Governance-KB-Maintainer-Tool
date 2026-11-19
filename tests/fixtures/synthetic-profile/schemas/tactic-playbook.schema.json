@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synthetic-kb.local/schemas/tactic-playbook.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "synthetic_notice",
+    "version",
+    "release_status",
+    "tactics"
+  ],
+  "properties": {
+    "synthetic_notice": {
+      "const": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    "version": {
+      "type": "string"
+    },
+    "release_status": {
+      "type": "string"
+    },
+    "tactics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version",
+          "title",
+          "release_status",
+          "activation_mapping_status",
+          "completion_effect",
+          "primary_object_mappings",
+          "assessment_mappings",
+          "reassessment_targets",
+          "prerequisite_tactic_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "release_status": {
+            "type": "string"
+          },
+          "activation_mapping_status": {
+            "type": "string"
+          },
+          "completion_effect": {
+            "type": "string"
+          },
+          "primary_object_mappings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assessment_mappings": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "capabilities",
+              "antipatterns",
+              "question_ids"
+            ],
+            "properties": {
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "antipatterns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "question_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "reassessment_targets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prerequisite_tactic_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

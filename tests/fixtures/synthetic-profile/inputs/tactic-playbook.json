@@ -1,0 +1,63 @@
+{
+  "synthetic_notice": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE",
+  "version": "0.1.0-synthetic",
+  "release_status": "APPROVED",
+  "tactics": [
+    {
+      "id": "SYN-TAC-OPS-01",
+      "version": "0.1.0-synthetic",
+      "title": "Synthetic Runbook Drill Procedure",
+      "release_status": "APPROVED",
+      "activation_mapping_status": "PENDING_KB_FINDING_MAPPING",
+      "completion_effect": "NEW_EVIDENCE_AND_REASSESSMENT_REQUIRED",
+      "primary_object_mappings": [
+        "OPS-1",
+        "AP-OPS-1",
+        "OPS-2"
+      ],
+      "assessment_mappings": {
+        "capabilities": [
+          "OPS-1",
+          "OPS-2"
+        ],
+        "antipatterns": [
+          "AP-OPS-1"
+        ],
+        "question_ids": [
+          "OPS-1-D1"
+        ]
+      },
+      "reassessment_targets": [
+        "OPS-1",
+        "AP-OPS-1"
+      ],
+      "prerequisite_tactic_ids": []
+    },
+    {
+      "id": "SYN-TAC-CROSS-01",
+      "version": "0.1.0-synthetic",
+      "title": "Synthetic Cross-Domain Credential Rotation",
+      "release_status": "APPROVED",
+      "activation_mapping_status": "PENDING_KB_FINDING_MAPPING",
+      "completion_effect": "NEW_EVIDENCE_AND_REASSESSMENT_REQUIRED",
+      "primary_object_mappings": [
+        "OPS-2",
+        "SEC-1"
+      ],
+      "assessment_mappings": {
+        "capabilities": [
+          "OPS-2",
+          "SEC-1"
+        ],
+        "antipatterns": [],
+        "question_ids": []
+      },
+      "reassessment_targets": [
+        "SEC-1"
+      ],
+      "prerequisite_tactic_ids": [
+        "SYN-TAC-OPS-01"
+      ]
+    }
+  ]
+}

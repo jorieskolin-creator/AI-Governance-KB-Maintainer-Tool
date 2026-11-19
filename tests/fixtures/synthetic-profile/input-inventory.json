@@ -1,0 +1,110 @@
+{
+  "purpose": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE",
+  "status": "synthetic-test-only",
+  "is_synthetic": true,
+  "profile_id": "synthetic-operational-resilience",
+  "profile_version": "0.1.0",
+  "kb_id": "synthetic-resilience-kb",
+  "kb_title": "Synthetic Operational Resilience KB (Test Fixture Only)",
+  "output_root": "tests/fixtures/synthetic-profile/output",
+  "files": [
+    {
+      "role": "source-register",
+      "path": "tests/fixtures/synthetic-profile/inputs/source-register.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "ccac1cc1268ceca985111f7a64e2c6dd43488c1ca16cdea53e065fb54a11bd78",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "source-register-schema",
+      "path": "tests/fixtures/synthetic-profile/schemas/source-register.schema.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "79710c6ff32059aeadb8a56aa24a56624fc62361229b2391635866c5b793f8f9",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "taxonomy",
+      "path": "tests/fixtures/synthetic-profile/inputs/taxonomy.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "e4f0815cb431f0a914b6d6e4d3475c428fcf620e199724e757561ad11dd86996",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "id-register",
+      "path": "tests/fixtures/synthetic-profile/inputs/id-register.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "15172fc3a034a3fb0f94b6d954f075d500fc50a73ee13e89b84152eeb3ae06be",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "criteria-reference",
+      "path": "tests/fixtures/synthetic-profile/inputs/criteria-reference.pdf",
+      "version": "0.1.0-synthetic",
+      "sha256": "0e580d5d46c7580c5b9971503d2e2e24ec15594561e5b2a65a60bf627e3070eb",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "criteria-instrument",
+      "path": "tests/fixtures/synthetic-profile/inputs/criteria-instrument.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "ddd960ad35cf9217eca62ffdfc5ae4063e036d4bb0ff69d7afdbfdfc0b45603f",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "cognitive-model",
+      "path": "tests/fixtures/synthetic-profile/inputs/cognitive-model.html",
+      "version": "0.1.0-synthetic",
+      "sha256": "49c3fcd00bf89afef2c364f3d77aac0f30ba8dce5d903376f4ff32d96efa4804",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "tactic-playbook",
+      "path": "tests/fixtures/synthetic-profile/inputs/tactic-playbook.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "4f7168cce3b4694511b0ceab878ce8cd45c856c8e5c413436987e23471828f49",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "tactic-playbook-schema",
+      "path": "tests/fixtures/synthetic-profile/schemas/tactic-playbook.schema.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "0afc3c4fad9ee3996878c977433adab4c823f0aaf97c1473a1bdfca439614e76",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "capability-schema",
+      "path": "tests/fixtures/synthetic-profile/schemas/capability.schema.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "f55d60306a315aa27f0f4b0883b0c7544744e4622f1190dad06619a184b49275",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "antipattern-schema",
+      "path": "tests/fixtures/synthetic-profile/schemas/antipattern.schema.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "dc9ffd341541a37a31b021a2bbf683a4f0a8213550d55fa33048e5a64944f10d",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "shared-definitions",
+      "path": "tests/fixtures/synthetic-profile/schemas/shared-definitions.schema.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "ea5b358f142e1822bb3198cdf577904b5f831fdcad843f5c72bd584a18fa14b8",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "golden-capability",
+      "path": "tests/fixtures/synthetic-profile/golden/OPS-1_v0.1.0.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "e02b981fa8aa494d652387cc686073df7a66e1ab664dcdd36c46164489319ea7",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    },
+    {
+      "role": "golden-antipattern",
+      "path": "tests/fixtures/synthetic-profile/golden/AP-OPS-1_v0.1.0.json",
+      "version": "0.1.0-synthetic",
+      "sha256": "d9a459d9fdc2ffed0c3bcd025cbe230564c7a9dfbd0ebe6949bb2e7dd473a6a9",
+      "origin": "SYNTHETIC_TEST_FIXTURE_ONLY_NOT_APPROVED_DOMAIN_KNOWLEDGE"
+    }
+  ]
+}
