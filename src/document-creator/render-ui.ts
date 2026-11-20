@@ -18,7 +18,7 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
-type CreatorUiStage = 'inputs' | 'plan' | 'sources' | 'documents' | 'history';
+type CreatorUiStage = 'inputs' | 'plan' | 'sources' | 'documents' | 'delivery' | 'history';
 
 function renderStageNav(activeStage: CreatorUiStage): string {
   const stages: ReadonlyArray<{ id: string; label: string; href?: string; status: string }> = [
@@ -26,7 +26,7 @@ function renderStageNav(activeStage: CreatorUiStage): string {
     { id: 'plan', label: '2. Document plan', href: '/creator/plan', status: activeStage === 'plan' ? 'Current' : 'Available' },
     { id: 'sources', label: '2b. Source inspection', href: '/creator/sources', status: activeStage === 'sources' ? 'Current' : 'Available' },
     { id: 'documents', label: '3. Documents', href: '/creator/documents', status: activeStage === 'documents' ? 'Current' : 'Available' },
-    { id: 'delivery', label: '4. Delivery', status: 'Pending DC-05' },
+    { id: 'delivery', label: '4. Delivery', href: '/creator/delivery', status: activeStage === 'delivery' ? 'Current' : 'Available' },
     { id: 'history', label: '5. History', href: '/creator/history', status: activeStage === 'history' ? 'Current' : 'Available' }
   ];
 
@@ -679,6 +679,126 @@ export function renderDocumentsPreviewViewHtml(options: {
   return pageLayout('Documents Preview', 'documents', body);
 }
 
+export function renderDeliveryViewHtml(options: {
+  profiles: ReadonlyArray<Pick<KbProfile, 'profile_id' | 'kb_id' | 'kb_title' | 'is_synthetic'>>;
+  selectedProfile: KbProfile;
+  availablePairs: ReadonlyArray<{ pair_id: string; domain_id: string; title: string }>;
+  selectedPairId: string;
+  activeRun: CreatorRunRecord | null;
+  errorMessage?: string;
+}): string {
+  const { profiles, selectedProfile, availablePairs, selectedPairId, activeRun, errorMessage } =
+    options;
+
+  const receipt = activeRun?.checkpoints.completion_receipt ?? null;
+  const signoff = activeRun?.checkpoints.human_review_signoff ?? null;
+  const deliveredFiles = activeRun?.checkpoints.delivered_files ?? [];
+
+  const reviewVsHubBanner = `<p>
+    <strong>Creation Review State:</strong> <code>${sanitizePreviewText(activeRun?.state ?? 'NO_ACTIVE_RUN')}</code>
+    ${signoff && !signoff.invalidated_at ? `(Signed off by <code>${sanitizePreviewText(signoff.reviewed_by)}</code> at <code>${sanitizePreviewText(signoff.reviewed_at)}</code>)` : signoff?.invalidated_at ? '(PRIOR SIGN-OFF INVALIDATED — fresh review required)' : '(Awaiting human review sign-off)'} ·
+    <strong>Knowledge Hub Approval Status:</strong> <code>NOT_GRANTED_BY_CREATOR</code>
+    <em>(Delivery stores reviewed bytes and an operational receipt; Knowledge Hub eligibility and Master Table creation remain separate tools.)</em>
+  </p>`;
+
+  const connectionHtml = `<p>
+    Connection ID: <code>${sanitizePreviewText(selectedProfile.storage_ref.connection_id)}</code> ·
+    Provider: <code>${sanitizePreviewText(selectedProfile.storage_ref.provider)}</code> ·
+    Output root: <code>${sanitizePreviewText(selectedProfile.storage_ref.output_root)}</code> ·
+    Operations root: <code>${sanitizePreviewText(selectedProfile.storage_ref.operations_root)}</code>
+  </p>`;
+
+  const filesTableHtml =
+    deliveredFiles.length === 0
+      ? '<p>No files delivered for this run yet.</p>'
+      : `<table>
+          <thead><tr><th>Document ID</th><th>Object</th><th>Version</th><th>Rendition</th><th>Relative Path</th><th>Bytes</th><th>Verified SHA-256</th></tr></thead>
+          <tbody>
+            ${deliveredFiles
+              .map(
+                (f) =>
+                  `<tr>
+                    <td><code>${sanitizePreviewText(f.document_id)}</code></td>
+                    <td><code>${sanitizePreviewText(f.object_id)}</code> (${sanitizePreviewText(f.object_type)})</td>
+                    <td><code>${sanitizePreviewText(f.version)}</code></td>
+                    <td><code>${sanitizePreviewText(f.rendition)}</code></td>
+                    <td><code>${sanitizePreviewText(f.path)}</code></td>
+                    <td>${String(f.byte_count)}</td>
+                    <td><code>${sanitizePreviewText(f.sha256)}</code></td>
+                  </tr>`
+              )
+              .join('')}
+          </tbody>
+        </table>`;
+
+  const receiptHtml = !receipt
+    ? '<p>Completion receipt: <strong>NOT_ISSUED</strong> (Set is incomplete until every expected file is written, read back, verified, and receipted.)</p>'
+    : `<p>
+        Completion Receipt Issued: <strong>YES</strong> ·
+        Run ID: <code>${sanitizePreviewText(receipt.run_id)}</code> ·
+        Delivered at: <code>${sanitizePreviewText(receipt.delivered_at)}</code> ·
+        Reviewed by: <code>${sanitizePreviewText(receipt.reviewed_by)}</code> ·
+        Hub Approval: <code>${sanitizePreviewText(receipt.hub_approval_status)}</code>
+      </p>`;
+
+  const body = `
+    <section aria-labelledby="delivery-controls-heading">
+      <h2 id="delivery-controls-heading">4. Delivery — Immutable Markdown storage &amp; completion receipt</h2>
+      ${selectedProfile.is_synthetic ? '<p role="status" class="badge">SYNTHETIC TEST PROFILE — NOT APPROVED DOMAIN KNOWLEDGE</p>' : ''}
+      ${errorMessage ? `<p role="alert">${sanitizePreviewText(errorMessage)}</p>` : ''}
+      <form class="controls" method="get" action="/creator/delivery">
+        <label>
+          KB Profile
+          <select name="profileId">
+            ${profiles
+              .map(
+                (p) =>
+                  `<option value="${escapeHtml(p.profile_id)}"${p.profile_id === selectedProfile.profile_id ? ' selected' : ''}>${escapeHtml(p.kb_title)} (${escapeHtml(p.profile_id)})</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <label>
+          Pair ID
+          <select name="pairId">
+            ${availablePairs
+              .map(
+                (pair) =>
+                  `<option value="${escapeHtml(pair.pair_id)}"${pair.pair_id === selectedPairId ? ' selected' : ''}>${escapeHtml(pair.pair_id)} (${escapeHtml(pair.domain_id)} — ${escapeHtml(pair.title)})</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <button type="submit">Inspect delivery state</button>
+      </form>
+      ${
+        activeRun
+          ? `<form class="controls" method="post" action="/creator/delivery">
+              <input type="hidden" name="runId" value="${escapeHtml(activeRun.run_id)}" />
+              <input type="hidden" name="profileId" value="${escapeHtml(selectedProfile.profile_id)}" />
+              <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+              <label>
+                Target Version
+                <input type="text" name="targetVersion" value="1.0.0" />
+              </label>
+              <button class="primary" type="submit">Deliver documents</button>
+            </form>`
+          : ''
+      }
+      ${reviewVsHubBanner}
+      ${connectionHtml}
+    </section>
+
+    <section aria-labelledby="delivery-receipt-heading">
+      <h2 id="delivery-receipt-heading">Delivered files &amp; completion receipt</h2>
+      ${receiptHtml}
+      ${filesTableHtml}
+    </section>
+  `;
+
+  return pageLayout('Delivery', 'delivery', body);
+}
+
 export function renderHistoryViewHtml(options: {
   profiles: ReadonlyArray<Pick<KbProfile, 'profile_id' | 'kb_id' | 'kb_title' | 'is_synthetic'>>;
   selectedProfileId: string;
@@ -698,6 +818,7 @@ export function renderHistoryViewHtml(options: {
               <th>State</th>
               <th>Interruption</th>
               <th>Revisions</th>
+              <th>Delivery Receipt</th>
               <th>Budgets (Tokens / Repairs)</th>
               <th>Pinned Input Set</th>
               <th>Action</th>
@@ -705,20 +826,28 @@ export function renderHistoryViewHtml(options: {
           </thead>
           <tbody>
             ${runs
-              .map(
-                (r) =>
-                  `<tr>
+              .map((r) => {
+                const receiptStatus = r.checkpoints.completion_receipt
+                  ? `COMPLETE (${String(r.checkpoints.completion_receipt.files.length)} files · Hub=${r.checkpoints.completion_receipt.hub_approval_status})`
+                  : r.checkpoints.delivered_files && r.checkpoints.delivered_files.length > 0
+                    ? `PARTIAL_INCOMPLETE (${String(r.checkpoints.delivered_files.length)} uploaded, no receipt)`
+                    : 'NOT_DELIVERED';
+                return `<tr>
                     <td><code>${sanitizePreviewText(r.run_id)}</code></td>
                     <td><code>${sanitizePreviewText(r.profile_id)}</code> (${sanitizePreviewText(r.kb_id)})</td>
                     <td><code>${sanitizePreviewText(r.pair_id)}</code></td>
                     <td><strong>${sanitizePreviewText(r.state)}</strong></td>
                     <td><code>${sanitizePreviewText(r.interruption_state)}</code>${r.interruption_detail ? `<br /><small>${sanitizePreviewText(r.interruption_detail)}</small>` : ''}</td>
                     <td>${String(r.revisions.length)}</td>
+                    <td><code>${sanitizePreviewText(receiptStatus)}</code></td>
                     <td><code>${String(r.budgets.tokens_used)}/${String(r.budgets.max_tokens_per_run)}</code> · <code>${String(r.budgets.repair_iterations_used)}</code></td>
                     <td><code>${sanitizePreviewText(r.input_set_id.slice(0, 16))}…</code></td>
-                    <td><a href="/creator/documents?profileId=${encodeURIComponent(r.profile_id)}&amp;pairId=${encodeURIComponent(r.pair_id)}&amp;runId=${encodeURIComponent(r.run_id)}">Open / Resume</a></td>
-                  </tr>`
-              )
+                    <td>
+                      <a href="/creator/documents?profileId=${encodeURIComponent(r.profile_id)}&amp;pairId=${encodeURIComponent(r.pair_id)}&amp;runId=${encodeURIComponent(r.run_id)}">Open / Resume</a> ·
+                      <a href="/creator/delivery?profileId=${encodeURIComponent(r.profile_id)}&amp;pairId=${encodeURIComponent(r.pair_id)}&amp;runId=${encodeURIComponent(r.run_id)}">Delivery</a>
+                    </td>
+                  </tr>`;
+              })
               .join('')}
           </tbody>
         </table>`;

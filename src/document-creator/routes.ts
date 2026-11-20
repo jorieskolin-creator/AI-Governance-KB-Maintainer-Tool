@@ -7,10 +7,17 @@ import {
   type ModelClaimDraft
 } from './author.js';
 import type { DocumentPlanSelection, KbProfile } from './contracts.js';
+import {
+  deliverReviewedCreatorRun,
+  DeliveryStorageError,
+  inspectDeliveredHandoff,
+  type StorageWriteHookContext
+} from './delivery.js';
 import { createDocumentPlan, DocumentPlanError } from './plan.js';
 import { buildSaeLocalPilotProfile, resolveProfileInputSet } from './profiles.js';
 import type { DirectSectionEditPatch } from './repair.js';
 import {
+  renderDeliveryViewHtml,
   renderDocumentPlanViewHtml,
   renderDocumentsPreviewViewHtml,
   renderHistoryViewHtml,
@@ -70,6 +77,7 @@ export interface CreatorRouteOptions {
   reviewerProviderPort?: CreatorAuthorProviderPort;
   repairProviderPort?: CreatorAuthorProviderPort;
   allowLiveAuthoring?: boolean;
+  beforeStorageWriteHook?: (ctx: StorageWriteHookContext) => Promise<void> | void;
 }
 
 function sha256Buffer(value: string): Buffer {
@@ -1304,6 +1312,283 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
     return reply.code(status).send({
       run: resumedRun,
       authoredPair
+    });
+  });
+
+  app.get('/creator/delivery', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const profiles = await loadProfiles();
+    const query = isObjectRecord(request.query) ? request.query : {};
+    const requestedProfileId =
+      typeof query.profileId === 'string' && query.profileId.trim().length > 0
+        ? query.profileId.trim()
+        : profiles[0]?.profile_id;
+    const selected = profiles.find((p) => p.profile_id === requestedProfileId);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${String(requestedProfileId ?? '')}".`
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const availablePairs = runtime.pairs.map((p) => ({
+      pair_id: p.pair_id,
+      domain_id: p.domain_id,
+      title: p.capability.title
+    }));
+    const selectedPairId =
+      typeof query.pairId === 'string' && query.pairId.trim().length > 0
+        ? query.pairId.trim()
+        : availablePairs.find((p) => p.pair_id !== runtime.inputSet.golden_reference?.pair_id)?.pair_id ??
+          availablePairs[0]?.pair_id ??
+          '';
+    const requestedRunId =
+      typeof query.runId === 'string' && query.runId.trim().length > 0
+        ? query.runId.trim()
+        : undefined;
+
+    const activeRun = requestedRunId
+      ? (await runStore.getRun(requestedRunId)) ?? null
+      : selectedPairId
+        ? (await runStore.getLatestRunForPair(selected.profile_id, selectedPairId)) ?? null
+        : null;
+
+    return reply
+      .header(
+        'Content-Security-Policy',
+        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'"
+      )
+      .type('text/html; charset=utf-8')
+      .send(
+        renderDeliveryViewHtml({
+          profiles,
+          selectedProfile: selected,
+          availablePairs,
+          selectedPairId,
+          activeRun
+        })
+      );
+  });
+
+  app.post('/creator/delivery', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const profiles = await loadProfiles();
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const runId = typeof body.runId === 'string' ? body.runId.trim() : '';
+    const requestedProfileId =
+      typeof body.profileId === 'string' && body.profileId.trim().length > 0
+        ? body.profileId.trim()
+        : profiles[0]?.profile_id;
+    const selected = profiles.find((p) => p.profile_id === requestedProfileId);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${String(requestedProfileId ?? '')}".`
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const availablePairs = runtime.pairs.map((p) => ({
+      pair_id: p.pair_id,
+      domain_id: p.domain_id,
+      title: p.capability.title
+    }));
+    const selectedPairId =
+      typeof body.pairId === 'string' && body.pairId.trim().length > 0
+        ? body.pairId.trim()
+        : availablePairs.find((p) => p.pair_id !== runtime.inputSet.golden_reference?.pair_id)?.pair_id ??
+          availablePairs[0]?.pair_id ??
+          '';
+    const targetVersion =
+      typeof body.targetVersion === 'string' && body.targetVersion.trim().length > 0
+        ? body.targetVersion.trim()
+        : undefined;
+
+    let activeRun = runId
+      ? (await runStore.getRun(runId)) ?? null
+      : (await runStore.getLatestRunForPair(selected.profile_id, selectedPairId)) ?? null;
+    let errorMessage: string | undefined;
+    let statusCode = 200;
+
+    if (!activeRun) {
+      errorMessage = 'No active run found to deliver.';
+      statusCode = 404;
+    } else {
+      try {
+        const plan = createDocumentPlan(runtime, {
+          mode: 'pair',
+          pair_ids: [activeRun.pair_id],
+          include_tactics: false
+        });
+        const delivered = await deliverReviewedCreatorRun({
+          store: runStore,
+          workspaceRoot,
+          runtime,
+          plan,
+          runId: activeRun.run_id,
+          targetVersion,
+          beforeWriteHook: options.beforeStorageWriteHook
+        });
+        activeRun = delivered.run;
+      } catch (error) {
+        activeRun = (await runStore.getRun(activeRun.run_id)) ?? activeRun;
+        errorMessage = error instanceof Error ? error.message : 'Delivery failed.';
+        const code = error instanceof DeliveryStorageError ? error.code : 'DELIVERY_FAILED';
+        statusCode =
+          code === 'VERSION_CONFLICT_EXISTING_BYTES_DIFFER' ||
+          code === 'CONCURRENT_VERSION_COLLISION'
+            ? 409
+            : code === 'PARTIAL_DELIVERY_FAILED'
+              ? 502
+              : 422;
+      }
+    }
+
+    return reply
+      .code(statusCode)
+      .header(
+        'Content-Security-Policy',
+        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'"
+      )
+      .type('text/html; charset=utf-8')
+      .send(
+        renderDeliveryViewHtml({
+          profiles,
+          selectedProfile: selected,
+          availablePairs,
+          selectedPairId,
+          activeRun,
+          errorMessage
+        })
+      );
+  });
+
+  app.post('/api/creator/runs/:runId/deliver', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const targetVersion =
+      typeof body.targetVersion === 'string' && body.targetVersion.trim().length > 0
+        ? body.targetVersion.trim()
+        : undefined;
+
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === existing.profile_id);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${existing.profile_id}".`
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    let plan;
+    try {
+      plan = createDocumentPlan(runtime, {
+        mode: 'pair',
+        pair_ids: [existing.pair_id],
+        include_tactics: false
+      });
+    } catch (error) {
+      const planErr = error instanceof DocumentPlanError ? error : null;
+      return reply.code(422).send({
+        error: planErr?.code ?? 'PLAN_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to build plan for delivery.',
+        findings: planErr?.findings ?? runtime.inputSet.readiness.findings
+      });
+    }
+
+    try {
+      const delivered = await deliverReviewedCreatorRun({
+        store: runStore,
+        workspaceRoot,
+        runtime,
+        plan,
+        runId,
+        targetVersion,
+        beforeWriteHook: options.beforeStorageWriteHook
+      });
+      return reply.code(200).send({
+        run: delivered.run,
+        receipt: delivered.receipt,
+        fileOutcomes: delivered.fileOutcomes
+      });
+    } catch (error) {
+      const updatedRun = await runStore.getRun(runId);
+      const delErr = error instanceof DeliveryStorageError ? error : null;
+      const code = delErr?.code ?? 'DELIVERY_FAILED';
+      const status =
+        code === 'VERSION_CONFLICT_EXISTING_BYTES_DIFFER' ||
+        code === 'CONCURRENT_VERSION_COLLISION'
+          ? 409
+          : code === 'PARTIAL_DELIVERY_FAILED'
+            ? 502
+            : 422;
+      return reply.code(status).send({
+        error: code,
+        message: error instanceof Error ? error.message : 'Failed to deliver documents.',
+        findings: delErr?.findings ?? [],
+        run: updatedRun ?? existing
+      });
+    }
+  });
+
+  app.get('/api/creator/runs/:runId/receipt', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+    if (!existing.checkpoints.completion_receipt) {
+      return reply.code(404).send({
+        error: 'RECEIPT_NOT_FOUND',
+        message: `Run "${runId}" does not have a completed delivery receipt.`,
+        runState: existing.state
+      });
+    }
+    return reply.code(200).send({
+      receipt: existing.checkpoints.completion_receipt
+    });
+  });
+
+  app.get('/api/creator/handoff', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const profiles = await loadProfiles();
+    const query = isObjectRecord(request.query) ? request.query : {};
+    const requestedProfileId =
+      typeof query.profileId === 'string' && query.profileId.trim().length > 0
+        ? query.profileId.trim()
+        : profiles[0]?.profile_id;
+    const selected = profiles.find((p) => p.profile_id === requestedProfileId);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${String(requestedProfileId ?? '')}".`
+      });
+    }
+    const handoff = await inspectDeliveredHandoff({
+      workspaceRoot,
+      profile: selected
+    });
+    return reply.code(200).send({
+      profile_id: selected.profile_id,
+      kb_id: selected.kb_id,
+      handoff
     });
   });
 }
