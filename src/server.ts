@@ -24,6 +24,17 @@ export function resolveCreatorMode(raw = process.env.CREATOR_MODE): CreatorAppli
   throw new Error(`Unsupported CREATOR_MODE "${String(raw)}"; expected "legacy" or "document".`);
 }
 
+/**
+ * Resolves the application mode for the local SAE pilot after DC-07 acceptance (`03-Augment-Tasks.md` DC-07):
+ * defaults to `"document"` locally while preserving `"legacy"` as an explicit rollback override and deployed fallback.
+ */
+export function resolvePilotCreatorMode(raw = process.env.CREATOR_MODE): CreatorApplicationMode {
+  const normalized = (raw ?? 'document').trim().toLowerCase();
+  if (normalized === 'document' || normalized === '') return 'document';
+  if (normalized === 'legacy') return 'legacy';
+  throw new Error(`Unsupported CREATOR_MODE "${String(raw)}"; expected "legacy" or "document".`);
+}
+
 export async function buildApp(modeOverride?: CreatorApplicationMode) {
   const mode = modeOverride ?? resolveCreatorMode();
   if (mode === 'document') {

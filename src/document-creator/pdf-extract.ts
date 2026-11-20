@@ -720,7 +720,9 @@ export function extractPdfPages(
       decodedStreams.push(Buffer.from(inflated).toString('latin1'));
     }
 
-    let pageText = renderContentStreamText(decodedStreams.join('\n'), pageFonts);
+    let pageText = renderContentStreamText(decodedStreams.join('\n'), pageFonts)
+      .replaceAll('\u0002', 'fi')
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
     if (totalChars + pageText.length > maxExtractBytes) {
       const remaining = Math.max(0, maxExtractBytes - totalChars);
       pageText = pageText.slice(0, remaining);

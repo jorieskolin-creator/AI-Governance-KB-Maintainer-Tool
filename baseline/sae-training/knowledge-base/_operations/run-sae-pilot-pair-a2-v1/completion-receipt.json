@@ -1,0 +1,45 @@
+{
+  "receipt_schema_version": "1.0.0",
+  "run_id": "run-sae-pilot-pair-a2-v1",
+  "kb_id": "solution-assurance-engine",
+  "profile_id": "sae-local-pilot",
+  "input_set_id": "d00823f467a916cb140bedb7c7c1ab4688ce2a7ceefd447b80c7b23b439effec",
+  "plan_id": "df4dbd5ea0622b6fc10f01418b49e991916ee56a0a04c838aa5dd0d5e11aa0d4",
+  "reviewed_by": "jori.eskolin@sujuva.co.site",
+  "reviewed_at": "2026-11-20T10:30:00.000Z",
+  "delivered_at": "2026-11-20T10:30:00.000Z",
+  "creation_review_status": "REVIEWED_FOR_DELIVERY",
+  "hub_approval_status": "NOT_GRANTED_BY_CREATOR",
+  "expected_document_ids": [
+    "solution-assurance-engine:A2",
+    "solution-assurance-engine:AP-A2"
+  ],
+  "files": [
+    {
+      "document_id": "solution-assurance-engine:A2",
+      "object_id": "A2",
+      "object_type": "capability",
+      "version": "1.0.0",
+      "rendition": "markdown",
+      "path": "A/capabilities/A2/1.0.0/document.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "byte_count": 18986,
+      "sha256": "f9680d2ade3b17d30117f7254cf84c57e6b9952e34550b9e8c2828560fd074d6",
+      "stored_object_id": "local:baseline/sae-training/knowledge-base/A/capabilities/A2/1.0.0/document.md",
+      "source_revision_id": "run-sae-pilot-pair-a2-v1:A2:r1"
+    },
+    {
+      "document_id": "solution-assurance-engine:AP-A2",
+      "object_id": "AP-A2",
+      "object_type": "antipattern",
+      "version": "1.0.0",
+      "rendition": "markdown",
+      "path": "A/antipatterns/AP-A2/1.0.0/document.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "byte_count": 15468,
+      "sha256": "8a42362b6ad9c3a05d7be157d2770e3b573a7e345e333ed1a9e66abc41f76194",
+      "stored_object_id": "local:baseline/sae-training/knowledge-base/A/antipatterns/AP-A2/1.0.0/document.md",
+      "source_revision_id": "run-sae-pilot-pair-a2-v1:AP-A2:r1"
+    }
+  ]
+}

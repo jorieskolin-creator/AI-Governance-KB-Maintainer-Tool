@@ -1046,6 +1046,12 @@ export async function recordHumanCreationReview(options: {
 
   capability.document.creation_review_state = 'READY_TO_DELIVER';
   antipattern.document.creation_review_state = 'READY_TO_DELIVER';
+  const renderedAfterReview = renderPairArtifacts({
+    capability: capability.document,
+    antipattern: antipattern.document
+  });
+  capability.rendered = renderedAfterReview.capability;
+  antipattern.rendered = renderedAfterReview.antipattern;
 
   run.checkpoints.human_review_signoff = {
     reviewed_by: options.reviewedBy.trim(),

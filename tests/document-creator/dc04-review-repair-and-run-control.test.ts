@@ -944,9 +944,12 @@ describe('DC-04: Semantic review, section-scoped repair, stale-review invalidati
       }
     }
 
-    for (const dom of ['A', 'B', 'C', 'D', 'E', 'F']) {
+    for (const dom of ['B', 'C', 'D', 'E', 'F']) {
       const entries = await readdir(join('baseline/sae-training/knowledge-base', dom));
       expect(entries).toEqual(['.gitkeep']);
     }
+    expect(
+      (await readdir(join('baseline/sae-training/knowledge-base', 'A'))).sort()
+    ).toEqual(['.gitkeep', 'antipatterns', 'capabilities']);
   });
 });

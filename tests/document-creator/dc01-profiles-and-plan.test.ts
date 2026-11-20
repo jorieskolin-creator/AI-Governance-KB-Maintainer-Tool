@@ -139,11 +139,14 @@ describe('DC-01: KB profiles, input contracts, and deterministic output plan', (
       plan.documents[0]?.tactic_associations.every((t) => t.activation_authority === 'NONE_IN_CREATOR')
     ).toBe(true);
 
-    // Ensure zero generated files were written to baseline/sae-training/knowledge-base.
-    for (const dom of ['A', 'B', 'C', 'D', 'E', 'F']) {
+    // Ensure zero generated files were written by tests to baseline/sae-training/knowledge-base (only the DC-07 PAIR-A2 pilot delivery exists in A).
+    for (const dom of ['B', 'C', 'D', 'E', 'F']) {
       const entries = await readdir(join('baseline/sae-training/knowledge-base', dom));
       expect(entries).toEqual(['.gitkeep']);
     }
+    expect(
+      (await readdir(join('baseline/sae-training/knowledge-base', 'A'))).sort()
+    ).toEqual(['.gitkeep', 'antipatterns', 'capabilities']);
   });
 
   it('T-03 & cross-domain partition: includes deduplicated tactics under their owning/shared partition only when requested', async () => {

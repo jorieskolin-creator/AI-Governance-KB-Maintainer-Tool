@@ -1,3 +1,4 @@
+import { inspectDeliveredHandoff } from './delivery.js';
 import { createDocumentPlan } from './plan.js';
 import { buildProfileFromInventoryFile, buildSaeLocalPilotProfile, resolveProfileInputSet } from './profiles.js';
 import { prepareSourcesForPlan } from './sources.js';
@@ -52,6 +53,11 @@ async function main(): Promise<void> {
     enableUrlAcquisition: false
   });
 
+  const deliveredHandoff = await inspectDeliveredHandoff({
+    workspaceRoot,
+    profile
+  });
+
   console.log(
     JSON.stringify(
       {
@@ -61,7 +67,8 @@ async function main(): Promise<void> {
         applied_owner_decisions: runtime.inputSet.applied_owner_decisions,
         plan,
         pair_baselines: sourceBundle.pair_baselines,
-        source_readiness: sourceBundle.readiness
+        source_readiness: sourceBundle.readiness,
+        delivered_handoff: deliveredHandoff
       },
       null,
       2
