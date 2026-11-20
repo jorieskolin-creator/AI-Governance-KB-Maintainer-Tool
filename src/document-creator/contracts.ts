@@ -2496,6 +2496,8 @@ export interface CreatorRunRecord {
     };
     human_review_signoff: HumanReviewSignoffRecord | null;
     drift_findings: CreatorFinding[];
+    delivered_files?: DeliveredFileRecord[];
+    completion_receipt?: DeliveryReceipt | null;
   };
   revisions: DocumentRevisionRecord[];
   provider_calls: ProviderCallAuditRecord[];
@@ -2618,6 +2620,122 @@ export function validateCreatorRunRecord(
   tier: StrictnessTier = 'DRAFT'
 ): CreatorFinding[] {
   const validator = getCompiledSchema(creatorRunRecordSchema);
+  const ok = validator(candidate) === true;
+  return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
+}
+
+export interface DeliveredFileRecord {
+  document_id: string;
+  object_id: string;
+  object_type: 'capability' | 'antipattern' | 'tactic';
+  version: string;
+  rendition: 'markdown' | 'pdf';
+  path: string;
+  media_type: 'text/markdown; charset=utf-8' | 'application/pdf';
+  byte_count: number;
+  sha256: string;
+  stored_object_id: string;
+  source_revision_id: string;
+}
+
+export interface DeliveryReceipt {
+  receipt_schema_version: '1.0.0';
+  run_id: string;
+  kb_id: string;
+  profile_id: string;
+  input_set_id: string;
+  plan_id: string;
+  reviewed_by: string;
+  reviewed_at: string;
+  delivered_at: string;
+  creation_review_status: 'REVIEWED_FOR_DELIVERY';
+  hub_approval_status: 'NOT_GRANTED_BY_CREATOR';
+  expected_document_ids: string[];
+  files: DeliveredFileRecord[];
+}
+
+export const deliveryReceiptSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://kb-document-creator.local/schemas/v1/delivery-receipt.schema.json',
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'receipt_schema_version',
+    'run_id',
+    'kb_id',
+    'profile_id',
+    'input_set_id',
+    'plan_id',
+    'reviewed_by',
+    'reviewed_at',
+    'delivered_at',
+    'creation_review_status',
+    'hub_approval_status',
+    'expected_document_ids',
+    'files'
+  ],
+  properties: {
+    receipt_schema_version: { const: '1.0.0' },
+    run_id: nonEmpty,
+    kb_id: { type: 'string', pattern: '^[a-z0-9][a-z0-9_-]*$' },
+    profile_id: { type: 'string', pattern: '^[a-z0-9][a-z0-9_-]*$' },
+    input_set_id: sha256Hex,
+    plan_id: sha256Hex,
+    reviewed_by: nonEmpty,
+    reviewed_at: nonEmpty,
+    delivered_at: nonEmpty,
+    creation_review_status: { const: 'REVIEWED_FOR_DELIVERY' },
+    hub_approval_status: { const: 'NOT_GRANTED_BY_CREATOR' },
+    expected_document_ids: {
+      type: 'array',
+      minItems: 1,
+      items: nonEmpty
+    },
+    files: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'document_id',
+          'object_id',
+          'object_type',
+          'version',
+          'rendition',
+          'path',
+          'media_type',
+          'byte_count',
+          'sha256',
+          'stored_object_id',
+          'source_revision_id'
+        ],
+        properties: {
+          document_id: nonEmpty,
+          object_id: nonEmpty,
+          object_type: { type: 'string', enum: ['capability', 'antipattern', 'tactic'] },
+          version: nonEmpty,
+          rendition: { type: 'string', enum: ['markdown', 'pdf'] },
+          path: nonEmpty,
+          media_type: {
+            type: 'string',
+            enum: ['text/markdown; charset=utf-8', 'application/pdf']
+          },
+          byte_count: { type: 'integer', minimum: 1 },
+          sha256: sha256Hex,
+          stored_object_id: nonEmpty,
+          source_revision_id: nonEmpty
+        }
+      }
+    }
+  }
+} as const;
+
+export function validateDeliveryReceipt(
+  candidate: unknown,
+  tier: StrictnessTier = 'RELEASE'
+): CreatorFinding[] {
+  const validator = getCompiledSchema(deliveryReceiptSchema);
   const ok = validator(candidate) === true;
   return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
 }
