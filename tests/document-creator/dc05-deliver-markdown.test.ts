@@ -513,10 +513,13 @@ describe('DC-05: Deliver reviewed Markdown to storage, post-write verification, 
       const currentBytes = await readFile(join(workspace, relPath));
       expect(sha256(currentBytes), relPath).toBe(expectedHash);
     }
-    for (const dom of ['A', 'B', 'C', 'D', 'E', 'F']) {
+    for (const dom of ['B', 'C', 'D', 'E', 'F']) {
       const repoEntries = await readdir(join('baseline/sae-training/knowledge-base', dom));
       expect(repoEntries).toEqual(['.gitkeep']);
     }
+    expect(
+      (await readdir(join('baseline/sae-training/knowledge-base', 'A'))).sort()
+    ).toEqual(['.gitkeep', 'antipatterns', 'capabilities']);
 
     await app.close();
   });

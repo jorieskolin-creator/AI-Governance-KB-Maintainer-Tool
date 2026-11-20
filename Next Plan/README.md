@@ -43,7 +43,8 @@ The consuming analysis solution reads Packages from its Knowledge Hub. It does n
 4. [Validation and acceptance](04-Validation-and-Acceptance.md): fixtures, live evaluation, and evidence required for completion.
 5. [Storage readiness and sample onboarding](06-Storage-and-Sample-Onboarding.md): local pilot setup, verified sample-to-contract matrix, and remaining input dependencies.
 6. [Master Table Creator read-only handoff guide](07-Master-Table-Creator-Handoff-Guide.md): source prefixes, completion receipts, stable section IDs, and rendition linkage.
-7. [Augment kickoff prompt](05-Augment-Kickoff.md): copy into Augment Code to begin with DC-00.
+7. [DC-07 local pilot acceptance and cutover inventory](08-DC07-Local-Pilot-Acceptance-and-Cutover.md): reference-run evidence, 3-run comparison, rollback checkpoint, and post-cutover retirement inventory.
+8. [Augment kickoff prompt](05-Augment-Kickoff.md): copy into Augment Code to begin with DC-00.
 
 ## Authority and legacy instructions
 

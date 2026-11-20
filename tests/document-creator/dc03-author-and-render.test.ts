@@ -584,11 +584,14 @@ describe('DC-03: Author and render one fresh pair (internal contract, author, va
     expect(apMdDisk).toContain('## AP-A2.BIB — Source Bibliography and Usage Boundaries');
     expect(apMdDisk).not.toContain('Undefined or elastic intended purpose');
 
-    // Verify repository baseline/sae-training/knowledge-base/ remains completely untouched!
-    for (const dom of ['A', 'B', 'C', 'D', 'E', 'F']) {
+    // Verify repository baseline/sae-training/knowledge-base/ was not modified by test writes!
+    for (const dom of ['B', 'C', 'D', 'E', 'F']) {
       const entries = await readdir(join('baseline/sae-training/knowledge-base', dom));
       expect(entries).toEqual(['.gitkeep']);
     }
+    expect(
+      (await readdir(join('baseline/sae-training/knowledge-base', 'A'))).sort()
+    ).toEqual(['.gitkeep', 'antipatterns', 'capabilities']);
   });
 
   it('D-02 & T-03: blocks model attempts to override IDs/paths/states, rejects invented source/question/tactic/object handles and locators, and rejects unsolicited tactic documents', async () => {

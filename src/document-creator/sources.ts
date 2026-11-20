@@ -371,7 +371,15 @@ async function fetchRegisteredUrlSafely(options: {
             reason: `Exceeded maximum redirects (${maxRedirects}) starting from "${options.initialUrl}".`
           };
         }
-        const nextUrl = new URL(location, urlCheck.url).toString();
+        const resolvedNext = new URL(location, urlCheck.url);
+        if (
+          resolvedNext.protocol === 'http:' &&
+          options.allowedHosts.size > 0 &&
+          options.allowedHosts.has(resolvedNext.hostname.toLowerCase())
+        ) {
+          resolvedNext.protocol = 'https:';
+        }
+        const nextUrl = resolvedNext.toString();
         const redirectCheck = await validateSourceFetchUrl({
           rawUrl: nextUrl,
           allowedHosts: options.allowedHosts,

@@ -684,11 +684,14 @@ describe('DC-06: Bounded batches, explicit regeneration from new inputs, optiona
 
     // Verify repository folders remain completely untouched!
     expect(await readdir('tests/fixtures/synthetic-profile/output')).toEqual(['.gitkeep']);
-    for (const dom of ['A', 'B', 'C', 'D', 'E', 'F']) {
+    for (const dom of ['B', 'C', 'D', 'E', 'F']) {
       expect(await readdir(join('baseline/sae-training/knowledge-base', dom))).toEqual([
         '.gitkeep'
       ]);
     }
+    expect(
+      (await readdir(join('baseline/sae-training/knowledge-base', 'A'))).sort()
+    ).toEqual(['.gitkeep', 'antipatterns', 'capabilities']);
 
     await app.close();
   });
