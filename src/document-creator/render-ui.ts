@@ -1,3 +1,4 @@
+import type { AuthoredPairResult } from './author.js';
 import type {
   DocumentPlan,
   KbProfile,
@@ -14,12 +15,14 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
-function renderStageNav(activeStage: 'inputs' | 'plan' | 'sources'): string {
+type CreatorUiStage = 'inputs' | 'plan' | 'sources' | 'documents';
+
+function renderStageNav(activeStage: CreatorUiStage): string {
   const stages: ReadonlyArray<{ id: string; label: string; href?: string; status: string }> = [
     { id: 'inputs', label: '1. Inputs', href: '/creator', status: activeStage === 'inputs' ? 'Current' : 'Available' },
     { id: 'plan', label: '2. Document plan', href: '/creator/plan', status: activeStage === 'plan' ? 'Current' : 'Available' },
     { id: 'sources', label: '2b. Source inspection', href: '/creator/sources', status: activeStage === 'sources' ? 'Current' : 'Available' },
-    { id: 'documents', label: '3. Documents', status: 'Pending DC-03/04' },
+    { id: 'documents', label: '3. Documents', href: '/creator/documents', status: activeStage === 'documents' ? 'Current' : 'Available' },
     { id: 'delivery', label: '4. Delivery', status: 'Pending DC-05' },
     { id: 'history', label: '5. History', status: 'Pending DC-04/05' }
   ];
@@ -39,16 +42,18 @@ function renderStageNav(activeStage: 'inputs' | 'plan' | 'sources'): string {
   </nav>`;
 }
 
-function pageLayout(title: string, activeStage: 'inputs' | 'plan' | 'sources', bodyHtml: string): string {
+function pageLayout(title: string, activeStage: CreatorUiStage, bodyHtml: string): string {
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(title)} — KB Document Creator</title>
   <style>
     body { font-family: system-ui, sans-serif; line-height: 1.45; margin: 0 auto; max-width: 1120px; padding: 1.25rem; color: #111827; background: #f9fafb; }
     header, section { background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    article.creator-doc-preview { background: #ffffff; border: 1px solid #9ca3af; border-radius: 6px; padding: 1rem 1.25rem; margin-top: 1rem; }
     .stages { display: flex; flex-wrap: wrap; gap: 0.75rem; list-style: none; padding: 0; margin: 0.5rem 0 0; }
     .stages li { border: 1px solid #d1d5db; border-radius: 4px; padding: 0.35rem 0.65rem; background: #f3f4f6; }
     .stages li[aria-current="step"] { border-color: #1d4ed8; background: #eff6ff; font-weight: 600; }
@@ -56,11 +61,12 @@ function pageLayout(title: string, activeStage: 'inputs' | 'plan' | 'sources', b
     table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.92rem; }
     th, td { border: 1px solid #e5e7eb; padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }
     th { background: #f3f4f6; }
-    form.controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; }
+    form.controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin-bottom: 0.75rem; }
     label { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 600; font-size: 0.9rem; }
     select, input, button { font: inherit; padding: 0.4rem 0.6rem; border: 1px solid #9ca3af; border-radius: 4px; }
     button.primary { background: #1d4ed8; color: #ffffff; border-color: #1e40af; font-weight: 600; cursor: pointer; }
     code { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.88em; }
+    pre.markdown-source { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; padding: 0.75rem; overflow-x: auto; white-space: pre-wrap; font-size: 0.85rem; }
   </style>
 </head>
 <body>
@@ -457,4 +463,122 @@ export function renderSourcePreparationViewHtml(options: {
   `;
 
   return pageLayout('Source Inspection', 'sources', body);
+}
+
+export function renderDocumentsPreviewViewHtml(options: {
+  profiles: ReadonlyArray<Pick<KbProfile, 'profile_id' | 'kb_id' | 'kb_title' | 'is_synthetic'>>;
+  selectedProfileId: string;
+  availablePairs: ReadonlyArray<{ pair_id: string; domain_id: string; title: string }>;
+  selectedPairId: string;
+  isSynthetic: boolean;
+  authoredPair: AuthoredPairResult | null;
+  errorMessage?: string;
+}): string {
+  const {
+    profiles,
+    selectedProfileId,
+    availablePairs,
+    selectedPairId,
+    isSynthetic,
+    authoredPair,
+    errorMessage
+  } = options;
+
+  const allFindings = authoredPair
+    ? [
+        ...authoredPair.validation.pair_findings.map((f) => ({ scope: 'PAIR', ...f })),
+        ...authoredPair.validation.capability.findings.map((f) => ({
+          scope: authoredPair.capability.object_id,
+          ...f
+        })),
+        ...authoredPair.validation.antipattern.findings.map((f) => ({
+          scope: authoredPair.antipattern.object_id,
+          ...f
+        }))
+      ]
+    : [];
+
+  const findingsHtml = !authoredPair
+    ? ''
+    : allFindings.length === 0
+      ? '<p>No deterministic validation findings.</p>'
+      : `<table>
+          <thead><tr><th>Object</th><th>Severity</th><th>Tier</th><th>Code</th><th>Path</th><th>Message</th></tr></thead>
+          <tbody>
+            ${allFindings
+              .map(
+                (f) =>
+                  `<tr><td><code>${escapeHtml(f.scope)}</code></td><td>${escapeHtml(f.severity)}</td><td>${escapeHtml(f.tier)}</td><td><code>${escapeHtml(f.code)}</code></td><td><code>${escapeHtml(f.path)}</code></td><td>${escapeHtml(f.message)}</td></tr>`
+              )
+              .join('')}
+          </tbody>
+        </table>`;
+
+  const previewHtml = !authoredPair
+    ? `<p role="status">${escapeHtml(errorMessage ?? 'No draft authored in this session for the selected pair yet. Submit "Create pair drafts" or POST /api/creator/documents/author.')}</p>`
+    : `${errorMessage ? `<p role="alert">${escapeHtml(errorMessage)}</p>` : ''}
+      <p>
+        Work unit: <code>${escapeHtml(authoredPair.work_unit_id)}</code> ·
+        Draft valid: <strong>${authoredPair.validation.draft_valid ? 'YES' : 'BLOCKED'}</strong> ·
+        Delivery readiness (pre-review): <strong>${authoredPair.validation.delivery_ready ? 'READY_FOR_REVIEW' : 'UNRESOLVED_GAPS_PRESENT'}</strong> ·
+        Provider: <code>${escapeHtml(authoredPair.call_telemetry.provider)}/${escapeHtml(authoredPair.call_telemetry.model)}</code>
+      </p>
+      <p><small>Creation review states (<code>${escapeHtml(authoredPair.capability.creation_review_state)}</code> / <code>${escapeHtml(authoredPair.antipattern.creation_review_state)}</code>) never grant Knowledge Hub approval, legal assurance, or tactic activation.</small></p>
+      <h3>Deterministic validation findings</h3>
+      ${findingsHtml}
+      <h3>Sanitized HTML Preview (Capability &amp; Paired Anti-Pattern)</h3>
+      ${authoredPair.rendered.capability.html_preview_fragment}
+      <details>
+        <summary><strong>Inspect standalone Markdown — ${escapeHtml(authoredPair.capability.object_id)}</strong> (SHA-256: <code>${escapeHtml(authoredPair.rendered.capability.markdown_sha256)}</code>)</summary>
+        <pre class="markdown-source"><code>${escapeHtml(authoredPair.rendered.capability.markdown)}</code></pre>
+      </details>
+      ${authoredPair.rendered.antipattern.html_preview_fragment}
+      <details>
+        <summary><strong>Inspect standalone Markdown — ${escapeHtml(authoredPair.antipattern.object_id)}</strong> (SHA-256: <code>${escapeHtml(authoredPair.rendered.antipattern.markdown_sha256)}</code>)</summary>
+        <pre class="markdown-source"><code>${escapeHtml(authoredPair.rendered.antipattern.markdown)}</code></pre>
+      </details>`;
+
+  const body = `
+    <section aria-labelledby="docs-controls-heading">
+      <h2 id="docs-controls-heading">3. Documents — Draft authoring &amp; sanitized preview</h2>
+      ${isSynthetic ? '<p role="status" class="badge">SYNTHETIC TEST PROFILE — NOT APPROVED DOMAIN KNOWLEDGE</p>' : ''}
+      <form class="controls" method="get" action="/creator/documents">
+        <label>
+          KB Profile
+          <select name="profileId">
+            ${profiles
+              .map(
+                (p) =>
+                  `<option value="${escapeHtml(p.profile_id)}"${p.profile_id === selectedProfileId ? ' selected' : ''}>${escapeHtml(p.kb_title)} (${escapeHtml(p.profile_id)})</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <label>
+          Pair ID
+          <select name="pairId">
+            ${availablePairs
+              .map(
+                (pair) =>
+                  `<option value="${escapeHtml(pair.pair_id)}"${pair.pair_id === selectedPairId ? ' selected' : ''}>${escapeHtml(pair.pair_id)} (${escapeHtml(pair.domain_id)} — ${escapeHtml(pair.title)})</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <button type="submit">Inspect selected pair</button>
+      </form>
+      <form class="controls" method="post" action="/creator/documents/author">
+        <input type="hidden" name="profileId" value="${escapeHtml(selectedProfileId)}" />
+        <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+        <button class="primary" type="submit">Create pair drafts</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="docs-preview-heading">
+      <h2 id="docs-preview-heading">Draft documents &amp; references</h2>
+      ${previewHtml}
+    </section>
+  `;
+
+  return pageLayout('Documents Preview', 'documents', body);
 }
