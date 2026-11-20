@@ -170,6 +170,21 @@ export interface TacticAssociationSummary {
   original_activation_status: string;
   effective_association_status: 'OBJECT_LINK_ASSOCIATED' | 'UNCONFIRMED_CANDIDATE';
   activation_authority: 'NONE_IN_CREATOR';
+  function_label?: string | null;
+  control_purpose?: string | null;
+  principal_outputs?: string[];
+  reassessment_text?: string | null;
+  prerequisite_tactic_ids?: string[];
+  operationalization_status?: string;
+}
+
+export interface CognitiveStateVocabularies {
+  capability_conclusions: string[];
+  antipattern_conclusions: string[];
+  technical_assurance: string[];
+  human_assurance: string[];
+  lifecycle_stages: string[];
+  boundary_notes: string[];
 }
 
 export interface ObjectCoverageEntry {
@@ -224,6 +239,7 @@ export interface ResolvedInputSet {
     version: string;
     dimensions: string[];
     rules: string[];
+    state_vocabularies?: CognitiveStateVocabularies;
   } | null;
   readiness: {
     tier: StrictnessTier;
@@ -354,6 +370,8 @@ export interface SourceUnit {
   source_title: string;
   authority_tier: string;
   authority_type: string;
+  jurisdictions?: string[];
+  roles_or_applicability_conditions?: string[];
   origin_kind: 'registered_url' | 'bound_reference_pdf' | 'human_verified_excerpt' | 'register_metadata';
   original_sha256: string | null;
   locator: SourceLocator;
@@ -398,6 +416,16 @@ export interface PreparedPairBaseline {
     antipattern_questions: PlanQuestion[];
     interpretation_rules: string[];
   };
+  instrument_metadata?: {
+    capability_applicability: string | null;
+    capability_human_authority: string | null;
+    capability_target_state: string | null;
+    capability_severity: string | null;
+    antipattern_severity: string | null;
+    antipattern_signals: string[];
+    related_object_ids: string[];
+    lifecycle_stages: string[];
+  };
   legacy_release_instructions_excluded: true;
 }
 
@@ -420,6 +448,8 @@ export interface ModelReadyPassage {
   source_title: string;
   authority_tier: string;
   authority_type: string;
+  jurisdictions?: string[];
+  roles_or_applicability_conditions?: string[];
   locator_label: string;
   extraction_status: 'COMPLETE' | 'PARTIAL_TRUNCATED';
   limitations: string[];
@@ -808,7 +838,27 @@ export const resolvedInputSetSchema = {
         model_id: nonEmpty,
         version: nonEmpty,
         dimensions: stringArray,
-        rules: stringArray
+        rules: stringArray,
+        state_vocabularies: {
+          type: 'object',
+          additionalProperties: false,
+          required: [
+            'capability_conclusions',
+            'antipattern_conclusions',
+            'technical_assurance',
+            'human_assurance',
+            'lifecycle_stages',
+            'boundary_notes'
+          ],
+          properties: {
+            capability_conclusions: { type: 'array', items: nonEmpty },
+            antipattern_conclusions: { type: 'array', items: nonEmpty },
+            technical_assurance: { type: 'array', items: nonEmpty },
+            human_assurance: { type: 'array', items: nonEmpty },
+            lifecycle_stages: { type: 'array', items: nonEmpty },
+            boundary_notes: { type: 'array', items: nonEmpty }
+          }
+        }
       }
     },
     readiness: {
@@ -1222,6 +1272,8 @@ export const sourceUnitSchema = {
     source_title: nonEmpty,
     authority_tier: nonEmpty,
     authority_type: nonEmpty,
+    jurisdictions: { type: 'array', items: nonEmpty },
+    roles_or_applicability_conditions: { type: 'array', items: nonEmpty },
     origin_kind: {
       type: 'string',
       enum: ['registered_url', 'bound_reference_pdf', 'human_verified_excerpt', 'register_metadata']
@@ -1403,6 +1455,30 @@ export const sourcePreparationBundleSchema = {
               interpretation_rules: stringArray
             }
           },
+          instrument_metadata: {
+            type: 'object',
+            additionalProperties: false,
+            required: [
+              'capability_applicability',
+              'capability_human_authority',
+              'capability_target_state',
+              'capability_severity',
+              'antipattern_severity',
+              'antipattern_signals',
+              'related_object_ids',
+              'lifecycle_stages'
+            ],
+            properties: {
+              capability_applicability: { type: ['string', 'null'] },
+              capability_human_authority: { type: ['string', 'null'] },
+              capability_target_state: { type: ['string', 'null'] },
+              capability_severity: { type: ['string', 'null'] },
+              antipattern_severity: { type: ['string', 'null'] },
+              antipattern_signals: { type: 'array', items: nonEmpty },
+              related_object_ids: { type: 'array', items: nonEmpty },
+              lifecycle_stages: { type: 'array', items: nonEmpty }
+            }
+          },
           legacy_release_instructions_excluded: { const: true }
         }
       }
@@ -1480,6 +1556,8 @@ export const sourcePreparationBundleSchema = {
               source_title: nonEmpty,
               authority_tier: nonEmpty,
               authority_type: nonEmpty,
+              jurisdictions: { type: 'array', items: nonEmpty },
+              roles_or_applicability_conditions: { type: 'array', items: nonEmpty },
               locator_label: nonEmpty,
               extraction_status: { type: 'string', enum: ['COMPLETE', 'PARTIAL_TRUNCATED'] },
               limitations: { type: 'array', items: nonEmpty },
@@ -1638,6 +1716,8 @@ export interface CreatorBibliographyEntry {
   edition_version: string;
   authority_tier: string;
   authority_type: string;
+  jurisdictions?: string[];
+  roles_or_applicability_conditions?: string[];
   origin_kind: SourceUnit['origin_kind'];
   locator_label: string;
   extraction_status: 'COMPLETE' | 'PARTIAL_TRUNCATED';
@@ -2039,6 +2119,8 @@ export const creatorDocumentSchema = {
           edition_version: nonEmpty,
           authority_tier: nonEmpty,
           authority_type: nonEmpty,
+          jurisdictions: { type: 'array', items: nonEmpty },
+          roles_or_applicability_conditions: { type: 'array', items: nonEmpty },
           origin_kind: {
             type: 'string',
             enum: [

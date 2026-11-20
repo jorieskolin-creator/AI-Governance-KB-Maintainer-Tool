@@ -254,9 +254,24 @@ export function buildPairAuthorPrompts(options: {
         version: detail?.version ?? '1.0.0',
         effective_association_status: assoc.effective_association_status,
         completion_effect: detail?.completion_effect ?? 'NEW_EVIDENCE_AND_REASSESSMENT_REQUIRED',
-        activation_authority: 'NONE_IN_CREATOR' as const
+        activation_authority: 'NONE_IN_CREATOR' as const,
+        function_label: detail?.function_label ?? null,
+        control_purpose: detail?.control_purpose ?? null,
+        principal_outputs: detail?.principal_outputs ?? [],
+        reassessment_targets: detail?.reassessment_targets ?? [],
+        operationalization_status: detail?.operationalization_status ?? 'UNSPECIFIED'
       };
     });
+
+  const domainSiblingPairs = runtime.pairs
+    .filter((p) => p.domain_id === pairBaseline.domain_id && p.pair_id !== pairBaseline.pair_id)
+    .map((p) => ({
+      pair_id: p.pair_id,
+      capability_id: p.capability.id,
+      capability_title: p.capability.title,
+      antipattern_id: p.antipattern.id,
+      antipattern_title: p.antipattern.title
+    }));
 
   const capSupport = sourceBundle.criterion_support.find((c) => c.object_id === capabilityDoc.object_id);
   const apSupport = sourceBundle.criterion_support.find((c) => c.object_id === antipatternDoc.object_id);
@@ -279,8 +294,9 @@ export function buildPairAuthorPrompts(options: {
     '4. For "sourced_claims", select ONLY allowed "source_unit_id" handles from eligible_passages. If no eligible passage supports a claim, set "source_unit_ids": [] and explain the gap in "unresolved_reason" — NEVER invent a source_unit_id, source_id, edition, or locator.',
     '5. Preserve independent capability vs anti-pattern semantics: not satisfying the capability NEVER establishes anti-pattern presence; missing anti-pattern evidence keeps the anti-pattern UNKNOWN.',
     '6. Silence, missing incidents, zero complaints, or unexecuted discovery NEVER proves anti-pattern absence (TESTED_ABSENT requires an executed, current, scoped absence test).',
-    '7. Tactic associations are advisory object-level candidates only (activation_authority = NONE_IN_CREATOR). Never claim tactic selection or completion closes a finding, clears a gate, or activates customer remediation. Do NOT generate separate tactic documents.',
-    '8. Do NOT copy domain-specific wording or internal handles from the Golden calibration pair into non-Golden documents.'
+    '7. Tactic associations are advisory object-level candidates only (activation_authority = NONE_IN_CREATOR). Never claim tactic selection or completion closes a finding, clears a gate, or activates customer remediation. Do NOT generate separate tactic documents, and do NOT invent absent playbook operationalization fields.',
+    '8. State the distinct ownership boundary of this pair relative to domain_sibling_pairs in DEF and REL so adjacent pairs do not overlap. Do NOT copy domain-specific wording or internal handles from the Golden calibration pair into non-Golden documents.',
+    '9. Respect each source passage roles_or_applicability_conditions and jurisdictions, and use canonical state_vocabularies and instrument_metadata (human_authority, applicability, lifecycle_stages) when present.'
   ].join('\n');
 
   const userPayload = {
@@ -290,8 +306,11 @@ export function buildPairAuthorPrompts(options: {
     is_synthetic: runtime.profile.is_synthetic,
     pair_id: pairBaseline.pair_id,
     domain_id: pairBaseline.domain_id,
+    domain_sibling_pairs: domainSiblingPairs,
     criteria_from_pdf: pairBaseline.criteria_from_pdf,
     thinking_flow_baseline: pairBaseline.thinking_flow_baseline,
+    instrument_metadata: pairBaseline.instrument_metadata ?? null,
+    state_vocabularies: runtime.inputSet.cognitive_model?.state_vocabularies ?? null,
     golden_structural_calibration: goldenCalibration,
     capability_contract: {
       object_id: capabilityDoc.object_id,
@@ -330,10 +349,12 @@ export function buildPairAuthorPrompts(options: {
 function classifyAuthorityDistinction(
   units: readonly SourceUnit[]
 ): 'BINDING_LEGISLATION_WHEN_APPLICABLE' | 'AUTHORITATIVE_STANDARD_OR_GUIDANCE' {
-  const hasLegislation = units.some((u) =>
-    /\b(?:law|legislation|regulation|statute|directive|act|charter|legal)\b/i.test(
-      `${u.authority_type} ${u.authority_tier}`
-    )
+  const hasLegislation = units.some(
+    (u) =>
+      u.authority_tier === 'TIER_1_NORMATIVE' ||
+      /\b(?:law|legislation|regulation|statute|directive|act|charter|legal|primary_rights_source)\b/i.test(
+        `${u.authority_type} ${u.authority_tier}`
+      )
   );
   return hasLegislation
     ? 'BINDING_LEGISLATION_WHEN_APPLICABLE'
@@ -1030,6 +1051,10 @@ function materializeSingleObjectDocument(options: {
       edition_version: unit.source_version,
       authority_tier: unit.authority_tier,
       authority_type: unit.authority_type,
+      ...(unit.jurisdictions ? { jurisdictions: unit.jurisdictions } : {}),
+      ...(unit.roles_or_applicability_conditions
+        ? { roles_or_applicability_conditions: unit.roles_or_applicability_conditions }
+        : {}),
       origin_kind: unit.origin_kind,
       locator_label: unit.locator.label,
       extraction_status: unit.extraction_status,

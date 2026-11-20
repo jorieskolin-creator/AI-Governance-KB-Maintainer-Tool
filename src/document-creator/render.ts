@@ -406,14 +406,21 @@ export function renderCreatorDocumentMarkdown(
     );
   } else {
     lines.push(
-      '| Source ID | Title | Edition / Version | Authority | Origin & Exact Locator | Extraction Status | Usage Policy & Limitations |',
+      '| Source ID | Title | Edition / Version | Authority | Origin & Exact Locator | Extraction Status | Usage Policy, Applicability & Limitations |',
       '| --- | --- | --- | --- | --- | --- | --- |'
     );
     for (const entry of doc.bibliography) {
-      const limitsText =
-        entry.limitations.length > 0 ? entry.limitations.join('; ') : 'None recorded';
+      const boundaryDetails = [
+        entry.jurisdictions && entry.jurisdictions.length > 0
+          ? `Jurisdictions: ${entry.jurisdictions.join(', ')}`
+          : '',
+        ...(entry.roles_or_applicability_conditions ?? []),
+        ...(entry.limitations.length > 0 ? entry.limitations : ['None recorded'])
+      ]
+        .filter(Boolean)
+        .join('; ');
       lines.push(
-        `| \`${sanitizeMarkdownTableCell(entry.source_id)}\` | ${sanitizeMarkdownTableCell(entry.source_title)} | \`${sanitizeMarkdownTableCell(entry.edition_version)}\` | \`${sanitizeMarkdownTableCell(entry.authority_tier)} / ${sanitizeMarkdownTableCell(entry.authority_type)}\` | \`${sanitizeMarkdownTableCell(entry.origin_kind)}\` — \`${sanitizeMarkdownTableCell(entry.locator_label)}\` | \`${sanitizeMarkdownTableCell(entry.extraction_status)}\` | \`${sanitizeMarkdownTableCell(entry.usage_policy)}\` — ${sanitizeMarkdownTableCell(limitsText)} |`
+        `| \`${sanitizeMarkdownTableCell(entry.source_id)}\` | ${sanitizeMarkdownTableCell(entry.source_title)} | \`${sanitizeMarkdownTableCell(entry.edition_version)}\` | \`${sanitizeMarkdownTableCell(entry.authority_tier)} / ${sanitizeMarkdownTableCell(entry.authority_type)}\` | \`${sanitizeMarkdownTableCell(entry.origin_kind)}\` — \`${sanitizeMarkdownTableCell(entry.locator_label)}\` | \`${sanitizeMarkdownTableCell(entry.extraction_status)}\` | \`${sanitizeMarkdownTableCell(entry.usage_policy)}\` — ${sanitizeMarkdownTableCell(boundaryDetails)} |`
       );
     }
     lines.push('');
@@ -632,13 +639,21 @@ export function renderCreatorDocumentHtmlPreviewFragment(doc: CreatorDocument): 
     doc.bibliography.length === 0
       ? '<p><em>No model-eligible substantive source passages cited in this draft. External source-backed claims remain explicitly UNRESOLVED.</em></p>'
       : `<table>
-          <thead><tr><th>Source ID</th><th>Title</th><th>Edition / Version</th><th>Authority</th><th>Origin &amp; Exact Locator</th><th>Status</th><th>Usage Policy &amp; Limitations</th></tr></thead>
+          <thead><tr><th>Source ID</th><th>Title</th><th>Edition / Version</th><th>Authority</th><th>Origin &amp; Exact Locator</th><th>Status</th><th>Usage Policy, Applicability &amp; Limitations</th></tr></thead>
           <tbody>
             ${doc.bibliography
-              .map(
-                (b) =>
-                  `<tr><td><code>${sanitizePreviewText(b.source_id)}</code></td><td>${sanitizePreviewText(b.source_title)}</td><td><code>${sanitizePreviewText(b.edition_version)}</code></td><td><code>${sanitizePreviewText(b.authority_tier)} / ${sanitizePreviewText(b.authority_type)}</code></td><td><code>${sanitizePreviewText(b.origin_kind)}</code> — <code>${sanitizePreviewText(b.locator_label)}</code></td><td><code>${sanitizePreviewText(b.extraction_status)}</code></td><td><code>${sanitizePreviewText(b.usage_policy)}</code> — ${sanitizePreviewText(b.limitations.join('; ') || 'None recorded')}</td></tr>`
-              )
+              .map((b) => {
+                const boundaryDetails = [
+                  b.jurisdictions && b.jurisdictions.length > 0
+                    ? `Jurisdictions: ${b.jurisdictions.join(', ')}`
+                    : '',
+                  ...(b.roles_or_applicability_conditions ?? []),
+                  ...(b.limitations.length > 0 ? b.limitations : ['None recorded'])
+                ]
+                  .filter(Boolean)
+                  .join('; ');
+                return `<tr><td><code>${sanitizePreviewText(b.source_id)}</code></td><td>${sanitizePreviewText(b.source_title)}</td><td><code>${sanitizePreviewText(b.edition_version)}</code></td><td><code>${sanitizePreviewText(b.authority_tier)} / ${sanitizePreviewText(b.authority_type)}</code></td><td><code>${sanitizePreviewText(b.origin_kind)}</code> — <code>${sanitizePreviewText(b.locator_label)}</code></td><td><code>${sanitizePreviewText(b.extraction_status)}</code></td><td><code>${sanitizePreviewText(b.usage_policy)}</code> — ${sanitizePreviewText(boundaryDetails)}</td></tr>`;
+              })
               .join('')}
           </tbody>
         </table>`;
