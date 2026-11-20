@@ -1,17 +1,19 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import {
-  authorPairWorkUnit,
   createLiveAiAuthorPort,
   type AuthoredPairResult,
-  type CreatorAuthorProviderPort
+  type CreatorAuthorProviderPort,
+  type ModelClaimDraft
 } from './author.js';
 import type { DocumentPlanSelection, KbProfile } from './contracts.js';
 import { createDocumentPlan, DocumentPlanError } from './plan.js';
 import { buildSaeLocalPilotProfile, resolveProfileInputSet } from './profiles.js';
+import type { DirectSectionEditPatch } from './repair.js';
 import {
   renderDocumentPlanViewHtml,
   renderDocumentsPreviewViewHtml,
+  renderHistoryViewHtml,
   renderInputsViewHtml,
   renderSourcePreparationViewHtml
 } from './render-ui.js';
@@ -21,6 +23,18 @@ import {
   type HostAddressResolver,
   type HttpFetchPort
 } from './sources.js';
+import {
+  applyDirectEditToRun,
+  cancelCreatorRun,
+  executeSemanticReviewForRun,
+  executeTargetedRepairForRun,
+  grantCreatorRunContinuation,
+  InMemoryCreatorRunStore,
+  materializeAuthoredPairViewFromRun,
+  recordHumanCreationReview,
+  startOrResumePairRun,
+  type CreatorRunStorePort
+} from './store.js';
 
 export class PairDraftMemoryStore {
   private readonly drafts = new Map<string, AuthoredPairResult>();
@@ -48,10 +62,13 @@ export interface CreatorRouteOptions {
   redirectRootToCreator?: boolean;
   sourceCache?: SourcePreparationCache;
   draftStore?: PairDraftMemoryStore;
+  runStore?: CreatorRunStorePort;
   allowLiveSourceFetch?: boolean;
   fetchPort?: HttpFetchPort;
   resolveAddresses?: HostAddressResolver;
   authorProviderPort?: CreatorAuthorProviderPort;
+  reviewerProviderPort?: CreatorAuthorProviderPort;
+  repairProviderPort?: CreatorAuthorProviderPort;
   allowLiveAuthoring?: boolean;
 }
 
@@ -156,6 +173,7 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
   const workspaceRoot = options.workspaceRoot ?? process.cwd();
   const sourceCache = options.sourceCache ?? new SourcePreparationCache();
   const draftStore = options.draftStore ?? new PairDraftMemoryStore();
+  const runStore = options.runStore ?? new InMemoryCreatorRunStore();
   const profileProviders: ReadonlyArray<KbProfile | (() => Promise<KbProfile>)> =
     options.profiles ?? [() => buildSaeLocalPilotProfile(workspaceRoot)];
 
@@ -182,6 +200,23 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
       return createLiveAiAuthorPort(selectedProfile.model_config_ref.author_role);
     }
     return null;
+  };
+
+  const resolveReviewerPort = (selectedProfile: KbProfile): CreatorAuthorProviderPort | undefined => {
+    if (options.reviewerProviderPort) {
+      return options.reviewerProviderPort;
+    }
+    if (options.allowLiveAuthoring || process.env.CREATOR_ALLOW_LIVE_AUTHORING === 'true') {
+      return createLiveAiAuthorPort(selectedProfile.model_config_ref.reviewer_role);
+    }
+    return undefined;
+  };
+
+  const resolveRepairPort = (selectedProfile: KbProfile): CreatorAuthorProviderPort | null => {
+    if (options.repairProviderPort) {
+      return options.repairProviderPort;
+    }
+    return resolveAuthorPort(selectedProfile);
   };
 
   const loadProfiles = async (): Promise<KbProfile[]> => {
@@ -554,9 +589,37 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
           availablePairs[0]?.pair_id ??
           '';
 
-    const storedDraft = selectedPairId
+    const requestedRunId =
+      typeof query.runId === 'string' && query.runId.trim().length > 0
+        ? query.runId.trim()
+        : undefined;
+
+    const activeRun = requestedRunId
+      ? (await runStore.getRun(requestedRunId)) ?? null
+      : selectedPairId
+        ? (await runStore.getLatestRunForPair(selected.profile_id, selectedPairId)) ?? null
+        : null;
+
+    let storedDraft = selectedPairId
       ? draftStore.get(selected.profile_id, selectedPairId) ?? null
       : null;
+
+    if (activeRun && selectedPairId && runtime.inputSet.readiness.planning_ready) {
+      try {
+        const plan = createDocumentPlan(runtime, {
+          mode: 'pair',
+          pair_ids: [selectedPairId],
+          include_tactics: false
+        });
+        const fromRun = materializeAuthoredPairViewFromRun(activeRun, runtime, plan);
+        if (fromRun) {
+          storedDraft = fromRun;
+          draftStore.set(selected.profile_id, selectedPairId, fromRun);
+        }
+      } catch {
+        // Ignore plan error if viewing an incomplete run.
+      }
+    }
 
     return reply
       .header(
@@ -571,7 +634,33 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
           availablePairs,
           selectedPairId,
           isSynthetic: selected.is_synthetic,
-          authoredPair: storedDraft
+          authoredPair: storedDraft,
+          activeRun
+        })
+      );
+  });
+
+  app.get('/creator/history', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const profiles = await loadProfiles();
+    const query = isObjectRecord(request.query) ? request.query : {};
+    const requestedProfileId =
+      typeof query.profileId === 'string' && query.profileId.trim().length > 0
+        ? query.profileId.trim()
+        : '';
+
+    const runs = await runStore.listRuns(requestedProfileId || undefined);
+    return reply
+      .header(
+        'Content-Security-Policy',
+        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'"
+      )
+      .type('text/html; charset=utf-8')
+      .send(
+        renderHistoryViewHtml({
+          profiles,
+          selectedProfileId: requestedProfileId,
+          runs
         })
       );
   });
@@ -607,6 +696,7 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
 
     const authorPort = resolveAuthorPort(selected);
     let authoredPair: AuthoredPairResult | null = null;
+    let activeRun = null;
     let errorMessage: string | undefined;
 
     if (!authorPort) {
@@ -638,23 +728,25 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
         pair_ids: [selectedPairId],
         include_tactics: false
       });
-      const sourceBundle = await prepareSourcesForPlan({
+      activeRun = await startOrResumePairRun({
+        store: runStore,
         workspaceRoot,
         runtime,
         plan,
-        cache: sourceCache,
+        pairId: selectedPairId,
+        authorProviderPort: authorPort,
+        reviewerProviderPort: resolveReviewerPort(selected),
         enableUrlAcquisition: Boolean(options.fetchPort) || Boolean(options.allowLiveSourceFetch),
+        sourceCache,
         fetchPort: options.fetchPort,
         resolveAddresses: options.resolveAddresses
       });
-      authoredPair = await authorPairWorkUnit({
-        runtime,
-        plan,
-        sourceBundle,
-        pairId: selectedPairId,
-        providerPort: authorPort
-      });
-      draftStore.set(selected.profile_id, selectedPairId, authoredPair);
+      authoredPair = materializeAuthoredPairViewFromRun(activeRun, runtime, plan);
+      if (authoredPair) {
+        draftStore.set(selected.profile_id, selectedPairId, authoredPair);
+      } else if (activeRun.interruption_detail) {
+        errorMessage = activeRun.interruption_detail;
+      }
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : 'Pair authoring failed.';
     }
@@ -675,6 +767,7 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
           selectedPairId,
           isSynthetic: selected.is_synthetic,
           authoredPair,
+          activeRun,
           errorMessage
         })
       );
@@ -691,8 +784,9 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
         message: 'Query parameters "profileId" and "pairId" are required.'
       });
     }
+    const latestRun = await runStore.getLatestRunForPair(profileId, pairId);
     const stored = draftStore.get(profileId, pairId);
-    if (!stored) {
+    if (!stored && !latestRun) {
       return reply.code(404).send({
         error: 'DRAFT_NOT_FOUND',
         message: `No authored draft found in memory for "${profileId}:${pairId}".`
@@ -700,7 +794,8 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
     }
     return reply.code(200).send({
       draftKey: `${profileId}:${pairId}`,
-      authoredPair: stored
+      authoredPair: stored ?? null,
+      run: latestRun ?? null
     });
   });
 
@@ -760,40 +855,49 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
         Boolean(options.allowLiveSourceFetch) ||
         process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH === 'true');
 
-    const sourceBundle = await prepareSourcesForPlan({
-      workspaceRoot,
-      runtime,
-      plan,
-      cache: sourceCache,
-      enableUrlAcquisition: allowUrlFetch,
-      allowPublisherTermsModelEgress: body.allowPublisherTermsModelEgress === true,
-      fetchPort: options.fetchPort,
-      resolveAddresses: options.resolveAddresses
-    });
-
-    if (!sourceBundle.readiness.authoring_ready) {
-      return reply.code(422).send({
-        error: 'SOURCE_BUNDLE_NOT_READY',
-        message: 'Source preparation bundle did not pass authoring readiness.',
-        inputSet: runtime.inputSet,
-        plan,
-        sourceBundle
-      });
-    }
-
     const documentVersion =
       typeof body.documentVersion === 'string' && body.documentVersion.trim().length > 0
         ? body.documentVersion.trim()
         : undefined;
 
-    const authoredPair = await authorPairWorkUnit({
+    const run = await startOrResumePairRun({
+      store: runStore,
+      workspaceRoot,
       runtime,
       plan,
-      sourceBundle,
       pairId,
-      providerPort: authorPort,
-      documentVersion
+      authorProviderPort: authorPort,
+      reviewerProviderPort: resolveReviewerPort(selected),
+      autoRunSemanticReview: body.autoRunSemanticReview === true,
+      documentVersion,
+      enableUrlAcquisition: allowUrlFetch,
+      allowPublisherTermsModelEgress: body.allowPublisherTermsModelEgress === true,
+      pauseOnInputDrift: body.pauseOnInputDrift === true,
+      sourceCache,
+      fetchPort: options.fetchPort,
+      resolveAddresses: options.resolveAddresses
     });
+
+    const sourceBundle = run.checkpoints.source_bundle;
+    if (!sourceBundle || !sourceBundle.readiness.authoring_ready) {
+      return reply.code(422).send({
+        error: 'SOURCE_BUNDLE_NOT_READY',
+        message: 'Source preparation bundle did not pass authoring readiness.',
+        inputSet: runtime.inputSet,
+        plan,
+        sourceBundle,
+        run
+      });
+    }
+
+    const authoredPair = materializeAuthoredPairViewFromRun(run, runtime, plan);
+    if (!authoredPair) {
+      return reply.code(502).send({
+        error: run.interruption_state !== 'NONE' ? run.interruption_state : 'AUTHORING_INTERRUPTED',
+        message: run.interruption_detail ?? 'Authoring call did not complete.',
+        run
+      });
+    }
 
     const draftKey = draftStore.set(selected.profile_id, pairId, authoredPair);
     const status = authoredPair.validation.draft_valid ? 200 : 422;
@@ -803,6 +907,402 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
       inputSet: runtime.inputSet,
       plan,
       sourceBundle,
+      authoredPair,
+      run
+    });
+  });
+
+  app.get('/api/creator/runs', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const query = isObjectRecord(request.query) ? request.query : {};
+    const profileId =
+      typeof query.profileId === 'string' && query.profileId.trim().length > 0
+        ? query.profileId.trim()
+        : undefined;
+    const runs = await runStore.listRuns(profileId);
+    return reply.code(200).send({ runs });
+  });
+
+  app.get('/api/creator/runs/:runId', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const run = await runStore.getRun(runId);
+    if (!run) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+    return reply.code(200).send({ run });
+  });
+
+  app.post('/api/creator/runs/:runId/review', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === existing.profile_id);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${existing.profile_id}".`
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const updatedRun = await executeSemanticReviewForRun({
+      store: runStore,
+      runId,
+      runtime,
+      reviewerProviderPort: resolveReviewerPort(selected)
+    });
+
+    const review = updatedRun.checkpoints.latest_semantic_review;
+    const hasBlocker =
+      updatedRun.interruption_state === 'BUDGET_EXHAUSTED' ||
+      Boolean(review && (review.blocking_defect_count > 0 || review.rejected_reviewer_attempts.length > 0));
+    return reply.code(hasBlocker ? 422 : 200).send({
+      run: updatedRun,
+      review
+    });
+  });
+
+  app.post('/api/creator/runs/:runId/edit', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const objectId = typeof body.objectId === 'string' ? body.objectId.trim() : '';
+    const rawPatches = Array.isArray(body.sectionPatches) ? body.sectionPatches : [];
+
+    if (!objectId || rawPatches.length === 0) {
+      return reply.code(400).send({
+        error: 'INVALID_EDIT_REQUEST',
+        message: 'Request body must specify "objectId" and a non-empty "sectionPatches" array.'
+      });
+    }
+
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === existing.profile_id);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${existing.profile_id}".`
+      });
+    }
+
+    const sectionPatches: DirectSectionEditPatch[] = rawPatches
+      .filter(isObjectRecord)
+      .map((p) => ({
+        section_id: typeof p.section_id === 'string' ? p.section_id : '',
+        prose: typeof p.prose === 'string' ? p.prose : undefined,
+        bullets: Array.isArray(p.bullets)
+          ? p.bullets.filter((b): b is string => typeof b === 'string')
+          : undefined,
+        question_refs: Array.isArray(p.question_refs)
+          ? p.question_refs.filter((q): q is string => typeof q === 'string')
+          : undefined,
+        source_unit_refs: Array.isArray(p.source_unit_refs)
+          ? p.source_unit_refs.filter((u): u is string => typeof u === 'string')
+          : undefined
+      }))
+      .filter((p) => p.section_id.length > 0);
+
+    const claimsOverride: ModelClaimDraft[] | undefined = Array.isArray(body.sourcedClaimsOverride)
+      ? body.sourcedClaimsOverride
+          .filter(isObjectRecord)
+          .map((c) => ({
+            section_code: typeof c.section_code === 'string' ? c.section_code : undefined,
+            statement: typeof c.statement === 'string' ? c.statement : '',
+            source_unit_ids: Array.isArray(c.source_unit_ids)
+              ? c.source_unit_ids.filter((u): u is string => typeof u === 'string')
+              : undefined,
+            applicability_note:
+              typeof c.applicability_note === 'string' ? c.applicability_note : undefined,
+            unresolved_reason:
+              typeof c.unresolved_reason === 'string' ? c.unresolved_reason : undefined
+          }))
+          .filter((c) => c.statement.length > 0)
+      : undefined;
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const plan = createDocumentPlan(runtime, {
+      mode: 'pair',
+      pair_ids: [existing.pair_id],
+      include_tactics: false
+    });
+
+    const updatedRun = await applyDirectEditToRun({
+      store: runStore,
+      runId,
+      objectId,
+      sectionPatches,
+      sourcedClaimsOverride: claimsOverride,
+      runtime,
+      plan
+    });
+
+    const authoredPair = materializeAuthoredPairViewFromRun(updatedRun, runtime, plan);
+    if (authoredPair) {
+      draftStore.set(selected.profile_id, existing.pair_id, authoredPair);
+    }
+
+    const status = authoredPair?.validation.draft_valid ? 200 : 422;
+    return reply.code(status).send({
+      run: updatedRun,
+      authoredPair
+    });
+  });
+
+  app.post('/api/creator/runs/:runId/repair', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const objectId = typeof body.objectId === 'string' ? body.objectId.trim() : '';
+    const targetSectionIds = Array.isArray(body.targetSectionIds)
+      ? body.targetSectionIds.filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+      : [];
+    const declaredDependencySectionIds = Array.isArray(body.declaredDependencySectionIds)
+      ? body.declaredDependencySectionIds.filter(
+          (s): s is string => typeof s === 'string' && s.trim().length > 0
+        )
+      : undefined;
+    const operatorInstruction =
+      typeof body.operatorInstruction === 'string' ? body.operatorInstruction : undefined;
+
+    if (!objectId || targetSectionIds.length === 0) {
+      return reply.code(400).send({
+        error: 'INVALID_REPAIR_REQUEST',
+        message: 'Request body must specify "objectId" and a non-empty "targetSectionIds" array.'
+      });
+    }
+
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === existing.profile_id);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${existing.profile_id}".`
+      });
+    }
+
+    const repairPort = resolveRepairPort(selected);
+    if (!repairPort) {
+      return reply.code(503).send({
+        error: 'REPAIR_PROVIDER_NOT_CONFIGURED',
+        message: 'Model repair provider is not configured on this server.'
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const plan = createDocumentPlan(runtime, {
+      mode: 'pair',
+      pair_ids: [existing.pair_id],
+      include_tactics: false
+    });
+
+    const { run: updatedRun, budgetExhausted } = await executeTargetedRepairForRun({
+      store: runStore,
+      runId,
+      objectId,
+      targetSectionIds,
+      declaredDependencySectionIds,
+      operatorInstruction,
+      runtime,
+      plan,
+      repairProviderPort: repairPort
+    });
+
+    const authoredPair = materializeAuthoredPairViewFromRun(updatedRun, runtime, plan);
+    if (authoredPair) {
+      draftStore.set(selected.profile_id, existing.pair_id, authoredPair);
+    }
+
+    if (budgetExhausted) {
+      return reply.code(429).send({
+        error: 'REPAIR_BUDGET_EXHAUSTED',
+        message:
+          updatedRun.continuation_required_reason ??
+          'Repair iteration or token budget exhausted; explicit continuation required.',
+        run: updatedRun,
+        authoredPair
+      });
+    }
+
+    const status = authoredPair?.validation.draft_valid ? 200 : 422;
+    return reply.code(status).send({
+      run: updatedRun,
+      authoredPair
+    });
+  });
+
+  app.post('/api/creator/runs/:runId/continue', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+
+    const updatedRun = await grantCreatorRunContinuation({
+      store: runStore,
+      runId,
+      additionalRepairIterations:
+        typeof body.additionalRepairIterations === 'number'
+          ? body.additionalRepairIterations
+          : 1,
+      additionalTokens:
+        typeof body.additionalTokens === 'number' ? body.additionalTokens : 0
+    });
+
+    return reply.code(200).send({ run: updatedRun });
+  });
+
+  app.post('/api/creator/runs/:runId/approve-review', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const reviewedBy = typeof body.reviewedBy === 'string' ? body.reviewedBy.trim() : '';
+    if (!reviewedBy) {
+      return reply.code(400).send({
+        error: 'MISSING_REVIEWER_IDENTITY',
+        message: 'Request body must specify "reviewedBy".'
+      });
+    }
+
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+
+    const outcome = await recordHumanCreationReview({
+      store: runStore,
+      runId,
+      reviewedBy,
+      note: typeof body.note === 'string' ? body.note : undefined
+    });
+
+    if (!outcome.ok) {
+      return reply.code(422).send({
+        error: outcome.code,
+        message: outcome.message,
+        run: outcome.run
+      });
+    }
+
+    return reply.code(200).send({ run: outcome.run });
+  });
+
+  app.post('/api/creator/runs/:runId/cancel', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+
+    const updatedRun = await cancelCreatorRun({
+      store: runStore,
+      runId,
+      reason: typeof body.reason === 'string' ? body.reason : undefined
+    });
+    return reply.code(200).send({ run: updatedRun });
+  });
+
+  app.post('/api/creator/runs/:runId/retry', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const runId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const existing = await runStore.getRun(runId);
+    if (!existing) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown Creator run "${runId}".`
+      });
+    }
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === existing.profile_id);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${existing.profile_id}".`
+      });
+    }
+
+    const authorPort = resolveAuthorPort(selected);
+    if (!authorPort) {
+      return reply.code(503).send({
+        error: 'AUTHOR_PROVIDER_NOT_CONFIGURED',
+        message: 'Model authoring provider is not enabled on this server.'
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const plan = createDocumentPlan(runtime, {
+      mode: 'pair',
+      pair_ids: [existing.pair_id],
+      include_tactics: false
+    });
+
+    const resumedRun = await startOrResumePairRun({
+      store: runStore,
+      workspaceRoot,
+      runtime,
+      plan,
+      pairId: existing.pair_id,
+      resumeRunId: runId,
+      authorProviderPort: authorPort,
+      reviewerProviderPort: resolveReviewerPort(selected),
+      sourceCache,
+      fetchPort: options.fetchPort,
+      resolveAddresses: options.resolveAddresses
+    });
+
+    const authoredPair = materializeAuthoredPairViewFromRun(resumedRun, runtime, plan);
+    if (authoredPair) {
+      draftStore.set(selected.profile_id, existing.pair_id, authoredPair);
+    }
+
+    const status = resumedRun.state === 'FAILED' ? 502 : 200;
+    return reply.code(status).send({
+      run: resumedRun,
       authoredPair
     });
   });

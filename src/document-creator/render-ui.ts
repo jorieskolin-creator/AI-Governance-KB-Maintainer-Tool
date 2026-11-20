@@ -1,10 +1,13 @@
 import type { AuthoredPairResult } from './author.js';
 import type {
+  CreatorRunRecord,
   DocumentPlan,
+  DocumentRevisionDiff,
   KbProfile,
   ResolvedInputSet,
   SourcePreparationBundle
 } from './contracts.js';
+import { sanitizePreviewText } from './render.js';
 
 export function escapeHtml(value: string): string {
   return value
@@ -15,7 +18,7 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
-type CreatorUiStage = 'inputs' | 'plan' | 'sources' | 'documents';
+type CreatorUiStage = 'inputs' | 'plan' | 'sources' | 'documents' | 'history';
 
 function renderStageNav(activeStage: CreatorUiStage): string {
   const stages: ReadonlyArray<{ id: string; label: string; href?: string; status: string }> = [
@@ -24,7 +27,7 @@ function renderStageNav(activeStage: CreatorUiStage): string {
     { id: 'sources', label: '2b. Source inspection', href: '/creator/sources', status: activeStage === 'sources' ? 'Current' : 'Available' },
     { id: 'documents', label: '3. Documents', href: '/creator/documents', status: activeStage === 'documents' ? 'Current' : 'Available' },
     { id: 'delivery', label: '4. Delivery', status: 'Pending DC-05' },
-    { id: 'history', label: '5. History', status: 'Pending DC-04/05' }
+    { id: 'history', label: '5. History', href: '/creator/history', status: activeStage === 'history' ? 'Current' : 'Available' }
   ];
 
   return `<nav aria-label="Creator workflow stages">
@@ -465,6 +468,38 @@ export function renderSourcePreparationViewHtml(options: {
   return pageLayout('Source Inspection', 'sources', body);
 }
 
+function renderRevisionDiffHtml(diff: DocumentRevisionDiff | null): string {
+  if (!diff) return '';
+  const modifiedRows = diff.section_diffs.filter((d) => d.change_type !== 'UNCHANGED');
+  return `<div class="diff-block">
+    <h4>Section-Scoped Revision Diff — <code>${sanitizePreviewText(diff.object_id)}</code> (<code>${sanitizePreviewText(diff.from_revision_id)}</code> → <code>${sanitizePreviewText(diff.to_revision_id)}</code>)</h4>
+    <p>
+      Changed sections: <code>${sanitizePreviewText(diff.changed_section_ids.join(', ') || 'None')}</code> ·
+      Preserved unchanged sections: <code>${sanitizePreviewText(diff.unchanged_section_ids.join(', ') || 'None')}</code>
+    </p>
+    ${
+      modifiedRows.length === 0
+        ? '<p>No section content changes.</p>'
+        : `<table>
+            <thead><tr><th>Section ID</th><th>Scope</th><th>Before</th><th>After</th></tr></thead>
+            <tbody>
+              ${modifiedRows
+                .map(
+                  (d) =>
+                    `<tr>
+                      <td><code>${sanitizePreviewText(d.section_id)}</code></td>
+                      <td><code>${d.targeted_by_request ? 'TARGETED' : d.declared_dependency ? 'DECLARED_DEPENDENCY' : 'DIRECT_EDIT'}</code></td>
+                      <td>${sanitizePreviewText(d.before_prose)}</td>
+                      <td>${sanitizePreviewText(d.after_prose)}</td>
+                    </tr>`
+                )
+                .join('')}
+            </tbody>
+          </table>`
+    }
+  </div>`;
+}
+
 export function renderDocumentsPreviewViewHtml(options: {
   profiles: ReadonlyArray<Pick<KbProfile, 'profile_id' | 'kb_id' | 'kb_title' | 'is_synthetic'>>;
   selectedProfileId: string;
@@ -472,6 +507,7 @@ export function renderDocumentsPreviewViewHtml(options: {
   selectedPairId: string;
   isSynthetic: boolean;
   authoredPair: AuthoredPairResult | null;
+  activeRun?: CreatorRunRecord | null;
   errorMessage?: string;
 }): string {
   const {
@@ -481,6 +517,7 @@ export function renderDocumentsPreviewViewHtml(options: {
     selectedPairId,
     isSynthetic,
     authoredPair,
+    activeRun,
     errorMessage
   } = options;
 
@@ -508,39 +545,98 @@ export function renderDocumentsPreviewViewHtml(options: {
             ${allFindings
               .map(
                 (f) =>
-                  `<tr><td><code>${escapeHtml(f.scope)}</code></td><td>${escapeHtml(f.severity)}</td><td>${escapeHtml(f.tier)}</td><td><code>${escapeHtml(f.code)}</code></td><td><code>${escapeHtml(f.path)}</code></td><td>${escapeHtml(f.message)}</td></tr>`
+                  `<tr><td><code>${sanitizePreviewText(f.scope)}</code></td><td>${sanitizePreviewText(f.severity)}</td><td>${sanitizePreviewText(f.tier)}</td><td><code>${sanitizePreviewText(f.code)}</code></td><td><code>${sanitizePreviewText(f.path)}</code></td><td>${sanitizePreviewText(f.message)}</td></tr>`
               )
               .join('')}
           </tbody>
         </table>`;
 
+  const semReview = activeRun?.checkpoints.latest_semantic_review ?? null;
+  const semanticReviewHtml = !semReview
+    ? '<p>Semantic review has not been executed on this revision yet.</p>'
+    : `<p>
+        Review ID: <code>${sanitizePreviewText(semReview.review_id)}</code> ·
+        Summary: <strong>${sanitizePreviewText(semReview.summary_status)}</strong> ·
+        Blocking defects: <strong>${String(semReview.blocking_defect_count)}</strong> ·
+        Warnings: <strong>${String(semReview.warning_defect_count)}</strong> ·
+        Reviewer authority: <code>${sanitizePreviewText(semReview.reviewer_authority_boundary)}</code>
+      </p>
+      ${
+        semReview.defects.length === 0
+          ? '<p>No semantic defects detected.</p>'
+          : `<table>
+              <thead><tr><th>Defect ID</th><th>Object / Sections</th><th>Category &amp; Severity</th><th>Source &amp; Locator</th><th>Rationale &amp; Recommended Fix</th></tr></thead>
+              <tbody>
+                ${semReview.defects
+                  .map(
+                    (d) =>
+                      `<tr>
+                        <td><code>${sanitizePreviewText(d.defect_id)}</code></td>
+                        <td><code>${sanitizePreviewText(d.object_id)}</code>: <code>${sanitizePreviewText(d.affected_section_ids.join(', '))}</code></td>
+                        <td><code>${sanitizePreviewText(d.category)}</code> (<strong>${sanitizePreviewText(d.severity)}</strong>)</td>
+                        <td>${d.source_id || d.locator_label ? `<code>${sanitizePreviewText(d.source_id ?? 'source')} @ ${sanitizePreviewText(d.locator_label ?? 'locator')}</code>` : '—'}</td>
+                        <td>${sanitizePreviewText(d.rationale)}<br /><small><em>Fix:</em> ${sanitizePreviewText(d.recommended_fix)}</small></td>
+                      </tr>`
+                  )
+                  .join('')}
+              </tbody>
+            </table>`
+      }`;
+
+  const signoff = activeRun?.checkpoints.human_review_signoff ?? null;
+  const signoffHtml = !signoff
+    ? '<p>Human creation review sign-off: <strong>NOT_RECORDED</strong></p>'
+    : signoff.invalidated_at
+      ? `<p role="alert"><strong>PRIOR REVIEW INVALIDATED:</strong> Reviewed by <code>${sanitizePreviewText(signoff.reviewed_by)}</code> at <code>${sanitizePreviewText(signoff.reviewed_at)}</code> was invalidated at <code>${sanitizePreviewText(signoff.invalidated_at)}</code> — ${sanitizePreviewText(signoff.invalidation_reason ?? 'content modified')}</p>`
+      : `<p><strong>HUMAN CREATION REVIEW CONFIRMED:</strong> Reviewed by <code>${sanitizePreviewText(signoff.reviewed_by)}</code> at <code>${sanitizePreviewText(signoff.reviewed_at)}</code> (${sanitizePreviewText(signoff.note)}) — <em>Knowledge Hub approval remains NOT_GRANTED_BY_CREATOR.</em></p>`;
+
+  const runControlHtml = !activeRun
+    ? ''
+    : `<p>
+        Run ID: <code>${sanitizePreviewText(activeRun.run_id)}</code> ·
+        Run State: <strong>${sanitizePreviewText(activeRun.state)}</strong> ·
+        Interruption: <code>${sanitizePreviewText(activeRun.interruption_state)}</code>${activeRun.interruption_detail ? ` (${sanitizePreviewText(activeRun.interruption_detail)})` : ''} ·
+        Tokens used: <code>${String(activeRun.budgets.tokens_used)}/${String(activeRun.budgets.max_tokens_per_run)}</code> ·
+        Repair passes used: <code>${String(activeRun.budgets.repair_iterations_used)}</code>
+      </p>
+      ${activeRun.continuation_required_reason ? `<p role="alert"><strong>Budget / Continuation Required:</strong> ${sanitizePreviewText(activeRun.continuation_required_reason)}</p>` : ''}
+      ${signoffHtml}`;
+
+  const diffsHtml = activeRun
+    ? `${renderRevisionDiffHtml(activeRun.checkpoints.latest_diffs.capability)}${renderRevisionDiffHtml(activeRun.checkpoints.latest_diffs.antipattern)}`
+    : '';
+
   const previewHtml = !authoredPair
-    ? `<p role="status">${escapeHtml(errorMessage ?? 'No draft authored in this session for the selected pair yet. Submit "Create pair drafts" or POST /api/creator/documents/author.')}</p>`
-    : `${errorMessage ? `<p role="alert">${escapeHtml(errorMessage)}</p>` : ''}
+    ? `${runControlHtml}<p role="status">${sanitizePreviewText(errorMessage ?? 'No draft authored in this session for the selected pair yet. Submit "Create pair drafts" or POST /api/creator/documents/author.')}</p>`
+    : `${errorMessage ? `<p role="alert">${sanitizePreviewText(errorMessage)}</p>` : ''}
+      ${runControlHtml}
       <p>
-        Work unit: <code>${escapeHtml(authoredPair.work_unit_id)}</code> ·
+        Work unit: <code>${sanitizePreviewText(authoredPair.work_unit_id)}</code> ·
         Draft valid: <strong>${authoredPair.validation.draft_valid ? 'YES' : 'BLOCKED'}</strong> ·
         Delivery readiness (pre-review): <strong>${authoredPair.validation.delivery_ready ? 'READY_FOR_REVIEW' : 'UNRESOLVED_GAPS_PRESENT'}</strong> ·
-        Provider: <code>${escapeHtml(authoredPair.call_telemetry.provider)}/${escapeHtml(authoredPair.call_telemetry.model)}</code>
+        Provider: <code>${sanitizePreviewText(authoredPair.call_telemetry.provider)}/${sanitizePreviewText(authoredPair.call_telemetry.model)}</code>
       </p>
-      <p><small>Creation review states (<code>${escapeHtml(authoredPair.capability.creation_review_state)}</code> / <code>${escapeHtml(authoredPair.antipattern.creation_review_state)}</code>) never grant Knowledge Hub approval, legal assurance, or tactic activation.</small></p>
+      <p><small>Creation review states (<code>${sanitizePreviewText(authoredPair.capability.creation_review_state)}</code> / <code>${sanitizePreviewText(authoredPair.antipattern.creation_review_state)}</code>) never grant Knowledge Hub approval, legal assurance, or tactic activation.</small></p>
       <h3>Deterministic validation findings</h3>
       ${findingsHtml}
+      <h3>Semantic reviewer findings</h3>
+      ${semanticReviewHtml}
+      ${diffsHtml}
       <h3>Sanitized HTML Preview (Capability &amp; Paired Anti-Pattern)</h3>
       ${authoredPair.rendered.capability.html_preview_fragment}
       <details>
-        <summary><strong>Inspect standalone Markdown — ${escapeHtml(authoredPair.capability.object_id)}</strong> (SHA-256: <code>${escapeHtml(authoredPair.rendered.capability.markdown_sha256)}</code>)</summary>
-        <pre class="markdown-source"><code>${escapeHtml(authoredPair.rendered.capability.markdown)}</code></pre>
+        <summary><strong>Inspect standalone Markdown — ${sanitizePreviewText(authoredPair.capability.object_id)}</strong> (SHA-256: <code>${sanitizePreviewText(authoredPair.rendered.capability.markdown_sha256)}</code>)</summary>
+        <pre class="markdown-source"><code>${sanitizePreviewText(authoredPair.rendered.capability.markdown)}</code></pre>
       </details>
       ${authoredPair.rendered.antipattern.html_preview_fragment}
       <details>
-        <summary><strong>Inspect standalone Markdown — ${escapeHtml(authoredPair.antipattern.object_id)}</strong> (SHA-256: <code>${escapeHtml(authoredPair.rendered.antipattern.markdown_sha256)}</code>)</summary>
-        <pre class="markdown-source"><code>${escapeHtml(authoredPair.rendered.antipattern.markdown)}</code></pre>
+        <summary><strong>Inspect standalone Markdown — ${sanitizePreviewText(authoredPair.antipattern.object_id)}</strong> (SHA-256: <code>${sanitizePreviewText(authoredPair.rendered.antipattern.markdown_sha256)}</code>)</summary>
+        <pre class="markdown-source"><code>${sanitizePreviewText(authoredPair.rendered.antipattern.markdown)}</code></pre>
       </details>`;
 
   const body = `
     <section aria-labelledby="docs-controls-heading">
-      <h2 id="docs-controls-heading">3. Documents — Draft authoring &amp; sanitized preview</h2>
+      <h2 id="docs-controls-heading">3. Documents — Draft authoring &amp; sanitized preview (Review &amp; Targeted Repair)</h2>
       ${isSynthetic ? '<p role="status" class="badge">SYNTHETIC TEST PROFILE — NOT APPROVED DOMAIN KNOWLEDGE</p>' : ''}
       <form class="controls" method="get" action="/creator/documents">
         <label>
@@ -575,10 +671,79 @@ export function renderDocumentsPreviewViewHtml(options: {
     </section>
 
     <section aria-labelledby="docs-preview-heading">
-      <h2 id="docs-preview-heading">Draft documents &amp; references</h2>
+      <h2 id="docs-preview-heading">Draft documents, review findings &amp; references</h2>
       ${previewHtml}
     </section>
   `;
 
   return pageLayout('Documents Preview', 'documents', body);
+}
+
+export function renderHistoryViewHtml(options: {
+  profiles: ReadonlyArray<Pick<KbProfile, 'profile_id' | 'kb_id' | 'kb_title' | 'is_synthetic'>>;
+  selectedProfileId: string;
+  runs: ReadonlyArray<CreatorRunRecord>;
+}): string {
+  const { profiles, selectedProfileId, runs } = options;
+
+  const runsTableHtml =
+    runs.length === 0
+      ? '<p>No Creator runs recorded yet.</p>'
+      : `<table>
+          <thead>
+            <tr>
+              <th>Run ID</th>
+              <th>Profile / KB</th>
+              <th>Pair</th>
+              <th>State</th>
+              <th>Interruption</th>
+              <th>Revisions</th>
+              <th>Budgets (Tokens / Repairs)</th>
+              <th>Pinned Input Set</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${runs
+              .map(
+                (r) =>
+                  `<tr>
+                    <td><code>${sanitizePreviewText(r.run_id)}</code></td>
+                    <td><code>${sanitizePreviewText(r.profile_id)}</code> (${sanitizePreviewText(r.kb_id)})</td>
+                    <td><code>${sanitizePreviewText(r.pair_id)}</code></td>
+                    <td><strong>${sanitizePreviewText(r.state)}</strong></td>
+                    <td><code>${sanitizePreviewText(r.interruption_state)}</code>${r.interruption_detail ? `<br /><small>${sanitizePreviewText(r.interruption_detail)}</small>` : ''}</td>
+                    <td>${String(r.revisions.length)}</td>
+                    <td><code>${String(r.budgets.tokens_used)}/${String(r.budgets.max_tokens_per_run)}</code> · <code>${String(r.budgets.repair_iterations_used)}</code></td>
+                    <td><code>${sanitizePreviewText(r.input_set_id.slice(0, 16))}…</code></td>
+                    <td><a href="/creator/documents?profileId=${encodeURIComponent(r.profile_id)}&amp;pairId=${encodeURIComponent(r.pair_id)}&amp;runId=${encodeURIComponent(r.run_id)}">Open / Resume</a></td>
+                  </tr>`
+              )
+              .join('')}
+          </tbody>
+        </table>`;
+
+  const body = `
+    <section aria-labelledby="history-heading">
+      <h2 id="history-heading">5. History — Completed, active &amp; interrupted Creator runs</h2>
+      <form class="controls" method="get" action="/creator/history">
+        <label>
+          Filter by KB Profile
+          <select name="profileId">
+            <option value="">All profiles</option>
+            ${profiles
+              .map(
+                (p) =>
+                  `<option value="${escapeHtml(p.profile_id)}"${p.profile_id === selectedProfileId ? ' selected' : ''}>${escapeHtml(p.kb_title)} (${escapeHtml(p.profile_id)})</option>`
+              )
+              .join('')}
+          </select>
+        </label>
+        <button class="primary" type="submit">Filter history</button>
+      </form>
+      ${runsTableHtml}
+    </section>
+  `;
+
+  return pageLayout('Run History', 'history', body);
 }

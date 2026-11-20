@@ -717,7 +717,7 @@ export const kbProfileSchema = {
       properties: {
         max_objects_per_run: { type: 'integer', minimum: 1 },
         provider_concurrency: { type: 'integer', minimum: 1 },
-        request_timeout_ms: { type: 'integer', minimum: 1000 },
+        request_timeout_ms: { type: 'integer', minimum: 10 },
         max_tokens_per_run: { type: 'integer', minimum: 100 },
         max_repair_iterations: { type: 'integer', minimum: 0 },
         max_extract_bytes: { type: 'integer', minimum: 1024 }
@@ -1619,7 +1619,8 @@ export function validateSourcePreparationBundle(
 export type CreationReviewState =
   | 'DRAFT_UNREVIEWED'
   | 'DRAFT_BLOCKED_VALIDATION'
-  | 'REVIEW_REQUIRED';
+  | 'REVIEW_REQUIRED'
+  | 'READY_TO_DELIVER';
 
 export interface CreatorDocumentSection {
   section_id: string;
@@ -1846,7 +1847,12 @@ export const creatorDocumentSchema = {
     source_bundle_id: sha256Hex,
     creation_review_state: {
       type: 'string',
-      enum: ['DRAFT_UNREVIEWED', 'DRAFT_BLOCKED_VALIDATION', 'REVIEW_REQUIRED']
+      enum: [
+        'DRAFT_UNREVIEWED',
+        'DRAFT_BLOCKED_VALIDATION',
+        'REVIEW_REQUIRED',
+        'READY_TO_DELIVER'
+      ]
     },
     hub_approval_status: { const: 'NOT_GRANTED_BY_CREATOR' },
     provenance: {
@@ -2192,6 +2198,426 @@ export function validateCreatorDocument(
   tier: StrictnessTier = 'DRAFT'
 ): CreatorFinding[] {
   const validator = getCompiledSchema(creatorDocumentSchema);
+  const ok = validator(candidate) === true;
+  return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
+}
+
+export type SemanticDefectCategory =
+  | 'SOURCE_PASSAGE_CONTRADICTION'
+  | 'EXAMPLE_OR_PROPOSAL_AS_MEASURED_OUTCOME'
+  | 'UNSUPPORTED_NORMATIVE_CLAIM'
+  | 'APPLICABILITY_OR_JURISDICTION_MISMATCH'
+  | 'INVERSE_PAIR_INFERENCE'
+  | 'SILENCE_OFFERED_AS_ABSENCE'
+  | 'SIBLING_SCOPE_OVERLAP'
+  | 'COGNITIVE_MODEL_MISMATCH';
+
+export interface SemanticReviewDefect {
+  defect_id: string;
+  object_id: string;
+  category: SemanticDefectCategory;
+  severity: 'BLOCKING' | 'WARNING';
+  affected_section_ids: string[];
+  claim_id: string | null;
+  source_id: string | null;
+  source_unit_id: string | null;
+  locator_label: string | null;
+  rationale: string;
+  recommended_fix: string;
+}
+
+export interface SemanticReviewResult {
+  schema_version: '1.0.0';
+  review_id: string;
+  pair_id: string;
+  capability_revision_id: string;
+  antipattern_revision_id: string;
+  capability_content_sha256: string;
+  antipattern_content_sha256: string;
+  reviewer_provider: string;
+  reviewer_model: string;
+  prompt_hash: string;
+  reviewed_at: string;
+  defects: SemanticReviewDefect[];
+  blocking_defect_count: number;
+  warning_defect_count: number;
+  summary_status: 'CLEAN' | 'DEFECTS_FOUND';
+  reviewer_authority_boundary: 'DEFECT_DETECTION_ONLY_NO_APPROVAL_OR_REWRITE_AUTHORITY';
+  rejected_reviewer_attempts: CreatorFinding[];
+}
+
+export const semanticReviewResultSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://kb-document-creator.local/schemas/v1/semantic-review.schema.json',
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'schema_version',
+    'review_id',
+    'pair_id',
+    'capability_revision_id',
+    'antipattern_revision_id',
+    'capability_content_sha256',
+    'antipattern_content_sha256',
+    'reviewer_provider',
+    'reviewer_model',
+    'prompt_hash',
+    'reviewed_at',
+    'defects',
+    'blocking_defect_count',
+    'warning_defect_count',
+    'summary_status',
+    'reviewer_authority_boundary',
+    'rejected_reviewer_attempts'
+  ],
+  properties: {
+    schema_version: { const: '1.0.0' },
+    review_id: sha256Hex,
+    pair_id: nonEmpty,
+    capability_revision_id: nonEmpty,
+    antipattern_revision_id: nonEmpty,
+    capability_content_sha256: sha256Hex,
+    antipattern_content_sha256: sha256Hex,
+    reviewer_provider: nonEmpty,
+    reviewer_model: nonEmpty,
+    prompt_hash: sha256Hex,
+    reviewed_at: nonEmpty,
+    defects: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'defect_id',
+          'object_id',
+          'category',
+          'severity',
+          'affected_section_ids',
+          'claim_id',
+          'source_id',
+          'source_unit_id',
+          'locator_label',
+          'rationale',
+          'recommended_fix'
+        ],
+        properties: {
+          defect_id: nonEmpty,
+          object_id: nonEmpty,
+          category: {
+            type: 'string',
+            enum: [
+              'SOURCE_PASSAGE_CONTRADICTION',
+              'EXAMPLE_OR_PROPOSAL_AS_MEASURED_OUTCOME',
+              'UNSUPPORTED_NORMATIVE_CLAIM',
+              'APPLICABILITY_OR_JURISDICTION_MISMATCH',
+              'INVERSE_PAIR_INFERENCE',
+              'SILENCE_OFFERED_AS_ABSENCE',
+              'SIBLING_SCOPE_OVERLAP',
+              'COGNITIVE_MODEL_MISMATCH'
+            ]
+          },
+          severity: { type: 'string', enum: ['BLOCKING', 'WARNING'] },
+          affected_section_ids: { type: 'array', minItems: 1, items: nonEmpty },
+          claim_id: { type: ['string', 'null'] },
+          source_id: { type: ['string', 'null'] },
+          source_unit_id: { type: ['string', 'null'] },
+          locator_label: { type: ['string', 'null'] },
+          rationale: nonEmpty,
+          recommended_fix: nonEmpty
+        }
+      }
+    },
+    blocking_defect_count: { type: 'integer', minimum: 0 },
+    warning_defect_count: { type: 'integer', minimum: 0 },
+    summary_status: { type: 'string', enum: ['CLEAN', 'DEFECTS_FOUND'] },
+    reviewer_authority_boundary: {
+      const: 'DEFECT_DETECTION_ONLY_NO_APPROVAL_OR_REWRITE_AUTHORITY'
+    },
+    rejected_reviewer_attempts: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['code', 'severity', 'tier', 'path', 'message'],
+        properties: {
+          code: nonEmpty,
+          severity: { type: 'string', enum: ['ERROR', 'WARNING'] },
+          tier: { type: 'string', enum: ['DRAFT', 'RELEASE'] },
+          path: nonEmpty,
+          message: nonEmpty
+        }
+      }
+    }
+  }
+} as const;
+
+export function validateSemanticReviewResult(
+  candidate: unknown,
+  tier: StrictnessTier = 'DRAFT'
+): CreatorFinding[] {
+  const validator = getCompiledSchema(semanticReviewResultSchema);
+  const ok = validator(candidate) === true;
+  return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
+}
+
+export interface SectionDiffEntry {
+  section_id: string;
+  section_code: string;
+  change_type: 'UNCHANGED' | 'MODIFIED' | 'ADDED' | 'REMOVED';
+  targeted_by_request: boolean;
+  declared_dependency: boolean;
+  before_prose: string;
+  after_prose: string;
+  before_bullets: string[];
+  after_bullets: string[];
+}
+
+export interface DocumentRevisionDiff {
+  object_id: string;
+  from_revision_id: string;
+  to_revision_id: string;
+  from_content_sha256: string;
+  to_content_sha256: string;
+  changed_section_ids: string[];
+  unchanged_section_ids: string[];
+  unauthorized_untouched_changes: string[];
+  section_diffs: SectionDiffEntry[];
+}
+
+export type CreatorRunState =
+  | 'INPUTS_REQUIRED'
+  | 'READY'
+  | 'GENERATING'
+  | 'REVIEW_REQUIRED'
+  | 'READY_TO_DELIVER'
+  | 'DELIVERING'
+  | 'DELIVERED'
+  | 'FAILED'
+  | 'CANCELLED';
+
+export type CreatorRunInterruptionState =
+  | 'NONE'
+  | 'PROVIDER_OUTCOME_UNKNOWN'
+  | 'PROVIDER_TIMED_OUT'
+  | 'CANCELLED_BY_OPERATOR'
+  | 'BUDGET_EXHAUSTED'
+  | 'INPUT_DRIFT_PAUSED';
+
+export interface DocumentRevisionRecord {
+  revision_id: string;
+  object_id: string;
+  object_type: 'capability' | 'antipattern';
+  revision_number: number;
+  origin: 'INITIAL_AUTHOR' | 'DIRECT_HUMAN_EDIT' | 'TARGETED_REPAIR';
+  parent_revision_id: string | null;
+  created_at: string;
+  document: CreatorDocument;
+  rendered: {
+    document_id: string;
+    object_id: string;
+    object_type: 'capability' | 'antipattern';
+    destination_path_template: string;
+    markdown: string;
+    markdown_sha256: string;
+    html_preview_fragment: string;
+  };
+  deterministic_validation: {
+    document_id: string;
+    object_id: string;
+    object_type: 'capability' | 'antipattern';
+    tier: StrictnessTier;
+    draft_valid: boolean;
+    delivery_ready: boolean;
+    findings: CreatorFinding[];
+  };
+}
+
+export interface ProviderCallAuditRecord {
+  call_id: string;
+  stage: 'PAIR_AUTHOR' | 'SEMANTIC_REVIEW' | 'TARGETED_REPAIR';
+  status:
+    | 'IN_FLIGHT'
+    | 'SUCCEEDED'
+    | 'TIMED_OUT_OUTCOME_UNKNOWN'
+    | 'INTERRUPTED_ON_RESTART_OUTCOME_UNKNOWN'
+    | 'CANCELLED'
+    | 'FAILED';
+  provider: string;
+  model: string;
+  prompt_hash: string;
+  started_at: string;
+  completed_at: string | null;
+  input_tokens: number;
+  output_tokens: number;
+  error_message: string | null;
+}
+
+export interface HumanReviewSignoffRecord {
+  reviewed_by: string;
+  reviewed_at: string;
+  note: string;
+  capability_revision_id: string;
+  antipattern_revision_id: string;
+  capability_content_sha256: string;
+  antipattern_content_sha256: string;
+  invalidated_at: string | null;
+  invalidation_reason: string | null;
+}
+
+export interface CreatorRunRecord {
+  schema_version: '1.0.0';
+  run_id: string;
+  profile_id: string;
+  profile_version: string;
+  kb_id: string;
+  pair_id: string;
+  input_set_id: string;
+  plan_id: string;
+  state: CreatorRunState;
+  interruption_state: CreatorRunInterruptionState;
+  interruption_detail: string | null;
+  continuation_required_reason: string | null;
+  budgets: {
+    max_tokens_per_run: number;
+    tokens_used: number;
+    max_repair_iterations: number;
+    repair_iterations_used: number;
+    continuation_granted_iterations: number;
+    request_timeout_ms: number;
+  };
+  checkpoints: {
+    source_bundle: SourcePreparationBundle | null;
+    active_capability_revision_id: string | null;
+    active_antipattern_revision_id: string | null;
+    latest_semantic_review: SemanticReviewResult | null;
+    latest_diffs: {
+      capability: DocumentRevisionDiff | null;
+      antipattern: DocumentRevisionDiff | null;
+    };
+    human_review_signoff: HumanReviewSignoffRecord | null;
+    drift_findings: CreatorFinding[];
+  };
+  revisions: DocumentRevisionRecord[];
+  provider_calls: ProviderCallAuditRecord[];
+  created_at: string;
+  updated_at: string;
+}
+
+export const creatorRunRecordSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://kb-document-creator.local/schemas/v1/run-record.schema.json',
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'schema_version',
+    'run_id',
+    'profile_id',
+    'profile_version',
+    'kb_id',
+    'pair_id',
+    'input_set_id',
+    'plan_id',
+    'state',
+    'interruption_state',
+    'interruption_detail',
+    'continuation_required_reason',
+    'budgets',
+    'checkpoints',
+    'revisions',
+    'provider_calls',
+    'created_at',
+    'updated_at'
+  ],
+  properties: {
+    schema_version: { const: '1.0.0' },
+    run_id: nonEmpty,
+    profile_id: nonEmpty,
+    profile_version: nonEmpty,
+    kb_id: nonEmpty,
+    pair_id: nonEmpty,
+    input_set_id: sha256Hex,
+    plan_id: sha256Hex,
+    state: {
+      type: 'string',
+      enum: [
+        'INPUTS_REQUIRED',
+        'READY',
+        'GENERATING',
+        'REVIEW_REQUIRED',
+        'READY_TO_DELIVER',
+        'DELIVERING',
+        'DELIVERED',
+        'FAILED',
+        'CANCELLED'
+      ]
+    },
+    interruption_state: {
+      type: 'string',
+      enum: [
+        'NONE',
+        'PROVIDER_OUTCOME_UNKNOWN',
+        'PROVIDER_TIMED_OUT',
+        'CANCELLED_BY_OPERATOR',
+        'BUDGET_EXHAUSTED',
+        'INPUT_DRIFT_PAUSED'
+      ]
+    },
+    interruption_detail: { type: ['string', 'null'] },
+    continuation_required_reason: { type: ['string', 'null'] },
+    budgets: {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'max_tokens_per_run',
+        'tokens_used',
+        'max_repair_iterations',
+        'repair_iterations_used',
+        'continuation_granted_iterations',
+        'request_timeout_ms'
+      ],
+      properties: {
+        max_tokens_per_run: { type: 'integer', minimum: 1 },
+        tokens_used: { type: 'integer', minimum: 0 },
+        max_repair_iterations: { type: 'integer', minimum: 0 },
+        repair_iterations_used: { type: 'integer', minimum: 0 },
+        continuation_granted_iterations: { type: 'integer', minimum: 0 },
+        request_timeout_ms: { type: 'integer', minimum: 1 }
+      }
+    },
+    checkpoints: {
+      type: 'object',
+      additionalProperties: true,
+      required: [
+        'source_bundle',
+        'active_capability_revision_id',
+        'active_antipattern_revision_id',
+        'latest_semantic_review',
+        'latest_diffs',
+        'human_review_signoff',
+        'drift_findings'
+      ],
+      properties: {
+        source_bundle: { type: ['object', 'null'] },
+        active_capability_revision_id: { type: ['string', 'null'] },
+        active_antipattern_revision_id: { type: ['string', 'null'] },
+        latest_semantic_review: { type: ['object', 'null'] },
+        latest_diffs: { type: 'object' },
+        human_review_signoff: { type: ['object', 'null'] },
+        drift_findings: { type: 'array' }
+      }
+    },
+    revisions: { type: 'array' },
+    provider_calls: { type: 'array' },
+    created_at: nonEmpty,
+    updated_at: nonEmpty
+  }
+} as const;
+
+export function validateCreatorRunRecord(
+  candidate: unknown,
+  tier: StrictnessTier = 'DRAFT'
+): CreatorFinding[] {
+  const validator = getCompiledSchema(creatorRunRecordSchema);
   const ok = validator(candidate) === true;
   return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
 }
