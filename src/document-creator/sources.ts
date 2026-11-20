@@ -79,6 +79,10 @@ export class SourcePreparationCache {
     }
     return count;
   }
+
+  clear(): void {
+    this.unitsByKey.clear();
+  }
 }
 
 function isWithinRoot(root: string, candidate: string): boolean {

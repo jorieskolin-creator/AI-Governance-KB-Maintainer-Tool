@@ -2742,6 +2742,18 @@ export function validateDeliveryReceipt(
   return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
 }
 
+export type CreatorReviewCadence =
+  | 'FINAL_REVIEW_ONLY'
+  | 'PAUSE_AFTER_DOMAIN'
+  | 'PAUSE_AFTER_PAIR';
+
+export type CreatorDeliveryMode = 'STORAGE' | 'ZIP';
+
+export type BatchReviewCheckpoint =
+  | 'AWAITING_PAIR_REVIEW'
+  | 'AWAITING_DOMAIN_REVIEW'
+  | 'AWAITING_FINAL_CONFIRMATION';
+
 export interface BatchDocumentProgressEntry {
   document_id: string;
   object_id: string;
@@ -2764,6 +2776,12 @@ export interface BatchExecutionResult {
   input_set_id: string;
   plan_id: string;
   status: 'COMPLETED' | 'INCOMPLETE_PARTIAL_FAILURE' | 'INCOMPLETE_LIMIT_REACHED';
+  review_cadence?: CreatorReviewCadence;
+  delivery_mode?: CreatorDeliveryMode;
+  review_checkpoint?: BatchReviewCheckpoint;
+  paused_after_pair_id?: string | null;
+  paused_after_domain_id?: string | null;
+  remaining_pair_ids?: string[];
   summary: {
     requested_work_units: number;
     requested_documents: number;

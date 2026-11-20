@@ -14,10 +14,14 @@ import {
   validateCreatorRunRecord,
   type BatchDocumentProgressEntry,
   type BatchExecutionResult,
+  type BatchReviewCheckpoint,
+  type CreatorDeliveryMode,
+  type CreatorReviewCadence,
   type CreatorRunRecord,
   type DocumentPlan,
   type DocumentRevisionRecord,
   type InputBaselineChangeEntry,
+  type KbProfile,
   type ProviderCallAuditRecord,
   type RegenerationComparisonResult,
   type ResolvedInputDescriptor,
@@ -30,6 +34,7 @@ import {
   applyDirectHumanEdit,
   applyTargetedSectionRepair,
   computeDocumentRevisionDiff,
+  extractSectionPatchesFromMarkdownEdit,
   type DirectSectionEditPatch
 } from './repair.js';
 import { renderPairArtifacts } from './render.js';
@@ -782,6 +787,46 @@ export async function applyDirectEditToRun(options: {
   return run;
 }
 
+export async function applyMarkdownEditToRun(options: {
+  store: CreatorRunStorePort;
+  runId: string;
+  objectId: string;
+  editedMarkdown: string;
+  runtime: ResolvedProfileRuntime;
+  plan: DocumentPlan;
+  now?: () => Date;
+}): Promise<CreatorRunRecord> {
+  const run = await options.store.getRun(options.runId);
+  if (!run) {
+    throw new Error(`Unknown Creator run "${options.runId}".`);
+  }
+  const { capability, antipattern } = getActiveRunRevisions(run);
+  const targetRev =
+    capability?.object_id === options.objectId
+      ? capability
+      : antipattern?.object_id === options.objectId
+        ? antipattern
+        : null;
+  if (!targetRev) {
+    throw new Error(
+      `Object "${options.objectId}" is not part of run "${options.runId}".`
+    );
+  }
+  const sectionPatches = extractSectionPatchesFromMarkdownEdit(
+    targetRev.document,
+    options.editedMarkdown
+  );
+  return applyDirectEditToRun({
+    store: options.store,
+    runId: options.runId,
+    objectId: options.objectId,
+    sectionPatches,
+    runtime: options.runtime,
+    plan: options.plan,
+    now: options.now
+  });
+}
+
 export async function executeTargetedRepairForRun(options: {
   store: CreatorRunStorePort;
   runId: string;
@@ -1114,6 +1159,8 @@ export interface ExecuteCreatorBatchOptions {
   authorProviderPort: CreatorAuthorProviderPort;
   reviewerProviderPort?: CreatorAuthorProviderPort;
   autoRunSemanticReview?: boolean;
+  reviewCadence?: CreatorReviewCadence;
+  deliveryMode?: CreatorDeliveryMode;
   documentVersion?: string;
   maxObjectsOverride?: number;
   concurrencyOverride?: number;
@@ -1130,6 +1177,13 @@ export async function executeCreatorBatch(
 ): Promise<BatchExecutionResult> {
   const { store, runtime, plan } = options;
   const now = options.now ?? (() => new Date());
+  const reviewCadence: CreatorReviewCadence =
+    options.reviewCadence ?? 'FINAL_REVIEW_ONLY';
+  const deliveryMode: CreatorDeliveryMode = options.deliveryMode ?? 'STORAGE';
+  // All review cadences run the full automated pipeline (including semantic QC when cadence is specified or requested).
+  const autoRunSemanticReview =
+    options.autoRunSemanticReview ?? Boolean(options.reviewCadence);
+
   const maxObjects =
     options.maxObjectsOverride ?? runtime.profile.limits.max_objects_per_run;
   const concurrency = Math.max(
@@ -1137,12 +1191,55 @@ export async function executeCreatorBatch(
     options.concurrencyOverride ?? runtime.profile.limits.provider_concurrency
   );
 
-  const plannedDocById = new Map(plan.documents.map((d) => [d.document_id, d]));
+  const pairDomainByPairId = new Map(runtime.pairs.map((p) => [p.pair_id, p.domain_id]));
+  const allPairUnits = plan.work_units.filter(
+    (u) => u.unit_type === 'paired_capability_antipattern' && u.pair_id
+  );
+  const firstPairId = allPairUnits[0]?.pair_id ?? null;
+  const firstDomainId = firstPairId ? pairDomainByPairId.get(firstPairId) ?? null : null;
+
+  let scopedWorkUnits: DocumentPlan['work_units'] = plan.work_units;
+  let pausedAfterPairId: string | null = null;
+  let pausedAfterDomainId: string | null = null;
+  let remainingPairIds: string[] = [];
+  let reviewCheckpoint: BatchReviewCheckpoint = 'AWAITING_FINAL_CONFIRMATION';
+
+  if (reviewCadence === 'PAUSE_AFTER_PAIR' && allPairUnits.length > 0 && firstPairId) {
+    scopedWorkUnits = plan.work_units.filter(
+      (u) => u.pair_id === firstPairId
+    );
+    pausedAfterPairId = firstPairId;
+    remainingPairIds = allPairUnits
+      .slice(1)
+      .map((u) => u.pair_id!)
+      .filter(Boolean);
+    reviewCheckpoint = 'AWAITING_PAIR_REVIEW';
+  } else if (
+    reviewCadence === 'PAUSE_AFTER_DOMAIN' &&
+    allPairUnits.length > 0 &&
+    firstDomainId
+  ) {
+    scopedWorkUnits = plan.work_units.filter(
+      (u) =>
+        (u.pair_id && pairDomainByPairId.get(u.pair_id) === firstDomainId) ||
+        u.unit_type === 'tactic'
+    );
+    pausedAfterDomainId = firstDomainId;
+    remainingPairIds = allPairUnits
+      .map((u) => u.pair_id!)
+      .filter((pId) => pairDomainByPairId.get(pId) !== firstDomainId);
+    reviewCheckpoint = 'AWAITING_DOMAIN_REVIEW';
+  }
+
+  const scopedDocIds = new Set(scopedWorkUnits.flatMap((u) => u.document_ids));
+  const scopedPlanDocuments = plan.documents.filter((d) => scopedDocIds.has(d.document_id));
+
+  const plannedDocById = new Map(scopedPlanDocuments.map((d) => [d.document_id, d]));
   const progressByDocId = new Map<string, BatchDocumentProgressEntry>();
   const eligibleWorkUnits: DocumentPlan['work_units'] = [];
   let admittedDocumentCount = 0;
 
-  for (const unit of plan.work_units) {
+  for (const unit of scopedWorkUnits) {
     if (admittedDocumentCount + unit.document_ids.length <= maxObjects) {
       eligibleWorkUnits.push(unit);
       admittedDocumentCount += unit.document_ids.length;
@@ -1208,7 +1305,7 @@ export async function executeCreatorBatch(
             pairId: unit.pair_id,
             authorProviderPort: options.authorProviderPort,
             reviewerProviderPort: options.reviewerProviderPort,
-            autoRunSemanticReview: options.autoRunSemanticReview,
+            autoRunSemanticReview,
             documentVersion: options.documentVersion,
             enableUrlAcquisition: options.enableUrlAcquisition,
             allowPublisherTermsModelEgress: options.allowPublisherTermsModelEgress,
@@ -1342,8 +1439,8 @@ export async function executeCreatorBatch(
   );
   await Promise.all(workers);
 
-  // Preserve exact plan document ordering in progress list.
-  const orderedProgress: BatchDocumentProgressEntry[] = plan.documents.map(
+  // Preserve exact plan document ordering in progress list for executed scope.
+  const orderedProgress: BatchDocumentProgressEntry[] = scopedPlanDocuments.map(
     (d) =>
       progressByDocId.get(d.document_id) ?? {
         document_id: d.document_id,
@@ -1380,9 +1477,15 @@ export async function executeCreatorBatch(
     input_set_id: runtime.inputSet.input_set_id,
     plan_id: plan.plan_id,
     status: batchStatus,
+    review_cadence: reviewCadence,
+    delivery_mode: deliveryMode,
+    review_checkpoint: reviewCheckpoint,
+    paused_after_pair_id: pausedAfterPairId,
+    paused_after_domain_id: pausedAfterDomainId,
+    remaining_pair_ids: remainingPairIds,
     summary: {
-      requested_work_units: plan.work_units.length,
-      requested_documents: plan.documents.length,
+      requested_work_units: scopedWorkUnits.length,
+      requested_documents: scopedPlanDocuments.length,
       succeeded_documents: succeededCount,
       failed_documents: failedCount,
       skipped_documents: skippedCount,
@@ -1398,6 +1501,137 @@ export async function executeCreatorBatch(
       validation: t.validation
     }))
   };
+}
+
+export interface WorkspaceSessionSnapshot {
+  mode: 'EMPTY_SETUP' | 'LAST_RUN_STATUS';
+  reset_to_empty: boolean;
+  review_cadence: CreatorReviewCadence;
+  delivery_mode: CreatorDeliveryMode;
+  latest_run: CreatorRunRecord | null;
+  review_runs: CreatorRunRecord[];
+  last_batch: BatchExecutionResult | null;
+  custom_profiles: KbProfile[];
+}
+
+/**
+ * Manages interactive workspace state for KB Document Creator:
+ * 1. When zero runs exist OR after the operator clicks `Reset`, opens in `EMPTY_SETUP` mode so work starts from zero.
+ * 2. When runs exist and `Reset` is not active, opens in `LAST_RUN_STATUS` mode showing the latest run/batch for immediate review or continuation.
+ */
+export class CreatorWorkspaceSession {
+  private resetToEmpty = false;
+  private reviewCadence: CreatorReviewCadence = 'FINAL_REVIEW_ONLY';
+  private deliveryMode: CreatorDeliveryMode = 'STORAGE';
+  private lastBatch: BatchExecutionResult | null = null;
+  private readonly customProfiles = new Map<string, KbProfile>();
+
+  setPreferences(prefs: {
+    reviewCadence?: CreatorReviewCadence;
+    deliveryMode?: CreatorDeliveryMode;
+  }): void {
+    if (prefs.reviewCadence) this.reviewCadence = prefs.reviewCadence;
+    if (prefs.deliveryMode) this.deliveryMode = prefs.deliveryMode;
+  }
+
+  getPreferences(): {
+    review_cadence: CreatorReviewCadence;
+    delivery_mode: CreatorDeliveryMode;
+  } {
+    return {
+      review_cadence: this.reviewCadence,
+      delivery_mode: this.deliveryMode
+    };
+  }
+
+  markWorkStarted(batchResult?: BatchExecutionResult | null): void {
+    this.resetToEmpty = false;
+    if (batchResult !== undefined) {
+      this.lastBatch = batchResult;
+    }
+  }
+
+  registerCustomProfile(profile: KbProfile): void {
+    this.customProfiles.set(profile.profile_id, profile);
+    this.resetToEmpty = false;
+  }
+
+  listCustomProfiles(): KbProfile[] {
+    return [...this.customProfiles.values()];
+  }
+
+  async resetWorkspace(options: {
+    store: CreatorRunStorePort;
+    onClearCaches?: () => void;
+    now?: () => Date;
+  }): Promise<{ cancelled_run_ids: string[] }> {
+    const now = options.now ?? (() => new Date());
+    const allRuns = await options.store.listRuns();
+    const cancelledRunIds: string[] = [];
+
+    for (const run of allRuns) {
+      const hasInFlight = run.provider_calls.some((c) => c.status === 'IN_FLIGHT');
+      if (hasInFlight) continue; // R-04: never clobber an active in-flight provider call fence
+      if (
+        run.state === 'READY' ||
+        run.state === 'GENERATING' ||
+        run.state === 'REVIEW_REQUIRED' ||
+        run.state === 'READY_TO_DELIVER'
+      ) {
+        await cancelCreatorRun({
+          store: options.store,
+          runId: run.run_id,
+          reason: 'Workspace reset by operator to start fresh.',
+          now
+        });
+        cancelledRunIds.push(run.run_id);
+      }
+    }
+
+    options.onClearCaches?.();
+    this.lastBatch = null;
+    this.resetToEmpty = true;
+    return { cancelled_run_ids: cancelledRunIds };
+  }
+
+  async getSnapshot(store: CreatorRunStorePort): Promise<WorkspaceSessionSnapshot> {
+    const allRuns = await store.listRuns();
+    const nonCancelledRuns = allRuns.filter((r) => r.state !== 'CANCELLED');
+
+    if (this.resetToEmpty || nonCancelledRuns.length === 0) {
+      return {
+        mode: 'EMPTY_SETUP',
+        reset_to_empty: true,
+        review_cadence: this.reviewCadence,
+        delivery_mode: this.deliveryMode,
+        latest_run: null,
+        review_runs: [],
+        last_batch: null,
+        custom_profiles: this.listCustomProfiles()
+      };
+    }
+
+    const latestRun = nonCancelledRuns[0] ?? null;
+    let reviewRuns: CreatorRunRecord[] = [];
+    if (this.lastBatch && this.lastBatch.pair_run_ids.length > 0) {
+      const batchIdSet = new Set(this.lastBatch.pair_run_ids);
+      reviewRuns = nonCancelledRuns.filter((r) => batchIdSet.has(r.run_id));
+    }
+    if (reviewRuns.length === 0 && latestRun) {
+      reviewRuns = [latestRun];
+    }
+
+    return {
+      mode: 'LAST_RUN_STATUS',
+      reset_to_empty: false,
+      review_cadence: this.reviewCadence,
+      delivery_mode: this.deliveryMode,
+      latest_run: latestRun,
+      review_runs: reviewRuns,
+      last_batch: this.lastBatch,
+      custom_profiles: this.listCustomProfiles()
+    };
+  }
 }
 
 export function diffInputBaselines(
