@@ -1537,3 +1537,579 @@ export function validateSourcePreparationBundle(
   const ok = validator(candidate) === true;
   return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
 }
+
+export type CreationReviewState =
+  | 'DRAFT_UNREVIEWED'
+  | 'DRAFT_BLOCKED_VALIDATION'
+  | 'REVIEW_REQUIRED';
+
+export interface CreatorDocumentSection {
+  section_id: string;
+  section_code: string;
+  title: string;
+  required: boolean;
+  status: 'POPULATED' | 'MISSING_REQUIRED';
+  prose: string;
+  bullets: string[];
+  question_refs: string[];
+  source_unit_refs: string[];
+}
+
+export interface CreatorOmittedOptionalSection {
+  section_id: string;
+  section_code: string;
+  title: string;
+  reason: string;
+}
+
+export interface CreatorDocumentQuestion {
+  id: string;
+  dimension: string;
+  question: string;
+  assessment_guidance: string;
+}
+
+export interface CreatorAssessmentBoundaries {
+  unknown_handling: string[];
+  contradiction_handling: string[];
+  false_positive_guards: string[];
+  prohibited_inferences: string[];
+  human_decision_boundaries: string[];
+  evidence_ceilings: string[];
+  paired_independence_rule: string;
+  failure_mechanism: string | null;
+  observable_indicators: string[];
+  non_examples: string[];
+  tested_absence_requirements: string[];
+}
+
+export interface CitedSourceAssertion {
+  source_unit_id: string;
+  asserted_source_id: string | null;
+  asserted_source_version: string | null;
+  asserted_locator: string | null;
+}
+
+export interface CreatorSourcedClaim {
+  claim_id: string;
+  section_id: string;
+  statement: string;
+  support_state: 'SOURCE_SUPPORTED' | 'UNRESOLVED';
+  source_unit_ids: string[];
+  authority_distinction:
+    | 'BINDING_LEGISLATION_WHEN_APPLICABLE'
+    | 'AUTHORITATIVE_STANDARD_OR_GUIDANCE'
+    | 'UNRESOLVED_SOURCE_BASIS';
+  applicability_note: string;
+  unresolved_reason: string | null;
+  cited_source_assertions: CitedSourceAssertion[];
+}
+
+export interface CreatorMethodologyInterpretation {
+  interpretation_id: string;
+  section_id: string;
+  statement: string;
+  cognitive_rule_refs: string[];
+  question_ids: string[];
+}
+
+export interface CreatorRelatedObjectLink {
+  target_object_id: string;
+  relationship_kind: 'PAIRED_CAPABILITY' | 'PAIRED_ANTIPATTERN' | 'RELATED_TAXONOMY_OBJECT';
+  non_inverse_meaning: string;
+}
+
+export interface CreatorTacticAssociationRef {
+  tactic_id: string;
+  title: string;
+  version: string;
+  effective_association_status: TacticAssociationSummary['effective_association_status'];
+  original_release_status: string;
+  original_activation_status: string;
+  completion_effect: string;
+  activation_authority: 'NONE_IN_CREATOR';
+  scope_and_boundary_note: string;
+}
+
+export interface CreatorBibliographyEntry {
+  source_unit_id: string;
+  source_id: string;
+  source_title: string;
+  edition_version: string;
+  authority_tier: string;
+  authority_type: string;
+  origin_kind: SourceUnit['origin_kind'];
+  locator_label: string;
+  extraction_status: 'COMPLETE' | 'PARTIAL_TRUNCATED';
+  usage_policy: SourceUsagePolicy;
+  limitations: string[];
+}
+
+export interface CreatorUnresolvedItem {
+  item_id: string;
+  category:
+    | 'MISSING_SOURCE_SUPPORT'
+    | 'UNRESOLVED_REFERENCE_HANDLE'
+    | 'SOURCE_TRUNCATION_WARNING'
+    | 'UNCONFIRMED_TACTIC_CANDIDATE'
+    | 'INPUT_CONFLICT';
+  section_id: string;
+  summary: string;
+  blocks_delivery: boolean;
+}
+
+export interface CreatorDocument {
+  schema_version: '1.0.0';
+  document_id: string;
+  kb_id: string;
+  kb_title: string;
+  is_synthetic: boolean;
+  object_id: string;
+  object_type: 'capability' | 'antipattern';
+  document_version: string;
+  title: string;
+  domain_id: string;
+  domain_title: string;
+  pair_id: string;
+  paired_object_id: string;
+  language: string;
+  destination_path_template: string;
+  input_set_id: string;
+  plan_id: string;
+  source_bundle_id: string;
+  creation_review_state: CreationReviewState;
+  hub_approval_status: 'NOT_GRANTED_BY_CREATOR';
+  provenance: {
+    profile_id: string;
+    profile_version: string;
+    criteria_locator: string | null;
+    thinking_flow_locator: string;
+    cognitive_model_version: string;
+    golden_calibration_pair_id: string | null;
+    applied_owner_decision_ids: string[];
+    authored_at: string;
+    provider: string;
+    model: string;
+    prompt_hash: string;
+    content_sha256: string;
+  };
+  sections: CreatorDocumentSection[];
+  omitted_optional_sections: CreatorOmittedOptionalSection[];
+  questions: CreatorDocumentQuestion[];
+  assessment_boundaries: CreatorAssessmentBoundaries;
+  sourced_claims: CreatorSourcedClaim[];
+  methodology_interpretations: CreatorMethodologyInterpretation[];
+  related_object_links: CreatorRelatedObjectLink[];
+  tactic_associations: CreatorTacticAssociationRef[];
+  bibliography: CreatorBibliographyEntry[];
+  unresolved_items: CreatorUnresolvedItem[];
+  rejected_authoring_attempts: CreatorFinding[];
+}
+
+export const creatorDocumentSchema = {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://kb-document-creator.local/schemas/v1/document.schema.json',
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'schema_version',
+    'document_id',
+    'kb_id',
+    'kb_title',
+    'is_synthetic',
+    'object_id',
+    'object_type',
+    'document_version',
+    'title',
+    'domain_id',
+    'domain_title',
+    'pair_id',
+    'paired_object_id',
+    'language',
+    'destination_path_template',
+    'input_set_id',
+    'plan_id',
+    'source_bundle_id',
+    'creation_review_state',
+    'hub_approval_status',
+    'provenance',
+    'sections',
+    'omitted_optional_sections',
+    'questions',
+    'assessment_boundaries',
+    'sourced_claims',
+    'methodology_interpretations',
+    'related_object_links',
+    'tactic_associations',
+    'bibliography',
+    'unresolved_items',
+    'rejected_authoring_attempts'
+  ],
+  properties: {
+    schema_version: { const: '1.0.0' },
+    document_id: nonEmpty,
+    kb_id: { type: 'string', pattern: '^[a-z0-9][a-z0-9_-]*$' },
+    kb_title: nonEmpty,
+    is_synthetic: { type: 'boolean' },
+    object_id: { type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*$' },
+    object_type: { type: 'string', enum: ['capability', 'antipattern'] },
+    document_version: nonEmpty,
+    title: nonEmpty,
+    domain_id: nonEmpty,
+    domain_title: nonEmpty,
+    pair_id: nonEmpty,
+    paired_object_id: { type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*$' },
+    language: nonEmpty,
+    destination_path_template: nonEmpty,
+    input_set_id: sha256Hex,
+    plan_id: sha256Hex,
+    source_bundle_id: sha256Hex,
+    creation_review_state: {
+      type: 'string',
+      enum: ['DRAFT_UNREVIEWED', 'DRAFT_BLOCKED_VALIDATION', 'REVIEW_REQUIRED']
+    },
+    hub_approval_status: { const: 'NOT_GRANTED_BY_CREATOR' },
+    provenance: {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'profile_id',
+        'profile_version',
+        'criteria_locator',
+        'thinking_flow_locator',
+        'cognitive_model_version',
+        'golden_calibration_pair_id',
+        'applied_owner_decision_ids',
+        'authored_at',
+        'provider',
+        'model',
+        'prompt_hash',
+        'content_sha256'
+      ],
+      properties: {
+        profile_id: nonEmpty,
+        profile_version: nonEmpty,
+        criteria_locator: { type: ['string', 'null'] },
+        thinking_flow_locator: nonEmpty,
+        cognitive_model_version: nonEmpty,
+        golden_calibration_pair_id: { type: ['string', 'null'] },
+        applied_owner_decision_ids: { type: 'array', items: nonEmpty },
+        authored_at: nonEmpty,
+        provider: nonEmpty,
+        model: nonEmpty,
+        prompt_hash: sha256Hex,
+        content_sha256: sha256Hex
+      }
+    },
+    sections: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'section_id',
+          'section_code',
+          'title',
+          'required',
+          'status',
+          'prose',
+          'bullets',
+          'question_refs',
+          'source_unit_refs'
+        ],
+        properties: {
+          section_id: { type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*\\.[A-Za-z0-9_-]+$' },
+          section_code: { type: 'string', pattern: '^[A-Za-z0-9_-]+$' },
+          title: nonEmpty,
+          required: { type: 'boolean' },
+          status: { type: 'string', enum: ['POPULATED', 'MISSING_REQUIRED'] },
+          prose: { type: 'string' },
+          bullets: { type: 'array', items: nonEmpty },
+          question_refs: { type: 'array', items: nonEmpty },
+          source_unit_refs: { type: 'array', items: nonEmpty }
+        }
+      }
+    },
+    omitted_optional_sections: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['section_id', 'section_code', 'title', 'reason'],
+        properties: {
+          section_id: { type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*\\.[A-Za-z0-9_-]+$' },
+          section_code: { type: 'string', pattern: '^[A-Za-z0-9_-]+$' },
+          title: nonEmpty,
+          reason: nonEmpty
+        }
+      }
+    },
+    questions: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['id', 'dimension', 'question', 'assessment_guidance'],
+        properties: {
+          id: nonEmpty,
+          dimension: nonEmpty,
+          question: nonEmpty,
+          assessment_guidance: nonEmpty
+        }
+      }
+    },
+    assessment_boundaries: {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'unknown_handling',
+        'contradiction_handling',
+        'false_positive_guards',
+        'prohibited_inferences',
+        'human_decision_boundaries',
+        'evidence_ceilings',
+        'paired_independence_rule',
+        'failure_mechanism',
+        'observable_indicators',
+        'non_examples',
+        'tested_absence_requirements'
+      ],
+      properties: {
+        unknown_handling: { type: 'array', items: nonEmpty },
+        contradiction_handling: { type: 'array', items: nonEmpty },
+        false_positive_guards: { type: 'array', items: nonEmpty },
+        prohibited_inferences: { type: 'array', items: nonEmpty },
+        human_decision_boundaries: { type: 'array', items: nonEmpty },
+        evidence_ceilings: { type: 'array', items: nonEmpty },
+        paired_independence_rule: nonEmpty,
+        failure_mechanism: { type: ['string', 'null'] },
+        observable_indicators: { type: 'array', items: nonEmpty },
+        non_examples: { type: 'array', items: nonEmpty },
+        tested_absence_requirements: { type: 'array', items: nonEmpty }
+      }
+    },
+    sourced_claims: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'claim_id',
+          'section_id',
+          'statement',
+          'support_state',
+          'source_unit_ids',
+          'authority_distinction',
+          'applicability_note',
+          'unresolved_reason',
+          'cited_source_assertions'
+        ],
+        properties: {
+          claim_id: nonEmpty,
+          section_id: nonEmpty,
+          statement: nonEmpty,
+          support_state: { type: 'string', enum: ['SOURCE_SUPPORTED', 'UNRESOLVED'] },
+          source_unit_ids: { type: 'array', items: nonEmpty },
+          authority_distinction: {
+            type: 'string',
+            enum: [
+              'BINDING_LEGISLATION_WHEN_APPLICABLE',
+              'AUTHORITATIVE_STANDARD_OR_GUIDANCE',
+              'UNRESOLVED_SOURCE_BASIS'
+            ]
+          },
+          applicability_note: nonEmpty,
+          unresolved_reason: { type: ['string', 'null'] },
+          cited_source_assertions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: [
+                'source_unit_id',
+                'asserted_source_id',
+                'asserted_source_version',
+                'asserted_locator'
+              ],
+              properties: {
+                source_unit_id: nonEmpty,
+                asserted_source_id: { type: ['string', 'null'] },
+                asserted_source_version: { type: ['string', 'null'] },
+                asserted_locator: { type: ['string', 'null'] }
+              }
+            }
+          }
+        }
+      }
+    },
+    methodology_interpretations: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'interpretation_id',
+          'section_id',
+          'statement',
+          'cognitive_rule_refs',
+          'question_ids'
+        ],
+        properties: {
+          interpretation_id: nonEmpty,
+          section_id: nonEmpty,
+          statement: nonEmpty,
+          cognitive_rule_refs: { type: 'array', items: nonEmpty },
+          question_ids: { type: 'array', items: nonEmpty }
+        }
+      }
+    },
+    related_object_links: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['target_object_id', 'relationship_kind', 'non_inverse_meaning'],
+        properties: {
+          target_object_id: nonEmpty,
+          relationship_kind: {
+            type: 'string',
+            enum: ['PAIRED_CAPABILITY', 'PAIRED_ANTIPATTERN', 'RELATED_TAXONOMY_OBJECT']
+          },
+          non_inverse_meaning: nonEmpty
+        }
+      }
+    },
+    tactic_associations: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'tactic_id',
+          'title',
+          'version',
+          'effective_association_status',
+          'original_release_status',
+          'original_activation_status',
+          'completion_effect',
+          'activation_authority',
+          'scope_and_boundary_note'
+        ],
+        properties: {
+          tactic_id: nonEmpty,
+          title: nonEmpty,
+          version: nonEmpty,
+          effective_association_status: {
+            type: 'string',
+            enum: ['OBJECT_LINK_ASSOCIATED', 'UNCONFIRMED_CANDIDATE']
+          },
+          original_release_status: nonEmpty,
+          original_activation_status: nonEmpty,
+          completion_effect: nonEmpty,
+          activation_authority: { const: 'NONE_IN_CREATOR' },
+          scope_and_boundary_note: nonEmpty
+        }
+      }
+    },
+    bibliography: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'source_unit_id',
+          'source_id',
+          'source_title',
+          'edition_version',
+          'authority_tier',
+          'authority_type',
+          'origin_kind',
+          'locator_label',
+          'extraction_status',
+          'usage_policy',
+          'limitations'
+        ],
+        properties: {
+          source_unit_id: sha256Hex,
+          source_id: nonEmpty,
+          source_title: nonEmpty,
+          edition_version: nonEmpty,
+          authority_tier: nonEmpty,
+          authority_type: nonEmpty,
+          origin_kind: {
+            type: 'string',
+            enum: [
+              'registered_url',
+              'bound_reference_pdf',
+              'human_verified_excerpt',
+              'register_metadata'
+            ]
+          },
+          locator_label: nonEmpty,
+          extraction_status: { type: 'string', enum: ['COMPLETE', 'PARTIAL_TRUNCATED'] },
+          usage_policy: {
+            type: 'string',
+            enum: [
+              'PERMITTED_FULL',
+              'PERMITTED_ATTRIBUTED_EXCERPT',
+              'METADATA_LOCATOR_ONLY',
+              'HUMAN_VERIFIED_EXTRACTION'
+            ]
+          },
+          limitations: { type: 'array', items: nonEmpty }
+        }
+      }
+    },
+    unresolved_items: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['item_id', 'category', 'section_id', 'summary', 'blocks_delivery'],
+        properties: {
+          item_id: nonEmpty,
+          category: {
+            type: 'string',
+            enum: [
+              'MISSING_SOURCE_SUPPORT',
+              'UNRESOLVED_REFERENCE_HANDLE',
+              'SOURCE_TRUNCATION_WARNING',
+              'UNCONFIRMED_TACTIC_CANDIDATE',
+              'INPUT_CONFLICT'
+            ]
+          },
+          section_id: nonEmpty,
+          summary: nonEmpty,
+          blocks_delivery: { type: 'boolean' }
+        }
+      }
+    },
+    rejected_authoring_attempts: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['code', 'severity', 'tier', 'path', 'message'],
+        properties: {
+          code: nonEmpty,
+          severity: { type: 'string', enum: ['ERROR', 'WARNING'] },
+          tier: { type: 'string', enum: ['DRAFT', 'RELEASE'] },
+          path: nonEmpty,
+          message: nonEmpty
+        }
+      }
+    }
+  }
+} as const;
+
+export function validateCreatorDocument(
+  candidate: unknown,
+  tier: StrictnessTier = 'DRAFT'
+): CreatorFinding[] {
+  const validator = getCompiledSchema(creatorDocumentSchema);
+  const ok = validator(candidate) === true;
+  return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
+}

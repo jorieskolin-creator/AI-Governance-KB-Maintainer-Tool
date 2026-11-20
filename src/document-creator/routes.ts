@@ -1,10 +1,17 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import {
+  authorPairWorkUnit,
+  createLiveAiAuthorPort,
+  type AuthoredPairResult,
+  type CreatorAuthorProviderPort
+} from './author.js';
 import type { DocumentPlanSelection, KbProfile } from './contracts.js';
 import { createDocumentPlan, DocumentPlanError } from './plan.js';
 import { buildSaeLocalPilotProfile, resolveProfileInputSet } from './profiles.js';
 import {
   renderDocumentPlanViewHtml,
+  renderDocumentsPreviewViewHtml,
   renderInputsViewHtml,
   renderSourcePreparationViewHtml
 } from './render-ui.js';
@@ -15,15 +22,37 @@ import {
   type HttpFetchPort
 } from './sources.js';
 
+export class PairDraftMemoryStore {
+  private readonly drafts = new Map<string, AuthoredPairResult>();
+
+  private key(profileId: string, pairId: string): string {
+    return `${profileId}:${pairId}`;
+  }
+
+  get(profileId: string, pairId: string): AuthoredPairResult | undefined {
+    const found = this.drafts.get(this.key(profileId, pairId));
+    return found ? (JSON.parse(JSON.stringify(found)) as AuthoredPairResult) : undefined;
+  }
+
+  set(profileId: string, pairId: string, result: AuthoredPairResult): string {
+    const k = this.key(profileId, pairId);
+    this.drafts.set(k, JSON.parse(JSON.stringify(result)) as AuthoredPairResult);
+    return k;
+  }
+}
+
 export interface CreatorRouteOptions {
   workspaceRoot?: string;
   operatorToken?: string | (() => string | undefined);
   profiles?: ReadonlyArray<KbProfile | (() => Promise<KbProfile>)>;
   redirectRootToCreator?: boolean;
   sourceCache?: SourcePreparationCache;
+  draftStore?: PairDraftMemoryStore;
   allowLiveSourceFetch?: boolean;
   fetchPort?: HttpFetchPort;
   resolveAddresses?: HostAddressResolver;
+  authorProviderPort?: CreatorAuthorProviderPort;
+  allowLiveAuthoring?: boolean;
 }
 
 function sha256Buffer(value: string): Buffer {
@@ -126,8 +155,34 @@ function parseSelectionBody(raw: unknown): DocumentPlanSelection {
 export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRouteOptions = {}): void {
   const workspaceRoot = options.workspaceRoot ?? process.cwd();
   const sourceCache = options.sourceCache ?? new SourcePreparationCache();
+  const draftStore = options.draftStore ?? new PairDraftMemoryStore();
   const profileProviders: ReadonlyArray<KbProfile | (() => Promise<KbProfile>)> =
     options.profiles ?? [() => buildSaeLocalPilotProfile(workspaceRoot)];
+
+  if (!app.hasContentTypeParser('application/x-www-form-urlencoded')) {
+    app.addContentTypeParser(
+      'application/x-www-form-urlencoded',
+      { parseAs: 'string' },
+      (_req, body, done) => {
+        const params = new URLSearchParams(typeof body === 'string' ? body : String(body));
+        const parsed: Record<string, string> = {};
+        for (const [k, v] of params.entries()) {
+          parsed[k] = v;
+        }
+        done(null, parsed);
+      }
+    );
+  }
+
+  const resolveAuthorPort = (selectedProfile: KbProfile): CreatorAuthorProviderPort | null => {
+    if (options.authorProviderPort) {
+      return options.authorProviderPort;
+    }
+    if (options.allowLiveAuthoring || process.env.CREATOR_ALLOW_LIVE_AUTHORING === 'true') {
+      return createLiveAiAuthorPort(selectedProfile.model_config_ref.author_role);
+    }
+    return null;
+  };
 
   const loadProfiles = async (): Promise<KbProfile[]> => {
     const loaded: KbProfile[] = [];
@@ -467,6 +522,288 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
       inputSet: runtime.inputSet,
       plan,
       sourceBundle
+    });
+  });
+
+  app.get('/creator/documents', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const profiles = await loadProfiles();
+    const query = isObjectRecord(request.query) ? request.query : {};
+    const requestedProfileId =
+      typeof query.profileId === 'string' && query.profileId.trim().length > 0
+        ? query.profileId.trim()
+        : profiles[0]?.profile_id;
+    const selected = profiles.find((p) => p.profile_id === requestedProfileId);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${String(requestedProfileId ?? '')}".`
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const availablePairs = runtime.pairs.map((p) => ({
+      pair_id: p.pair_id,
+      domain_id: p.domain_id,
+      title: p.capability.title
+    }));
+    const selectedPairId =
+      typeof query.pairId === 'string' && query.pairId.trim().length > 0
+        ? query.pairId.trim()
+        : availablePairs.find((p) => p.pair_id !== runtime.inputSet.golden_reference?.pair_id)?.pair_id ??
+          availablePairs[0]?.pair_id ??
+          '';
+
+    const storedDraft = selectedPairId
+      ? draftStore.get(selected.profile_id, selectedPairId) ?? null
+      : null;
+
+    return reply
+      .header(
+        'Content-Security-Policy',
+        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'"
+      )
+      .type('text/html; charset=utf-8')
+      .send(
+        renderDocumentsPreviewViewHtml({
+          profiles,
+          selectedProfileId: selected.profile_id,
+          availablePairs,
+          selectedPairId,
+          isSynthetic: selected.is_synthetic,
+          authoredPair: storedDraft
+        })
+      );
+  });
+
+  app.post('/creator/documents/author', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const profiles = await loadProfiles();
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const requestedProfileId =
+      typeof body.profileId === 'string' && body.profileId.trim().length > 0
+        ? body.profileId.trim()
+        : profiles[0]?.profile_id;
+    const selected = profiles.find((p) => p.profile_id === requestedProfileId);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${String(requestedProfileId ?? '')}".`
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    const availablePairs = runtime.pairs.map((p) => ({
+      pair_id: p.pair_id,
+      domain_id: p.domain_id,
+      title: p.capability.title
+    }));
+    const selectedPairId =
+      typeof body.pairId === 'string' && body.pairId.trim().length > 0
+        ? body.pairId.trim()
+        : availablePairs.find((p) => p.pair_id !== runtime.inputSet.golden_reference?.pair_id)?.pair_id ??
+          availablePairs[0]?.pair_id ??
+          '';
+
+    const authorPort = resolveAuthorPort(selected);
+    let authoredPair: AuthoredPairResult | null = null;
+    let errorMessage: string | undefined;
+
+    if (!authorPort) {
+      errorMessage =
+        'Model authoring provider is not enabled on this server (set CREATOR_ALLOW_LIVE_AUTHORING=true or inject an offline provider port).';
+      return reply
+        .code(503)
+        .header(
+          'Content-Security-Policy',
+          "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'"
+        )
+        .type('text/html; charset=utf-8')
+        .send(
+          renderDocumentsPreviewViewHtml({
+            profiles,
+            selectedProfileId: selected.profile_id,
+            availablePairs,
+            selectedPairId,
+            isSynthetic: selected.is_synthetic,
+            authoredPair: null,
+            errorMessage
+          })
+        );
+    }
+
+    try {
+      const plan = createDocumentPlan(runtime, {
+        mode: 'pair',
+        pair_ids: [selectedPairId],
+        include_tactics: false
+      });
+      const sourceBundle = await prepareSourcesForPlan({
+        workspaceRoot,
+        runtime,
+        plan,
+        cache: sourceCache,
+        enableUrlAcquisition: Boolean(options.fetchPort) || Boolean(options.allowLiveSourceFetch),
+        fetchPort: options.fetchPort,
+        resolveAddresses: options.resolveAddresses
+      });
+      authoredPair = await authorPairWorkUnit({
+        runtime,
+        plan,
+        sourceBundle,
+        pairId: selectedPairId,
+        providerPort: authorPort
+      });
+      draftStore.set(selected.profile_id, selectedPairId, authoredPair);
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : 'Pair authoring failed.';
+    }
+
+    const statusCode = !authoredPair || !authoredPair.validation.draft_valid ? 422 : 200;
+    return reply
+      .code(statusCode)
+      .header(
+        'Content-Security-Policy',
+        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'"
+      )
+      .type('text/html; charset=utf-8')
+      .send(
+        renderDocumentsPreviewViewHtml({
+          profiles,
+          selectedProfileId: selected.profile_id,
+          availablePairs,
+          selectedPairId,
+          isSynthetic: selected.is_synthetic,
+          authoredPair,
+          errorMessage
+        })
+      );
+  });
+
+  app.get('/api/creator/documents', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const query = isObjectRecord(request.query) ? request.query : {};
+    const profileId = typeof query.profileId === 'string' ? query.profileId.trim() : '';
+    const pairId = typeof query.pairId === 'string' ? query.pairId.trim() : '';
+    if (!profileId || !pairId) {
+      return reply.code(400).send({
+        error: 'MISSING_QUERY_PARAMS',
+        message: 'Query parameters "profileId" and "pairId" are required.'
+      });
+    }
+    const stored = draftStore.get(profileId, pairId);
+    if (!stored) {
+      return reply.code(404).send({
+        error: 'DRAFT_NOT_FOUND',
+        message: `No authored draft found in memory for "${profileId}:${pairId}".`
+      });
+    }
+    return reply.code(200).send({
+      draftKey: `${profileId}:${pairId}`,
+      authoredPair: stored
+    });
+  });
+
+  app.post('/api/creator/documents/author', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const profileId = typeof body.profileId === 'string' ? body.profileId.trim() : '';
+    const pairId = typeof body.pairId === 'string' ? body.pairId.trim() : '';
+    if (!profileId || !pairId) {
+      return reply.code(400).send({
+        error: 'MISSING_AUTHOR_PARAMETERS',
+        message: 'Request body must specify "profileId" and "pairId".'
+      });
+    }
+
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === profileId);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${profileId}".`
+      });
+    }
+
+    const authorPort = resolveAuthorPort(selected);
+    if (!authorPort) {
+      return reply.code(503).send({
+        error: 'AUTHOR_PROVIDER_NOT_CONFIGURED',
+        message:
+          'Model authoring provider is not enabled on this server (set CREATOR_ALLOW_LIVE_AUTHORING=true or inject an offline provider port).'
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    let plan;
+    try {
+      plan = createDocumentPlan(runtime, {
+        mode: 'pair',
+        pair_ids: [pairId],
+        include_tactics: false
+      });
+    } catch (error) {
+      const planErr = error instanceof DocumentPlanError ? error : null;
+      const status = planErr?.code === 'INPUT_SET_NOT_READY' ? 422 : 400;
+      return reply.code(status).send({
+        error: planErr?.code ?? 'PLAN_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to create document plan.',
+        findings: planErr?.findings ?? runtime.inputSet.readiness.findings,
+        inputSet: runtime.inputSet
+      });
+    }
+
+    const requestWantsUrlFetch = body.enableUrlAcquisition === true;
+    const allowUrlFetch =
+      requestWantsUrlFetch &&
+      (Boolean(options.fetchPort) ||
+        Boolean(options.allowLiveSourceFetch) ||
+        process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH === 'true');
+
+    const sourceBundle = await prepareSourcesForPlan({
+      workspaceRoot,
+      runtime,
+      plan,
+      cache: sourceCache,
+      enableUrlAcquisition: allowUrlFetch,
+      allowPublisherTermsModelEgress: body.allowPublisherTermsModelEgress === true,
+      fetchPort: options.fetchPort,
+      resolveAddresses: options.resolveAddresses
+    });
+
+    if (!sourceBundle.readiness.authoring_ready) {
+      return reply.code(422).send({
+        error: 'SOURCE_BUNDLE_NOT_READY',
+        message: 'Source preparation bundle did not pass authoring readiness.',
+        inputSet: runtime.inputSet,
+        plan,
+        sourceBundle
+      });
+    }
+
+    const documentVersion =
+      typeof body.documentVersion === 'string' && body.documentVersion.trim().length > 0
+        ? body.documentVersion.trim()
+        : undefined;
+
+    const authoredPair = await authorPairWorkUnit({
+      runtime,
+      plan,
+      sourceBundle,
+      pairId,
+      providerPort: authorPort,
+      documentVersion
+    });
+
+    const draftKey = draftStore.set(selected.profile_id, pairId, authoredPair);
+    const status = authoredPair.validation.draft_valid ? 200 : 422;
+
+    return reply.code(status).send({
+      draftKey,
+      inputSet: runtime.inputSet,
+      plan,
+      sourceBundle,
+      authoredPair
     });
   });
 }
