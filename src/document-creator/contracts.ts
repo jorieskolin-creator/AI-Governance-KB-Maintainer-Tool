@@ -1746,13 +1746,13 @@ export interface CreatorDocument {
   kb_title: string;
   is_synthetic: boolean;
   object_id: string;
-  object_type: 'capability' | 'antipattern';
+  object_type: 'capability' | 'antipattern' | 'tactic';
   document_version: string;
   title: string;
   domain_id: string;
   domain_title: string;
-  pair_id: string;
-  paired_object_id: string;
+  pair_id: string | null;
+  paired_object_id: string | null;
   language: string;
   destination_path_template: string;
   input_set_id: string;
@@ -1833,13 +1833,15 @@ export const creatorDocumentSchema = {
     kb_title: nonEmpty,
     is_synthetic: { type: 'boolean' },
     object_id: { type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*$' },
-    object_type: { type: 'string', enum: ['capability', 'antipattern'] },
+    object_type: { type: 'string', enum: ['capability', 'antipattern', 'tactic'] },
     document_version: nonEmpty,
     title: nonEmpty,
     domain_id: nonEmpty,
     domain_title: nonEmpty,
-    pair_id: nonEmpty,
-    paired_object_id: { type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*$' },
+    pair_id: { type: ['string', 'null'] },
+    paired_object_id: {
+      anyOf: [{ type: 'string', pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*$' }, { type: 'null' }]
+    },
     language: nonEmpty,
     destination_path_template: nonEmpty,
     input_set_id: sha256Hex,
@@ -1933,7 +1935,7 @@ export const creatorDocumentSchema = {
     },
     questions: {
       type: 'array',
-      minItems: 1,
+      minItems: 0,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -2406,7 +2408,7 @@ export type CreatorRunInterruptionState =
 export interface DocumentRevisionRecord {
   revision_id: string;
   object_id: string;
-  object_type: 'capability' | 'antipattern';
+  object_type: 'capability' | 'antipattern' | 'tactic';
   revision_number: number;
   origin: 'INITIAL_AUTHOR' | 'DIRECT_HUMAN_EDIT' | 'TARGETED_REPAIR';
   parent_revision_id: string | null;
@@ -2415,7 +2417,7 @@ export interface DocumentRevisionRecord {
   rendered: {
     document_id: string;
     object_id: string;
-    object_type: 'capability' | 'antipattern';
+    object_type: 'capability' | 'antipattern' | 'tactic';
     destination_path_template: string;
     markdown: string;
     markdown_sha256: string;
@@ -2424,7 +2426,7 @@ export interface DocumentRevisionRecord {
   deterministic_validation: {
     document_id: string;
     object_id: string;
-    object_type: 'capability' | 'antipattern';
+    object_type: 'capability' | 'antipattern' | 'tactic';
     tier: StrictnessTier;
     draft_valid: boolean;
     delivery_ready: boolean;
@@ -2738,4 +2740,83 @@ export function validateDeliveryReceipt(
   const validator = getCompiledSchema(deliveryReceiptSchema);
   const ok = validator(candidate) === true;
   return ok ? [] : creatorFindingsFromAjv(validator.errors, tier);
+}
+
+export interface BatchDocumentProgressEntry {
+  document_id: string;
+  object_id: string;
+  object_type: 'capability' | 'antipattern' | 'tactic';
+  work_unit_id: string;
+  pair_id: string | null;
+  run_id: string | null;
+  destination_path_template: string;
+  status: 'SUCCEEDED' | 'FAILED' | 'SKIPPED_LIMIT';
+  draft_valid: boolean;
+  delivery_ready: boolean;
+  error_code: string | null;
+  error_message: string | null;
+}
+
+export interface BatchExecutionResult {
+  batch_id: string;
+  profile_id: string;
+  kb_id: string;
+  input_set_id: string;
+  plan_id: string;
+  status: 'COMPLETED' | 'INCOMPLETE_PARTIAL_FAILURE' | 'INCOMPLETE_LIMIT_REACHED';
+  summary: {
+    requested_work_units: number;
+    requested_documents: number;
+    succeeded_documents: number;
+    failed_documents: number;
+    skipped_documents: number;
+    capability_count: number;
+    antipattern_count: number;
+    tactic_count: number;
+  };
+  documents: BatchDocumentProgressEntry[];
+  pair_run_ids: string[];
+  tactic_documents: Array<{
+    document: CreatorDocument;
+    rendered: {
+      document_id: string;
+      object_id: string;
+      object_type: 'capability' | 'antipattern' | 'tactic';
+      destination_path_template: string;
+      markdown: string;
+      markdown_sha256: string;
+      html_preview_fragment: string;
+    };
+    validation: {
+      document_id: string;
+      object_id: string;
+      object_type: 'capability' | 'antipattern' | 'tactic';
+      tier: StrictnessTier;
+      draft_valid: boolean;
+      delivery_ready: boolean;
+      findings: CreatorFinding[];
+    };
+  }>;
+}
+
+export interface InputBaselineChangeEntry {
+  role: string;
+  prior_version: string | null;
+  new_version: string | null;
+  prior_sha256: string | null;
+  new_sha256: string | null;
+  change_kind: 'MODIFIED' | 'ADDED' | 'REMOVED';
+}
+
+export interface RegenerationComparisonResult {
+  prior_run_id: string;
+  new_run_id: string;
+  pair_id: string;
+  prior_input_set_id: string;
+  new_input_set_id: string;
+  prior_document_version: string;
+  new_document_version: string;
+  changed_inputs: InputBaselineChangeEntry[];
+  capability_diff: DocumentRevisionDiff;
+  antipattern_diff: DocumentRevisionDiff;
 }

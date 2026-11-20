@@ -31,11 +31,18 @@ import type {
 } from './contracts.js';
 import { computeSha256 } from './inputs.js';
 import type { ResolvedProfileRuntime } from './profiles.js';
-import { renderPairArtifacts, type RenderedPairArtifacts } from './render.js';
+import {
+  renderDocumentArtifact,
+  renderPairArtifacts,
+  type RenderedDocumentArtifact,
+  type RenderedPairArtifacts
+} from './render.js';
 import {
   defaultCatalogForObjectType,
   parseSectionSpec,
   validateAuthoredPair,
+  validateCreatorDocumentAgainstContext,
+  type DocumentValidationResult,
   type PairValidationResult
 } from './validate.js';
 
@@ -1336,5 +1343,326 @@ export async function authorPairWorkUnit(
       input_tokens: modelResponse.inputTokens,
       output_tokens: modelResponse.outputTokens
     }
+  };
+}
+
+export interface AuthoredTacticResult {
+  work_unit_id: string;
+  tactic_id: string;
+  document: CreatorDocument;
+  rendered: RenderedDocumentArtifact;
+  validation: DocumentValidationResult;
+}
+
+export function authorRequestedTacticDocument(options: {
+  runtime: ResolvedProfileRuntime;
+  plan: DocumentPlan;
+  sourceBundle: SourcePreparationBundle;
+  tacticId: string;
+  documentVersion?: string;
+  includeFrontMatter?: boolean;
+  tier?: StrictnessTier;
+  now?: () => Date;
+}): AuthoredTacticResult {
+  const { runtime, plan, sourceBundle, tacticId } = options;
+  const tier = options.tier ?? 'DRAFT';
+  const nowIso = (options.now ?? (() => new Date()))().toISOString();
+
+  // T-03: Never generate a tactic document unless tactics were explicitly requested in the output plan!
+  const tacticsRequestedInPlan =
+    plan.selection.include_tactics || plan.selection.tactic_ids.length > 0;
+  if (!tacticsRequestedInPlan) {
+    throw new Error(
+      `Cannot generate tactic document "${tacticId}" when tactics were not requested in DocumentPlan (T-03).`
+    );
+  }
+
+  const plannedDoc = plan.documents.find(
+    (d) => d.object_type === 'tactic' && d.object_id === tacticId
+  );
+  if (!plannedDoc) {
+    throw new Error(
+      `Tactic "${tacticId}" is not present in the planned documents for plan "${plan.plan_id}".`
+    );
+  }
+
+  const tacticSummary = runtime.tactics.find((t) => t.tactic_id === tacticId);
+  if (!tacticSummary) {
+    throw new Error(`Tactic "${tacticId}" was not found in the resolved Tactic Playbook.`);
+  }
+
+  // Inspect raw playbook record to preserve any supplied optional fields while marking absent fields as explicit gaps (02-Contracts §4).
+  let rawTacticRecord: Record<string, unknown> = {};
+  const pbJson = runtime.pinned.json('tactic-playbook');
+  if (pbJson.ok && isObjectRecord(pbJson.value) && Array.isArray(pbJson.value.tactics)) {
+    const match = pbJson.value.tactics.find(
+      (entry) => isObjectRecord(entry) && entry.id === tacticId
+    );
+    if (isObjectRecord(match)) {
+      rawTacticRecord = match;
+    }
+  }
+
+  const documentVersion = options.documentVersion?.trim() || tacticSummary.version || '1.0.0';
+  const opStatus = tacticSummary.operationalization_status ?? 'SOURCE_FIELDS_ONLY';
+  const functionLabel = tacticSummary.function_label ?? 'Playbook tactic';
+  const controlPurpose =
+    tacticSummary.control_purpose ??
+    `Execute ${tacticSummary.title} for linked objects (${tacticSummary.linked_object_ids.join(', ')}).`;
+  const principalOutputs = tacticSummary.principal_outputs ?? [];
+  const prereqIds = tacticSummary.prerequisite_tactic_ids ?? [];
+  const reassessmentTargets = tacticSummary.reassessment_targets;
+  const reassessmentText =
+    tacticSummary.reassessment_text ?? reassessmentTargets.join(', ');
+
+  const rawActivities = readCleanStringArray(rawTacticRecord.activities);
+  const rawAccountableRoles = readCleanStringArray(rawTacticRecord.accountable_roles);
+  const rawDoNotUse = readCleanStringArray(rawTacticRecord.do_not_use_conditions);
+  const rawVerification = readCleanStringArray(rawTacticRecord.verification_criteria);
+
+  const sectionProseAndBullets = (
+    code: string
+  ): { prose: string; bullets: string[] } => {
+    switch (code) {
+      case 'ID':
+        return {
+          prose: `Tactic ${tacticSummary.tactic_id} (v${tacticSummary.version}) — "${tacticSummary.title}". Function: ${functionLabel}. Intended outcome: ${controlPurpose}`,
+          bullets: [
+            `Owning partition: ${tacticSummary.owning_domain}`,
+            `Related domains: ${tacticSummary.related_domains.join(', ') || tacticSummary.owning_domain}`,
+            `Operationalization status in playbook: ${opStatus}`
+          ]
+        };
+      case 'MAP':
+        return {
+          prose: `Linked capabilities and anti-patterns: ${tacticSummary.linked_object_ids.join(', ')}. Effective association status: ${tacticSummary.effective_association_status} (original playbook release_status=${tacticSummary.original_release_status}; activation_mapping_status=${tacticSummary.original_activation_status}). Activation authority in Creator: ${tacticSummary.activation_authority}.`,
+          bullets: [
+            `Linked object IDs: ${tacticSummary.linked_object_ids.join(', ')}`,
+            `Linked question IDs: ${tacticSummary.linked_question_ids.length > 0 ? tacticSummary.linked_question_ids.join(', ') : 'None pre-assigned (object-level link only)'}`,
+            'Candidate tactic association only; tactic selection or completion never automatically closes a finding or grants customer activation.'
+          ]
+        };
+      case 'PRE':
+        return {
+          prose:
+            prereqIds.length > 0
+              ? `Prerequisite tactics declared in playbook: ${prereqIds.join(', ')}.`
+              : 'No prerequisite tactic IDs are declared in the supplied Tactic Playbook.',
+          bullets: [
+            `Prerequisites: ${prereqIds.length > 0 ? prereqIds.join(', ') : 'None declared'}`,
+            rawDoNotUse.length > 0
+              ? `Do-not-use conditions: ${rawDoNotUse.join('; ')}`
+              : `Do-not-use boundary: [Playbook gap — explicit do_not_use_conditions field is not populated in supplied playbook (${opStatus}); do not apply outside linked objects ${tacticSummary.linked_object_ids.join(', ')}.]`
+          ]
+        };
+      case 'ACT':
+        return {
+          prose:
+            principalOutputs.length > 0
+              ? `Principal outputs defined in playbook: ${principalOutputs.join('; ')}.`
+              : 'Principal outputs are scoped to the linked governance objects.',
+          bullets: [
+            `Principal outputs: ${principalOutputs.length > 0 ? principalOutputs.join(', ') : '[Playbook gap — principal_outputs not populated]'}`,
+            rawActivities.length > 0
+              ? `Activities: ${rawActivities.join('; ')}`
+              : `Activities: [Playbook gap — step-by-step activities are not populated in supplied playbook (${opStatus}); preserved as gap without invention.]`,
+            rawAccountableRoles.length > 0
+              ? `Accountable roles: ${rawAccountableRoles.join(', ')}`
+              : `Accountable roles: [Playbook gap — accountable_roles are not populated in supplied playbook (${opStatus}); preserved as gap without invention.]`
+          ]
+        };
+      case 'VER':
+        return {
+          prose: `Completion effect: ${tacticSummary.completion_effect}. Reassessment boundary: ${reassessmentText} (targets: ${reassessmentTargets.join(', ')}). Completing a tactic produces new evidence for reassessment only and never closes a finding, clears a hard gate, establishes legal compliance, or accepts residual risk.`,
+          bullets: [
+            `Reassessment targets: ${reassessmentTargets.join(', ')}`,
+            rawVerification.length > 0
+              ? `Verification criteria: ${rawVerification.join('; ')}`
+              : `Verification criteria: Verify produced principal outputs (${principalOutputs.join(', ') || 'deliverables'}) against reassessment targets (${reassessmentTargets.join(', ')}); detailed verification checklist is ${opStatus} in playbook.`
+          ]
+        };
+      case 'REV':
+      default:
+        return {
+          prose: `Playbook provenance preserved: release_status=${tacticSummary.original_release_status}, activation_mapping_status=${tacticSummary.original_activation_status}, effective_association_status=${tacticSummary.effective_association_status}. Creation review state does not grant Knowledge Hub approval.`,
+          bullets: [
+            `Finding-level activation mapping status in playbook: ${tacticSummary.original_activation_status} (advisory object-level association confirmed by scoped owner decision where applicable).`,
+            `Playbook operationalization boundary: ${opStatus} (absent fields preserved as explicit gaps).`
+          ]
+        };
+    }
+  };
+
+  const requiredSpecs = plannedDoc.required_sections.map(parseSectionSpec);
+  const sections: CreatorDocumentSection[] = requiredSpecs.map((spec) => {
+    const content = sectionProseAndBullets(spec.code);
+    return {
+      section_id: `${tacticId}.${spec.code}`,
+      section_code: spec.code,
+      title: spec.title,
+      required: true,
+      status: 'POPULATED',
+      prose: content.prose,
+      bullets: content.bullets,
+      question_refs: [],
+      source_unit_refs: []
+    };
+  });
+
+  const relatedLinks: CreatorRelatedObjectLink[] = tacticSummary.linked_object_ids.map(
+    (targetId) => ({
+      target_object_id: targetId,
+      relationship_kind: 'RELATED_TAXONOMY_OBJECT',
+      non_inverse_meaning: `Playbook primary object mapping (${tacticSummary.tactic_id} -> ${targetId}); tactic completion requires reassessment of ${targetId} and never automatically changes findings.`
+    })
+  );
+
+  const tacticAssoc: CreatorTacticAssociationRef = {
+    tactic_id: tacticSummary.tactic_id,
+    title: tacticSummary.title,
+    version: tacticSummary.version,
+    effective_association_status: tacticSummary.effective_association_status,
+    original_release_status: tacticSummary.original_release_status,
+    original_activation_status: tacticSummary.original_activation_status,
+    completion_effect: tacticSummary.completion_effect,
+    activation_authority: 'NONE_IN_CREATOR',
+    scope_and_boundary_note:
+      'Supplied Tactic Playbook definition; completion produces new evidence for reassessment only and confers zero customer finding activation or automatic closure.'
+  };
+
+  const unresolvedItems: CreatorUnresolvedItem[] = [];
+  if (tacticSummary.effective_association_status === 'UNCONFIRMED_CANDIDATE') {
+    unresolvedItems.push({
+      item_id: `${tacticId}-UNR-001`,
+      category: 'UNCONFIRMED_TACTIC_CANDIDATE',
+      section_id: `${tacticId}.REV`,
+      summary: `Tactic ${tacticId} has non-final status without a version-bound owner decision.`,
+      blocks_delivery: true
+    });
+  }
+
+  const assessmentBoundaries: CreatorAssessmentBoundaries = {
+    unknown_handling: [
+      'Unevidenced tactic outputs or unexecuted reassessment leave linked capability and anti-pattern states UNKNOWN.'
+    ],
+    contradiction_handling: [
+      'Contradictions between tactic completion claims and runtime evidence are preserved for reassessment.'
+    ],
+    false_positive_guards: [
+      'Selecting or scheduling a tactic is not evidence that the control is implemented or effective.'
+    ],
+    prohibited_inferences: [
+      'Do not infer that completing a tactic closes a locked finding, clears a hard gate, or establishes legal compliance.'
+    ],
+    human_decision_boundaries: [
+      'Human governance authority is required to reassess findings and accept residual risk after tactic completion.'
+    ],
+    evidence_ceilings: [
+      'Tactic deliverables create candidate evidence for reassessment; they do not raise assurance automatically.'
+    ],
+    paired_independence_rule:
+      'Tactic associations map to explicit capability and anti-pattern IDs without implying automatic inverse assessment.',
+    failure_mechanism: null,
+    observable_indicators: principalOutputs,
+    non_examples: [],
+    tested_absence_requirements: []
+  };
+
+  const promptHash = computeSha256(
+    JSON.stringify({
+      tactic_id: tacticId,
+      input_set_id: runtime.inputSet.input_set_id,
+      plan_id: plan.plan_id
+    })
+  );
+
+  const contentSha256 = computeSha256(
+    JSON.stringify({
+      document_id: plannedDoc.document_id,
+      document_version: documentVersion,
+      input_set_id: runtime.inputSet.input_set_id,
+      sections,
+      assessment_boundaries: assessmentBoundaries,
+      related_object_links: relatedLinks,
+      tactic_associations: [tacticAssoc],
+      unresolved_items: unresolvedItems
+    })
+  );
+
+  const domainMatch = runtime.pairs.find((p) => p.domain_id === plannedDoc.domain_id);
+  const domainTitle =
+    domainMatch?.domain_title ??
+    (plannedDoc.domain_id === runtime.profile.output_spec.cross_domain_tactic_partition
+      ? `Cross-domain shared partition (${plannedDoc.related_domains.join(', ')})`
+      : plannedDoc.domain_id);
+
+  const doc: CreatorDocument = {
+    schema_version: '1.0.0',
+    document_id: plannedDoc.document_id,
+    kb_id: plannedDoc.kb_id,
+    kb_title: runtime.profile.kb_title,
+    is_synthetic: runtime.profile.is_synthetic,
+    object_id: tacticId,
+    object_type: 'tactic',
+    document_version: documentVersion,
+    title: plannedDoc.title,
+    domain_id: plannedDoc.domain_id,
+    domain_title: domainTitle,
+    pair_id: null,
+    paired_object_id: null,
+    language: runtime.profile.language,
+    destination_path_template: plannedDoc.destination_path_template,
+    input_set_id: runtime.inputSet.input_set_id,
+    plan_id: plan.plan_id,
+    source_bundle_id: sourceBundle.bundle_id,
+    creation_review_state: 'DRAFT_UNREVIEWED',
+    hub_approval_status: 'NOT_GRANTED_BY_CREATOR',
+    provenance: {
+      profile_id: runtime.profile.profile_id,
+      profile_version: runtime.profile.profile_version,
+      criteria_locator: `tactic-playbook#${tacticId}`,
+      thinking_flow_locator: `tactic-playbook#${tacticId} (${tacticSummary.linked_object_ids.join(', ')})`,
+      cognitive_model_version: runtime.inputSet.cognitive_model?.version ?? 'unknown',
+      golden_calibration_pair_id: runtime.inputSet.golden_reference?.pair_id ?? null,
+      applied_owner_decision_ids: runtime.inputSet.applied_owner_decisions.map((d) => d.decision_id),
+      authored_at: nowIso,
+      provider: 'PLAYBOOK_DETERMINISTIC',
+      model: 'tactic-playbook-renderer-v1',
+      prompt_hash: promptHash,
+      content_sha256: contentSha256
+    },
+    sections,
+    omitted_optional_sections: [],
+    questions: [],
+    assessment_boundaries: assessmentBoundaries,
+    sourced_claims: [],
+    methodology_interpretations: [],
+    related_object_links: relatedLinks,
+    tactic_associations: [tacticAssoc],
+    bibliography: [],
+    unresolved_items: unresolvedItems,
+    rejected_authoring_attempts: []
+  };
+
+  const validation = validateCreatorDocumentAgainstContext({
+    document: doc,
+    plannedDocument: plannedDoc,
+    runtime,
+    plan,
+    sourceBundle,
+    tier
+  });
+
+  doc.creation_review_state = assignCreationReviewState(validation);
+  const rendered = renderDocumentArtifact(doc, {
+    includeFrontMatter: options.includeFrontMatter
+  });
+
+  return {
+    work_unit_id: `${runtime.profile.kb_id}:unit:${tacticId}`,
+    tactic_id: tacticId,
+    document: doc,
+    rendered,
+    validation
   };
 }
