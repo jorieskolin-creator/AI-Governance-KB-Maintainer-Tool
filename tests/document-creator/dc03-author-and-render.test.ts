@@ -486,7 +486,12 @@ describe('DC-03: Author and render one fresh pair (internal contract, author, va
     });
     expect(builtPrompts.goldenCalibration.calibration_pair_id).toBe('PAIR-A1');
     expect(builtPrompts.goldenCalibration.capability_structure.atomic_subcriteria_count).toBe(9);
-    expect(builtPrompts.userPrompt).not.toContain('Undefined or elastic intended purpose');
+    expect(builtPrompts.userPrompt).not.toContain(
+      'Ambiguous or inconsistent intent allows technical capability'
+    );
+    expect(builtPrompts.userPrompt).not.toContain(
+      'Ensure the system is designed, evaluated, operated and changed against one explicit socio-technical purpose'
+    );
     expect(builtPrompts.userPrompt).not.toContain('GOV-PUR-001');
     expect(builtPrompts.userPrompt).toContain('PDF page 10 (A2 / AP-A2)');
 
@@ -1394,5 +1399,161 @@ describe('DC-03: Author and render one fresh pair (internal contract, author, va
     // Verify synthetic fixture output folder also remains clean.
     const synOutEntries = await readdir('tests/fixtures/synthetic-profile/output');
     expect(synOutEntries).toEqual(['.gitkeep']);
+  });
+
+  it('SAE-training alignment: preserves NIST 10.6028 DOI redirects, register applicability conditions, TIER_1_NORMATIVE Charter rights authority, instrument humanAuthority/state vocabularies, sibling-pair boundaries, and SOURCE_FIELDS_ONLY tactic metadata', async () => {
+    const profile = await buildSaeLocalPilotProfile(process.cwd());
+    expect(profile.source_policy.allowed_publication_hosts).toEqual(
+      expect.arrayContaining(['doi.org', 'nvlpubs.nist.gov', 'csrc.nist.gov'])
+    );
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot: process.cwd(), profile });
+
+    // Canonical SAE state vocabularies + operating-boundary rule extracted from pinned SAE inputs.
+    expect(runtime.inputSet.cognitive_model?.state_vocabularies).toMatchObject({
+      capability_conclusions: [
+        'SATISFIED',
+        'PARTIALLY_SATISFIED',
+        'NOT_SATISFIED',
+        'UNKNOWN',
+        'NOT_APPLICABLE'
+      ],
+      antipattern_conclusions: [
+        'CONFIRMED_PRESENT',
+        'PARTIALLY_PRESENT',
+        'TESTED_ABSENT',
+        'UNKNOWN',
+        'NOT_APPLICABLE'
+      ],
+      technical_assurance: [
+        'UNKNOWN',
+        'DECLARED',
+        'IMPLEMENTED',
+        'TESTED',
+        'OPERATIONALLY_OBSERVED',
+        'NOT_APPLICABLE'
+      ]
+    });
+    expect(
+      runtime.inputSet.cognitive_model?.state_vocabularies?.boundary_notes.join(' ')
+    ).toContain('ISOLATED_SANDBOX');
+
+    // Instrument per-object metadata preserved across domains (A2 GOVERNANCE, A4 LEGAL, B3 PERSONAL_DATA + PRIVACY).
+    const pairA2 = runtime.pairs.find((p) => p.pair_id === 'PAIR-A2');
+    const pairA4 = runtime.pairs.find((p) => p.pair_id === 'PAIR-A4');
+    const pairB3 = runtime.pairs.find((p) => p.pair_id === 'PAIR-B3');
+    expect(pairA2?.instrument_metadata).toMatchObject({
+      capability_applicability: 'ALWAYS',
+      capability_human_authority: 'GOVERNANCE',
+      antipattern_signals: ['value-theatre']
+    });
+    expect(pairA4?.instrument_metadata?.capability_human_authority).toBe('LEGAL');
+    expect(pairB3?.instrument_metadata).toMatchObject({
+      capability_applicability: 'PERSONAL_DATA',
+      capability_human_authority: 'PRIVACY'
+    });
+
+    // Playbook SOURCE_FIELDS_ONLY metadata preserved without inventing absent fields.
+    const tacA201 = runtime.tactics.find((t) => t.tactic_id === 'TAC-PURPOSE-A2-01');
+    expect(tacA201).toMatchObject({
+      function_label: 'Value foundation',
+      operationalization_status: 'SOURCE_FIELDS_ONLY',
+      reassessment_targets: ['A2', 'AP-A2']
+    });
+    expect(tacA201?.principal_outputs).toContain('value hypothesis');
+
+    // Simulate DOI 302 redirect (doi.org -> nvlpubs.nist.gov) + SRC-EU-CHARTER (TIER_1_NORMATIVE / PRIMARY_RIGHTS_SOURCE).
+    const doiRedirectFetch: HttpFetchPort = async (url) => {
+      if (url === 'https://doi.org/10.6028/NIST.AI.100-1') {
+        return mockHtmlResponse(302, '', {
+          location: 'https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.html'
+        });
+      }
+      if (url === 'https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.html') {
+        return mockHtmlResponse(
+          200,
+          '<html><body><h2>MAP 1.1 — Intended Purpose and Value</h2><p>NIST AI RMF context and proportionality mapping.</p></body></html>'
+        );
+      }
+      if (url.includes('CELEX:12012P/TXT')) {
+        return mockHtmlResponse(
+          200,
+          '<html><body><h2>Article 52 — Scope and interpretation of rights</h2><p>Proportionality of limitations on rights and freedoms.</p></body></html>'
+        );
+      }
+      return mockHtmlResponse(404, 'Not found');
+    };
+
+    const plan = createDocumentPlan(runtime, { mode: 'pair', pair_ids: ['PAIR-A2'] });
+    const bundle = await prepareSourcesForPlan({
+      workspaceRoot: process.cwd(),
+      runtime,
+      plan,
+      enableUrlAcquisition: true,
+      allowPublisherTermsModelEgress: true,
+      fetchPort: doiRedirectFetch,
+      resolveAddresses: async () => ['93.184.216.34']
+    });
+
+    const nistPassage = bundle.model_ready_packet.eligible_passages.find(
+      (p) => p.source_id === 'SRC-NIST-AI-RMF'
+    );
+    const charterPassage = bundle.model_ready_packet.eligible_passages.find(
+      (p) => p.source_id === 'SRC-EU-CHARTER'
+    );
+    expect(nistPassage?.locator_label).toContain('nvlpubs.nist.gov');
+    expect(nistPassage?.roles_or_applicability_conditions?.join(' ')).toContain(
+      'Voluntary risk-management guidance'
+    );
+    expect(charterPassage?.roles_or_applicability_conditions?.join(' ')).toContain(
+      'Article 51 scope'
+    );
+
+    const prompts = buildPairAuthorPrompts({
+      runtime,
+      workUnit: plan.work_units[0]!,
+      capabilityDoc: plan.documents[0]!,
+      antipatternDoc: plan.documents[1]!,
+      pairBaseline: bundle.pair_baselines[0]!,
+      sourceBundle: bundle
+    });
+    const promptPayload = JSON.parse(prompts.userPrompt) as {
+      domain_sibling_pairs: Array<{ pair_id: string }>;
+      instrument_metadata: { capability_human_authority: string };
+      state_vocabularies: { capability_conclusions: string[] };
+    };
+    expect(promptPayload.domain_sibling_pairs.map((p) => p.pair_id)).toEqual([
+      'PAIR-A1',
+      'PAIR-A3',
+      'PAIR-A4',
+      'PAIR-A5'
+    ]);
+    expect(promptPayload.instrument_metadata.capability_human_authority).toBe('GOVERNANCE');
+    expect(promptPayload.state_vocabularies.capability_conclusions).toContain('PARTIALLY_SATISFIED');
+
+    // Verify SRC-EU-CHARTER (TIER_1_NORMATIVE / PRIMARY_RIGHTS_SOURCE) classifies as BINDING_LEGISLATION_WHEN_APPLICABLE
+    // and renders applicability conditions in bibliography.
+    const draft = buildValidPairA2ModelOutput({ sourceBundle: bundle });
+    draft.capability.sourced_claims = [
+      {
+        section_code: 'SRC',
+        statement: 'Proportionality analysis under EU Charter Article 52 when Union law applies.',
+        source_unit_ids: [charterPassage!.source_unit_id]
+      }
+    ];
+    const { port } = makeMockProviderPort(() => draft);
+    const authored = await authorPairWorkUnit({
+      runtime,
+      plan,
+      sourceBundle: bundle,
+      pairId: 'PAIR-A2',
+      providerPort: port
+    });
+
+    expect(authored.validation.draft_valid).toBe(true);
+    expect(authored.capability.sourced_claims[0]?.authority_distinction).toBe(
+      'BINDING_LEGISLATION_WHEN_APPLICABLE'
+    );
+    expect(authored.rendered.capability.markdown).toContain('Apply Article 51 scope');
   });
 });

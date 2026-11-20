@@ -542,6 +542,8 @@ function buildSourceUnit(params: {
   sourceTitle: string;
   authorityTier: string;
   authorityType: string;
+  jurisdictions?: string[];
+  rolesOrApplicabilityConditions?: string[];
   originKind: SourceUnit['origin_kind'];
   originalSha256: string | null;
   locator: SourceUnit['locator'];
@@ -585,6 +587,10 @@ function buildSourceUnit(params: {
     source_title: params.sourceTitle,
     authority_tier: params.authorityTier,
     authority_type: params.authorityType,
+    ...(params.jurisdictions ? { jurisdictions: params.jurisdictions } : {}),
+    ...(params.rolesOrApplicabilityConditions
+      ? { roles_or_applicability_conditions: params.rolesOrApplicabilityConditions }
+      : {}),
     origin_kind: params.originKind,
     original_sha256: params.originalSha256,
     locator: params.locator,
@@ -613,8 +619,12 @@ function formatUntrustedDataBlock(unit: SourceUnit): string {
     '---END UNTRUSTED REGISTERED SOURCE DATA---',
     '[ESCAPED-DELIMITER]'
   );
+  const applicabilitySummary =
+    unit.roles_or_applicability_conditions && unit.roles_or_applicability_conditions.length > 0
+      ? `; applicability=${unit.roles_or_applicability_conditions.join(' | ')}`
+      : '';
   return [
-    `---BEGIN UNTRUSTED REGISTERED SOURCE DATA (source_id=${unit.source_id}; version=${unit.source_version}; locator=${unit.locator.label})---`,
+    `---BEGIN UNTRUSTED REGISTERED SOURCE DATA (source_id=${unit.source_id}; version=${unit.source_version}; locator=${unit.locator.label}${applicabilitySummary})---`,
     safeBody,
     '---END UNTRUSTED REGISTERED SOURCE DATA---'
   ].join('\n');
@@ -626,6 +636,8 @@ interface RegisterSourceEntry {
   version_or_date: string;
   authority_tier: string;
   authority_type: string;
+  jurisdictions: string[];
+  roles_or_applicability_conditions: string[];
   official_location: string;
   licensing_storage_boundary: string;
   domain_coverage: string[];
@@ -654,6 +666,14 @@ function parseRegisterSources(runtime: ResolvedProfileRuntime): Map<string, Regi
             : 'unspecified',
       authority_tier: typeof rec.authority_tier === 'string' ? rec.authority_tier : 'UNSPECIFIED',
       authority_type: typeof rec.authority_type === 'string' ? rec.authority_type : 'UNSPECIFIED',
+      jurisdictions: Array.isArray(rec.jurisdictions)
+        ? rec.jurisdictions.filter((j): j is string => typeof j === 'string' && j.length > 0)
+        : [],
+      roles_or_applicability_conditions: Array.isArray(rec.roles_or_applicability_conditions)
+        ? rec.roles_or_applicability_conditions.filter(
+            (c): c is string => typeof c === 'string' && c.length > 0
+          )
+        : [],
       official_location: typeof rec.official_location === 'string' ? rec.official_location : '',
       licensing_storage_boundary:
         typeof rec.licensing_storage_boundary === 'string' ? rec.licensing_storage_boundary : '',
@@ -937,6 +957,9 @@ export async function prepareSourcesForPlan(
         antipattern_questions: pairModel.antipattern.questions,
         interpretation_rules: runtime.inputSet.cognitive_model?.rules ?? []
       },
+      ...(pairModel.instrument_metadata
+        ? { instrument_metadata: pairModel.instrument_metadata }
+        : {}),
       legacy_release_instructions_excluded: true
     });
   }
@@ -1450,6 +1473,8 @@ export async function prepareSourcesForPlan(
     }
 
     for (const unit of producedUnits) {
+      unit.jurisdictions = regEntry.jurisdictions;
+      unit.roles_or_applicability_conditions = regEntry.roles_or_applicability_conditions;
       if (unit.untrusted_content_flags.length > 0) {
         findings.push({
           code: 'UNTRUSTED_SOURCE_DIRECTIVE_NEUTRALIZED',
@@ -1529,6 +1554,10 @@ export async function prepareSourcesForPlan(
       source_title: u.source_title,
       authority_tier: u.authority_tier,
       authority_type: u.authority_type,
+      ...(u.jurisdictions ? { jurisdictions: u.jurisdictions } : {}),
+      ...(u.roles_or_applicability_conditions
+        ? { roles_or_applicability_conditions: u.roles_or_applicability_conditions }
+        : {}),
       locator_label: u.locator.label,
       extraction_status: u.extraction_status,
       limitations: u.limitations,

@@ -4,6 +4,7 @@ import {
   validateKbProfile,
   validateResolvedInputSet,
   type AppliedOwnerDecision,
+  type CognitiveStateVocabularies,
   type CreatorFinding,
   type InputConflict,
   type KbProfile,
@@ -139,7 +140,13 @@ export async function buildProfileFromInventoryFile(options: {
           try {
             const parsed = new URL(source.official_location);
             if (parsed.protocol === 'https:' && parsed.hostname) {
-              hostSet.add(parsed.hostname);
+              const host = parsed.hostname.toLowerCase();
+              hostSet.add(host);
+              // Official NIST DOI prefix (10.6028) resolves via 302 redirect to nvlpubs.nist.gov / csrc.nist.gov.
+              if (host === 'doi.org' && /^\/10\.6028\//i.test(parsed.pathname)) {
+                hostSet.add('nvlpubs.nist.gov');
+                hostSet.add('csrc.nist.gov');
+              }
             }
           } catch {
             // Invalid URLs will be flagged during validation.
@@ -277,6 +284,16 @@ export interface NormalizedPairModel {
     candidate_domain_source_ids: string[];
     detail_gaps: string[];
     blocking_conflict_ids: string[];
+  };
+  instrument_metadata?: {
+    capability_applicability: string | null;
+    capability_human_authority: string | null;
+    capability_target_state: string | null;
+    capability_severity: string | null;
+    antipattern_severity: string | null;
+    antipattern_signals: string[];
+    related_object_ids: string[];
+    lifecycle_stages: string[];
   };
 }
 
@@ -851,7 +868,18 @@ export async function resolveProfileInputSet(options: {
       ? instrumentDoc.antipatterns.filter(isObjectRecord)
       : [];
 
-    const reqById = new Map<string, { id: string; domain: string; authoringObjectId: string; sourceIds: string[] }>();
+    const reqById = new Map<
+      string,
+      {
+        id: string;
+        domain: string;
+        authoringObjectId: string;
+        sourceIds: string[];
+        applicability: string | null;
+        humanAuthority: string | null;
+        lifecycleStages: string[];
+      }
+    >();
     for (let i = 0; i < rawReqs.length; i += 1) {
       const req = rawReqs[i]!;
       const id = typeof req.id === 'string' ? req.id : '';
@@ -860,6 +888,9 @@ export async function resolveProfileInputSet(options: {
       const sourceIds = Array.isArray(req.sourceIds)
         ? req.sourceIds.filter((s): s is string => typeof s === 'string' && s.length > 0)
         : [];
+      const applicability = typeof req.applicability === 'string' ? req.applicability : null;
+      const humanAuthority = typeof req.humanAuthority === 'string' ? req.humanAuthority : null;
+      const lifecycleStages = asStringArray(req.lifecycleStages) ?? [];
       if (!id || reqById.has(id)) {
         findings.push({
           code: 'DUPLICATE_ID',
@@ -879,7 +910,15 @@ export async function resolveProfileInputSet(options: {
           message: `Requirement "${id}" points to unknown capability "${authoringObjectId}".`
         });
       }
-      reqById.set(id, { id, domain, authoringObjectId, sourceIds });
+      reqById.set(id, {
+        id,
+        domain,
+        authoringObjectId,
+        sourceIds,
+        applicability,
+        humanAuthority,
+        lifecycleStages
+      });
     }
 
     const controlById = new Map<string, Record<string, unknown>>();
@@ -1041,6 +1080,46 @@ export async function resolveProfileInputSet(options: {
       const versionMatch = html.match(/Cognitive contract\s+([0-9]+\.[0-9]+\.[0-9]+)/i);
       const modelVersion = versionMatch?.[1] ?? descriptorByRole.get('cognitive-model')?.version ?? 'unknown';
       const dimensionValues = Object.values(questionDimensions).filter((v): v is string => typeof v === 'string');
+
+      let stateVocabularies: CognitiveStateVocabularies | undefined;
+      if (pinned.hasRole('shared-definitions')) {
+        const sharedParsed = pinned.json('shared-definitions');
+        if (sharedParsed.ok && isObjectRecord(sharedParsed.value) && isObjectRecord(sharedParsed.value.$defs)) {
+          const defs = sharedParsed.value.$defs;
+          const readEnum = (key: string): string[] => {
+            const node = defs[key];
+            return isObjectRecord(node) ? asStringArray(node.enum) ?? [] : [];
+          };
+          const capConc = readEnum('capabilityConclusion');
+          const apConc = readEnum('antipatternConclusion');
+          const techAssur = readEnum('technicalAssurance');
+          const humAssur = readEnum('humanAssurance');
+          const lifeStages = readEnum('lifecycleStage');
+          if (
+            capConc.length > 0 ||
+            apConc.length > 0 ||
+            techAssur.length > 0 ||
+            humAssur.length > 0 ||
+            lifeStages.length > 0
+          ) {
+            const boundaryNotes: string[] = [];
+            if (/Isolated Sandbox is (?:an|the)[\s\S]{0,60}operating[- ]boundary/i.test(html)) {
+              boundaryNotes.push(
+                'ISOLATED_SANDBOX and CONTROLLED_PILOT are operating-boundary environments, not lifecycle stages; material change is a reassessment trigger, not a lifecycle stage.'
+              );
+            }
+            stateVocabularies = {
+              capability_conclusions: capConc,
+              antipattern_conclusions: apConc,
+              technical_assurance: techAssur,
+              human_assurance: humAssur,
+              lifecycle_stages: lifeStages,
+              boundary_notes: boundaryNotes
+            };
+          }
+        }
+      }
+
       cognitiveSummary = {
         model_id: `${options.profile.kb_id}:cognitive-model`,
         version: modelVersion,
@@ -1052,7 +1131,8 @@ export async function resolveProfileInputSet(options: {
           'antipattern_tested_absence_required',
           'false_positive_guards_and_prohibited_inferences',
           'human_authority_remains_outside_engine'
-        ]
+        ],
+        ...(stateVocabularies ? { state_vocabularies: stateVocabularies } : {})
       };
 
       const htmlQuestionMatches = [...html.matchAll(/<code class="qid">([^<]+)<\/code><div>([^<]+)<\/div>/g)];
@@ -1291,7 +1371,16 @@ export async function resolveProfileInputSet(options: {
         original_release_status: originalReleaseStatus,
         original_activation_status: originalActivationStatus,
         effective_association_status: effectiveAssociationStatus,
-        activation_authority: 'NONE_IN_CREATOR'
+        activation_authority: 'NONE_IN_CREATOR',
+        function_label: typeof tac.function === 'string' ? tac.function : null,
+        control_purpose: typeof tac.control_purpose === 'string' ? tac.control_purpose : null,
+        principal_outputs: asStringArray(tac.principal_outputs) ?? [],
+        reassessment_text: typeof tac.reassessment_text === 'string' ? tac.reassessment_text : null,
+        prerequisite_tactic_ids: prereqIds,
+        operationalization_status:
+          typeof tac.operationalization_status === 'string'
+            ? tac.operationalization_status
+            : 'UNSPECIFIED'
       });
 
       for (const objId of primaryMappings) {
@@ -1496,6 +1585,23 @@ export async function resolveProfileInputSet(options: {
         )
       );
 
+      const ctrlReqRecords = (asStringArray(ctrl.requirementIds) ?? [])
+        .map((id) => reqById.get(id))
+        .filter((r): r is NonNullable<typeof r> => Boolean(r));
+      const primaryReq = ctrlReqRecords[0];
+      const relatedObjIds = [
+        ...new Set(
+          apRelatedControls
+            .map((c) => (typeof c.authoringObjectId === 'string' ? c.authoringObjectId : ''))
+            .filter((id) => id.length > 0)
+        )
+      ];
+      const lifecycleStages =
+        asStringArray(ctrl.lifecycleStages) ??
+        primaryReq?.lifecycleStages ??
+        asStringArray(ap.lifecycleStages) ??
+        [];
+
       pairs.push({
         pair_id: pair.pair_id,
         domain_id: pair.domain_id,
@@ -1518,6 +1624,16 @@ export async function resolveProfileInputSet(options: {
           candidate_domain_source_ids: candidateDomainSources,
           detail_gaps: apDetailGaps,
           blocking_conflict_ids: apConflicts
+        },
+        instrument_metadata: {
+          capability_applicability: primaryReq?.applicability ?? null,
+          capability_human_authority: primaryReq?.humanAuthority ?? null,
+          capability_target_state: typeof ctrl.targetState === 'string' ? ctrl.targetState : null,
+          capability_severity: typeof ctrl.severity === 'string' ? ctrl.severity : null,
+          antipattern_severity: typeof ap.severity === 'string' ? ap.severity : null,
+          antipattern_signals: asStringArray(ap.signals) ?? [],
+          related_object_ids: relatedObjIds,
+          lifecycle_stages: lifecycleStages
         }
       });
     }
