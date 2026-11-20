@@ -33,12 +33,14 @@ import {
 import {
   applyDirectEditToRun,
   cancelCreatorRun,
+  executeCreatorBatch,
   executeSemanticReviewForRun,
   executeTargetedRepairForRun,
   grantCreatorRunContinuation,
   InMemoryCreatorRunStore,
   materializeAuthoredPairViewFromRun,
   recordHumanCreationReview,
+  regeneratePairFromNewInputs,
   startOrResumePairRun,
   type CreatorRunStorePort
 } from './store.js';
@@ -1590,5 +1592,201 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
       kb_id: selected.kb_id,
       handoff
     });
+  });
+
+  app.post('/api/creator/batches/execute', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const profileId = typeof body.profileId === 'string' ? body.profileId.trim() : '';
+    if (!profileId) {
+      return reply.code(400).send({
+        error: 'MISSING_PROFILE_ID',
+        message: 'Request body must specify a registered profileId.'
+      });
+    }
+
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === profileId);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${profileId}".`
+      });
+    }
+
+    let selection: DocumentPlanSelection;
+    try {
+      selection = parseSelectionBody(body.selection);
+    } catch (error) {
+      const planErr = error instanceof DocumentPlanError ? error : null;
+      return reply.code(400).send({
+        error: planErr?.code ?? 'INVALID_PLAN_SELECTION',
+        message: error instanceof Error ? error.message : 'Invalid plan selection.',
+        findings: planErr?.findings ?? []
+      });
+    }
+
+    const authorPort = resolveAuthorPort(selected);
+    if (!authorPort) {
+      return reply.code(503).send({
+        error: 'AUTHOR_PROVIDER_NOT_CONFIGURED',
+        message: 'Model authoring provider is not enabled on this server.'
+      });
+    }
+
+    const runtime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    let plan;
+    try {
+      plan = createDocumentPlan(runtime, selection);
+    } catch (error) {
+      const planErr = error instanceof DocumentPlanError ? error : null;
+      const status = planErr?.code === 'INPUT_SET_NOT_READY' ? 422 : 400;
+      return reply.code(status).send({
+        error: planErr?.code ?? 'PLAN_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to create document plan.',
+        findings: planErr?.findings ?? runtime.inputSet.readiness.findings,
+        inputSet: runtime.inputSet
+      });
+    }
+
+    const requestWantsUrlFetch = body.enableUrlAcquisition === true;
+    const allowUrlFetch =
+      requestWantsUrlFetch &&
+      (Boolean(options.fetchPort) ||
+        Boolean(options.allowLiveSourceFetch) ||
+        process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH === 'true');
+
+    const batchResult = await executeCreatorBatch({
+      store: runStore,
+      workspaceRoot,
+      runtime,
+      plan,
+      authorProviderPort: authorPort,
+      reviewerProviderPort: resolveReviewerPort(selected),
+      autoRunSemanticReview: body.autoRunSemanticReview === true,
+      documentVersion:
+        typeof body.documentVersion === 'string' && body.documentVersion.trim()
+          ? body.documentVersion.trim()
+          : undefined,
+      maxObjectsOverride:
+        typeof body.maxObjectsOverride === 'number' ? body.maxObjectsOverride : undefined,
+      concurrencyOverride:
+        typeof body.concurrencyOverride === 'number' ? body.concurrencyOverride : undefined,
+      enableUrlAcquisition: allowUrlFetch,
+      allowPublisherTermsModelEgress: body.allowPublisherTermsModelEgress === true,
+      sourceCache,
+      fetchPort: options.fetchPort,
+      resolveAddresses: options.resolveAddresses
+    });
+
+    const status = batchResult.status === 'COMPLETED' ? 200 : 207;
+    return reply.code(status).send({
+      batch: batchResult
+    });
+  });
+
+  app.post('/api/creator/runs/:runId/regenerate', async (request, reply) => {
+    if (!authorizeCreatorRequest(request, reply, options.operatorToken)) return;
+    const params = isObjectRecord(request.params) ? request.params : {};
+    const priorRunId = typeof params.runId === 'string' ? params.runId.trim() : '';
+    const body = isObjectRecord(request.body) ? request.body : {};
+    const newDocumentVersion =
+      typeof body.newDocumentVersion === 'string' ? body.newDocumentVersion.trim() : '';
+
+    if (!newDocumentVersion) {
+      return reply.code(400).send({
+        error: 'MISSING_NEW_DOCUMENT_VERSION',
+        message: 'Request body must specify "newDocumentVersion" for regeneration.'
+      });
+    }
+
+    const priorRun = await runStore.getRun(priorRunId);
+    if (!priorRun) {
+      return reply.code(404).send({
+        error: 'RUN_NOT_FOUND',
+        message: `Unknown prior Creator run "${priorRunId}".`
+      });
+    }
+
+    const profiles = await loadProfiles();
+    const selected = profiles.find((p) => p.profile_id === priorRun.profile_id);
+    if (!selected) {
+      return reply.code(404).send({
+        error: 'UNKNOWN_PROFILE',
+        message: `Unknown profileId "${priorRun.profile_id}".`
+      });
+    }
+
+    const authorPort = resolveAuthorPort(selected);
+    if (!authorPort) {
+      return reply.code(503).send({
+        error: 'AUTHOR_PROVIDER_NOT_CONFIGURED',
+        message: 'Model authoring provider is not enabled on this server.'
+      });
+    }
+
+    const newRuntime = await resolveProfileInputSet({ workspaceRoot, profile: selected });
+    let newPlan;
+    try {
+      newPlan = createDocumentPlan(newRuntime, {
+        mode: 'pair',
+        pair_ids: [priorRun.pair_id],
+        include_tactics: false
+      });
+    } catch (error) {
+      const planErr = error instanceof DocumentPlanError ? error : null;
+      return reply.code(422).send({
+        error: planErr?.code ?? 'PLAN_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to create regeneration plan.',
+        findings: planErr?.findings ?? newRuntime.inputSet.readiness.findings
+      });
+    }
+
+    const requestWantsUrlFetch = body.enableUrlAcquisition === true;
+    const allowUrlFetch =
+      requestWantsUrlFetch &&
+      (Boolean(options.fetchPort) ||
+        Boolean(options.allowLiveSourceFetch) ||
+        process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH === 'true');
+
+    try {
+      const regenerated = await regeneratePairFromNewInputs({
+        store: runStore,
+        priorRunId,
+        workspaceRoot,
+        newRuntime,
+        newPlan,
+        newDocumentVersion,
+        authorProviderPort: authorPort,
+        reviewerProviderPort: resolveReviewerPort(selected),
+        autoRunSemanticReview: body.autoRunSemanticReview === true,
+        enableUrlAcquisition: allowUrlFetch,
+        allowPublisherTermsModelEgress: body.allowPublisherTermsModelEgress === true,
+        sourceCache,
+        fetchPort: options.fetchPort,
+        resolveAddresses: options.resolveAddresses
+      });
+
+      const authoredPair = materializeAuthoredPairViewFromRun(
+        regenerated.newRun,
+        newRuntime,
+        newPlan
+      );
+      if (authoredPair) {
+        draftStore.set(selected.profile_id, priorRun.pair_id, authoredPair);
+      }
+
+      return reply.code(200).send({
+        priorRun: regenerated.priorRun,
+        newRun: regenerated.newRun,
+        comparison: regenerated.comparison,
+        authoredPair
+      });
+    } catch (error) {
+      return reply.code(422).send({
+        error: 'REGENERATION_REJECTED',
+        message: error instanceof Error ? error.message : 'Regeneration failed.'
+      });
+    }
   });
 }

@@ -492,9 +492,11 @@ export async function reviewAuthoredPair(
   const blockingCount = deduped.filter((d) => d.severity === 'BLOCKING').length;
   const warningCount = deduped.filter((d) => d.severity === 'WARNING').length;
 
+  const pairId = capability.pair_id ?? antipattern.pair_id ?? capability.object_id;
+
   const reviewId = computeSha256(
     JSON.stringify({
-      pair_id: capability.pair_id,
+      pair_id: pairId,
       capability_revision_id: capabilityRevisionId,
       antipattern_revision_id: antipatternRevisionId,
       capability_sha: capability.provenance.content_sha256,
@@ -507,7 +509,7 @@ export async function reviewAuthoredPair(
   const review: SemanticReviewResult = {
     schema_version: '1.0.0',
     review_id: reviewId,
-    pair_id: capability.pair_id,
+    pair_id: pairId,
     capability_revision_id: capabilityRevisionId,
     antipattern_revision_id: antipatternRevisionId,
     capability_content_sha256: capability.provenance.content_sha256,

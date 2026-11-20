@@ -4,23 +4,32 @@ import { getDbPool } from '../db/client.js';
 import type { ModelExecutionRequest, ModelExecutionResponse } from '../ai/provider-client.js';
 import {
   authorPairWorkUnit,
+  authorRequestedTacticDocument,
   type AuthoredPairResult,
+  type AuthoredTacticResult,
   type CreatorAuthorProviderPort,
   type ModelClaimDraft
 } from './author.js';
 import {
   validateCreatorRunRecord,
+  type BatchDocumentProgressEntry,
+  type BatchExecutionResult,
   type CreatorRunRecord,
   type DocumentPlan,
   type DocumentRevisionRecord,
+  type InputBaselineChangeEntry,
   type ProviderCallAuditRecord,
+  type RegenerationComparisonResult,
+  type ResolvedInputDescriptor,
   type SourcePreparationBundle
 } from './contracts.js';
 import { computeSha256 } from './inputs.js';
+import { createDocumentPlan } from './plan.js';
 import type { ResolvedProfileRuntime } from './profiles.js';
 import {
   applyDirectHumanEdit,
   applyTargetedSectionRepair,
+  computeDocumentRevisionDiff,
   type DirectSectionEditPatch
 } from './repair.js';
 import { renderPairArtifacts } from './render.js';
@@ -1089,4 +1098,468 @@ export async function cancelCreatorRun(options: {
 
   await options.store.saveRun(run);
   return run;
+}
+
+export interface ExecuteCreatorBatchOptions {
+  store: CreatorRunStorePort;
+  workspaceRoot?: string;
+  runtime: ResolvedProfileRuntime;
+  plan: DocumentPlan;
+  authorProviderPort: CreatorAuthorProviderPort;
+  reviewerProviderPort?: CreatorAuthorProviderPort;
+  autoRunSemanticReview?: boolean;
+  documentVersion?: string;
+  maxObjectsOverride?: number;
+  concurrencyOverride?: number;
+  enableUrlAcquisition?: boolean;
+  allowPublisherTermsModelEgress?: boolean;
+  sourceCache?: SourcePreparationCache;
+  fetchPort?: HttpFetchPort;
+  resolveAddresses?: HostAddressResolver;
+  now?: () => Date;
+}
+
+export async function executeCreatorBatch(
+  options: ExecuteCreatorBatchOptions
+): Promise<BatchExecutionResult> {
+  const { store, runtime, plan } = options;
+  const now = options.now ?? (() => new Date());
+  const maxObjects =
+    options.maxObjectsOverride ?? runtime.profile.limits.max_objects_per_run;
+  const concurrency = Math.max(
+    1,
+    options.concurrencyOverride ?? runtime.profile.limits.provider_concurrency
+  );
+
+  const plannedDocById = new Map(plan.documents.map((d) => [d.document_id, d]));
+  const progressByDocId = new Map<string, BatchDocumentProgressEntry>();
+  const eligibleWorkUnits: DocumentPlan['work_units'] = [];
+  let admittedDocumentCount = 0;
+
+  for (const unit of plan.work_units) {
+    if (admittedDocumentCount + unit.document_ids.length <= maxObjects) {
+      eligibleWorkUnits.push(unit);
+      admittedDocumentCount += unit.document_ids.length;
+    } else {
+      for (const docId of unit.document_ids) {
+        const pd = plannedDocById.get(docId);
+        if (!pd) continue;
+        progressByDocId.set(docId, {
+          document_id: pd.document_id,
+          object_id: pd.object_id,
+          object_type: pd.object_type,
+          work_unit_id: unit.work_unit_id,
+          pair_id: unit.pair_id,
+          run_id: null,
+          destination_path_template: pd.destination_path_template,
+          status: 'SKIPPED_LIMIT',
+          draft_valid: false,
+          delivery_ready: false,
+          error_code: 'MAX_OBJECTS_PER_RUN_EXCEEDED',
+          error_message: `Skipped because batch max_objects_per_run (${maxObjects}) was reached.`
+        });
+      }
+    }
+  }
+
+  let sharedTacticSourceBundle: SourcePreparationBundle | null = null;
+  if (eligibleWorkUnits.some((u) => u.unit_type === 'tactic')) {
+    sharedTacticSourceBundle = await prepareSourcesForPlan({
+      workspaceRoot: options.workspaceRoot,
+      runtime,
+      plan,
+      cache: options.sourceCache,
+      enableUrlAcquisition: options.enableUrlAcquisition,
+      allowPublisherTermsModelEgress: options.allowPublisherTermsModelEgress,
+      fetchPort: options.fetchPort,
+      resolveAddresses: options.resolveAddresses,
+      now
+    });
+  }
+
+  const pairRunIds: string[] = [];
+  const tacticDocuments: AuthoredTacticResult[] = [];
+
+  let cursor = 0;
+  const runWorker = async (): Promise<void> => {
+    while (cursor < eligibleWorkUnits.length) {
+      const idx = cursor;
+      cursor += 1;
+      const unit = eligibleWorkUnits[idx]!;
+
+      if (unit.unit_type === 'paired_capability_antipattern' && unit.pair_id) {
+        try {
+          const singlePairPlan = createDocumentPlan(runtime, {
+            mode: 'pair',
+            pair_ids: [unit.pair_id],
+            include_tactics: false
+          });
+          const run = await startOrResumePairRun({
+            store,
+            workspaceRoot: options.workspaceRoot,
+            runtime,
+            plan: singlePairPlan,
+            pairId: unit.pair_id,
+            authorProviderPort: options.authorProviderPort,
+            reviewerProviderPort: options.reviewerProviderPort,
+            autoRunSemanticReview: options.autoRunSemanticReview,
+            documentVersion: options.documentVersion,
+            enableUrlAcquisition: options.enableUrlAcquisition,
+            allowPublisherTermsModelEgress: options.allowPublisherTermsModelEgress,
+            sourceCache: options.sourceCache,
+            fetchPort: options.fetchPort,
+            resolveAddresses: options.resolveAddresses,
+            now
+          });
+          pairRunIds.push(run.run_id);
+
+          const { capability, antipattern } = getActiveRunRevisions(run);
+          for (const docId of unit.document_ids) {
+            const pd = plannedDocById.get(docId);
+            if (!pd) continue;
+            const rev =
+              pd.object_type === 'capability' ? capability : antipattern;
+            if (!rev || run.state === 'FAILED') {
+              progressByDocId.set(docId, {
+                document_id: pd.document_id,
+                object_id: pd.object_id,
+                object_type: pd.object_type,
+                work_unit_id: unit.work_unit_id,
+                pair_id: unit.pair_id,
+                run_id: run.run_id,
+                destination_path_template: pd.destination_path_template,
+                status: 'FAILED',
+                draft_valid: false,
+                delivery_ready: false,
+                error_code:
+                  run.interruption_state !== 'NONE'
+                    ? run.interruption_state
+                    : 'PAIR_AUTHOR_FAILED',
+                error_message:
+                  run.interruption_detail ?? `Failed to author ${pd.object_id}.`
+              });
+            } else {
+              const valid = rev.deterministic_validation.draft_valid;
+              const delivReady = rev.deterministic_validation.delivery_ready;
+              const firstError = rev.deterministic_validation.findings.find(
+                (f) => f.severity === 'ERROR'
+              );
+              progressByDocId.set(docId, {
+                document_id: pd.document_id,
+                object_id: pd.object_id,
+                object_type: pd.object_type,
+                work_unit_id: unit.work_unit_id,
+                pair_id: unit.pair_id,
+                run_id: run.run_id,
+                destination_path_template: pd.destination_path_template,
+                status: valid ? 'SUCCEEDED' : 'FAILED',
+                draft_valid: valid,
+                delivery_ready: delivReady,
+                error_code: valid ? null : firstError?.code ?? 'VALIDATION_FAILED',
+                error_message: valid ? null : firstError?.message ?? 'Document validation failed.'
+              });
+            }
+          }
+        } catch (error) {
+          for (const docId of unit.document_ids) {
+            const pd = plannedDocById.get(docId);
+            if (!pd) continue;
+            progressByDocId.set(docId, {
+              document_id: pd.document_id,
+              object_id: pd.object_id,
+              object_type: pd.object_type,
+              work_unit_id: unit.work_unit_id,
+              pair_id: unit.pair_id,
+              run_id: null,
+              destination_path_template: pd.destination_path_template,
+              status: 'FAILED',
+              draft_valid: false,
+              delivery_ready: false,
+              error_code: 'BATCH_UNIT_EXCEPTION',
+              error_message: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+      } else if (unit.unit_type === 'tactic') {
+        const docId = unit.document_ids[0]!;
+        const pd = plannedDocById.get(docId);
+        if (!pd) continue;
+        try {
+          const tacRes = authorRequestedTacticDocument({
+            runtime,
+            plan,
+            sourceBundle: sharedTacticSourceBundle!,
+            tacticId: pd.object_id,
+            documentVersion: options.documentVersion,
+            now
+          });
+          tacticDocuments.push(tacRes);
+          const valid = tacRes.validation.draft_valid;
+          const firstErr = tacRes.validation.findings.find((f) => f.severity === 'ERROR');
+          progressByDocId.set(docId, {
+            document_id: pd.document_id,
+            object_id: pd.object_id,
+            object_type: 'tactic',
+            work_unit_id: unit.work_unit_id,
+            pair_id: null,
+            run_id: null,
+            destination_path_template: pd.destination_path_template,
+            status: valid ? 'SUCCEEDED' : 'FAILED',
+            draft_valid: valid,
+            delivery_ready: tacRes.validation.delivery_ready,
+            error_code: valid ? null : firstErr?.code ?? 'TACTIC_VALIDATION_FAILED',
+            error_message: valid ? null : firstErr?.message ?? 'Tactic validation failed.'
+          });
+        } catch (error) {
+          progressByDocId.set(docId, {
+            document_id: pd.document_id,
+            object_id: pd.object_id,
+            object_type: 'tactic',
+            work_unit_id: unit.work_unit_id,
+            pair_id: null,
+            run_id: null,
+            destination_path_template: pd.destination_path_template,
+            status: 'FAILED',
+            draft_valid: false,
+            delivery_ready: false,
+            error_code: 'TACTIC_RENDER_FAILED',
+            error_message: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+    }
+  };
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, Math.max(1, eligibleWorkUnits.length)) },
+    () => runWorker()
+  );
+  await Promise.all(workers);
+
+  // Preserve exact plan document ordering in progress list.
+  const orderedProgress: BatchDocumentProgressEntry[] = plan.documents.map(
+    (d) =>
+      progressByDocId.get(d.document_id) ?? {
+        document_id: d.document_id,
+        object_id: d.object_id,
+        object_type: d.object_type,
+        work_unit_id: `${runtime.profile.kb_id}:unit:${d.object_id}`,
+        pair_id: null,
+        run_id: null,
+        destination_path_template: d.destination_path_template,
+        status: 'FAILED',
+        draft_valid: false,
+        delivery_ready: false,
+        error_code: 'UNPROCESSED_DOCUMENT',
+        error_message: 'Document was not processed.'
+      }
+  );
+
+  const succeededCount = orderedProgress.filter((d) => d.status === 'SUCCEEDED').length;
+  const failedCount = orderedProgress.filter((d) => d.status === 'FAILED').length;
+  const skippedCount = orderedProgress.filter((d) => d.status === 'SKIPPED_LIMIT').length;
+
+  // B-01: Never label a partial batch COMPLETED if any document failed or was skipped!
+  const batchStatus: BatchExecutionResult['status'] =
+    failedCount > 0
+      ? 'INCOMPLETE_PARTIAL_FAILURE'
+      : skippedCount > 0
+        ? 'INCOMPLETE_LIMIT_REACHED'
+        : 'COMPLETED';
+
+  return {
+    batch_id: `batch-${randomUUID()}`,
+    profile_id: runtime.profile.profile_id,
+    kb_id: runtime.profile.kb_id,
+    input_set_id: runtime.inputSet.input_set_id,
+    plan_id: plan.plan_id,
+    status: batchStatus,
+    summary: {
+      requested_work_units: plan.work_units.length,
+      requested_documents: plan.documents.length,
+      succeeded_documents: succeededCount,
+      failed_documents: failedCount,
+      skipped_documents: skippedCount,
+      capability_count: orderedProgress.filter((d) => d.object_type === 'capability').length,
+      antipattern_count: orderedProgress.filter((d) => d.object_type === 'antipattern').length,
+      tactic_count: orderedProgress.filter((d) => d.object_type === 'tactic').length
+    },
+    documents: orderedProgress,
+    pair_run_ids: pairRunIds,
+    tactic_documents: tacticDocuments.map((t) => ({
+      document: t.document,
+      rendered: t.rendered,
+      validation: t.validation
+    }))
+  };
+}
+
+export function diffInputBaselines(
+  priorInputs: ReadonlyArray<ResolvedInputDescriptor>,
+  newInputs: ReadonlyArray<ResolvedInputDescriptor>
+): InputBaselineChangeEntry[] {
+  const priorByRole = new Map(priorInputs.map((i) => [i.role, i]));
+  const newByRole = new Map(newInputs.map((i) => [i.role, i]));
+  const allRoles = [...new Set([...priorByRole.keys(), ...newByRole.keys()])].sort();
+
+  const changes: InputBaselineChangeEntry[] = [];
+  for (const role of allRoles) {
+    const p = priorByRole.get(role);
+    const n = newByRole.get(role);
+    if (!p && n) {
+      changes.push({
+        role,
+        prior_version: null,
+        new_version: n.version,
+        prior_sha256: null,
+        new_sha256: n.sha256,
+        change_kind: 'ADDED'
+      });
+    } else if (p && !n) {
+      changes.push({
+        role,
+        prior_version: p.version,
+        new_version: null,
+        prior_sha256: p.sha256,
+        new_sha256: null,
+        change_kind: 'REMOVED'
+      });
+    } else if (p && n && (p.version !== n.version || p.sha256 !== n.sha256)) {
+      changes.push({
+        role,
+        prior_version: p.version,
+        new_version: n.version,
+        prior_sha256: p.sha256,
+        new_sha256: n.sha256,
+        change_kind: 'MODIFIED'
+      });
+    }
+  }
+  return changes;
+}
+
+export interface RegeneratePairFromNewInputsOptions {
+  store: CreatorRunStorePort;
+  priorRunId: string;
+  priorResolvedInputs?: ReadonlyArray<ResolvedInputDescriptor>;
+  workspaceRoot?: string;
+  newRuntime: ResolvedProfileRuntime;
+  newPlan: DocumentPlan;
+  newDocumentVersion: string;
+  authorProviderPort: CreatorAuthorProviderPort;
+  reviewerProviderPort?: CreatorAuthorProviderPort;
+  autoRunSemanticReview?: boolean;
+  enableUrlAcquisition?: boolean;
+  allowPublisherTermsModelEgress?: boolean;
+  sourceCache?: SourcePreparationCache;
+  fetchPort?: HttpFetchPort;
+  resolveAddresses?: HostAddressResolver;
+  now?: () => Date;
+}
+
+export async function regeneratePairFromNewInputs(
+  options: RegeneratePairFromNewInputsOptions
+): Promise<{
+  priorRun: CreatorRunRecord;
+  newRun: CreatorRunRecord;
+  comparison: RegenerationComparisonResult;
+}> {
+  const { store, newRuntime, newPlan } = options;
+  const priorRun = await store.getRun(options.priorRunId);
+  if (!priorRun) {
+    throw new Error(`Cannot regenerate from unknown prior run "${options.priorRunId}".`);
+  }
+
+  const { capability: priorCap, antipattern: priorAp } = getActiveRunRevisions(priorRun);
+  if (!priorCap || !priorAp) {
+    throw new Error(`Prior run "${options.priorRunId}" has no active capability/antipattern revisions.`);
+  }
+
+  const priorDocVersion = priorCap.document.document_version;
+  const newDocVersion = options.newDocumentVersion.trim();
+  if (!newDocVersion || newDocVersion === priorDocVersion) {
+    throw new Error(
+      `Regeneration requires a new documentVersion distinct from prior version "${priorDocVersion}" so existing versions are never mutated (B-02).`
+    );
+  }
+
+  if (newRuntime.inputSet.input_set_id === priorRun.input_set_id) {
+    throw new Error(
+      `Regeneration from new inputs requires a newly confirmed input baseline (input_set_id "${newRuntime.inputSet.input_set_id}" is identical to prior run "${priorRun.run_id}") (B-02).`
+    );
+  }
+
+  const newRun = await startOrResumePairRun({
+    store,
+    workspaceRoot: options.workspaceRoot,
+    runtime: newRuntime,
+    plan: newPlan,
+    pairId: priorRun.pair_id,
+    authorProviderPort: options.authorProviderPort,
+    reviewerProviderPort: options.reviewerProviderPort,
+    autoRunSemanticReview: options.autoRunSemanticReview,
+    documentVersion: newDocVersion,
+    enableUrlAcquisition: options.enableUrlAcquisition,
+    allowPublisherTermsModelEgress: options.allowPublisherTermsModelEgress,
+    sourceCache: options.sourceCache,
+    fetchPort: options.fetchPort,
+    resolveAddresses: options.resolveAddresses,
+    now: options.now
+  });
+
+  const { capability: newCap, antipattern: newAp } = getActiveRunRevisions(newRun);
+  if (!newCap || !newAp) {
+    throw new Error(`Regeneration run "${newRun.run_id}" did not produce active draft revisions.`);
+  }
+
+  const capDiff = computeDocumentRevisionDiff({
+    beforeDoc: priorCap.document,
+    afterDoc: newCap.document,
+    fromRevisionId: priorCap.revision_id,
+    toRevisionId: newCap.revision_id
+  });
+  const apDiff = computeDocumentRevisionDiff({
+    beforeDoc: priorAp.document,
+    afterDoc: newAp.document,
+    fromRevisionId: priorAp.revision_id,
+    toRevisionId: newAp.revision_id
+  });
+
+  newRun.checkpoints.latest_diffs = {
+    capability: capDiff,
+    antipattern: apDiff
+  };
+  await store.saveRun(newRun);
+
+  const changedInputs: InputBaselineChangeEntry[] = options.priorResolvedInputs
+    ? diffInputBaselines(options.priorResolvedInputs, newRuntime.inputSet.resolved_inputs)
+    : [
+        {
+          role: 'input-set',
+          prior_version: priorRun.profile_version,
+          new_version: newRuntime.profile.profile_version,
+          prior_sha256: priorRun.input_set_id,
+          new_sha256: newRuntime.inputSet.input_set_id,
+          change_kind: 'MODIFIED'
+        }
+      ];
+
+  const comparison: RegenerationComparisonResult = {
+    prior_run_id: priorRun.run_id,
+    new_run_id: newRun.run_id,
+    pair_id: priorRun.pair_id,
+    prior_input_set_id: priorRun.input_set_id,
+    new_input_set_id: newRuntime.inputSet.input_set_id,
+    prior_document_version: priorDocVersion,
+    new_document_version: newDocVersion,
+    changed_inputs: changedInputs,
+    capability_diff: capDiff,
+    antipattern_diff: apDiff
+  };
+
+  return {
+    priorRun,
+    newRun,
+    comparison
+  };
 }

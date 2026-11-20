@@ -10,6 +10,7 @@ import {
 import {
   DEFAULT_ANTIPATTERN_SECTIONS,
   DEFAULT_CAPABILITY_SECTIONS,
+  DEFAULT_TACTIC_SECTIONS,
   type ResolvedProfileRuntime
 } from './profiles.js';
 
@@ -33,17 +34,21 @@ export function parseSectionSpec(raw: string): SectionSpec {
 }
 
 export function defaultCatalogForObjectType(
-  objectType: 'capability' | 'antipattern'
+  objectType: 'capability' | 'antipattern' | 'tactic'
 ): SectionSpec[] {
   const specs =
-    objectType === 'capability' ? DEFAULT_CAPABILITY_SECTIONS : DEFAULT_ANTIPATTERN_SECTIONS;
+    objectType === 'capability'
+      ? DEFAULT_CAPABILITY_SECTIONS
+      : objectType === 'antipattern'
+        ? DEFAULT_ANTIPATTERN_SECTIONS
+        : DEFAULT_TACTIC_SECTIONS;
   return specs.map(parseSectionSpec);
 }
 
 export interface DocumentValidationResult {
   document_id: string;
   object_id: string;
-  object_type: 'capability' | 'antipattern';
+  object_type: 'capability' | 'antipattern' | 'tactic';
   tier: StrictnessTier;
   draft_valid: boolean;
   delivery_ready: boolean;
@@ -700,6 +705,7 @@ export function validateCreatorDocumentAgainstContext(options: {
       return;
     }
     if (
+      doc.paired_object_id !== null &&
       link.target_object_id === doc.paired_object_id &&
       link.relationship_kind === expectedPairRelKind
     ) {
@@ -707,13 +713,13 @@ export function validateCreatorDocumentAgainstContext(options: {
     }
   });
 
-  if (!hasPairedLink) {
+  if (doc.object_type !== 'tactic' && !hasPairedLink) {
     findings.push({
       code: 'MISSING_PAIRED_OBJECT_LINK',
       severity: 'ERROR',
       tier,
       path: '/related_object_links',
-      message: `Document "${doc.object_id}" must link to paired object "${doc.paired_object_id}" (${expectedPairRelKind}).`
+      message: `Document "${doc.object_id}" must link to paired object "${String(doc.paired_object_id)}" (${expectedPairRelKind}).`
     });
   }
 
@@ -878,7 +884,17 @@ export function validateCreatorDocumentAgainstContext(options: {
       return;
     }
 
-    if (!pbTac.linked_object_ids.includes(doc.object_id)) {
+    if (doc.object_type === 'tactic') {
+      if (assoc.tactic_id !== doc.object_id) {
+        findings.push({
+          code: 'INCOMPATIBLE_TACTIC_TARGET_LINK',
+          severity: 'ERROR',
+          tier,
+          path: `/tactic_associations/${idx}/tactic_id`,
+          message: `Tactic document "${doc.object_id}" cannot claim foreign tactic_id "${assoc.tactic_id}".`
+        });
+      }
+    } else if (!pbTac.linked_object_ids.includes(doc.object_id)) {
       findings.push({
         code: 'INCOMPATIBLE_TACTIC_TARGET_LINK',
         severity: 'ERROR',

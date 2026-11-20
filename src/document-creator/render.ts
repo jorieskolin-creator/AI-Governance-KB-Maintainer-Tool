@@ -8,7 +8,7 @@ import { escapeHtml } from './render-ui.js';
 export interface RenderedDocumentArtifact {
   document_id: string;
   object_id: string;
-  object_type: 'capability' | 'antipattern';
+  object_type: 'capability' | 'antipattern' | 'tactic';
   destination_path_template: string;
   markdown: string;
   markdown_sha256: string;
@@ -122,8 +122,8 @@ export function renderCreatorDocumentMarkdown(
       `title: ${safeYamlScalar(doc.title)}`,
       `domain_id: ${safeYamlScalar(doc.domain_id)}`,
       `domain_title: ${safeYamlScalar(doc.domain_title)}`,
-      `pair_id: ${safeYamlScalar(doc.pair_id)}`,
-      `paired_object_id: ${safeYamlScalar(doc.paired_object_id)}`,
+      `pair_id: ${safeYamlScalar(doc.pair_id ?? 'NONE')}`,
+      `paired_object_id: ${safeYamlScalar(doc.paired_object_id ?? 'NONE')}`,
       `language: ${safeYamlScalar(doc.language)}`,
       `schema_version: ${safeYamlScalar(doc.schema_version)}`,
       `input_set_id: ${safeYamlScalar(doc.input_set_id)}`,
@@ -152,7 +152,7 @@ export function renderCreatorDocumentMarkdown(
     `| Document Version | \`${sanitizeMarkdownTableCell(doc.document_version)}\` |`,
     `| Knowledge Base | ${sanitizeMarkdownTableCell(doc.kb_title)} (\`${sanitizeMarkdownTableCell(doc.kb_id)}\`) |`,
     `| Domain | \`${sanitizeMarkdownTableCell(doc.domain_id)}\` — ${sanitizeMarkdownTableCell(doc.domain_title)} |`,
-    `| Pair / Paired Object | \`${sanitizeMarkdownTableCell(doc.pair_id)}\` / \`${sanitizeMarkdownTableCell(doc.paired_object_id)}\` |`,
+    `| Pair / Paired Object | \`${sanitizeMarkdownTableCell(doc.pair_id ?? 'N/A')}\` / \`${sanitizeMarkdownTableCell(doc.paired_object_id ?? 'N/A')}\` |`,
     `| Creation Review State | \`${sanitizeMarkdownTableCell(doc.creation_review_state)}\` *(Creation review state only; Knowledge Hub approval is \`${sanitizeMarkdownTableCell(doc.hub_approval_status)}\`)* |`,
     `| Criteria Baseline Locator | \`${sanitizeMarkdownTableCell(doc.provenance.criteria_locator ?? 'None')}\` |`,
     `| Thinking Flow Baseline | \`${sanitizeMarkdownTableCell(doc.provenance.thinking_flow_locator)}\` (v${sanitizeMarkdownTableCell(doc.provenance.cognitive_model_version)}) |`,
@@ -297,7 +297,7 @@ export function renderCreatorDocumentMarkdown(
       }
     }
 
-    if (sec.section_code === 'REL') {
+    if (sec.section_code === 'REL' || (sec.section_code === 'MAP' && doc.object_type === 'tactic')) {
       lines.push(
         `**Paired Object Independence Rule:** ${sanitizeMarkdownProse(ab.paired_independence_rule)}`,
         '',
@@ -312,7 +312,7 @@ export function renderCreatorDocumentMarkdown(
       lines.push('');
     }
 
-    if (sec.section_code === 'TAC') {
+    if (sec.section_code === 'TAC' || (sec.section_code === 'MAP' && doc.object_type === 'tactic')) {
       if (doc.tactic_associations.length === 0) {
         lines.push('*No associated tactics declared in the selected Tactic Playbook for this object.*', '');
       } else {
@@ -665,7 +665,7 @@ export function renderCreatorDocumentHtmlPreviewFragment(doc: CreatorDocument): 
       Document ID: <code>${sanitizePreviewText(doc.document_id)}</code> ·
       Version: <code>${sanitizePreviewText(doc.document_version)}</code> ·
       Domain: <code>${sanitizePreviewText(doc.domain_id)}</code> (${sanitizePreviewText(doc.domain_title)}) ·
-      Paired Object: <code>${sanitizePreviewText(doc.paired_object_id)}</code> ·
+      Paired Object: <code>${sanitizePreviewText(doc.paired_object_id ?? 'N/A')}</code> ·
       Creation Review State: <strong>${sanitizePreviewText(doc.creation_review_state)}</strong>
       <em>(Hub approval: <code>${sanitizePreviewText(doc.hub_approval_status)}</code>)</em>
     </p>
@@ -712,7 +712,7 @@ export function renderPairArtifacts(options: {
   <meta charset="utf-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${sanitizePreviewText(options.capability.pair_id)} Preview — KB Document Creator</title>
+  <title>${sanitizePreviewText(options.capability.pair_id ?? options.capability.object_id)} Preview — KB Document Creator</title>
   <style>
     body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 0 auto; max-width: 1120px; padding: 1.25rem; color: #111827; background: #f9fafb; }
     article.creator-doc-preview { background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
