@@ -62,7 +62,7 @@ export interface PairValidationResult {
 }
 
 const NEGATION_CUE =
-  /\b(?:not|never|no|neither|nor|cannot|can't|do\s+not|does\s+not|must\s+not|may\s+not|without|insufficient|prohibited|forbid|forbidden|invalid|reject|rejected|refuse)\b/i;
+  /\b(?:not|never|no|neither|nor|cannot|can't|do\s+not|does\s+not|must\s+not|may\s+not|without|insufficient|prohibited|forbid|forbidden|invalid|reject|rejected|refuse|rather\s+than|instead\s+of|remains?\s+unknown|stays?\s+unknown)\b/i;
 
 function splitIntoClauses(text: string): string[] {
   return text
@@ -96,7 +96,7 @@ export function hasAffirmativeInversePairInference(text: string): boolean {
   const capGapImpliesApPresence =
     /\b(?:capability\s+gap|not[_\s-]?satisfied|(?:failing|unsatisfied|missing)\s+capability(?:\s+[a-z0-9_-]+)?)\b[\s\S]{0,80}\b(?:proves?|establishes?|confirms?|implies?|means?|renders?|results?\s+in)\b[\s\S]{0,60}\b(?:confirmed[_\s-]?present|anti-?pattern(?:\s+[a-z0-9_-]+)?\s+(?:is\s+)?present|presence\s+of\s+(?:the\s+)?anti-?pattern|ap-[a-z0-9_-]+\s+is\s+present)\b/i;
   const conditionalCapGapToApPresence =
-    /\b(?:when|if|whenever|where)\b[\s\S]{0,60}\b(?:capability\s+gap|not[_\s-]?satisfied|(?:failing|unsatisfied)\s+capability)\b[\s\S]{0,80}\b(?:confirmed[_\s-]?present|anti-?pattern(?:\s+[a-z0-9_-]+)?\s+(?:is|becomes)\s+present|ap-[a-z0-9_-]+\s+(?:is|becomes)\s+present)\b/i;
+    /\b(?:when|if|whenever|where)\b[\s\S]{0,60}\b(?:capability\s+gap|not[_\s-]?satisfied|(?:failing|unsatisfied)\s+capability)\b[\s\S]{0,80}\b(?:(?:is|becomes|defaults?\s+to)\s+(?:automatically\s+)?confirmed[_\s-]?present|anti-?pattern(?:\s+[a-z0-9_-]+)?\s+(?:is|becomes)\s+present|ap-[a-z0-9_-]+\s+(?:is|becomes)\s+present)\b/i;
   const apAbsenceImpliesCapSatisfied =
     /\b(?:tested[_\s-]?absent|anti-?pattern\s+absence|absence\s+of\s+(?:the\s+)?anti-?pattern|anti-?pattern\s+is\s+unknown)\b[\s\S]{0,80}\b(?:proves?|establishes?|confirms?|implies?)\b[\s\S]{0,60}\b(?:capability\s+(?:is\s+)?satisfied|satisfies\s+capability)\b/i;
 

@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { registerCreatorRoutes, type CreatorRouteOptions } from './routes.js';
+import { reconcileInterruptedCreatorRuns } from './store.js';
 
 export interface BuildCreatorAppOptions extends CreatorRouteOptions {
   logger?: boolean;
@@ -7,6 +8,10 @@ export interface BuildCreatorAppOptions extends CreatorRouteOptions {
 
 export async function buildCreatorApp(options: BuildCreatorAppOptions = {}): Promise<FastifyInstance> {
   const app = Fastify({ logger: options.logger ?? false });
+
+  if (options.runStore) {
+    await reconcileInterruptedCreatorRuns(options.runStore);
+  }
 
   app.get('/health/live', async () => ({
     status: 'ok',
