@@ -5,6 +5,7 @@ import { loadSourceRegister } from './assets/load.js';
 import { checkDatabaseReady, closeDatabase } from './db/client.js';
 import { runMigrations } from './db/migrate.js';
 import { buildCreatorApp } from './document-creator/app.js';
+import { PostgresCreatorRunStore } from './document-creator/store.js';
 import { buildOperatorStatus } from './operator/board.js';
 import { loadDomainOverlay } from './operator/overlay.js';
 import { registerOperatorRoutes } from './operator/routes.js';
@@ -38,7 +39,18 @@ export function resolvePilotCreatorMode(raw = process.env.CREATOR_MODE): Creator
 export async function buildApp(modeOverride?: CreatorApplicationMode) {
   const mode = modeOverride ?? resolveCreatorMode();
   if (mode === 'document') {
-    return buildCreatorApp({ logger: true });
+    const usePostgresStore =
+      process.env.CREATOR_USE_POSTGRES_STORE === 'true' &&
+      Boolean(process.env.DATABASE_URL?.trim());
+    if (usePostgresStore) {
+      await runMigrations();
+    }
+    return buildCreatorApp({
+      logger: true,
+      runStore: usePostgresStore ? new PostgresCreatorRunStore() : undefined,
+      allowLiveSourceFetch: process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH === 'true',
+      allowLiveAuthoring: process.env.CREATOR_ALLOW_LIVE_AUTHORING === 'true'
+    });
   }
 
   const loadedRegister = loadSourceRegister();

@@ -243,7 +243,12 @@ export function parseStandaloneDeliveredMarkdown(
       if (!trimmed) continue;
       if (trimmed.startsWith('- ')) {
         bullets.push(trimmed.slice(2).trim());
-      } else if (!trimmed.startsWith('*Questions:') && !trimmed.startsWith('*Source citations:')) {
+      } else if (
+        !trimmed.startsWith('*Questions:') &&
+        !trimmed.startsWith('*Source citations:') &&
+        !trimmed.startsWith('**Paired Object Independence Rule:**') &&
+        !trimmed.startsWith('**Failure mechanism:**')
+      ) {
         proseLines.push(trimmed);
       }
     }

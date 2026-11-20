@@ -1,5 +1,8 @@
 import type { AuthoredPairResult } from './author.js';
 import type {
+  BatchExecutionResult,
+  CreatorDeliveryMode,
+  CreatorReviewCadence,
   CreatorRunRecord,
   DocumentPlan,
   DocumentRevisionDiff,
@@ -8,6 +11,7 @@ import type {
   SourcePreparationBundle
 } from './contracts.js';
 import { sanitizePreviewText } from './render.js';
+import type { WorkspaceSessionSnapshot } from './store.js';
 
 export function escapeHtml(value: string): string {
   return value
@@ -45,7 +49,38 @@ function renderStageNav(activeStage: CreatorUiStage): string {
   </nav>`;
 }
 
-function pageLayout(title: string, activeStage: CreatorUiStage, bodyHtml: string): string {
+function pageLayout(
+  title: string,
+  activeStage: CreatorUiStage,
+  bodyHtml: string,
+  workspaceSnapshot?: WorkspaceSessionSnapshot | null
+): string {
+  const modeLabel =
+    workspaceSnapshot?.mode === 'LAST_RUN_STATUS'
+      ? `Last Run Status (${escapeHtml(workspaceSnapshot.latest_run?.pair_id ?? 'active')} · ${escapeHtml(workspaceSnapshot.latest_run?.state ?? 'READY')})`
+      : 'Empty Setup (Starting from Zero)';
+  const cadenceLabel =
+    workspaceSnapshot?.review_cadence === 'PAUSE_AFTER_PAIR'
+      ? '3. Review after each pair'
+      : workspaceSnapshot?.review_cadence === 'PAUSE_AFTER_DOMAIN'
+        ? '2. Review after domain is ready'
+        : '1. No human review pauses (final confirmation)';
+  const deliveryLabel =
+    workspaceSnapshot?.delivery_mode === 'ZIP'
+      ? 'Local .zip archive'
+      : 'KB Storage';
+
+  const workspaceBarHtml = `<div class="workspace-bar" role="region" aria-label="Workspace state and reset controls">
+    <div>
+      <strong>Workspace:</strong> <code>${modeLabel}</code> ·
+      <strong>Review mode:</strong> <code>${escapeHtml(cadenceLabel)}</code> ·
+      <strong>Output option:</strong> <code>${escapeHtml(deliveryLabel)}</code>
+    </div>
+    <form method="post" action="/creator/reset" style="margin:0;">
+      <button type="submit" class="secondary">Reset (Start Over from Zero)</button>
+    </form>
+  </div>`;
+
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -54,22 +89,25 @@ function pageLayout(title: string, activeStage: CreatorUiStage, bodyHtml: string
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(title)} — KB Document Creator</title>
   <style>
-    body { font-family: system-ui, sans-serif; line-height: 1.45; margin: 0 auto; max-width: 1120px; padding: 1.25rem; color: #111827; background: #f9fafb; }
+    body { font-family: system-ui, sans-serif; line-height: 1.45; margin: 0 auto; max-width: 1120px; padding: 1.25rem; color: #111827; background: #ffffff; }
     header, section { background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
     article.creator-doc-preview { background: #ffffff; border: 1px solid #9ca3af; border-radius: 6px; padding: 1rem 1.25rem; margin-top: 1rem; }
+    .workspace-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; background: #ffffff; border: 1px solid #d1d5db; border-radius: 4px; padding: 0.5rem 0.75rem; margin-top: 0.75rem; }
     .stages { display: flex; flex-wrap: wrap; gap: 0.75rem; list-style: none; padding: 0; margin: 0.5rem 0 0; }
-    .stages li { border: 1px solid #d1d5db; border-radius: 4px; padding: 0.35rem 0.65rem; background: #f3f4f6; }
-    .stages li[aria-current="step"] { border-color: #1d4ed8; background: #eff6ff; font-weight: 600; }
-    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid #6b7280; font-size: 0.85rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.92rem; }
-    th, td { border: 1px solid #e5e7eb; padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }
-    th { background: #f3f4f6; }
+    .stages li { border: 1px solid #d1d5db; border-radius: 4px; padding: 0.35rem 0.65rem; background: #ffffff; }
+    .stages li[aria-current="step"] { border-color: #1d4ed8; background: #ffffff; font-weight: 700; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid #6b7280; background: #ffffff; font-size: 0.85rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.92rem; background: #ffffff; }
+    th, td { border: 1px solid #e5e7eb; padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; background: #ffffff; }
+    th { font-weight: 700; background: #ffffff; }
     form.controls { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin-bottom: 0.75rem; }
     label { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 600; font-size: 0.9rem; }
-    select, input, button { font: inherit; padding: 0.4rem 0.6rem; border: 1px solid #9ca3af; border-radius: 4px; }
+    select, input, button, textarea { font: inherit; padding: 0.4rem 0.6rem; border: 1px solid #9ca3af; border-radius: 4px; background: #ffffff; color: #111827; }
+    textarea.md-editor { width: 100%; min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.84rem; box-sizing: border-box; }
     button.primary { background: #1d4ed8; color: #ffffff; border-color: #1e40af; font-weight: 600; cursor: pointer; }
-    code { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.88em; }
-    pre.markdown-source { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; padding: 0.75rem; overflow-x: auto; white-space: pre-wrap; font-size: 0.85rem; }
+    button.secondary { background: #ffffff; color: #111827; border-color: #6b7280; font-weight: 600; cursor: pointer; }
+    code { background: #ffffff; border: 1px solid #e5e7eb; padding: 0.08rem 0.3rem; border-radius: 3px; font-size: 0.88em; }
+    pre.markdown-source { background: #ffffff; border: 1px solid #d1d5db; border-radius: 4px; padding: 0.75rem; overflow-x: auto; white-space: pre-wrap; font-size: 0.85rem; }
   </style>
 </head>
 <body>
@@ -77,6 +115,7 @@ function pageLayout(title: string, activeStage: CreatorUiStage, bodyHtml: string
     <h1>KB Document Creator</h1>
     <p>Create reviewed Markdown knowledge documents from explicitly pinned inputs. Master Table Creator and Knowledge Hub remain separate tools.</p>
     ${renderStageNav(activeStage)}
+    ${workspaceBarHtml}
   </header>
   <main>
     ${bodyHtml}
@@ -85,15 +124,92 @@ function pageLayout(title: string, activeStage: CreatorUiStage, bodyHtml: string
 </html>`;
 }
 
+export function renderLoginViewHtml(options?: { errorMessage?: string }): string {
+  const errHtml = options?.errorMessage
+    ? `<p role="alert"><strong>Authentication failed:</strong> ${escapeHtml(options.errorMessage)}</p>`
+    : '';
+  const body = `
+    <section aria-labelledby="login-heading">
+      <h2 id="login-heading">Operator Sign-In</h2>
+      ${errHtml}
+      <form class="controls" method="post" action="/creator/login">
+        <label>
+          Operator Token (<code>CREATOR_OPERATOR_TOKEN</code>)
+          <input type="password" name="token" required autocomplete="off" />
+        </label>
+        <button class="primary" type="submit">Sign in</button>
+      </form>
+    </section>
+  `;
+  return pageLayout('Sign In', 'inputs', body, null);
+}
+
 export function renderInputsViewHtml(options: {
   profiles: ReadonlyArray<Pick<KbProfile, 'profile_id' | 'kb_id' | 'kb_title' | 'is_synthetic'>>;
   selectedProfileId: string;
   inputSet: ResolvedInputSet;
+  workspaceSnapshot?: WorkspaceSessionSnapshot | null;
+  statusMessage?: string;
 }): string {
-  const { profiles, selectedProfileId, inputSet } = options;
+  const { profiles, selectedProfileId, inputSet, workspaceSnapshot, statusMessage } = options;
   const syntheticBanner = inputSet.is_synthetic
     ? `<p role="status" class="badge">SYNTHETIC TEST PROFILE — NOT APPROVED DOMAIN KNOWLEDGE</p>`
     : '';
+
+  const latestRun = workspaceSnapshot?.latest_run ?? null;
+  const isResetEmpty = workspaceSnapshot?.reset_to_empty === true;
+
+  const lastRunBannerHtml =
+    !isResetEmpty && latestRun
+      ? `<section aria-labelledby="last-run-status-heading">
+          <h2 id="last-run-status-heading">Last Run Status — Ready to Resume or Review</h2>
+          <p>
+            Run ID: <code>${escapeHtml(latestRun.run_id)}</code> ·
+            Profile: <code>${escapeHtml(latestRun.profile_id)}</code> ·
+            Pair: <code>${escapeHtml(latestRun.pair_id)}</code> ·
+            State: <strong>${escapeHtml(latestRun.state)}</strong> ·
+            Review mode: <code>${escapeHtml(workspaceSnapshot?.review_cadence ?? 'FINAL_REVIEW_ONLY')}</code> ·
+            Output option: <code>${escapeHtml(workspaceSnapshot?.delivery_mode ?? 'STORAGE')}</code>
+          </p>
+          <p>
+            <a href="/creator/documents?profileId=${encodeURIComponent(latestRun.profile_id)}&amp;pairId=${encodeURIComponent(latestRun.pair_id)}&amp;runId=${encodeURIComponent(latestRun.run_id)}"><strong>Continue / Review Latest .md Documents →</strong></a> ·
+            <a href="/creator/delivery?profileId=${encodeURIComponent(latestRun.profile_id)}&amp;pairId=${encodeURIComponent(latestRun.pair_id)}&amp;runId=${encodeURIComponent(latestRun.run_id)}">Final Confirmation / Storage / .zip →</a>
+          </p>
+        </section>`
+      : `<section aria-labelledby="empty-setup-heading">
+          <h2 id="empty-setup-heading">Start from Zero — Configure Input Materials, Storage &amp; Review Mode</h2>
+          <p>Workspace is clean. Select or register input materials and storage below, choose your review cadence and output option (<code>KB Storage</code> or <code>.zip</code>), and begin from zero.</p>
+          <form class="controls" method="post" action="/creator/setup">
+            <label>
+              Input Inventory Path (workspace-relative)
+              <input type="text" name="inventoryPath" value="baseline/sae-training/input-inventory.json" placeholder="baseline/sae-training/input-inventory.json" />
+            </label>
+            <label>
+              Storage Output Root (workspace-relative)
+              <input type="text" name="outputRoot" value="baseline/sae-training/knowledge-base" placeholder="baseline/sae-training/knowledge-base" />
+            </label>
+            <label>
+              Profile ID (optional custom)
+              <input type="text" name="customProfileId" value="" placeholder="sae-local-pilot" />
+            </label>
+            <label>
+              Review Option
+              <select name="reviewCadence">
+                <option value="FINAL_REVIEW_ONLY"${workspaceSnapshot?.review_cadence === 'FINAL_REVIEW_ONLY' ? ' selected' : ''}>1. No reviews during creation (final confirmation only)</option>
+                <option value="PAUSE_AFTER_DOMAIN"${workspaceSnapshot?.review_cadence === 'PAUSE_AFTER_DOMAIN' ? ' selected' : ''}>2. Review after domain is ready</option>
+                <option value="PAUSE_AFTER_PAIR"${workspaceSnapshot?.review_cadence === 'PAUSE_AFTER_PAIR' ? ' selected' : ''}>3. Review after each pair</option>
+              </select>
+            </label>
+            <label>
+              Output Option
+              <select name="deliveryMode">
+                <option value="STORAGE"${workspaceSnapshot?.delivery_mode !== 'ZIP' ? ' selected' : ''}>Store documents to KB Storage</option>
+                <option value="ZIP"${workspaceSnapshot?.delivery_mode === 'ZIP' ? ' selected' : ''}>Create .zip file to store locally</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">Apply setup &amp; validate inputs</button>
+          </form>
+        </section>`;
 
   const findingsRows =
     inputSet.readiness.findings.length === 0
@@ -138,6 +254,8 @@ export function renderInputsViewHtml(options: {
         </ul>`;
 
   const body = `
+    ${statusMessage ? `<section><p role="status">${escapeHtml(statusMessage)}</p></section>` : ''}
+    ${lastRunBannerHtml}
     <section aria-labelledby="select-inputs-heading">
       <h2 id="select-inputs-heading">Inputs readiness</h2>
       ${syntheticBanner}
@@ -194,7 +312,7 @@ export function renderInputsViewHtml(options: {
     </section>
   `;
 
-  return pageLayout('Inputs', 'inputs', body);
+  return pageLayout('Inputs', 'inputs', body, workspaceSnapshot);
 }
 
 export function renderDocumentPlanViewHtml(options: {
@@ -508,6 +626,7 @@ export function renderDocumentsPreviewViewHtml(options: {
   isSynthetic: boolean;
   authoredPair: AuthoredPairResult | null;
   activeRun?: CreatorRunRecord | null;
+  workspaceSnapshot?: WorkspaceSessionSnapshot | null;
   errorMessage?: string;
 }): string {
   const {
@@ -518,8 +637,16 @@ export function renderDocumentsPreviewViewHtml(options: {
     isSynthetic,
     authoredPair,
     activeRun,
+    workspaceSnapshot,
     errorMessage
   } = options;
+
+  const currentCadence: CreatorReviewCadence =
+    workspaceSnapshot?.review_cadence ?? 'FINAL_REVIEW_ONLY';
+  const currentDeliveryMode: CreatorDeliveryMode =
+    workspaceSnapshot?.delivery_mode ?? 'STORAGE';
+  const lastBatch: BatchExecutionResult | null =
+    workspaceSnapshot?.last_batch ?? null;
 
   const allFindings = authoredPair
     ? [
@@ -606,9 +733,63 @@ export function renderDocumentsPreviewViewHtml(options: {
     ? `${renderRevisionDiffHtml(activeRun.checkpoints.latest_diffs.capability)}${renderRevisionDiffHtml(activeRun.checkpoints.latest_diffs.antipattern)}`
     : '';
 
+  const batchCheckpointBanner = lastBatch
+    ? `<p>
+        <strong>Batch Checkpoint:</strong> <code>${sanitizePreviewText(lastBatch.review_checkpoint ?? 'AWAITING_FINAL_CONFIRMATION')}</code> ·
+        Batch status: <strong>${sanitizePreviewText(lastBatch.status)}</strong> ·
+        Documents succeeded: <strong>${String(lastBatch.summary.succeeded_documents)}/${String(lastBatch.summary.requested_documents)}</strong>
+        ${lastBatch.paused_after_pair_id ? ` · Paused after pair: <code>${sanitizePreviewText(lastBatch.paused_after_pair_id)}</code>` : ''}
+        ${lastBatch.paused_after_domain_id ? ` · Paused after domain: <code>${sanitizePreviewText(lastBatch.paused_after_domain_id)}</code>` : ''}
+      </p>`
+    : '';
+
+  const mdReviewActionsHtml =
+    authoredPair && activeRun
+      ? `<section aria-labelledby="md-review-actions-heading">
+          <h3 id="md-review-actions-heading">.md Document Review &amp; Final Confirmation Actions (Approve / Create New / Edit Manually)</h3>
+          <p>
+            Output option: <strong>${currentDeliveryMode === 'ZIP' ? 'Local .zip archive (clicking Approve generates the .zip file)' : 'KB Storage (clicking Approve stores reviewed .md documents to storage)'}</strong>
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:end; margin-bottom:0.75rem;">
+            <form class="controls" method="post" action="/creator/documents/approve" style="margin:0;">
+              <input type="hidden" name="runId" value="${escapeHtml(activeRun.run_id)}" />
+              <input type="hidden" name="profileId" value="${escapeHtml(selectedProfileId)}" />
+              <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+              <input type="hidden" name="deliveryMode" value="${escapeHtml(currentDeliveryMode)}" />
+              <label>
+                Reviewed by
+                <input type="text" name="reviewedBy" value="operator@local" required />
+              </label>
+              <label>
+                Target Version
+                <input type="text" name="targetVersion" value="${escapeHtml(authoredPair.capability.document_version)}" />
+              </label>
+              <button class="primary" type="submit">
+                ${currentDeliveryMode === 'ZIP' ? 'Approve &amp; Generate .zip' : 'Approve &amp; Store to KB Storage'}
+              </button>
+            </form>
+            <form class="controls" method="post" action="/creator/documents/author" style="margin:0;">
+              <input type="hidden" name="profileId" value="${escapeHtml(selectedProfileId)}" />
+              <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+              <input type="hidden" name="reviewCadence" value="${escapeHtml(currentCadence)}" />
+              <input type="hidden" name="deliveryMode" value="${escapeHtml(currentDeliveryMode)}" />
+              <button class="secondary" type="submit">Create new (Re-generate pair)</button>
+            </form>
+            <form class="controls" method="post" action="/creator/documents/semantic-review" style="margin:0;">
+              <input type="hidden" name="runId" value="${escapeHtml(activeRun.run_id)}" />
+              <input type="hidden" name="profileId" value="${escapeHtml(selectedProfileId)}" />
+              <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+              <button class="secondary" type="submit">Re-run automated semantic QC</button>
+            </form>
+            <a href="/creator/runs/${encodeURIComponent(activeRun.run_id)}/export.zip"><strong>Download .zip directly</strong></a>
+          </div>
+        </section>`
+      : '';
+
   const previewHtml = !authoredPair
     ? `${runControlHtml}<p role="status">${sanitizePreviewText(errorMessage ?? 'No draft authored in this session for the selected pair yet. Submit "Create pair drafts" or POST /api/creator/documents/author.')}</p>`
     : `${errorMessage ? `<p role="alert">${sanitizePreviewText(errorMessage)}</p>` : ''}
+      ${batchCheckpointBanner}
       ${runControlHtml}
       <p>
         Work unit: <code>${sanitizePreviewText(authoredPair.work_unit_id)}</code> ·
@@ -617,26 +798,58 @@ export function renderDocumentsPreviewViewHtml(options: {
         Provider: <code>${sanitizePreviewText(authoredPair.call_telemetry.provider)}/${sanitizePreviewText(authoredPair.call_telemetry.model)}</code>
       </p>
       <p><small>Creation review states (<code>${sanitizePreviewText(authoredPair.capability.creation_review_state)}</code> / <code>${sanitizePreviewText(authoredPair.antipattern.creation_review_state)}</code>) never grant Knowledge Hub approval, legal assurance, or tactic activation.</small></p>
+      ${mdReviewActionsHtml}
       <h3>Deterministic validation findings</h3>
       ${findingsHtml}
       <h3>Semantic reviewer findings</h3>
       ${semanticReviewHtml}
       ${diffsHtml}
+      <h3>Primary .md Documents — Inspect or Edit Manually</h3>
+      <details open>
+        <summary><strong>Capability .md — ${sanitizePreviewText(authoredPair.capability.object_id)}</strong> (SHA-256: <code>${sanitizePreviewText(authoredPair.rendered.capability.markdown_sha256)}</code>)</summary>
+        <pre class="markdown-source"><code>${sanitizePreviewText(authoredPair.rendered.capability.markdown)}</code></pre>
+        ${
+          activeRun
+            ? `<form method="post" action="/creator/documents/edit-markdown">
+                <input type="hidden" name="runId" value="${escapeHtml(activeRun.run_id)}" />
+                <input type="hidden" name="profileId" value="${escapeHtml(selectedProfileId)}" />
+                <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+                <input type="hidden" name="objectId" value="${escapeHtml(authoredPair.capability.object_id)}" />
+                <label>
+                  Edit manually (<code>${sanitizePreviewText(authoredPair.capability.object_id)}.md</code>)
+                  <textarea class="md-editor" name="editedMarkdown">${sanitizePreviewText(authoredPair.rendered.capability.markdown)}</textarea>
+                </label>
+                <button class="secondary" type="submit">Save manual .md edit (${sanitizePreviewText(authoredPair.capability.object_id)})</button>
+              </form>`
+            : ''
+        }
+      </details>
+      <details open>
+        <summary><strong>Anti-Pattern .md — ${sanitizePreviewText(authoredPair.antipattern.object_id)}</strong> (SHA-256: <code>${sanitizePreviewText(authoredPair.rendered.antipattern.markdown_sha256)}</code>)</summary>
+        <pre class="markdown-source"><code>${sanitizePreviewText(authoredPair.rendered.antipattern.markdown)}</code></pre>
+        ${
+          activeRun
+            ? `<form method="post" action="/creator/documents/edit-markdown">
+                <input type="hidden" name="runId" value="${escapeHtml(activeRun.run_id)}" />
+                <input type="hidden" name="profileId" value="${escapeHtml(selectedProfileId)}" />
+                <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+                <input type="hidden" name="objectId" value="${escapeHtml(authoredPair.antipattern.object_id)}" />
+                <label>
+                  Edit manually (<code>${sanitizePreviewText(authoredPair.antipattern.object_id)}.md</code>)
+                  <textarea class="md-editor" name="editedMarkdown">${sanitizePreviewText(authoredPair.rendered.antipattern.markdown)}</textarea>
+                </label>
+                <button class="secondary" type="submit">Save manual .md edit (${sanitizePreviewText(authoredPair.antipattern.object_id)})</button>
+              </form>`
+            : ''
+        }
+      </details>
       <h3>Sanitized HTML Preview (Capability &amp; Paired Anti-Pattern)</h3>
       ${authoredPair.rendered.capability.html_preview_fragment}
-      <details>
-        <summary><strong>Inspect standalone Markdown — ${sanitizePreviewText(authoredPair.capability.object_id)}</strong> (SHA-256: <code>${sanitizePreviewText(authoredPair.rendered.capability.markdown_sha256)}</code>)</summary>
-        <pre class="markdown-source"><code>${sanitizePreviewText(authoredPair.rendered.capability.markdown)}</code></pre>
-      </details>
-      ${authoredPair.rendered.antipattern.html_preview_fragment}
-      <details>
-        <summary><strong>Inspect standalone Markdown — ${sanitizePreviewText(authoredPair.antipattern.object_id)}</strong> (SHA-256: <code>${sanitizePreviewText(authoredPair.rendered.antipattern.markdown_sha256)}</code>)</summary>
-        <pre class="markdown-source"><code>${sanitizePreviewText(authoredPair.rendered.antipattern.markdown)}</code></pre>
-      </details>`;
+      ${authoredPair.rendered.antipattern.html_preview_fragment}`;
 
   const body = `
     <section aria-labelledby="docs-controls-heading">
-      <h2 id="docs-controls-heading">3. Documents — Draft authoring &amp; sanitized preview (Review &amp; Targeted Repair)</h2>
+      <h2 id="docs-controls-heading">3. Documents — Draft authoring &amp; sanitized preview (.md Review: Approve / Create New / Edit Manually)</h2>
       ${isSynthetic ? '<p role="status" class="badge">SYNTHETIC TEST PROFILE — NOT APPROVED DOMAIN KNOWLEDGE</p>' : ''}
       <form class="controls" method="get" action="/creator/documents">
         <label>
@@ -666,6 +879,21 @@ export function renderDocumentsPreviewViewHtml(options: {
       <form class="controls" method="post" action="/creator/documents/author">
         <input type="hidden" name="profileId" value="${escapeHtml(selectedProfileId)}" />
         <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
+        <label>
+          Review Cadence
+          <select name="reviewCadence">
+            <option value="FINAL_REVIEW_ONLY"${currentCadence === 'FINAL_REVIEW_ONLY' ? ' selected' : ''}>1. No reviews during creation (final confirmation only)</option>
+            <option value="PAUSE_AFTER_DOMAIN"${currentCadence === 'PAUSE_AFTER_DOMAIN' ? ' selected' : ''}>2. Review after domain is ready</option>
+            <option value="PAUSE_AFTER_PAIR"${currentCadence === 'PAUSE_AFTER_PAIR' ? ' selected' : ''}>3. Review after each pair</option>
+          </select>
+        </label>
+        <label>
+          Output Option
+          <select name="deliveryMode">
+            <option value="STORAGE"${currentDeliveryMode !== 'ZIP' ? ' selected' : ''}>Store documents to KB Storage</option>
+            <option value="ZIP"${currentDeliveryMode === 'ZIP' ? ' selected' : ''}>Create .zip file locally</option>
+          </select>
+        </label>
         <button class="primary" type="submit">Create pair drafts</button>
       </form>
     </section>
@@ -676,7 +904,7 @@ export function renderDocumentsPreviewViewHtml(options: {
     </section>
   `;
 
-  return pageLayout('Documents Preview', 'documents', body);
+  return pageLayout('Documents Preview', 'documents', body, workspaceSnapshot);
 }
 
 export function renderDeliveryViewHtml(options: {
@@ -782,7 +1010,8 @@ export function renderDeliveryViewHtml(options: {
                 <input type="text" name="targetVersion" value="1.0.0" />
               </label>
               <button class="primary" type="submit">Deliver documents</button>
-            </form>`
+            </form>
+            <p><a href="/creator/runs/${encodeURIComponent(activeRun.run_id)}/export.zip"><strong>Download .zip archive of reviewed .md documents</strong></a></p>`
           : ''
       }
       ${reviewVsHubBanner}

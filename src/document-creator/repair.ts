@@ -16,6 +16,7 @@ import type {
   SourceUnit
 } from './contracts.js';
 import { computeSha256 } from './inputs.js';
+import { parseStandaloneDeliveredMarkdown } from './handoff-reader.js';
 import type { ResolvedProfileRuntime } from './profiles.js';
 import { renderDocumentArtifact, type RenderedDocumentArtifact } from './render.js';
 import {
@@ -823,4 +824,95 @@ export async function applyTargetedSectionRepair(
       latencyMs: modelRes.latencyMs
     }
   };
+}
+
+/**
+ * Parses an operator-edited standalone `.md` document and extracts section patches against `currentDoc`,
+ * enforcing safe YAML front matter and verifying that all required section headings remain present.
+ */
+export function extractSectionPatchesFromMarkdownEdit(
+  currentDoc: CreatorDocument,
+  editedMarkdown: string
+): DirectSectionEditPatch[] {
+  const parsed = parseStandaloneDeliveredMarkdown(editedMarkdown);
+  if (parsed.has_unsafe_yaml_tags) {
+    throw new Error(
+      'Edited Markdown contains unsafe YAML tag directives (e.g. !!js/function); rejected.'
+    );
+  }
+  if (
+    parsed.heading_object_id &&
+    parsed.heading_object_id !== currentDoc.object_id
+  ) {
+    throw new Error(
+      `Edited Markdown heading object_id "${parsed.heading_object_id}" does not match target document "${currentDoc.object_id}".`
+    );
+  }
+
+  const parsedBySecId = new Map(parsed.sections.map((s) => [s.section_id, s]));
+  const patches: DirectSectionEditPatch[] = [];
+
+  for (const existingSec of currentDoc.sections) {
+    const editedSec = parsedBySecId.get(existingSec.section_id);
+    if (!editedSec) {
+      if (existingSec.required) {
+        throw new Error(
+          `Edited Markdown is missing required section heading "## ${existingSec.section_id} — ${existingSec.title}".`
+        );
+      }
+      continue;
+    }
+    const proseChanged = editedSec.prose.trim() !== existingSec.prose.trim();
+    const bulletsChanged =
+      JSON.stringify(editedSec.bullets) !== JSON.stringify(existingSec.bullets);
+
+    if (proseChanged || bulletsChanged) {
+      patches.push({
+        section_id: existingSec.section_id,
+        prose: editedSec.prose.trim(),
+        bullets: editedSec.bullets
+      });
+    }
+  }
+
+  if (patches.length === 0 && parsed.sections.length === 0) {
+    throw new Error(
+      `Edited Markdown did not contain any recognizable "## ${currentDoc.object_id}.<CODE> — <Title>" section headings.`
+    );
+  }
+
+  return patches;
+}
+
+export function applyMarkdownHumanEdit(options: {
+  currentDoc: CreatorDocument;
+  fromRevisionId: string;
+  toRevisionId: string;
+  editedMarkdown: string;
+  plannedDoc: PlannedDocument;
+  runtime: ResolvedProfileRuntime;
+  plan: DocumentPlan;
+  sourceBundle: SourcePreparationBundle;
+  now?: () => Date;
+}): {
+  document: CreatorDocument;
+  rendered: RenderedDocumentArtifact;
+  validation: DocumentValidationResult;
+  diff: DocumentRevisionDiff;
+} {
+  const sectionPatches = extractSectionPatchesFromMarkdownEdit(
+    options.currentDoc,
+    options.editedMarkdown
+  );
+  return applyDirectHumanEdit({
+    currentDoc: options.currentDoc,
+    fromRevisionId: options.fromRevisionId,
+    toRevisionId: options.toRevisionId,
+    sectionPatches,
+    plannedDoc: options.plannedDoc,
+    runtime: options.runtime,
+    plan: options.plan,
+    sourceBundle: options.sourceBundle,
+    now: options.now
+  });
 }
