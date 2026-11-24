@@ -906,41 +906,56 @@ assert(availability.runNextTask.next?.taskType === 'PAIR_BOUNDARY', 'eligibility
 
 assert(supportsCustomTemperature({ provider: 'OPENAI', model: 'gpt-4o' }) === true, 'gpt-4o keeps temperature 0');
 assert(
-  supportsCustomTemperature({ provider: 'OPENAI', model: 'gpt-5.6-terra' }) === false,
-  'gpt-5.6-terra must omit temperature'
+  supportsCustomTemperature({ provider: 'OPENAI', model: 'gpt-6.1-terra' }) === false,
+  'gpt-6.1-terra must omit temperature'
 );
 assert(supportsCustomTemperature({ provider: 'OPENAI', model: 'o3-mini' }) === false, 'o-series must omit temperature');
-assert(supportsCustomTemperature({ provider: 'KIMI', model: 'kimi-k3' }) === false, 'Kimi must omit temperature');
-assert(supportsCustomTemperature({ provider: 'META', model: 'muse-spark-1.2' }) === false, 'Muse Spark must omit temperature');
-assert(supportsCustomTemperature({ provider: 'GROK', model: 'grok-4.6' }) === true, 'Grok keeps temperature 0');
 assert(
-  !('temperature' in requestBody({
-    target: { provider: 'OPENAI', model: 'gpt-5.6-terra' },
-    systemPrompt: 'sys',
-    userPrompt: 'user'
-  })),
-  'reasoner body must not send temperature for gpt-5.6-terra'
+  supportsCustomTemperature({
+    provider: 'ANTHROPIC',
+    model: 'claude-sonnet-5-5',
+    reasoningEffort: 'high'
+  }) === false,
+  'Anthropic thinking mode must omit temperature'
+);
+assert(
+  supportsCustomTemperature({
+    provider: 'GROK',
+    model: 'grok-4.7',
+    reasoningEffort: 'low'
+  }) === true,
+  'Grok 4.7 at low reasoning keeps temperature 0'
 );
 assert(
   !('temperature' in requestBody({
-    target: { provider: 'META', model: 'muse-spark-1.2' },
+    target: { provider: 'OPENAI', model: 'gpt-6.1-terra', reasoningEffort: 'high' },
     systemPrompt: 'sys',
     userPrompt: 'user'
   })),
-  'Muse Spark body must not send temperature'
+  'reasoner body must not send temperature for gpt-6.1-terra'
 );
 assert(
-  (requestBody({
-    target: { provider: 'META', model: 'muse-spark-1.2' },
+  !('temperature' in requestBody({
+    target: { provider: 'ANTHROPIC', model: 'claude-sonnet-5-5', reasoningEffort: 'high' },
     systemPrompt: 'sys',
     userPrompt: 'user'
-  }).response_format as { type?: string }).type === 'json_object',
-  'Muse Spark still requests json_object'
+  })),
+  'Anthropic thinking body must not send temperature'
+);
+assert(
+  Array.isArray(
+    requestBody({
+      target: { provider: 'ANTHROPIC', model: 'claude-sonnet-5-5', reasoningEffort: 'high' },
+      systemPrompt: 'sys',
+      userPrompt: 'user'
+    }).messages
+  ),
+  'Anthropic request builds messages array'
 );
 assert(supportsProviderJsonSchema({ provider: 'OPENAI', model: 'gpt-4o' }) === true, 'gpt-4o may send json_schema');
 assert(
-  supportsProviderJsonSchema({ provider: 'OPENAI', model: 'gpt-5.6-terra' }) === false,
-  'gpt-5.6-terra must not send json_schema'
+  supportsProviderJsonSchema({ provider: 'OPENAI', model: 'gpt-6.1-terra' }) === false,
+  'gpt-6.1-terra must not send json_schema'
 );
 assert(
   (
@@ -959,7 +974,7 @@ assert(
 assert(
   (
     requestBody({
-      target: { provider: 'OPENAI', model: 'gpt-5.6-terra' },
+      target: { provider: 'OPENAI', model: 'gpt-6.1-terra' },
       systemPrompt: 'sys',
       userPrompt: 'user',
       structuredOutput: {
@@ -968,16 +983,16 @@ assert(
       }
     }).response_format as { type?: string }
   ).type === 'json_object',
-  'gpt-5.6-terra request keeps json_object'
+  'gpt-6.1-terra request keeps json_object'
 );
-assert(getProviderBaseUrl('META') === 'https://api.meta.ai/v1', 'Meta default base URL is the Model API');
+assert(getProviderBaseUrl('ANTHROPIC') === 'https://api.anthropic.com/v1', 'Anthropic default base URL is the Messages API');
 assert(
   requestBody({
-    target: { provider: 'GROK', model: 'grok-4.6' },
+    target: { provider: 'GROK', model: 'grok-4.7', reasoningEffort: 'low' },
     systemPrompt: 'sys',
     userPrompt: 'user'
   }).temperature === 0,
-  'quality-checker Grok body still uses temperature 0'
+  'quality-checker Grok 4.7 body uses temperature 0 at low reasoning'
 );
 
 const manifest = previewRepoBaselineManifest();

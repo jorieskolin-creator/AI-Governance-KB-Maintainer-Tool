@@ -5,6 +5,18 @@ import { dirname, join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildCreatorApp } from '../../src/document-creator/app.js';
+import {
+  getModelRoute,
+  getProviderBaseUrl,
+  normalizeModelIdentifier,
+  normalizeProviderName
+} from '../../src/ai/model-router.js';
+import {
+  extractMessageContent,
+  requestBody,
+  supportsCustomTemperature
+} from '../../src/ai/provider-client.js';
+import { buildApp } from '../../src/server.js';
 import { parseStandaloneDeliveredMarkdown } from '../../src/document-creator/handoff-reader.js';
 import { createSaePilotReferenceAuthorPort } from '../../src/document-creator/pilot-reference.js';
 import { buildSaeLocalPilotProfile } from '../../src/document-creator/profiles.js';
@@ -512,5 +524,136 @@ describe('DC-08: White-background UI, default last-run status vs two-mode reset,
     expect(finalOnlyBatch.remaining_pair_ids).toEqual([]);
 
     await app.close();
+  });
+
+  it('Verifies OPENAI (gpt-6.1-terra), ANTHROPIC (claude-sonnet-5-5), and GROK/XAI (grok-4.7) role routing, reasoning levels (low for Grok 4.7 QC, high for Workhorse/Reasoner), and direct default server boot without CREATOR_MODE', async () => {
+    const workhorseRoute = getModelRoute('WORKHORSE');
+    expect(workhorseRoute.primary).toMatchObject({
+      provider: 'ANTHROPIC',
+      model: 'claude-sonnet-5-5',
+      reasoningEffort: 'high',
+      thinkingBudgetTokens: 8192,
+      maxOutputTokens: 24576
+    });
+    expect(workhorseRoute.fallback).toMatchObject({
+      provider: 'OPENAI',
+      model: 'gpt-6.1-terra',
+      reasoningEffort: 'high',
+      maxOutputTokens: 24576
+    });
+
+    const qcRoute = getModelRoute('QUALITY_CHECKER');
+    expect(qcRoute.primary).toMatchObject({
+      provider: 'GROK',
+      model: 'grok-4.7',
+      reasoningEffort: 'low',
+      maxOutputTokens: 12288
+    });
+    expect(qcRoute.fallback).toMatchObject({
+      provider: 'OPENAI',
+      model: 'gpt-6.1-terra',
+      reasoningEffort: 'medium',
+      maxOutputTokens: 12288
+    });
+
+    const reasonerRoute = getModelRoute('REASONER');
+    expect(reasonerRoute.primary).toMatchObject({
+      provider: 'OPENAI',
+      model: 'gpt-6.1-terra',
+      reasoningEffort: 'high',
+      maxOutputTokens: 16384
+    });
+    expect(reasonerRoute.fallback).toMatchObject({
+      provider: 'ANTHROPIC',
+      model: 'claude-sonnet-5-5',
+      reasoningEffort: 'high',
+      thinkingBudgetTokens: 8192,
+      maxOutputTokens: 16384
+    });
+
+    // Retired providers (KIMI, MOONSHOT, META) are rejected.
+    expect(() => normalizeProviderName('KIMI')).toThrow(/OPENAI, ANTHROPIC, or GROK\/XAI/);
+    expect(() => normalizeProviderName('MOONSHOT')).toThrow(/OPENAI, ANTHROPIC, or GROK\/XAI/);
+    expect(() => normalizeProviderName('META')).toThrow(/OPENAI, ANTHROPIC, or GROK\/XAI/);
+    expect(normalizeProviderName('XAI')).toBe('GROK');
+    expect(normalizeModelIdentifier('ANTHROPIC', 'Sonnet 5.5')).toBe('claude-sonnet-5-5');
+    expect(normalizeModelIdentifier('OPENAI', 'GPT 6.1 Terra')).toBe('gpt-6.1-terra');
+    expect(normalizeModelIdentifier('GROK', 'Grok 4.7')).toBe('grok-4.7');
+    expect(getProviderBaseUrl('ANTHROPIC')).toBe('https://api.anthropic.com/v1');
+
+    // Verify request payloads per model & role:
+    const sonnetBody = requestBody({
+      target: workhorseRoute.primary,
+      systemPrompt: 'System contract',
+      userPrompt: 'User payload'
+    });
+    expect(sonnetBody).toMatchObject({
+      model: 'claude-sonnet-5-5',
+      max_tokens: 24576,
+      thinking: {
+        type: 'enabled',
+        budget_tokens: 8192
+      }
+    });
+    expect('temperature' in sonnetBody).toBe(false);
+
+    const grokQcBody = requestBody({
+      target: qcRoute.primary,
+      systemPrompt: 'QC contract',
+      userPrompt: 'Draft payload'
+    });
+    expect(grokQcBody).toMatchObject({
+      model: 'grok-4.7',
+      reasoning_effort: 'low',
+      max_tokens: 12288,
+      temperature: 0
+    });
+
+    const terraReasonerBody = requestBody({
+      target: reasonerRoute.primary,
+      systemPrompt: 'Repair contract',
+      userPrompt: 'Section payload'
+    });
+    expect(terraReasonerBody).toMatchObject({
+      model: 'gpt-6.1-terra',
+      reasoning_effort: 'high',
+      max_completion_tokens: 16384,
+      response_format: { type: 'json_object' }
+    });
+    expect('temperature' in terraReasonerBody).toBe(false);
+    expect(supportsCustomTemperature(reasonerRoute.primary)).toBe(false);
+
+    // Anthropic response content extraction skips thinking blocks and returns JSON text:
+    expect(
+      extractMessageContent({
+        content: [
+          { type: 'thinking', thinking: 'Internal step-by-step analysis...' },
+          { type: 'text', text: '{"ok":true}' }
+        ]
+      })
+    ).toBe('{"ok":true}');
+
+    // Verify buildApp() with no CREATOR_MODE boots directly into white-background KB Document Creator UI:
+    const prevMode = process.env.CREATOR_MODE;
+    delete process.env.CREATOR_MODE;
+    try {
+      const defaultServer = await buildApp({
+        allowOpenBrowserAccessWithoutToken: true
+      });
+      const homeRes = await defaultServer.inject({
+        method: 'GET',
+        url: '/creator',
+        headers: { accept: 'text/html' }
+      });
+      expect(homeRes.statusCode).toBe(200);
+      expect(homeRes.body).toContain('KB Document Creator');
+      expect(homeRes.body).toContain('background: #ffffff;');
+      expect(homeRes.body).not.toContain('TASK BOUNDARIES');
+      await defaultServer.close();
+    } finally {
+      if (prevMode !== undefined) {
+        process.env.CREATOR_MODE = prevMode;
+      }
+    }
   });
 });

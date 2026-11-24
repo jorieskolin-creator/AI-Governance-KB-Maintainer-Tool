@@ -19,28 +19,35 @@ import { registerRegisterRoutes } from './register/routes.js';
 export type CreatorApplicationMode = 'legacy' | 'document';
 
 export function resolveCreatorMode(raw = process.env.CREATOR_MODE): CreatorApplicationMode {
-  const normalized = (raw ?? 'legacy').trim().toLowerCase();
-  if (normalized === 'document') return 'document';
-  if (normalized === 'legacy' || normalized === '') return 'legacy';
-  throw new Error(`Unsupported CREATOR_MODE "${String(raw)}"; expected "legacy" or "document".`);
-}
-
-/**
- * Resolves the application mode for the local SAE pilot after DC-07 acceptance (`03-Augment-Tasks.md` DC-07):
- * defaults to `"document"` locally while preserving `"legacy"` as an explicit rollback override and deployed fallback.
- */
-export function resolvePilotCreatorMode(raw = process.env.CREATOR_MODE): CreatorApplicationMode {
   const normalized = (raw ?? 'document').trim().toLowerCase();
   if (normalized === 'document' || normalized === '') return 'document';
   if (normalized === 'legacy') return 'legacy';
   throw new Error(`Unsupported CREATOR_MODE "${String(raw)}"; expected "legacy" or "document".`);
 }
 
-export async function buildApp(modeOverride?: CreatorApplicationMode) {
-  const mode = modeOverride ?? resolveCreatorMode();
+export function resolvePilotCreatorMode(raw = process.env.CREATOR_MODE): CreatorApplicationMode {
+  return resolveCreatorMode(raw);
+}
+
+export interface BuildAppOptions {
+  modeOverride?: CreatorApplicationMode;
+  usePostgresStore?: boolean;
+  allowOpenBrowserAccessWithoutToken?: boolean;
+  allowLiveSourceFetch?: boolean;
+  allowLiveAuthoring?: boolean;
+}
+
+export async function buildApp(
+  modeOrOptions?: CreatorApplicationMode | BuildAppOptions
+) {
+  const opts: BuildAppOptions =
+    typeof modeOrOptions === 'string'
+      ? { modeOverride: modeOrOptions }
+      : modeOrOptions ?? {};
+  const mode = opts.modeOverride ?? resolveCreatorMode();
   if (mode === 'document') {
     const usePostgresStore =
-      process.env.CREATOR_USE_POSTGRES_STORE === 'true' &&
+      (opts.usePostgresStore ?? process.env.CREATOR_USE_POSTGRES_STORE === 'true') &&
       Boolean(process.env.DATABASE_URL?.trim());
     if (usePostgresStore) {
       await runMigrations();
@@ -48,8 +55,14 @@ export async function buildApp(modeOverride?: CreatorApplicationMode) {
     return buildCreatorApp({
       logger: true,
       runStore: usePostgresStore ? new PostgresCreatorRunStore() : undefined,
-      allowLiveSourceFetch: process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH === 'true',
-      allowLiveAuthoring: process.env.CREATOR_ALLOW_LIVE_AUTHORING === 'true'
+      allowOpenBrowserAccessWithoutToken:
+        opts.allowOpenBrowserAccessWithoutToken ?? false,
+      allowLiveSourceFetch:
+        opts.allowLiveSourceFetch ??
+        process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH !== 'false',
+      allowLiveAuthoring:
+        opts.allowLiveAuthoring ??
+        process.env.CREATOR_ALLOW_LIVE_AUTHORING !== 'false'
     });
   }
 
@@ -144,7 +157,13 @@ function isMainEntrypoint(): boolean {
 
 if (isMainEntrypoint()) {
   const mode = resolveCreatorMode();
-  const app = await buildApp(mode);
+  const app = await buildApp({
+    modeOverride: mode,
+    usePostgresStore: Boolean(process.env.DATABASE_URL?.trim()),
+    allowOpenBrowserAccessWithoutToken: true,
+    allowLiveSourceFetch: process.env.CREATOR_ALLOW_LIVE_SOURCE_FETCH !== 'false',
+    allowLiveAuthoring: process.env.CREATOR_ALLOW_LIVE_AUTHORING !== 'false'
+  });
   const port = Number(process.env.PORT ?? 3000);
   await app.listen({ port, host: '0.0.0.0' });
   if (mode === 'legacy' && process.env.DATABASE_URL?.trim()) {
