@@ -29,13 +29,17 @@ export interface ModelExecutionResponse {
   promptHash: string;
 }
 
-function timeoutMs(): number {
+function defaultTimeoutMs(): number {
   const value = Number(process.env.MODEL_REQUEST_TIMEOUT_MS ?? 360000);
   return Number.isFinite(value) && value > 0 ? value : 360000;
 }
 
 function promptHash(systemPrompt: string, userPrompt: string): string {
-  return createHash('sha256').update(systemPrompt).update('\n---\n').update(userPrompt).digest('hex');
+  return createHash('sha256')
+    .update(systemPrompt)
+    .update('\n---\n')
+    .update(userPrompt)
+    .digest('hex');
 }
 
 function unwrapJsonValue(value: unknown, depth = 0): unknown {
@@ -61,19 +65,44 @@ export function parseModelJson(text: string): unknown {
   return unwrapJsonValue(JSON.parse(fenced ?? trimmed));
 }
 
+function isOpenAiReasoningSeries(model: string): boolean {
+  const lower = model.trim().toLowerCase();
+  return (
+    /^o[1-9]/.test(lower) ||
+    lower.startsWith('gpt-5') ||
+    lower.startsWith('gpt-6') ||
+    lower.startsWith('gpt6')
+  );
+}
+
+function isAnthropicThinkingEnabled(target: ModelTarget): boolean {
+  if (target.provider !== 'ANTHROPIC') return false;
+  if (typeof target.thinkingBudgetTokens === 'number' && target.thinkingBudgetTokens > 0) {
+    return true;
+  }
+  return target.reasoningEffort === 'high' || target.reasoningEffort === 'medium';
+}
+
 export function supportsCustomTemperature(target: ModelTarget): boolean {
-  if (target.provider === 'KIMI' || target.provider === 'META') return false;
+  if (target.provider === 'ANTHROPIC') {
+    // Anthropic forbids setting temperature != 1 when extended thinking is enabled.
+    return !isAnthropicThinkingEnabled(target);
+  }
   if (target.provider === 'OPENAI') {
-    const model = target.model.trim().toLowerCase();
-    // GPT-5 / o-series only accept the model default (1). Sending 0 is a 400.
-    if (/^o[1-9]/.test(model) || model.startsWith('gpt-5')) return false;
+    if (isOpenAiReasoningSeries(target.model)) return false;
+    return true;
+  }
+  if (target.provider === 'GROK') {
+    // Grok 4.7 at low/default reasoning supports deterministic temperature: 0;
+    // omit temperature if high reasoning effort is explicitly requested.
+    return target.reasoningEffort !== 'high';
   }
   return true;
 }
 
 export function supportsProviderJsonSchema(target: ModelTarget): boolean {
-  // OpenAI json_schema is documented for GPT-4o-class models. GPT-5 / o-series,
-  // Kimi, Meta, and Grok keep json_object to avoid request-field 400s.
+  // OpenAI json_schema is documented for GPT-4o-class models.
+  // GPT-5 / GPT-6.1 Terra / o-series, Anthropic, and Grok use json_object / prompt contract.
   return target.provider === 'OPENAI' && supportsCustomTemperature(target);
 }
 
@@ -96,7 +125,8 @@ export function providerNativeResponseFormat(
   if (!supportsProviderJsonSchema(target) || !structuredOutput) {
     return { type: 'json_object' };
   }
-  const name = structuredOutput.schemaName.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 64) || 'task_output';
+  const name =
+    structuredOutput.schemaName.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 64) || 'task_output';
   const required = topLevelSchemaFields(structuredOutput.requiredFields);
   const properties: Record<string, Record<string, unknown>> = {};
   for (const field of required) {
@@ -118,23 +148,79 @@ export function providerNativeResponseFormat(
 }
 
 export function requestBody(request: ModelExecutionRequest): Record<string, unknown> {
+  const { target } = request;
+
+  if (target.provider === 'ANTHROPIC') {
+    const thinkingEnabled = isAnthropicThinkingEnabled(target);
+    const budgetTokens = thinkingEnabled
+      ? target.thinkingBudgetTokens ?? (target.reasoningEffort === 'medium' ? 4096 : 8192)
+      : 0;
+    const requestedMaxTokens = target.maxOutputTokens ?? (thinkingEnabled ? 24576 : 16384);
+    const maxTokens = thinkingEnabled
+      ? Math.max(requestedMaxTokens, budgetTokens + 4096)
+      : requestedMaxTokens;
+
+    const anthropicBody: Record<string, unknown> = {
+      model: target.model,
+      max_tokens: maxTokens,
+      system: `${request.systemPrompt}\n\nIMPORTANT: Return ONLY a single valid JSON object matching the requested schema, with no surrounding prose.`,
+      messages: [{ role: 'user', content: request.userPrompt }]
+    };
+
+    if (thinkingEnabled) {
+      anthropicBody.thinking = {
+        type: 'enabled',
+        budget_tokens: budgetTokens
+      };
+    } else {
+      anthropicBody.temperature = 0;
+    }
+
+    return anthropicBody;
+  }
+
   const common: Record<string, unknown> = {
-    model: request.target.model,
+    model: target.model,
     messages: [
       { role: 'system', content: request.systemPrompt },
       { role: 'user', content: request.userPrompt }
     ],
-    response_format: providerNativeResponseFormat(request.target, request.structuredOutput)
+    response_format: providerNativeResponseFormat(target, request.structuredOutput)
   };
 
-  if (supportsCustomTemperature(request.target)) {
+  if (target.reasoningEffort) {
+    common.reasoning_effort = target.reasoningEffort;
+  }
+
+  if (typeof target.maxOutputTokens === 'number' && target.maxOutputTokens > 0) {
+    if (target.provider === 'OPENAI' && isOpenAiReasoningSeries(target.model)) {
+      common.max_completion_tokens = target.maxOutputTokens;
+    } else {
+      common.max_tokens = target.maxOutputTokens;
+    }
+  }
+
+  if (supportsCustomTemperature(target)) {
     common.temperature = 0;
   }
 
   return common;
 }
 
-function extractMessageContent(payload: Record<string, any>): string {
+export function extractMessageContent(payload: Record<string, any>): string {
+  // Anthropic /v1/messages response format (`content: [{ type: 'thinking', ... }, { type: 'text', text: '...' }]`)
+  if (Array.isArray(payload?.content)) {
+    return payload.content
+      .map((part: any) => {
+        if (typeof part === 'string') return part;
+        if (part?.type === 'thinking') return '';
+        if (typeof part?.text === 'string') return part.text;
+        return '';
+      })
+      .join('');
+  }
+
+  // OpenAI / Grok /v1/chat/completions response format
   const message = payload?.choices?.[0]?.message;
   const content = message?.content;
   if (typeof content === 'string') return content;
@@ -152,42 +238,65 @@ function extractMessageContent(payload: Record<string, any>): string {
   return '';
 }
 
-export async function executeModel(request: ModelExecutionRequest): Promise<ModelExecutionResponse> {
+export async function executeModel(
+  request: ModelExecutionRequest
+): Promise<ModelExecutionResponse> {
   const started = Date.now();
   const baseUrl = getProviderBaseUrl(request.target.provider);
   const apiKey = getProviderApiKey(request.target.provider);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs());
+  const effectiveTimeout = request.target.timeoutMs ?? defaultTimeoutMs();
+  const timeout = setTimeout(() => controller.abort(), effectiveTimeout);
 
-  try {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
+  const isAnthropic = request.target.provider === 'ANTHROPIC';
+  const endpointUrl = isAnthropic
+    ? `${baseUrl}/messages`
+    : `${baseUrl}/chat/completions`;
+  const headers: Record<string, string> = isAnthropic
+    ? {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      }
+    : {
         'content-type': 'application/json',
         authorization: `Bearer ${apiKey}`
-      },
+      };
+
+  try {
+    const response = await fetch(endpointUrl, {
+      method: 'POST',
+      headers,
       body: JSON.stringify(requestBody(request)),
       signal: controller.signal
     });
 
     const payload = (await response.json()) as Record<string, any>;
     if (!response.ok) {
-      const message = payload?.error?.message ?? `HTTP ${response.status}`;
+      const message =
+        payload?.error?.message ?? payload?.message ?? `HTTP ${response.status}`;
       throw new Error(`${request.target.provider}/${request.target.model}: ${message}`);
     }
 
     const rawText = extractMessageContent(payload);
     if (!rawText.trim()) {
-      throw new Error(`${request.target.provider}/${request.target.model}: empty model response`);
+      throw new Error(
+        `${request.target.provider}/${request.target.model}: empty model response`
+      );
     }
+
+    const inputTokens =
+      payload?.usage?.prompt_tokens ?? payload?.usage?.input_tokens;
+    const outputTokens =
+      payload?.usage?.completion_tokens ?? payload?.usage?.output_tokens;
 
     return {
       provider: request.target.provider,
       model: request.target.model,
       rawText,
       parsedJson: parseModelJson(rawText),
-      inputTokens: payload?.usage?.prompt_tokens,
-      outputTokens: payload?.usage?.completion_tokens,
+      inputTokens,
+      outputTokens,
       latencyMs: Date.now() - started,
       promptHash: promptHash(request.systemPrompt, request.userPrompt)
     };

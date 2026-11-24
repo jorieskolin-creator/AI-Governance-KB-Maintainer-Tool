@@ -437,8 +437,8 @@ describe('DC-01: KB profiles, input contracts, and deterministic output plan', (
     );
   });
 
-  it('U-01 & M-01 early isolation: enforces server-side authorization on Creator routes and isolates CREATOR_MODE=document from legacy routes', async () => {
-    expect(resolveCreatorMode(undefined)).toBe('legacy');
+  it('U-01 & M-01 early isolation: enforces server-side authorization on Creator routes and defaults to document mode without legacy routes', async () => {
+    expect(resolveCreatorMode(undefined)).toBe('document');
     expect(resolveCreatorMode('document')).toBe('document');
     expect(() => resolveCreatorMode('invalid-mode')).toThrow(/Unsupported CREATOR_MODE/);
 

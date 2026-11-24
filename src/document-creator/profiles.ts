@@ -239,9 +239,9 @@ export async function buildProfileFromInventoryFile(options: {
     },
     limits: {
       max_objects_per_run: 10,
-      provider_concurrency: 2,
-      request_timeout_ms: 120_000,
-      max_tokens_per_run: 64_000,
+      provider_concurrency: 1,
+      request_timeout_ms: 360_000,
+      max_tokens_per_run: 160_000,
       max_repair_iterations: 1,
       max_extract_bytes: 2_097_152
     }

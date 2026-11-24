@@ -516,14 +516,19 @@ describe('DC-07: Complete local SAE pilot path, standalone Markdown extraction, 
       missingInputRuntime.inputSet.readiness.findings.some((f) => f.code === 'INPUT_MISSING')
     ).toBe(true);
 
-    // 4. Pilot mode default vs deployed fallback & rollback:
+    // 4. Default document mode without requiring CREATOR_MODE + active provider env template:
     expect(resolvePilotCreatorMode(undefined)).toBe('document');
     expect(resolvePilotCreatorMode('legacy')).toBe('legacy');
-    expect(resolveCreatorMode(undefined)).toBe('legacy');
+    expect(resolveCreatorMode(undefined)).toBe('document');
     expect(resolveCreatorMode('document')).toBe('document');
 
     const envExample = await readFile('.env.example', 'utf8');
-    expect(envExample).toContain('CREATOR_MODE=document');
-    expect(envExample).toContain('CREATOR_MODE=legacy');
+    expect(envExample).not.toContain('CREATOR_MODE=');
+    expect(envExample).not.toContain('MOONSHOT');
+    expect(envExample).not.toContain('META_API_KEY');
+    expect(envExample).toContain('ANTHROPIC_API_KEY=');
+    expect(envExample).toContain('claude-sonnet-5-5');
+    expect(envExample).toContain('gpt-6.1-terra');
+    expect(envExample).toContain('grok-4.7');
   });
 });

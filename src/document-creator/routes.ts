@@ -90,6 +90,7 @@ export interface CreatorRouteOptions {
   draftStore?: PairDraftMemoryStore;
   runStore?: CreatorRunStorePort;
   workspaceSession?: CreatorWorkspaceSession;
+  allowOpenBrowserAccessWithoutToken?: boolean;
   allowLiveSourceFetch?: boolean;
   fetchPort?: HttpFetchPort;
   resolveAddresses?: HostAddressResolver;
@@ -160,13 +161,24 @@ function resolveExpectedToken(configured: CreatorRouteOptions['operatorToken']):
   return process.env.CREATOR_OPERATOR_TOKEN?.trim() || undefined;
 }
 
-function authorizeCreatorRequest(
+function isBrowserHtmlGetRequest(request: FastifyRequest): boolean {
+  if (request.method !== 'GET') return false;
+  if (request.url.startsWith('/api/')) return false;
+  const accept = request.headers.accept;
+  return typeof accept === 'string' && accept.includes('text/html');
+}
+
+function authorizeCreatorRequestImpl(
   request: FastifyRequest,
   reply: FastifyReply,
-  configuredToken: CreatorRouteOptions['operatorToken']
+  configuredToken: CreatorRouteOptions['operatorToken'],
+  allowOpenBrowserAccess = false
 ): boolean {
   const expected = resolveExpectedToken(configuredToken);
   if (!expected) {
+    if (allowOpenBrowserAccess) {
+      return true;
+    }
     void reply.code(503).send({
       error: 'CREATOR_AUTH_NOT_CONFIGURED',
       message: 'Creator operator authorization is not configured on this server.'
@@ -175,6 +187,10 @@ function authorizeCreatorRequest(
   }
   const provided = extractRequestToken(request, expected);
   if (!provided) {
+    if (allowOpenBrowserAccess && isBrowserHtmlGetRequest(request)) {
+      void reply.redirect('/creator/login');
+      return false;
+    }
     void reply.code(401).header('WWW-Authenticate', 'Bearer realm="kb-document-creator"').send({
       error: 'UNAUTHORIZED',
       message: 'Valid Creator operator authorization is required.'
@@ -229,6 +245,17 @@ function parseSelectionBody(raw: unknown): DocumentPlanSelection {
 }
 
 export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRouteOptions = {}): void {
+  const authorizeCreatorRequest = (
+    request: FastifyRequest,
+    reply: FastifyReply,
+    configuredToken: CreatorRouteOptions['operatorToken']
+  ): boolean =>
+    authorizeCreatorRequestImpl(
+      request,
+      reply,
+      configuredToken,
+      options.allowOpenBrowserAccessWithoutToken === true
+    );
   const workspaceRoot = options.workspaceRoot ?? process.cwd();
   const sourceCache = options.sourceCache ?? new SourcePreparationCache();
   const draftStore = options.draftStore ?? new PairDraftMemoryStore();
@@ -294,7 +321,13 @@ export function registerCreatorRoutes(app: FastifyInstance, options: CreatorRout
     if (options.repairProviderPort) {
       return options.repairProviderPort;
     }
-    return resolveAuthorPort(selectedProfile);
+    if (options.authorProviderPort) {
+      return options.authorProviderPort;
+    }
+    if (options.allowLiveAuthoring || process.env.CREATOR_ALLOW_LIVE_AUTHORING === 'true') {
+      return createLiveAiAuthorPort('REASONER');
+    }
+    return null;
   };
 
   const loadProfiles = async (): Promise<KbProfile[]> => {
