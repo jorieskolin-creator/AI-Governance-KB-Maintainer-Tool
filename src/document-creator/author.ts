@@ -158,6 +158,24 @@ function normalizeModelRole(rawRole: string): ModelRole {
   return 'WORKHORSE';
 }
 
+function hasUsablePairAuthorSections(parsed: unknown): boolean {
+  if (!isObjectRecord(parsed)) return false;
+  const cap = isObjectRecord(parsed.capability) ? parsed.capability : null;
+  const ap = isObjectRecord(parsed.antipattern) ? parsed.antipattern : null;
+  if (!cap || !ap) return false;
+  const capSecs = isObjectRecord(cap.sections)
+    ? Object.keys(cap.sections).length
+    : Array.isArray(cap.sections)
+      ? cap.sections.length
+      : 0;
+  const apSecs = isObjectRecord(ap.sections)
+    ? Object.keys(ap.sections).length
+    : Array.isArray(ap.sections)
+      ? ap.sections.length
+      : 0;
+  return capSecs >= 5 && apSecs >= 5;
+}
+
 /**
  * Reuses `src/ai/` transport (`getModelRoute` + `executeModel`) for explicitly authorized live pilot calls.
  * Never invoked during offline automated tests, which inject a controlled `CreatorAuthorProviderPort`.
@@ -167,10 +185,16 @@ export function createLiveAiAuthorPort(roleName: string): CreatorAuthorProviderP
   return async (request: ModelExecutionRequest): Promise<ModelExecutionResponse> => {
     const route = getModelRoute(role);
     try {
-      return await executeModel({
+      const primaryRes = await executeModel({
         ...request,
         target: route.primary
       });
+      if (role === 'WORKHORSE' && !hasUsablePairAuthorSections(primaryRes.parsedJson)) {
+        throw new Error(
+          `${route.primary.provider}/${route.primary.model} returned JSON without populated capability/antipattern sections; failing over to fallback.`
+        );
+      }
+      return primaryRes;
     } catch (primaryError) {
       if (
         route.fallback.provider === route.primary.provider &&
@@ -303,8 +327,128 @@ export function buildPairAuthorPrompts(options: {
     '6. Silence, missing incidents, zero complaints, or unexecuted discovery NEVER proves anti-pattern absence (TESTED_ABSENT requires an executed, current, scoped absence test).',
     '7. Tactic associations are advisory object-level candidates only (activation_authority = NONE_IN_CREATOR). Never claim tactic selection or completion closes a finding, clears a gate, or activates customer remediation. Do NOT generate separate tactic documents, and do NOT invent absent playbook operationalization fields.',
     '8. State the distinct ownership boundary of this pair relative to domain_sibling_pairs in DEF and REL so adjacent pairs do not overlap. Do NOT copy domain-specific wording or internal handles from the Golden calibration pair into non-Golden documents.',
-    '9. Respect each source passage roles_or_applicability_conditions and jurisdictions, and use canonical state_vocabularies and instrument_metadata (human_authority, applicability, lifecycle_stages) when present.'
+    '9. Respect each source passage roles_or_applicability_conditions and jurisdictions, and use canonical state_vocabularies and instrument_metadata (human_authority, applicability, lifecycle_stages) when present.',
+    '10. REQUIRED JSON OUTPUT SHAPE: Your response MUST be a single JSON object matching required_output_json_schema in the user payload:',
+    '    - "capability": {',
+    '        "sections": { "<SECTION_CODE>": { "prose": "non-empty substantive paragraphs...", "bullets": ["..."], "question_ids": ["..."], "source_unit_ids": ["..."] } } (MUST include ALL required_section_codes: DEF, APP, CRI, EVI, INT, LIF, REL, TAC, SRC, REV with non-empty "prose"),',
+    '        "question_guidance": { "<QUESTION_ID>": "how to assess this question..." },',
+    '        "assessment_boundaries": { "unknown_handling": ["..."], "contradiction_handling": ["..."], "false_positive_guards": ["..."], "prohibited_inferences": ["..."], "human_decision_boundaries": ["..."], "evidence_ceilings": ["..."], "paired_independence_rule": "..." },',
+    '        "sourced_claims": [{ "section_code": "DEF", "statement": "...", "source_unit_ids": ["..."], "applicability_note": "..." }],',
+    '        "methodology_interpretations": [{ "section_code": "INT", "statement": "...", "cognitive_rule_refs": ["..."], "question_ids": ["..."] }],',
+    '        "related_object_links": [{ "target_object_id": "...", "non_inverse_meaning": "..." }],',
+    '        "tactic_refs": [{ "tactic_id": "...", "scope_and_boundary_note": "..." }]',
+    '      }',
+    '    - "antipattern": {',
+    '        "sections": { "<SECTION_CODE>": { "prose": "non-empty substantive paragraphs...", "bullets": ["..."], "question_ids": ["..."], "source_unit_ids": ["..."] } } (MUST include ALL required_section_codes: DEF, IND, CRI, ABS, CON, REL, LIF, TAC, SRC, REV with non-empty "prose"),',
+    '        "question_guidance": { "<QUESTION_ID>": "how to assess this question..." },',
+    '        "assessment_boundaries": { "unknown_handling": ["..."], "contradiction_handling": ["..."], "false_positive_guards": ["..."], "prohibited_inferences": ["..."], "human_decision_boundaries": ["..."], "evidence_ceilings": ["..."], "paired_independence_rule": "...", "failure_mechanism": "non-empty failure mechanism...", "observable_indicators": ["..."], "non_examples": ["..."], "tested_absence_requirements": ["..."] },',
+    '        "sourced_claims": [...], "methodology_interpretations": [...], "related_object_links": [...], "tactic_refs": [...]',
+    '      }'
   ].join('\n');
+
+  const requiredOutputJsonSchema = {
+    capability: {
+      sections: Object.fromEntries(
+        capRequired.map((s) => [
+          s.code,
+          {
+            prose: `REQUIRED non-empty prose for ${capabilityDoc.object_id}.${s.code} (${s.title})`,
+            bullets: ['Optional bullet items'],
+            question_ids: capabilityDoc.questions.map((q) => q.id),
+            source_unit_ids: ['Optional allowed source_unit_id handles from eligible_passages']
+          }
+        ])
+      ),
+      question_guidance: Object.fromEntries(
+        capabilityDoc.questions.map((q) => [q.id, `Assessment guidance for ${q.id}`])
+      ),
+      assessment_boundaries: {
+        unknown_handling: ['Non-empty array of unknown-handling rules'],
+        contradiction_handling: ['Non-empty array of contradiction-handling rules'],
+        false_positive_guards: ['Non-empty array of false-positive guards'],
+        prohibited_inferences: ['Non-empty array of prohibited inferences'],
+        human_decision_boundaries: ['Non-empty array of human governance decision boundaries'],
+        evidence_ceilings: ['Non-empty array of evidence sufficiency ceilings'],
+        paired_independence_rule: `Not satisfying ${capabilityDoc.object_id} does not establish ${capabilityDoc.paired_object_id} presence.`
+      },
+      sourced_claims: [
+        {
+          section_code: 'DEF',
+          statement: 'Claim grounded in an eligible passage from model_ready_packet',
+          source_unit_ids: ['<allowed source_unit_id from eligible_passages>'],
+          applicability_note: 'Scope and applicability note'
+        }
+      ],
+      methodology_interpretations: [
+        {
+          section_code: 'INT',
+          statement: 'Methodology interpretation grounded in cognitive model rules',
+          cognitive_rule_refs: ['<allowed cognitive rule ref>'],
+          question_ids: [capabilityDoc.questions[0]?.id ?? '']
+        }
+      ],
+      related_object_links: [
+        {
+          target_object_id: capabilityDoc.paired_object_id ?? '',
+          non_inverse_meaning: 'Paired anti-pattern assessed independently.'
+        }
+      ],
+      tactic_refs: capabilityDoc.tactic_associations.map((t) => ({
+        tactic_id: t.tactic_id,
+        scope_and_boundary_note:
+          'Advisory remediation candidate only; completion requires reassessment and never closes findings.'
+      }))
+    },
+    antipattern: {
+      sections: Object.fromEntries(
+        apRequired.map((s) => [
+          s.code,
+          {
+            prose: `REQUIRED non-empty prose for ${antipatternDoc.object_id}.${s.code} (${s.title})`,
+            bullets: ['Optional bullet items'],
+            question_ids: antipatternDoc.questions.map((q) => q.id),
+            source_unit_ids: ['Optional allowed source_unit_id handles from eligible_passages']
+          }
+        ])
+      ),
+      question_guidance: Object.fromEntries(
+        antipatternDoc.questions.map((q) => [q.id, `Assessment guidance for ${q.id}`])
+      ),
+      assessment_boundaries: {
+        unknown_handling: [
+          `When ${capabilityDoc.object_id} is NOT_SATISFIED or UNKNOWN and ${antipatternDoc.object_id} evidence is missing, ${antipatternDoc.object_id} remains UNKNOWN rather than CONFIRMED_PRESENT or TESTED_ABSENT.`
+        ],
+        contradiction_handling: ['Non-empty array of contradiction-handling rules'],
+        false_positive_guards: ['Non-empty array of false-positive guards'],
+        prohibited_inferences: [
+          `Do not infer ${antipatternDoc.object_id} absence from silence, zero incidents, or missing complaints.`,
+          `Do not infer ${antipatternDoc.object_id} presence solely from a ${capabilityDoc.object_id} gap.`
+        ],
+        human_decision_boundaries: ['Non-empty array of human governance decision boundaries'],
+        evidence_ceilings: [
+          'TESTED_ABSENT requires a current, executed, scoped absence test; policy statements alone never establish absence.'
+        ],
+        paired_independence_rule: `Capability ${capabilityDoc.object_id} being NOT_SATISFIED does not establish ${antipatternDoc.object_id} presence, and ${antipatternDoc.object_id} UNKNOWN does not satisfy ${capabilityDoc.object_id}.`,
+        failure_mechanism: `How ${antipatternDoc.title} manifests and undermines governance`,
+        observable_indicators: ['Observable indicator 1'],
+        non_examples: ['Bounded non-example 1'],
+        tested_absence_requirements: ['Executed, current, scoped absence test requirement 1']
+      },
+      sourced_claims: [],
+      methodology_interpretations: [],
+      related_object_links: [
+        {
+          target_object_id: antipatternDoc.paired_object_id ?? '',
+          non_inverse_meaning: 'Paired capability assessed independently.'
+        }
+      ],
+      tactic_refs: antipatternDoc.tactic_associations.map((t) => ({
+        tactic_id: t.tactic_id,
+        scope_and_boundary_note:
+          'Advisory remediation candidate only; completion requires reassessment and never closes findings.'
+      }))
+    }
+  };
 
   const userPayload = {
     kb_id: runtime.profile.kb_id,
@@ -319,6 +463,7 @@ export function buildPairAuthorPrompts(options: {
     instrument_metadata: pairBaseline.instrument_metadata ?? null,
     state_vocabularies: runtime.inputSet.cognitive_model?.state_vocabularies ?? null,
     golden_structural_calibration: goldenCalibration,
+    required_output_json_schema: requiredOutputJsonSchema,
     capability_contract: {
       object_id: capabilityDoc.object_id,
       title: capabilityDoc.title,
@@ -495,19 +640,50 @@ function materializeSingleObjectDocument(options: {
     });
   };
 
-  // 1. Normalize sections from model output (keyed by section code or array).
-  const rawSectionsInput = rawRec.sections;
+  // 1. Normalize sections from model output (keyed by section code, array, or top-level section codes).
+  const objectType: 'capability' | 'antipattern' =
+    plannedDoc.object_type === 'antipattern' ? 'antipattern' : 'capability';
+  const requiredSpecs = plannedDoc.required_sections.map(parseSectionSpec);
+  const requiredCodeSet = new Set(requiredSpecs.map((s) => s.code));
+  const catalogSpecs = defaultCatalogForObjectType(objectType);
+  const knownCodes = new Set([
+    ...requiredSpecs.map((s) => s.code),
+    ...catalogSpecs.map((s) => s.code)
+  ]);
+
+  const rawSectionsInput =
+    rawRec.sections ?? rawRec.required_sections ?? rawRec.required_section_codes;
   const rawSectionMap = new Map<string, Record<string, unknown>>();
+
+  const stripObjectPrefix = (rawKey: string): string => {
+    const trimmed = rawKey.trim();
+    if (trimmed.startsWith(`${objectId}.`)) {
+      return trimmed.slice(`${objectId}.`.length);
+    }
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx > 0) {
+      return trimmed.slice(0, colonIdx).trim();
+    }
+    const dashIdx = trimmed.indexOf('—');
+    if (dashIdx > 0) {
+      const left = trimmed.slice(0, dashIdx).trim();
+      return left.startsWith(`${objectId}.`) ? left.slice(`${objectId}.`.length) : left;
+    }
+    return trimmed;
+  };
+
   if (Array.isArray(rawSectionsInput)) {
     for (let i = 0; i < rawSectionsInput.length; i += 1) {
       const entry = rawSectionsInput[i];
       if (!isObjectRecord(entry)) continue;
       const rawCode =
         typeof entry.section_code === 'string'
-          ? entry.section_code.trim()
+          ? stripObjectPrefix(entry.section_code)
           : typeof entry.code === 'string'
-            ? entry.code.trim()
-            : '';
+            ? stripObjectPrefix(entry.code)
+            : typeof entry.id === 'string'
+              ? stripObjectPrefix(entry.id)
+              : '';
       if (typeof entry.section_id === 'string' && entry.section_id !== `${objectId}.${rawCode}`) {
         rejectedAttempts.push({
           code: 'MODEL_OWNED_FIELD_OVERRIDE_REJECTED',
@@ -521,10 +697,12 @@ function materializeSingleObjectDocument(options: {
     }
   } else if (isObjectRecord(rawSectionsInput)) {
     for (const [rawKey, val] of Object.entries(rawSectionsInput)) {
+      const cleanCode = stripObjectPrefix(rawKey);
+      if (typeof val === 'string') {
+        rawSectionMap.set(cleanCode, { prose: val });
+        continue;
+      }
       if (!isObjectRecord(val)) continue;
-      const cleanCode = rawKey.startsWith(`${objectId}.`)
-        ? rawKey.slice(`${objectId}.`.length)
-        : rawKey.trim();
       if (typeof val.section_id === 'string' && val.section_id !== `${objectId}.${cleanCode}`) {
         rejectedAttempts.push({
           code: 'MODEL_OWNED_FIELD_OVERRIDE_REJECTED',
@@ -538,15 +716,18 @@ function materializeSingleObjectDocument(options: {
     }
   }
 
-  const objectType: 'capability' | 'antipattern' =
-    plannedDoc.object_type === 'antipattern' ? 'antipattern' : 'capability';
-  const requiredSpecs = plannedDoc.required_sections.map(parseSectionSpec);
-  const requiredCodeSet = new Set(requiredSpecs.map((s) => s.code));
-  const catalogSpecs = defaultCatalogForObjectType(objectType);
-  const knownCodes = new Set([
-    ...requiredSpecs.map((s) => s.code),
-    ...catalogSpecs.map((s) => s.code)
-  ]);
+  // Fallback: if the model placed section keys (e.g. "DEF", "A2.DEF") directly on the object root when rawSectionMap is empty
+  if (rawSectionMap.size === 0) {
+    for (const [rawKey, val] of Object.entries(rawRec)) {
+      const cleanCode = stripObjectPrefix(rawKey);
+      if (!knownCodes.has(cleanCode)) continue;
+      if (typeof val === 'string') {
+        rawSectionMap.set(cleanCode, { prose: val });
+      } else if (isObjectRecord(val)) {
+        rawSectionMap.set(cleanCode, val);
+      }
+    }
+  }
 
   for (const suppliedCode of rawSectionMap.keys()) {
     if (!knownCodes.has(suppliedCode)) {
@@ -560,6 +741,21 @@ function materializeSingleObjectDocument(options: {
     }
   }
 
+  const extractSectionProse = (draftEntry: Record<string, unknown> | undefined): string => {
+    if (!draftEntry) return '';
+    for (const field of ['prose', 'content', 'text', 'body', 'summary', 'description'] as const) {
+      const candidate = draftEntry[field];
+      if (typeof candidate === 'string' && candidate.trim().length > 0) {
+        return candidate.trim();
+      }
+      if (Array.isArray(candidate)) {
+        const joined = readCleanStringArray(candidate).join(' ');
+        if (joined.length > 0) return joined;
+      }
+    }
+    return '';
+  };
+
   const buildMaterializedSection = (
     code: string,
     title: string,
@@ -567,10 +763,16 @@ function materializeSingleObjectDocument(options: {
     draftEntry: Record<string, unknown> | undefined
   ): CreatorDocumentSection => {
     const sectionId = `${objectId}.${code}`;
-    const prose = typeof draftEntry?.prose === 'string' ? draftEntry.prose.trim() : '';
-    const bullets = readCleanStringArray(draftEntry?.bullets);
-    const rawQRefs = readCleanStringArray(draftEntry?.question_ids);
-    const rawSRefs = readCleanStringArray(draftEntry?.source_unit_ids);
+    const prose = extractSectionProse(draftEntry);
+    const bullets = readCleanStringArray(
+      draftEntry?.bullets ?? draftEntry?.items ?? draftEntry?.key_points
+    );
+    const rawQRefs = readCleanStringArray(
+      draftEntry?.question_ids ?? draftEntry?.question_refs ?? draftEntry?.questions
+    );
+    const rawSRefs = readCleanStringArray(
+      draftEntry?.source_unit_ids ?? draftEntry?.source_unit_refs ?? draftEntry?.sources
+    );
 
     const validQRefs: string[] = [];
     for (const qId of rawQRefs) {
@@ -683,20 +885,80 @@ function materializeSingleObjectDocument(options: {
     };
   });
 
-  // 3. Assessment boundaries.
-  const rawAb = isObjectRecord(rawRec.assessment_boundaries) ? rawRec.assessment_boundaries : {};
+  // 3. Assessment boundaries (preserve explicit empty arrays for negative tests, provide cognitive-model defaults when omitted).
+  const rawAb = isObjectRecord(rawRec.assessment_boundaries)
+    ? rawRec.assessment_boundaries
+    : isObjectRecord(rawRec.boundaries)
+      ? rawRec.boundaries
+      : {};
   const pdfIndicators =
     plannedDoc.object_type === 'capability'
       ? pairBaseline.criteria_from_pdf?.capability_indicators ?? []
       : pairBaseline.criteria_from_pdf?.antipattern_indicators ?? [];
 
+  const readBoundaryArrayWithDefault = (
+    rawVal: unknown,
+    fallbackItems: string[]
+  ): string[] => {
+    if (Array.isArray(rawVal)) {
+      return readCleanStringArray(rawVal);
+    }
+    if (typeof rawVal === 'string' && rawVal.trim().length > 0) {
+      return [rawVal.trim()];
+    }
+    return fallbackItems;
+  };
+
+  const defaultUnknownHandling =
+    plannedDoc.object_type === 'capability'
+      ? [
+          `Missing or incomplete evidence keeps ${objectId} UNKNOWN rather than SATISFIED, without implying paired anti-pattern ${pairedObjectId} is CONFIRMED_PRESENT.`
+        ]
+      : [
+          `When paired capability ${pairedObjectId} is NOT_SATISFIED or UNKNOWN and ${objectId} evidence is unavailable, ${objectId} remains UNKNOWN rather than defaulting to CONFIRMED_PRESENT or TESTED_ABSENT.`
+        ];
+
+  const defaultProhibitedInferences =
+    plannedDoc.object_type === 'capability'
+      ? [
+          `Do not infer ${pairedObjectId} presence merely because ${objectId} is NOT_SATISFIED or UNKNOWN.`,
+          `Do not infer binding legal compliance solely from satisfying ${objectId}.`
+        ]
+      : [
+          `Do not infer ${objectId} absence from silence, zero reported incidents, or missing complaints.`,
+          `Do not infer ${objectId} presence solely from a ${pairedObjectId} capability gap.`
+        ];
+
+  const defaultFailureMechanism =
+    pairBaseline.criteria_from_pdf?.antipattern_definition ??
+    `${plannedDoc.title} undermines governance controls across lifecycle transitions when unverified assumptions replace evidenced evaluation.`;
+
   const assessmentBoundaries: CreatorAssessmentBoundaries = {
-    unknown_handling: readCleanStringArray(rawAb.unknown_handling),
-    contradiction_handling: readCleanStringArray(rawAb.contradiction_handling),
-    false_positive_guards: readCleanStringArray(rawAb.false_positive_guards),
-    prohibited_inferences: readCleanStringArray(rawAb.prohibited_inferences),
-    human_decision_boundaries: readCleanStringArray(rawAb.human_decision_boundaries),
-    evidence_ceilings: readCleanStringArray(rawAb.evidence_ceilings),
+    unknown_handling: readBoundaryArrayWithDefault(
+      rawAb.unknown_handling,
+      defaultUnknownHandling
+    ),
+    contradiction_handling: readBoundaryArrayWithDefault(rawAb.contradiction_handling, [
+      `Preserve conflicting evidence records for ${objectId} without smoothing and escalate to accountable human governance authority.`
+    ]),
+    false_positive_guards: readBoundaryArrayWithDefault(rawAb.false_positive_guards, [
+      `Do not treat unverified policy declarations or activity counts as operational proof for ${objectId}.`
+    ]),
+    prohibited_inferences: readBoundaryArrayWithDefault(
+      rawAb.prohibited_inferences,
+      defaultProhibitedInferences
+    ),
+    human_decision_boundaries: readBoundaryArrayWithDefault(
+      rawAb.human_decision_boundaries,
+      [
+        `Accountable human governance authority retains final decision rights for ${objectId} risk acceptance, progression, and containment.`
+      ]
+    ),
+    evidence_ceilings: readBoundaryArrayWithDefault(rawAb.evidence_ceilings, [
+      plannedDoc.object_type === 'capability'
+        ? `Statements of intent establish DECLARED assurance only; executed trials and operational records are required for TESTED and OPERATIONALLY_OBSERVED assurance.`
+        : `TESTED_ABSENT requires a current, executed, scoped absence test; policy statements alone never establish anti-pattern absence.`
+    ]),
     paired_independence_rule:
       typeof rawAb.paired_independence_rule === 'string' && rawAb.paired_independence_rule.trim().length > 0
         ? rawAb.paired_independence_rule.trim()
@@ -707,14 +969,27 @@ function materializeSingleObjectDocument(options: {
       plannedDoc.object_type === 'antipattern'
         ? typeof rawAb.failure_mechanism === 'string' && rawAb.failure_mechanism.trim().length > 0
           ? rawAb.failure_mechanism.trim()
-          : null
+          : rawAb.failure_mechanism === undefined
+            ? defaultFailureMechanism
+            : null
         : null,
     observable_indicators:
       readCleanStringArray(rawAb.observable_indicators).length > 0
         ? readCleanStringArray(rawAb.observable_indicators)
-        : pdfIndicators,
-    non_examples: readCleanStringArray(rawAb.non_examples),
-    tested_absence_requirements: readCleanStringArray(rawAb.tested_absence_requirements)
+        : pdfIndicators.length > 0
+          ? pdfIndicators
+          : [`Observable indicator for ${objectId}`],
+    non_examples: readBoundaryArrayWithDefault(rawAb.non_examples, [
+      `Controlled, governed implementation with explicit scope boundaries and verified evidence for ${pairedObjectId || objectId}.`
+    ]),
+    tested_absence_requirements: readBoundaryArrayWithDefault(
+      rawAb.tested_absence_requirements,
+      plannedDoc.object_type === 'antipattern'
+        ? [
+            `Execute and document a current, scoped absence test verifying that none of the ${objectId} failure indicators are present in the evaluated system version.`
+          ]
+        : []
+    )
   };
 
   // 4. Sourced claims (S-02, D-02): never fabricate support when passages are missing or handles are invalid.

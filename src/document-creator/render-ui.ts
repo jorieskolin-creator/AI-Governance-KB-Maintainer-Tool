@@ -781,7 +781,7 @@ export function renderDocumentsPreviewViewHtml(options: {
               <input type="hidden" name="pairId" value="${escapeHtml(selectedPairId)}" />
               <button class="secondary" type="submit">Re-run automated semantic QC</button>
             </form>
-            <a href="/creator/runs/${encodeURIComponent(activeRun.run_id)}/export.zip"><strong>Download .zip directly</strong></a>
+            <a href="/creator/runs/${encodeURIComponent(activeRun.run_id)}/export.zip?allowDraft=true"><strong>Download .zip directly</strong></a>
           </div>
         </section>`
       : '';

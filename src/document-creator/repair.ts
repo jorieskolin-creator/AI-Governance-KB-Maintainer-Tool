@@ -631,7 +631,6 @@ export async function applyTargetedSectionRepair(
   const proposedBySectionId = new Map<string, ModelSectionDraft>();
 
   for (const [rawKey, rawVal] of Object.entries(rawSections)) {
-    if (!isObjectRecord(rawVal)) continue;
     const normalizedId = normalizeSectionId(currentDoc.object_id, rawKey);
     if (!allowedScopeSet.has(normalizedId)) {
       // R-02: Ignore out-of-scope section modifications so unrelated sections are 100% preserved!
@@ -644,12 +643,29 @@ export async function applyTargetedSectionRepair(
       });
       continue;
     }
-    if (typeof rawVal.prose === 'string' && rawVal.prose.trim().length > 0) {
+    if (typeof rawVal === 'string' && rawVal.trim().length > 0) {
       proposedBySectionId.set(normalizedId, {
-        prose: rawVal.prose.trim(),
-        bullets: readCleanStringArray(rawVal.bullets),
-        question_ids: readCleanStringArray(rawVal.question_ids),
-        source_unit_ids: readCleanStringArray(rawVal.source_unit_ids)
+        prose: rawVal.trim()
+      });
+      continue;
+    }
+    if (!isObjectRecord(rawVal)) continue;
+    const candidateProse =
+      typeof rawVal.prose === 'string' && rawVal.prose.trim()
+        ? rawVal.prose.trim()
+        : typeof rawVal.content === 'string' && rawVal.content.trim()
+          ? rawVal.content.trim()
+          : typeof rawVal.text === 'string' && rawVal.text.trim()
+            ? rawVal.text.trim()
+            : typeof rawVal.body === 'string' && rawVal.body.trim()
+              ? rawVal.body.trim()
+              : '';
+    if (candidateProse.length > 0) {
+      proposedBySectionId.set(normalizedId, {
+        prose: candidateProse,
+        bullets: readCleanStringArray(rawVal.bullets ?? rawVal.items),
+        question_ids: readCleanStringArray(rawVal.question_ids ?? rawVal.question_refs),
+        source_unit_ids: readCleanStringArray(rawVal.source_unit_ids ?? rawVal.source_unit_refs)
       });
     }
   }
