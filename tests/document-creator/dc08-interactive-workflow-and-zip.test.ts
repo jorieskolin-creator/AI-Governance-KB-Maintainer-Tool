@@ -17,10 +17,19 @@ import {
   supportsCustomTemperature
 } from '../../src/ai/provider-client.js';
 import { buildApp } from '../../src/server.js';
+import { authorPairWorkUnit } from '../../src/document-creator/author.js';
 import { parseStandaloneDeliveredMarkdown } from '../../src/document-creator/handoff-reader.js';
 import { createSaePilotReferenceAuthorPort } from '../../src/document-creator/pilot-reference.js';
-import { buildSaeLocalPilotProfile } from '../../src/document-creator/profiles.js';
-import type { FetchResponseLike, HttpFetchPort } from '../../src/document-creator/sources.js';
+import { createDocumentPlan } from '../../src/document-creator/plan.js';
+import {
+  buildSaeLocalPilotProfile,
+  resolveProfileInputSet
+} from '../../src/document-creator/profiles.js';
+import {
+  prepareSourcesForPlan,
+  type FetchResponseLike,
+  type HttpFetchPort
+} from '../../src/document-creator/sources.js';
 import { InMemoryCreatorRunStore } from '../../src/document-creator/store.js';
 import { readZipArchive } from '../../src/document-creator/zip-export.js';
 
@@ -655,5 +664,84 @@ describe('DC-08: White-background UI, default last-run status vs two-mode reset,
         process.env.CREATOR_MODE = prevMode;
       }
     }
+  });
+
+  it('Embeds required_output_json_schema in the authoring prompt and normalizes string/content/array section shapes and omitted assessment_boundaries from live LLM outputs without REQUIRED_SECTION_MISSING errors', async () => {
+    const { workspace, profile, mockFetch } = await createInteractiveSandbox();
+    const runtime = await resolveProfileInputSet({ workspaceRoot: workspace, profile });
+    const plan = createDocumentPlan(runtime, { mode: 'pair', pair_ids: ['PAIR-A2'] });
+    const sourceBundle = await prepareSourcesForPlan({
+      workspaceRoot: workspace,
+      runtime,
+      plan,
+      enableUrlAcquisition: true,
+      fetchPort: mockFetch
+    });
+
+    let capturedUserPrompt = '';
+    const altShapeResult = await authorPairWorkUnit({
+      runtime,
+      plan,
+      sourceBundle,
+      pairId: 'PAIR-A2',
+      providerPort: async (req) => {
+        capturedUserPrompt = req.userPrompt;
+        const payload = {
+          capability: {
+            sections: {
+              DEF: 'A2 defines AI suitability, proportionality, and value hypothesis independently of model selection (distinct from A1, A3, A4, A5).',
+              APP: { content: 'Applies to all proposed and materially changed AI uses.' },
+              CRI: { text: 'Evaluates A2 across A2-Q1, A2-Q2, and A2-Q3.' },
+              EVI: { body: 'Requires baseline specification, non-AI alternatives comparison, and representative trial records.' },
+              INT: { summary: 'Missing baseline or trial evidence keeps A2 UNKNOWN.' },
+              LIF: 'Applies across all 7 canonical lifecycle stages from qualification to retirement.',
+              REL: 'Paired with AP-A2 under non-inverse assessment semantics.',
+              TAC: 'Associated tactics provide advisory remediation workstreams only without closing findings.',
+              SRC: 'Distinguishes NIST AI RMF clauses from SAE cognitive methodology.',
+              REV: 'Reviewed draft for A2.'
+            }
+          },
+          antipattern: {
+            sections: [
+              { code: 'DEF', content: 'AP-A2 occurs when AI is selected before defining the problem and non-AI baseline.' },
+              { code: 'IND', content: 'Observable indicators include predetermined AI selection and vanity metrics.' },
+              { code: 'CRI', content: 'Evaluates AP-A2 across AP-A2-Q1, AP-A2-Q2, and AP-A2-Q3.' },
+              { code: 'ABS', content: 'TESTED_ABSENT requires an executed, current, scoped absence test; missing evidence stays UNKNOWN.' },
+              { code: 'CON', content: 'Contradictions are preserved and silence never proves absence.' },
+              { code: 'REL', content: 'Paired with A2 under non-inverse semantics.' },
+              { code: 'LIF', content: 'Reassessed whenever assumptions or trial outcomes change.' },
+              { code: 'TAC', content: 'Associated tactics are advisory only without automatic finding closure.' },
+              { code: 'SRC', content: 'Grounds evaluation in NIST AI RMF and SAE tested-absence rules.' },
+              { code: 'REV', content: 'Reviewed draft for AP-A2.' }
+            ]
+          }
+        };
+        return {
+          provider: 'ANTHROPIC',
+          model: 'claude-sonnet-5-5',
+          rawText: JSON.stringify(payload),
+          parsedJson: payload,
+          inputTokens: 1200,
+          outputTokens: 1500,
+          latencyMs: 12,
+          promptHash: sha256(req.userPrompt)
+        };
+      }
+    });
+
+    const parsedUserPayload = JSON.parse(capturedUserPrompt);
+    expect(parsedUserPayload.required_output_json_schema).toBeDefined();
+    expect(parsedUserPayload.required_output_json_schema.capability.sections.DEF).toBeDefined();
+    expect(parsedUserPayload.required_output_json_schema.antipattern.assessment_boundaries).toBeDefined();
+
+    expect(altShapeResult.validation.draft_valid).toBe(true);
+    expect(altShapeResult.validation.capability.findings).toEqual([]);
+    expect(altShapeResult.validation.antipattern.findings).toEqual([]);
+    expect(
+      altShapeResult.capability.sections.every((s) => s.status === 'POPULATED')
+    ).toBe(true);
+    expect(
+      altShapeResult.antipattern.sections.every((s) => s.status === 'POPULATED')
+    ).toBe(true);
   });
 });
