@@ -1,0 +1,271 @@
+{
+  "schema_version": "2.1.0",
+  "id": "AP-E3",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "E",
+  "domain_title": "Human impact, rights, fairness, transparency, oversight and recourse",
+  "object_type": "ANTIPATTERN",
+  "paired_object_id": "E3",
+  "title": "Decorative or incomplete transparency",
+  "canonical_definition": "Generic disclosures exist but do not accurately explain the system or enable informed action.",
+  "applicability": {
+    "default_state": "CONDITIONALLY_APPLICABLE",
+    "conditions": [
+      "All systems with human users or affected persons; content and timing depend on role and legal applicability.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "INTERACTS_WITH_PEOPLE",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "missing-transparency"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "AP-E3-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does the case exhibit Decorative or incomplete transparency: Generic disclosures exist but do not accurately explain the system or enable informed action."
+    },
+    {
+      "id": "AP-E3-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do implemented workflows, data paths or operations show vague AI-may-be-used wording, hidden or mistimed disclosure, or omitted limitations?"
+    },
+    {
+      "id": "AP-E3-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence test presence or scoped absence of Decorative or incomplete transparency, or does it remain unknown?"
+    }
+  ],
+  "antipattern_indicators": [
+    "Vague AI-may-be-used wording",
+    "Disclosure hidden or mistimed",
+    "Consequences and limitations omitted",
+    "Transparency record conflicts with operation"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer verified decorative or incomplete transparency to the accountable authority before progression where the condition materially affects the requested operating scope."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "E3"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MEASURE 2.8 (PDF p. 35), MEASURE 2.9 (PDF p. 35), MEASURE 3.3 (PDF p. 36)",
+      "mapping_rationale": "The voluntary framework provides guidance on examining transparency, contextual explanation and feedback mechanisms. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-HUMAN-E3-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-HUMAN-E3-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-HUMAN-E3-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-HUMAN-AP-E3-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "failure_mechanism": "The declared or implemented control can be unreliable where disclosure uses generic statements without identifying the relevant use or decision impact. The mechanism can have an operational effect where a material notice appears after a decision, omits relevant limitations or leads to an unusable correction route.",
+  "potential_consequences": [
+    "Users and affected people may be unable to recognize AI involvement or respond to errors."
+  ],
+  "atomic_tests": [
+    {
+      "id": "AP-E3-AT-001",
+      "question_id": "AP-E3-Q1",
+      "test": "Compare the effective governance and design records. Determine whether disclosure uses generic statements without identifying the relevant use or decision impact. Identify the system scope and the record that supports each conclusion.",
+      "required_evidence_ids": [
+        "EVD-AP-E3-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-E3-AT-002",
+      "question_id": "AP-E3-Q2",
+      "test": "Trace actual configurations or activity for the assessed release. Determine whether a material notice appears after a decision, omits relevant limitations or leads to an unusable correction route. Attribute each observation to the specific path, time and decision.",
+      "required_evidence_ids": [
+        "EVD-AP-E3-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-E3-AT-003",
+      "question_id": "AP-E3-Q3",
+      "test": "Independently review sample live-equivalent interactions for timing, content, accessibility, comprehension and ability to act. Record whether each material mechanism was tested, the observed result and the scope limitations.",
+      "required_evidence_ids": [
+        "EVD-AP-E3-001",
+        "EVD-AP-E3-002",
+        "EVD-AP-E3-003",
+        "EVD-AP-E3-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-E3-001",
+      "title": "Effective design and governance records",
+      "description": "Review the versioned owner decision and relevant specifications for evidence of whether disclosure uses generic statements without identifying the relevant use or decision impact. Preserve material conflict and applicability context.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-E3-002",
+      "title": "Observed condition or enforcement trace",
+      "description": "Use effective configuration or dated operational records to determine whether a material notice appears after a decision, omits relevant limitations or leads to an unusable correction route. Identify the version, affected paths and period represented.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-E3-003",
+      "title": "Executed scoped comparison",
+      "description": "Provide sample live-equivalent interactions for timing, content, accessibility, comprehension and ability to act. Include current scope, expected results, observed results, retained evidence and unresolved cases.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-E3-004",
+      "title": "Independent review and limitations",
+      "description": "An independent reviewer confirms the assessed version, completeness of coverage, result, limitations and whether a material change requires a new test.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Sample live-equivalent interactions for timing, content, accessibility, comprehension and ability to act.",
+      "Current version and scope with all material failure paths and cases identified.",
+      "Expected and observed results, attributable records, and independent review of coverage and residual limitations."
+    ]
+  },
+  "evidence_rules": {
+    "sufficiency": [
+      "Presence requires affirmative evidence for a material mechanism. Examine whether disclosure uses generic statements without identifying the relevant use or decision impact, and separately check whether a material notice appears after a decision, omits relevant limitations or leads to an unusable correction route. A supported mechanism may establish presence within its evidenced scope.",
+      "Keep unresolved or contradictory mechanisms UNKNOWN and preserve the competing records. Refer material interpretation conflicts to the accountable human authority.",
+      "Use TESTED_ABSENT only after a current, executed, successful and independently verified evaluation covers all material paths within scope. Use sample live-equivalent interactions for timing, content, accessibility, comprehension and ability to act. Reassess when material changes affect that scope."
+    ],
+    "evidence_ceiling": "A document can identify a declared gap. Effective configuration can demonstrate a reachable condition. Observed records support only their covered period and workflow. TESTED_ABSENT requires the complete scoped absence contract.",
+    "false_positive_guards": [
+      "Different notices may suit different audiences where each conveys material information at the right decision point.",
+      "Confirm that the observed or alleged condition applies to the current assessed release and a reachable path."
+    ],
+    "prohibited_inferences": [
+      "A gap or UNKNOWN in E3 alone cannot establish AP-E3 presence.",
+      "Missing complaints, incident silence and unsuccessful collection cannot establish absence.",
+      "Model output and tactic selection grant no authority to approve, close a finding or accept risk."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-AP-E3-001",
+      "assessment_object_id": "AP-E3",
+      "title": "Design or intent shows decorative or incomplete transparency",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-E3-002",
+      "assessment_object_id": "AP-E3",
+      "title": "Implementation or operating evidence shows decorative or incomplete transparency",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-E3-003",
+      "assessment_object_id": "AP-E3",
+      "title": "Presence or tested absence of decorative or incomplete transparency is unresolved within scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
