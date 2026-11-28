@@ -1,0 +1,271 @@
+{
+  "schema_version": "2.1.0",
+  "id": "AP-B4",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "ANTIPATTERN",
+  "paired_object_id": "B4",
+  "title": "Confidentiality leakage through AI channels",
+  "canonical_definition": "Sensitive information enters or leaves models, prompts, logs, caches, retrieval stores or tools without adequate protection.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "When the system can access non-public, customer, employee, regulated or security-sensitive information.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "CRITICAL",
+  "runtime_signals": [
+    "confidentiality-leakage"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "AP-B4-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does the case exhibit Confidentiality leakage through AI channels: Sensitive information enters or leaves models, prompts, logs, caches, retrieval stores or tools without adequate protection."
+    },
+    {
+      "id": "AP-B4-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do implemented workflows, data paths or operations show secrets in prompts, unapproved provider transfers, or outputs revealing source-system content?"
+    },
+    {
+      "id": "AP-B4-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence test presence or scoped absence of Confidentiality leakage through AI channels, or does it remain unknown?"
+    }
+  ],
+  "antipattern_indicators": [
+    "Secrets embedded in prompts",
+    "Unapproved provider receives restricted data",
+    "Shared retrieval store lacks tenant isolation",
+    "Outputs reveal source-system content"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Refer verified confidentiality leakage through ai channels to the accountable authority before progression where the condition materially affects the requested operating scope."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "B4"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MEASURE 2.7 (PDF p. 35), MEASURE 2.10 (PDF p. 35), MAP 4.2 (PDF p. 32)",
+      "mapping_rationale": "The voluntary framework provides guidance on evaluating security and privacy risks and documenting controls on third-party components. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-DATA-B4-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B4-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B4-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-AP-B4-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "failure_mechanism": "The declared or implemented control can be unreliable where sensitive information paths lack defined recipients or controls and are governed only by policy. The mechanism can have an operational effect where verified evidence shows sensitive content entered an unauthorized model, tool, log, tenant view, cache or output.",
+  "potential_consequences": [
+    "Sensitive information may reach recipients outside the authorized information boundary."
+  ],
+  "atomic_tests": [
+    {
+      "id": "AP-B4-AT-001",
+      "question_id": "AP-B4-Q1",
+      "test": "Compare the effective governance and design records. Determine whether sensitive information paths lack defined recipients or controls and are governed only by policy. Identify the system scope and the record that supports each conclusion.",
+      "required_evidence_ids": [
+        "EVD-AP-B4-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B4-AT-002",
+      "question_id": "AP-B4-Q2",
+      "test": "Trace actual configurations or activity for the assessed release. Determine whether verified evidence shows sensitive content entered an unauthorized model, tool, log, tenant view, cache or output. Attribute each observation to the specific path, time and decision.",
+      "required_evidence_ids": [
+        "EVD-AP-B4-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-B4-AT-003",
+      "question_id": "AP-B4-Q3",
+      "test": "Independently review scoped defensive verification of authorized and denied paths using controlled non-sensitive markers across inputs, storage, providers and outputs. Record whether each material mechanism was tested, the observed result and the scope limitations.",
+      "required_evidence_ids": [
+        "EVD-AP-B4-001",
+        "EVD-AP-B4-002",
+        "EVD-AP-B4-003",
+        "EVD-AP-B4-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-B4-001",
+      "title": "Effective design and governance records",
+      "description": "Review the versioned owner decision and relevant specifications for evidence of whether sensitive information paths lack defined recipients or controls and are governed only by policy. Preserve material conflict and applicability context.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-B4-002",
+      "title": "Observed condition or enforcement trace",
+      "description": "Use effective configuration or dated operational records to determine whether verified evidence shows sensitive content entered an unauthorized model, tool, log, tenant view, cache or output. Identify the version, affected paths and period represented.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-B4-003",
+      "title": "Executed scoped comparison",
+      "description": "Provide scoped defensive verification of authorized and denied paths using controlled non-sensitive markers across inputs, storage, providers and outputs. Include current scope, expected results, observed results, retained evidence and unresolved cases.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-B4-004",
+      "title": "Independent review and limitations",
+      "description": "An independent reviewer confirms the assessed version, completeness of coverage, result, limitations and whether a material change requires a new test.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Scoped defensive verification of authorized and denied paths using controlled non-sensitive markers across inputs, storage, providers and outputs.",
+      "Current version and scope with all material failure paths and cases identified.",
+      "Expected and observed results, attributable records, and independent review of coverage and residual limitations."
+    ]
+  },
+  "evidence_rules": {
+    "sufficiency": [
+      "Presence requires affirmative evidence for a material mechanism. Examine whether sensitive information paths lack defined recipients or controls and are governed only by policy, and separately check whether verified evidence shows sensitive content entered an unauthorized model, tool, log, tenant view, cache or output. A supported mechanism may establish presence within its evidenced scope.",
+      "Keep unresolved or contradictory mechanisms UNKNOWN and preserve the competing records. Refer material interpretation conflicts to the accountable human authority.",
+      "Use TESTED_ABSENT only after a current, executed, successful and independently verified evaluation covers all material paths within scope. Use scoped defensive verification of authorized and denied paths using controlled non-sensitive markers across inputs, storage, providers and outputs. Reassess when material changes affect that scope."
+    ],
+    "evidence_ceiling": "A document can identify a declared gap. Effective configuration can demonstrate a reachable condition. Observed records support only their covered period and workflow. TESTED_ABSENT requires the complete scoped absence contract.",
+    "false_positive_guards": [
+      "Permitted disclosure requires an evidenced recipient and authorized purpose within the classified boundary.",
+      "Confirm that the observed or alleged condition applies to the current assessed release and a reachable path."
+    ],
+    "prohibited_inferences": [
+      "A gap or UNKNOWN in B4 alone cannot establish AP-B4 presence.",
+      "Missing complaints, incident silence and unsuccessful collection cannot establish absence.",
+      "Model output and tactic selection grant no authority to approve, close a finding or accept risk."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-AP-B4-001",
+      "assessment_object_id": "AP-B4",
+      "title": "Design or intent shows confidentiality leakage through ai channels",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-B4-002",
+      "assessment_object_id": "AP-B4",
+      "title": "Implementation or operating evidence shows confidentiality leakage through ai channels",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-B4-003",
+      "assessment_object_id": "AP-B4",
+      "title": "Presence or tested absence of confidentiality leakage through ai channels is unresolved within scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
