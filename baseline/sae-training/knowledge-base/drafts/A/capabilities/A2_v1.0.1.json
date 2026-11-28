@@ -1,0 +1,390 @@
+{
+  "schema_version": "2.1.0",
+  "id": "A2",
+  "version": "1.0.1",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-A2",
+  "title": "AI suitability, proportionality and value hypothesis",
+  "canonical_definition": "A2 evaluates whether AI is suitable and proportionate for a defined problem: the organization records the current process, affected users, and a measurable improvement over a non-AI baseline before committing to an AI approach, and compares expected benefit with total cost, operating effort, human impact, and risk.",
+  "governance_purpose": "Ensure AI investment and use are justified by a specific, measurable and falsifiable value case that remains proportionate to alternatives, total cost, operational burden, human impact and risk.",
+  "distinct_claim": "A1 defines the intended use boundary; A2 evaluates whether the AI intervention is justified and proportionate within that boundary; A5 governs the lifecycle transition decision informed by A2 evidence; paired AP-A2 is evaluated independently.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "Applies to all proposed and materially changed AI uses across internal, procured, and embedded capabilities; assessment depth scales with autonomy, affected-person exposure, cost, operational dependency, and reversibility.",
+      "No blanket exemption applies merely because an AI feature is embedded, pre-licensed, low-cost, or labeled experimental.",
+      "ISOLATED_SANDBOX and CONTROLLED_PILOT are operating-boundary environments, not lifecycle stages; progression from pilot to production requires evidenced value and proportionality verification."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_authority": "INTERNAL_PROCESS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "value",
+    "success-metric",
+    "non-ai-baseline"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "A2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Is the problem, desired outcome and measurable value hypothesis defined independently of the AI solution?"
+    },
+    {
+      "id": "A2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Has the chosen AI approach been compared with simpler alternatives and implemented with explicit cost-risk trade-offs?"
+    },
+    {
+      "id": "A2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do representative trials show sufficient value and feasibility to justify progression, with stop criteria applied?"
+    }
+  ],
+  "atomic_subcriteria": [
+    {
+      "id": "A2-SC-001",
+      "question_id": "A2-Q1",
+      "criterion": "The underlying problem, affected process or decision and desired outcome are defined independently of AI technology, vendor or model capability.",
+      "required_evidence_ids": [
+        "EVD-A2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-002",
+      "question_id": "A2-Q1",
+      "criterion": "A current technology-neutral baseline and relevant counterfactual define what improvement must be demonstrated.",
+      "required_evidence_ids": [
+        "EVD-A2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-003",
+      "question_id": "A2-Q1",
+      "criterion": "The value hypothesis uses outcome measures, owners, thresholds, time horizons and falsification conditions rather than activity or model metrics alone.",
+      "required_evidence_ids": [
+        "EVD-A2-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-004",
+      "question_id": "A2-Q2",
+      "criterion": "Feasible non-AI, deterministic, process, data, human-service and no-change alternatives are compared using explicit criteria.",
+      "required_evidence_ids": [
+        "EVD-A2-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A2-SC-005",
+      "question_id": "A2-Q2",
+      "criterion": "The selected approach is proportionate after considering benefit, consequence, uncertainty, rights and human impact, total cost, complexity and control burden.",
+      "required_evidence_ids": [
+        "EVD-A2-003",
+        "EVD-A2-004",
+        "EVD-A2-005"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A2-SC-006",
+      "question_id": "A2-Q2",
+      "criterion": "Implementation includes measurable budgets, resource and human-work controls, ownership and traceability for assumptions used in the value case.",
+      "required_evidence_ids": [
+        "EVD-A2-004"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-007",
+      "question_id": "A2-Q3",
+      "criterion": "Representative comparative trials test the current solution against the approved baseline and alternatives using pre-defined metrics and thresholds.",
+      "required_evidence_ids": [
+        "EVD-A2-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A2-SC-008",
+      "question_id": "A2-Q3",
+      "criterion": "Continuation, stop, constraint and scale criteria are applied to the complete evidence, including negative, subgroup, cost and risk results.",
+      "required_evidence_ids": [
+        "EVD-A2-008"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "A2-SC-009",
+      "question_id": "A2-Q3",
+      "criterion": "Operational evidence monitors realized value, cost, quality, human workload and impact and triggers requalification after material deviation or change.",
+      "required_evidence_ids": [
+        "EVD-A2-007",
+        "EVD-A2-008"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "capability_indicators": [
+    "Non-AI baseline exists",
+    "Value metrics and owners are named",
+    "Cost and operational consequences are considered",
+    "Continuation and stop criteria are enforced"
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-A2-001",
+      "title": "Technology-neutral problem and outcome baseline",
+      "description": "The organization has defined the problem, affected process, desired outcome and current baseline independently of a predetermined AI solution. Acceptance: Defines the current process or decision, users and affected persons, baseline performance, constraints and desired outcome. Uses language that remains meaningful if AI is removed from the proposed solution. Boundary: A use-case title, vendor proposal or model capability statement does not establish a problem baseline.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A2-002",
+      "title": "Measurable value hypothesis and ownership record",
+      "description": "Expected benefit is expressed as measurable outcomes with owners, thresholds, time horizons and causal assumptions. Acceptance: Separates business, user, societal and operational outcomes from activity, usage and model metrics. Identifies baseline, target, measurement method, owner, decision date and conditions that would falsify the hypothesis. Boundary: Adoption, prompt volume, feature delivery or benchmark improvement alone does not establish realized value.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A2-003",
+      "title": "Alternative and proportionality assessment",
+      "description": "The selected AI approach has been compared with feasible simpler, non-AI and lower-risk alternatives using explicit decision criteria. Acceptance: Considers process change, rules, deterministic automation, analytics, data improvement, human service and no-change options where feasible. Explains why the selected mechanism is proportionate to expected benefit, consequence, uncertainty, cost and control burden. Boundary: A vendor shortlist or comparison between AI models is not a complete alternatives assessment.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "EVD-A2-004",
+      "title": "Total cost and resource baseline",
+      "description": "Build, buy, integration, evaluation, security, governance, operations, monitoring, human review, incident and exit costs are identified and bounded. Acceptance: Includes variable usage, model/provider, data, infrastructure, people, assurance and change costs for the target scale. Records assumptions, sensitivity ranges, budget owner and cost thresholds. Boundary: Prototype API cost or licence price alone cannot establish total cost of ownership.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A2-005",
+      "title": "Risk, impact and control-burden assessment",
+      "description": "Expected benefit is evaluated alongside foreseeable harms, uncertainty, dependency, human impact and required governance controls. Acceptance: Uses the same system, scope, lifecycle and affected-person boundary as the value hypothesis. Identifies whether required controls or human work materially reduce the proposed benefit or feasibility. Boundary: A generic risk register or low internal risk score does not establish proportionality.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A2-006",
+      "title": "Representative comparative trial results",
+      "description": "Executed evaluation compares the current AI solution with the approved baseline and relevant alternatives under representative conditions. Acceptance: Defines versions, samples, users, operating conditions, metrics, thresholds, costs, failures and confidence limitations before interpreting results. Includes negative, neutral and subgroup results and does not exclude material failure modes. Boundary: A demonstration, benchmark, test plan or selected successful cases cannot establish comparative value.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A2-007",
+      "title": "Operational benefit and economics records",
+      "description": "Current operation demonstrates whether expected value, cost, quality and human workload are realized within the approved boundary. Acceptance: Covers representative time periods, user groups, volumes, exception handling, human review, rework and downstream consequences. Reconciles realized outcomes and costs with the approved value hypothesis and baseline. Boundary: High usage or positive feedback without outcome and cost evidence does not establish realized value.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A2-008",
+      "title": "Continuation, stop and requalification decision record",
+      "description": "Progression, continuation, constraint or termination follows pre-defined criteria and an attributable decision. Acceptance: Records evidence considered, threshold result, dissent, conditions, expiry, accountable authority and next reassessment point. Prevents sunk cost, schedule pressure or technical availability from silently overriding stop criteria. Boundary: A backlog decision, funding renewal or deployment event is not sufficient without the decision basis.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Compare outcomes on the same scope and workload against a dated non-AI baseline with named owners and pre-agreed thresholds.",
+      "Record UNKNOWN for the affected question when the baseline, alternatives analysis, or outcome evidence is missing or materially contradictory; record NOT_SATISFIED where verified evidence establishes a shortfall.",
+      "Use the current solution, model/provider version, operating boundary, scale and cost assumptions.",
+      "Repeat comparative assessment after material change or threshold breach.",
+      "Operational value evidence must cover a representative period and remain within the decision record expiry."
+    ],
+    "evidence_ceiling": "Problem and value-hypothesis statements establish DECLARED assurance only; alternatives matrices and cost models establish IMPLEMENTED design analysis, not TESTED effectiveness; executed representative trials establish TESTED assurance only for the evaluated system version and operating context.",
+    "false_positive_guards": [
+      "Do not treat model benchmark scores, token/query volume, or slide-deck ROI projections as evidence of realized value or proportionality.",
+      "Do not treat a comparison solely between different LLM vendors as a technology-neutral alternatives assessment.",
+      "Do not treat the presence of AI as disproportionate solely because a simpler conceptual alternative exists; assess feasibility, outcome and total constraint.",
+      "Do not treat a high-cost solution as disproportionate when evidence shows commensurate value and controlled risk.",
+      "Do not treat early uncertainty as value theatre when the experiment has explicit falsifiable hypotheses, bounded exposure and enforced stop criteria.",
+      "Do not treat low adoption as failure without determining whether adoption is a valid causal requirement for the target outcome."
+    ],
+    "prohibited_inferences": [
+      "Do not infer AP-A2 presence solely because A2 is NOT_SATISFIED or UNKNOWN.",
+      "Do not infer legal or regulatory compliance from satisfying A2.",
+      "Do not infer production value from an unconstrained prototype demo.",
+      "Do not infer value from model quality, user engagement, press visibility, innovation activity or delivery completion alone.",
+      "Do not infer proportionality from executive sponsorship, provider reputation or budget approval.",
+      "Do not infer that AI is required because the current manual process is weak.",
+      "Do not infer production readiness from a successful demonstration or average result that excludes material costs, harms or failure conditions."
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block consequential deployment when the problem, value hypothesis or proportionality rationale is materially undefined.",
+      "Block progression when representative evidence fails pre-defined minimum value, feasibility or risk thresholds and no formally approved constrained experiment remains.",
+      "Constrain operation when benefit, cost or human-impact evidence is materially incomplete for the proposed scale.",
+      "Stop or requalify continued use when approved stop criteria are met or the decision record has expired."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_BUSINESS_FINANCE_AND_RISK_OWNER"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-A2",
+    "A1",
+    "A4",
+    "A5",
+    "C2",
+    "D2",
+    "F4"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1 (January 2023) MAP 1.3 & MAP 1.4 (p. 31); MAP 3, MAP 3.1 & MAP 3.2 (p. 32); MANAGE 1.1, MANAGE 2.1, MANAGE 2.2 & MANAGE 2.4 (p. 37)",
+      "mapping_rationale": "Voluntary risk-management guidance supporting organizational AI goals, business-value definition and re-evaluation, comparative benefit/cost examination against benchmarks, consideration of viable non-AI alternatives, and continuation/disengagement decisions.",
+      "last_verified_on": "2026-08-18"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-A2-001",
+      "assessment_object_id": "A2",
+      "title": "Problem, desired outcome or value hypothesis is not defined independently of the AI solution",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-A2-002",
+      "assessment_object_id": "A2",
+      "title": "Feasible alternatives and proportionality have not been credibly assessed",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-A2-003",
+      "assessment_object_id": "A2",
+      "title": "Total cost, resource demand, human workload or control burden is materially incomplete",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-A2-004",
+      "assessment_object_id": "A2",
+      "title": "Representative comparative evidence does not demonstrate sufficient value or feasibility",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-A2-005",
+      "assessment_object_id": "A2",
+      "title": "Continuation, stop or value-realization controls are not enforced",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED",
+        "UNKNOWN"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-PURPOSE-A2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A2-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A2-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ]
+}

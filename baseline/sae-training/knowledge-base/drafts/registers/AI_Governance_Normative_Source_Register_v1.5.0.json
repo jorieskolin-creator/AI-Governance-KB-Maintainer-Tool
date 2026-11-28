@@ -1,0 +1,670 @@
+{
+  "schema_version": "2.1.0",
+  "register_type": "NORMATIVE_SOURCE_REGISTER",
+  "version": "1.5.0",
+  "release_status": "APPROVED",
+  "approval_record": {
+    "approved_by_role": "AI_GOVERNANCE_OWNER",
+    "approved_on": "2026-08-18",
+    "approval_scope": "GLOBAL_SOURCE_IDENTITY_AND_DOMAIN_AUTHORITY_A_F_ENGINE_2_1_0",
+    "approved_version": "1.5.0",
+    "supersedes_version": "1.4.0"
+  },
+  "sources": [
+    {
+      "source_id": "SRC-EC-AIA-PROHIBITED-GUIDELINES-2025",
+      "title": "Commission Guidelines on prohibited artificial intelligence practices established by Regulation (EU) 2024/1689 (AI Act)",
+      "official_url": "https://digital-strategy.ec.europa.eu/en/library/commission-publishes-guidelines-prohibited-artificial-intelligence-ai-practices-defined-ai-act",
+      "authority_type": "REGULATORY_GUIDANCE",
+      "jurisdiction": [
+        "EU"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-EDPB-OPINION-28-2024",
+      "title": "EDPB Opinion 28/2024 on certain data protection aspects related to the processing of personal data in the context of AI models",
+      "official_url": "https://www.edpb.europa.eu/documents/opinion-of-the-board-art-64/opinion-282024-on-certain-data-protection-aspects-related-to_en",
+      "authority_type": "REGULATORY_GUIDANCE",
+      "jurisdiction": [
+        "EU"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-ENISA-AI-CYBER",
+      "title": "ENISA — Multilayer Framework for Good Cybersecurity Practices for AI",
+      "official_url": "https://www.enisa.europa.eu/publications/multilayer-framework-for-good-cybersecurity-practices-for-ai",
+      "authority_type": "REGULATORY_GUIDANCE",
+      "jurisdiction": [
+        "EU_REFERENCE",
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-ENISA-FRONTIER-AI-2026",
+      "title": "ENISA’s View on Cybersecurity in the Frontier AI Era",
+      "official_url": "https://www.enisa.europa.eu/publications/enisas-view-on-cybersecurity-in-the-frontier-ai-era",
+      "authority_type": "REGULATORY_GUIDANCE",
+      "jurisdiction": [
+        "EU_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-EU-ACCESSIBILITY-2019-882",
+      "title": "Directive (EU) 2019/882 — European Accessibility Act",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2019/882/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-AIA",
+      "title": "Regulation (EU) 2024/1689 — Artificial Intelligence Act",
+      "official_url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-AIA-2024-1689",
+      "title": "Regulation (EU) 2024/1689 - Artificial Intelligence Act (Intake Questionnaire baseline reference)",
+      "official_url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-AIA-ARTICLE-50-GUIDANCE-2026",
+      "title": "Commission guidelines on transparency obligations under Article 50",
+      "official_url": "https://digital-strategy.ec.europa.eu/en/library/guidelines-transparency-obligations-providers-and-deployers-ai-systems",
+      "authority_type": "REGULATORY_GUIDANCE",
+      "jurisdiction": [
+        "EU"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-AIA-HIGH-RISK-DRAFT-GUIDANCE-2026",
+      "title": "Draft Commission guidelines on classification of high-risk AI systems",
+      "official_url": "https://digital-strategy.ec.europa.eu/en/library/draft-commission-guidelines-classification-high-risk-ai-systems",
+      "authority_type": "REGULATORY_GUIDANCE",
+      "jurisdiction": [
+        "EU"
+      ],
+      "effective_status": "DRAFT_GUIDANCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "REVIEW_REQUIRED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-AIA-OMNIBUS-2026",
+      "title": "Regulation (EU) 2026/1744 — Digital Omnibus on AI",
+      "official_url": "https://eur-lex.europa.eu/eli/reg/2026/1744/oj/eng",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-CHARTER",
+      "title": "Charter of Fundamental Rights of the European Union",
+      "official_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:12012P/TXT",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-COPYRIGHT-DSM-2019-790",
+      "title": "Directive (EU) 2019/790 — Copyright in the Digital Single Market",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2019/790/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-CRA-2024-2847",
+      "title": "Regulation (EU) 2024/2847 — Cyber Resilience Act",
+      "official_url": "https://eur-lex.europa.eu/eli/reg/2024/2847/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-DATA-ACT-2023-2854",
+      "title": "Regulation (EU) 2023/2854 — Data Act",
+      "official_url": "https://eur-lex.europa.eu/eli/reg/2023/2854/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-DSA-2022-2065",
+      "title": "Regulation (EU) 2022/2065 — Digital Services Act",
+      "official_url": "https://eur-lex.europa.eu/eli/reg/2022/2065/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-EPRIVACY-2002-58",
+      "title": "Directive 2002/58/EC — ePrivacy Directive (as amended)",
+      "official_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32002L0058",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-EU-EQUALITY-2000-43",
+      "title": "Council Directive 2000/43/EC — Racial Equality Directive",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2000/43/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-EQUALITY-2000-78",
+      "title": "Council Directive 2000/78/EC — Employment Equality Directive",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2000/78/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-GDPR-2016-679",
+      "title": "Regulation (EU) 2016/679 — General Data Protection Regulation (GDPR)",
+      "official_url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-EU-LED-2016-680",
+      "title": "Directive (EU) 2016/680 — Law Enforcement Data Protection Directive",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2016/680/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-EU-NIS2-2022-2555",
+      "title": "Directive (EU) 2022/2555 — NIS 2 Directive",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2022/2555/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-PLD-2024-2853",
+      "title": "Directive (EU) 2024/2853 — Liability for defective products (revised PLD)",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2024/2853/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-RADIO-2014-53",
+      "title": "Directive 2014/53/EU — Radio Equipment Directive",
+      "official_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014L0053",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-EU-TRADE-SECRETS-2016-943",
+      "title": "Directive (EU) 2016/943 — Protection of trade secrets",
+      "official_url": "https://eur-lex.europa.eu/eli/dir/2016/943/oj",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "EU",
+        "EEA_CONDITIONAL"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-FI-ADMIN-LAW-434-2003",
+      "title": "Hallintolaki (434/2003) — Administrative Procedure Act (esp. Chapter 8b)",
+      "official_url": "https://www.finlex.fi/fi/lainsaadanto/2003/434",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "FI"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-FI-AI-SUPERVISION-1377-2025",
+      "title": "Laki eräiden tekoälyjärjestelmien valvonnasta (1377/2025)",
+      "official_url": "https://www.finlex.fi/fi/lainsaadanto/2025/1377",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "FI"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-FI-COPYRIGHT-404-1961",
+      "title": "Tekijänoikeuslaki (404/1961) — Finnish Copyright Act (as amended)",
+      "official_url": "https://www.finlex.fi/fi/lainsaadanto/1961/404",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "FI"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-FI-DPA-1050-2018",
+      "title": "Tietosuojalaki (1050/2018) — Finnish Data Protection Act",
+      "official_url": "https://www.finlex.fi/fi/lainsaadanto/2018/1050",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "FI"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-FI-INFORMATION-MGMT-906-2019",
+      "title": "Tiedonhallintalaki (906/2019) — Act on Information Management in Public Administration",
+      "official_url": "https://www.finlex.fi/fi/lainsaadanto/2019/906",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "FI"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-FI-NON-DISCRIM-1325-2014",
+      "title": "Yhdenvertaisuuslaki (1325/2014) — Finnish Non-Discrimination Act",
+      "official_url": "https://www.finlex.fi/fi/lainsaadanto/2014/1325",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "FI"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "LEGAL"
+    },
+    {
+      "source_id": "SRC-FI-PRIVACY-WORK-759-2004",
+      "title": "Laki yksityisyyden suojasta työelämässä (759/2004)",
+      "official_url": "https://www.finlex.fi/fi/lainsaadanto/2004/759",
+      "authority_type": "BINDING_LAW",
+      "jurisdiction": [
+        "FI"
+      ],
+      "effective_status": "IN_FORCE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-INTERNAL-AI-GOVERNANCE-GUIDELINE-2026",
+      "title": "Internal AI Governance Lifecycle and Decision Process",
+      "official_url": "internal://organization/ai-governance-process",
+      "authority_type": "INTERNAL_PROCESS",
+      "jurisdiction": [
+        "INTERNAL"
+      ],
+      "effective_status": "ACTIVE",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-ISO-23894-2023",
+      "title": "ISO/IEC 23894:2023 — Information technology — Artificial intelligence — Guidance on risk management",
+      "official_url": "https://www.iso.org/standard/77304",
+      "authority_type": "STANDARD",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-ISO-27001-2022",
+      "title": "ISO/IEC 27001:2022 — Information security, cybersecurity and privacy protection — Information security management systems — Requirements",
+      "official_url": "https://www.iso.org/standard/27001",
+      "authority_type": "STANDARD",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-ISO-27036-3-2023",
+      "title": "ISO/IEC 27036-3:2023 — Cybersecurity — Supplier relationships — Part 3: Guidelines for hardware, software, and services supply chain security",
+      "official_url": "https://www.iso.org/standard/82890.html",
+      "authority_type": "STANDARD",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-ISO-27701-2025",
+      "title": "ISO/IEC 27701:2025 — Information security, cybersecurity and privacy protection — Privacy information management systems — Requirements and guidance",
+      "official_url": "https://www.iso.org/standard/27701",
+      "authority_type": "STANDARD",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-ISO-31000-2018",
+      "title": "ISO 31000:2018 — Risk management — Guidelines",
+      "official_url": "https://www.iso.org/standard/65694",
+      "authority_type": "STANDARD",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-ISO-42001-2023",
+      "title": "ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system",
+      "official_url": "https://www.iso.org/standard/42001",
+      "authority_type": "STANDARD",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-ISO-42005-2025",
+      "title": "ISO/IEC 42005:2025 — Artificial intelligence (AI) — AI system impact assessment",
+      "official_url": "https://www.iso.org/standard/42005",
+      "authority_type": "STANDARD",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-NCSC-CISA-SECURE-AI",
+      "title": "Guidelines for Secure AI System Development",
+      "official_url": "https://www.ncsc.gov.uk/files/Guidelines-for-secure-AI-system-development.pdf",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-NIST-AI-100-2E2025",
+      "title": "NIST AI 100-2e2025 — Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations",
+      "official_url": "https://csrc.nist.gov/pubs/ai/100/2/e2025/final",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "title": "Artificial Intelligence Risk Management Framework (AI RMF 1.0)",
+      "official_url": "https://doi.org/10.6028/NIST.AI.100-1",
+      "authority_type": "VOLUNTARY_FRAMEWORK",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-NIST-PRIVACY-FRAMEWORK",
+      "title": "NIST Privacy Framework: A Tool for Improving Privacy through Enterprise Risk Management, Version 1.0",
+      "official_url": "https://doi.org/10.6028/NIST.CSWP.01162020",
+      "authority_type": "VOLUNTARY_FRAMEWORK",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "PRIVACY"
+    },
+    {
+      "source_id": "SRC-NIST-SP-800-218A",
+      "title": "Secure Software Development Practices for Generative AI and Dual-Use Foundation Models: An SSDF Community Profile",
+      "official_url": "https://csrc.nist.gov/pubs/sp/800/218/a/final",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-NIST-SP-800-53",
+      "title": "NIST SP 800-53 Rev. 5 — Security and Privacy Controls for Information Systems and Organizations",
+      "official_url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-OECD-AI-PRINCIPLES-2024",
+      "title": "OECD AI Principles (updated 2024)",
+      "official_url": "https://legalinstruments.oecd.org/en/instruments/OECD-LEGAL-0449",
+      "authority_type": "GOVERNMENT_GUIDANCE",
+      "jurisdiction": [
+        "OECD_ADHERENTS",
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-OHCHR-AHRC-48-31",
+      "title": "A/HRC/48/31 — The right to privacy in the digital age",
+      "official_url": "https://www.ohchr.org/en/documents/thematic-reports/ahrc4831-right-privacy-digital-age-report-united-nations-high",
+      "authority_type": "REGULATORY_GUIDANCE",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "GOVERNANCE"
+    },
+    {
+      "source_id": "SRC-OWASP-AGENTIC-TOP10-2026",
+      "title": "OWASP Top 10 for Agentic Applications 2026",
+      "official_url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "authority_type": "COMMUNITY_PRACTICE",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    },
+    {
+      "source_id": "SRC-OWASP-LLM-TOP10",
+      "title": "OWASP GenAI LLM Top 10 2026",
+      "official_url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "authority_type": "COMMUNITY_PRACTICE",
+      "jurisdiction": [
+        "GLOBAL_REFERENCE"
+      ],
+      "effective_status": "PUBLISHED",
+      "last_verified_on": "2026-08-18",
+      "approval_status": "APPROVED",
+      "owner_authority": "SECURITY"
+    }
+  ]
+}
