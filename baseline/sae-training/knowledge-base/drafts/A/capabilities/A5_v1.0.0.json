@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.1.0",
+  "id": "A5",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-A5",
+  "title": "Lifecycle stage and transition boundary",
+  "canonical_definition": "The current stage, permitted activities, target stage, acceptance criteria and authorization boundary are explicit from qualification through retirement.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All AI systems and every requested lifecycle transition.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "lifecycle-stage",
+    "operating-boundary",
+    "transition-criteria"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "A5-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are current and target lifecycle stages, scope and permitted activities explicitly defined?"
+    },
+    {
+      "id": "A5-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are environment, data, access and user boundaries technically and operationally enforced for the current stage?"
+    },
+    {
+      "id": "A5-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does evidence demonstrate that transition criteria are met and the correct authority has approved progression?"
+    }
+  ],
+  "capability_indicators": [
+    "Stage-specific boundary record",
+    "Experiment and production separation",
+    "Transition acceptance criteria",
+    "Retirement and rollback remain possible"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of lifecycle stage and transition boundary to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-A5"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 3.3 (PDF p. 32), MANAGE 1.1 (PDF p. 37), GOVERN 1.7 (PDF p. 28)",
+      "mapping_rationale": "The voluntary framework provides guidance on setting application scope, deciding whether deployment should proceed and planning decommissioning. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-PURPOSE-A5-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A5-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A5-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make lifecycle stage and transition boundary verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "A5 evaluates lifecycle stage and transition boundary using evidence from intent through operation. AP-A5 independently assesses evidence of prototype-to-production drift.",
+  "atomic_subcriteria": [
+    {
+      "id": "A5-SC-001",
+      "question_id": "A5-Q1",
+      "criterion": "The versioned definition identifies a stage record defining the current environment, permitted users and data, scope, end date, target stage and exit criteria. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-A5-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-002",
+      "question_id": "A5-Q2",
+      "criterion": "The current release demonstrates stage-specific isolation, access and data permissions with approval required before widening the operating boundary. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-A5-001",
+        "EVD-A5-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-003",
+      "question_id": "A5-Q3",
+      "criterion": "Representative, executed evidence provides the transition record, acceptance results, authorized decision and exercised rollback or retirement route for the current version. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-A5-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "A5-SC-004",
+      "question_id": "A5-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in lifecycle stage and transition boundary, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-A5-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-A5-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide a stage record defining the current environment, permitted users and data, scope, end date, target stage and exit criteria. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A5-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate stage-specific isolation, access and data permissions with approval required before widening the operating boundary. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A5-003",
+      "title": "Representative verification results",
+      "description": "Provide the transition record, acceptance results, authorized decision and exercised rollback or retirement route for the current version. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-A5-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how lifecycle stage and transition boundary works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with a stage record defining the current environment, permitted users and data, scope, end date, target stage and exit criteria. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use the transition record, acceptance results, authorized decision and exercised rollback or retirement route for the current version to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "A formally authorized controlled pilot with an explicit scope and expiration is distinct from continuing an experiment by default.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-A5 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-A5-001",
+      "assessment_object_id": "A5",
+      "title": "Material definition or intent gap in lifecycle stage and transition boundary",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-A5-002",
+      "assessment_object_id": "A5",
+      "title": "Verified implementation or effectiveness gap in lifecycle stage and transition boundary",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-A5-003",
+      "assessment_object_id": "A5",
+      "title": "Evidence remains insufficient for lifecycle stage and transition boundary in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}

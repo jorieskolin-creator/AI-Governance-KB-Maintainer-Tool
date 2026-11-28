@@ -1,0 +1,271 @@
+{
+  "schema_version": "2.1.0",
+  "id": "AP-A5",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "ANTIPATTERN",
+  "paired_object_id": "A5",
+  "title": "Prototype-to-production drift",
+  "canonical_definition": "An experiment accumulates real users, data, integrations or dependency without formal transition and reassessment.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All AI systems and every requested lifecycle transition.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "CRITICAL",
+  "runtime_signals": [
+    "prototype-production-drift"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "AP-A5-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does the case exhibit Prototype-to-production drift: An experiment accumulates real users, data, integrations or dependency without formal transition and reassessment."
+    },
+    {
+      "id": "AP-A5-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do implemented workflows, data paths or operations show production data or credentials in an experiment, indefinite prototypes, or development approval treated as deployment approval?"
+    },
+    {
+      "id": "AP-A5-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence test presence or scoped absence of Prototype-to-production drift, or does it remain unknown?"
+    }
+  ],
+  "antipattern_indicators": [
+    "Temporary prototype runs indefinitely",
+    "Production data or credentials enter an experiment",
+    "Development approval is treated as deployment approval",
+    "Shadow infrastructure becomes business critical"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Refer verified prototype-to-production drift to the accountable authority before progression where the condition materially affects the requested operating scope."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "A5"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 3.3 (PDF p. 32), MANAGE 1.1 (PDF p. 37), GOVERN 1.7 (PDF p. 28)",
+      "mapping_rationale": "The voluntary framework provides guidance on setting application scope, deciding whether deployment should proceed and planning decommissioning. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-PURPOSE-A5-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A5-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A5-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-AP-A5-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "failure_mechanism": "The declared or implemented control can be unreliable where an experiment has no end date, authorized target stage or explicit progression conditions. The mechanism can have an operational effect where real user access, production credentials or business reliance appeared before the corresponding transition approval.",
+  "potential_consequences": [
+    "Experimental behavior can become operationally critical before its deployment controls are verified."
+  ],
+  "atomic_tests": [
+    {
+      "id": "AP-A5-AT-001",
+      "question_id": "AP-A5-Q1",
+      "test": "Compare the effective governance and design records. Determine whether an experiment has no end date, authorized target stage or explicit progression conditions. Identify the system scope and the record that supports each conclusion.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-002",
+      "question_id": "AP-A5-Q2",
+      "test": "Trace actual configurations or activity for the assessed release. Determine whether real user access, production credentials or business reliance appeared before the corresponding transition approval. Attribute each observation to the specific path, time and decision.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A5-AT-003",
+      "question_id": "AP-A5-Q3",
+      "test": "Independently review a dated comparison of environment and usage history against stage boundaries, exceptions and decision records. Record whether each material mechanism was tested, the observed result and the scope limitations.",
+      "required_evidence_ids": [
+        "EVD-AP-A5-001",
+        "EVD-AP-A5-002",
+        "EVD-AP-A5-003",
+        "EVD-AP-A5-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-A5-001",
+      "title": "Effective design and governance records",
+      "description": "Review the versioned owner decision and relevant specifications for evidence of whether an experiment has no end date, authorized target stage or explicit progression conditions. Preserve material conflict and applicability context.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-A5-002",
+      "title": "Observed condition or enforcement trace",
+      "description": "Use effective configuration or dated operational records to determine whether real user access, production credentials or business reliance appeared before the corresponding transition approval. Identify the version, affected paths and period represented.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-A5-003",
+      "title": "Executed scoped comparison",
+      "description": "Provide a dated comparison of environment and usage history against stage boundaries, exceptions and decision records. Include current scope, expected results, observed results, retained evidence and unresolved cases.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-A5-004",
+      "title": "Independent review and limitations",
+      "description": "An independent reviewer confirms the assessed version, completeness of coverage, result, limitations and whether a material change requires a new test.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "A dated comparison of environment and usage history against stage boundaries, exceptions and decision records.",
+      "Current version and scope with all material failure paths and cases identified.",
+      "Expected and observed results, attributable records, and independent review of coverage and residual limitations."
+    ]
+  },
+  "evidence_rules": {
+    "sufficiency": [
+      "Presence requires affirmative evidence for a material mechanism. Examine whether an experiment has no end date, authorized target stage or explicit progression conditions, and separately check whether real user access, production credentials or business reliance appeared before the corresponding transition approval. A supported mechanism may establish presence within its evidenced scope.",
+      "Keep unresolved or contradictory mechanisms UNKNOWN and preserve the competing records. Refer material interpretation conflicts to the accountable human authority.",
+      "Use TESTED_ABSENT only after a current, executed, successful and independently verified evaluation covers all material paths within scope. Use a dated comparison of environment and usage history against stage boundaries, exceptions and decision records. Reassess when material changes affect that scope."
+    ],
+    "evidence_ceiling": "A document can identify a declared gap. Effective configuration can demonstrate a reachable condition. Observed records support only their covered period and workflow. TESTED_ABSENT requires the complete scoped absence contract.",
+    "false_positive_guards": [
+      "A formally authorized controlled pilot with an explicit scope and expiration is distinct from continuing an experiment by default.",
+      "Confirm that the observed or alleged condition applies to the current assessed release and a reachable path."
+    ],
+    "prohibited_inferences": [
+      "A gap or UNKNOWN in A5 alone cannot establish AP-A5 presence.",
+      "Missing complaints, incident silence and unsuccessful collection cannot establish absence.",
+      "Model output and tactic selection grant no authority to approve, close a finding or accept risk."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-AP-A5-001",
+      "assessment_object_id": "AP-A5",
+      "title": "Design or intent shows prototype-to-production drift",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-A5-002",
+      "assessment_object_id": "AP-A5",
+      "title": "Implementation or operating evidence shows prototype-to-production drift",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-A5-003",
+      "assessment_object_id": "AP-A5",
+      "title": "Presence or tested absence of prototype-to-production drift is unresolved within scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
