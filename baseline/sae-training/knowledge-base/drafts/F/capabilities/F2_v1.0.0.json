@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.1.0",
+  "id": "F2",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "F",
+  "domain_title": "Accountability, evidence, risk decisions and lifecycle governance",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-F2",
+  "title": "Compliance evidence and documentation integrity",
+  "canonical_definition": "Material claims, requirements, controls and readiness conclusions are linked to current, scoped, attributable and sufficient evidence that matches implementation and operation.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All governed systems and lifecycle decisions.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "evidence-register",
+    "claim-linking",
+    "evidence-freshness"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "F2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are required evidence types, provenance, scope, freshness, owners and validation rules defined for each material claim?"
+    },
+    {
+      "id": "F2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are evidence capture, versioning, integrity, expiry, contradiction and claim-linking implemented?"
+    },
+    {
+      "id": "F2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Can the decision package be reproduced and shown to reflect the current implemented and operated system?"
+    }
+  ],
+  "capability_indicators": [
+    "Requirement-to-evidence mapping",
+    "Declarations separated from observations",
+    "Missing and expired evidence visible",
+    "Decision package is reproducible"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of compliance evidence and documentation integrity to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-F2"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, GOVERN 1.4 (PDF p. 27), MEASURE 2.1 (PDF p. 34), MEASURE 2.13 (PDF p. 35)",
+      "mapping_rationale": "The voluntary framework provides guidance on documenting risk outcomes and evaluation detail, and testing evaluation effectiveness. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-ACCOUNTABILITY-F2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ACCOUNTABILITY-F2-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ACCOUNTABILITY-F2-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make compliance evidence and documentation integrity verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "F2 evaluates compliance evidence and documentation integrity using evidence from intent through operation. AP-F2 independently assesses evidence of compliance by assertion or document volume.",
+  "atomic_subcriteria": [
+    {
+      "id": "F2-SC-001",
+      "question_id": "F2-Q1",
+      "criterion": "The versioned definition identifies a claim-to-evidence plan defining evidence type, scope, freshness, provenance and validation for material assertions. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-F2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "F2-SC-002",
+      "question_id": "F2-Q2",
+      "criterion": "The current release demonstrates versioned capture and integrity checks linking scoped evidence, expiry and conflicts to claims and decisions. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-F2-001",
+        "EVD-F2-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "F2-SC-003",
+      "question_id": "F2-Q3",
+      "criterion": "Representative, executed evidence provides reconstruction of a decision package from the current implemented release and independent evaluation of high-impact claims. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-F2-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "F2-SC-004",
+      "question_id": "F2-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in compliance evidence and documentation integrity, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-F2-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-F2-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide a claim-to-evidence plan defining evidence type, scope, freshness, provenance and validation for material assertions. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-F2-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate versioned capture and integrity checks linking scoped evidence, expiry and conflicts to claims and decisions. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-F2-003",
+      "title": "Representative verification results",
+      "description": "Provide reconstruction of a decision package from the current implemented release and independent evaluation of high-impact claims. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-F2-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how compliance evidence and documentation integrity works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with a claim-to-evidence plan defining evidence type, scope, freshness, provenance and validation for material assertions. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use reconstruction of a decision package from the current implemented release and independent evaluation of high-impact claims to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "An approved policy is relevant evidence of declared intent within its scope.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-F2 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-F2-001",
+      "assessment_object_id": "F2",
+      "title": "Material definition or intent gap in compliance evidence and documentation integrity",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-F2-002",
+      "assessment_object_id": "F2",
+      "title": "Verified implementation or effectiveness gap in compliance evidence and documentation integrity",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-F2-003",
+      "assessment_object_id": "F2",
+      "title": "Evidence remains insufficient for compliance evidence and documentation integrity in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
