@@ -1,0 +1,271 @@
+{
+  "schema_version": "2.1.0",
+  "id": "AP-C2",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "C",
+  "domain_title": "Models, agents, providers, tools and supply chain",
+  "object_type": "ANTIPATTERN",
+  "paired_object_id": "C2",
+  "title": "Convenience- or brand-driven model selection",
+  "canonical_definition": "Models or providers are selected by familiarity, availability, prestige or generic benchmarks rather than contextual evidence.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All selected models and hosting or API providers, including fallbacks.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "brand-driven-selection"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "AP-C2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does the case exhibit Convenience- or brand-driven model selection: Models or providers are selected by familiarity, availability, prestige or generic benchmarks rather than contextual evidence."
+    },
+    {
+      "id": "AP-C2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do implemented workflows, data paths or operations show one model used for every task, missing provider comparison, or generic benchmarks replacing system testing?"
+    },
+    {
+      "id": "AP-C2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence test presence or scoped absence of Convenience- or brand-driven model selection, or does it remain unknown?"
+    }
+  ],
+  "antipattern_indicators": [
+    "One model is used for every task",
+    "No provider comparison",
+    "Generic benchmark replaces system testing",
+    "Fallback is untested"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer verified convenience- or brand-driven model selection to the accountable authority before progression where the condition materially affects the requested operating scope."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "C2"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 2.1 (PDF p. 31), MEASURE 2.3 (PDF p. 34), MANAGE 3.1 (PDF p. 37)",
+      "mapping_rationale": "The voluntary framework provides guidance on relating methods to tasks and evaluating performance and provider risks in context. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-MODELS-C2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-MODELS-C2-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-MODELS-C2-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-MODELS-AP-C2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "failure_mechanism": "The declared or implemented control can be unreliable where a choice is justified only by brand, familiarity, availability or generic benchmark claims. The mechanism can have an operational effect where runtime routing assigns the same model despite materially different documented requirements, or falls back to an unassessed provider.",
+  "potential_consequences": [
+    "A selected model may fail precisely where the workflow needs dependable performance."
+  ],
+  "atomic_tests": [
+    {
+      "id": "AP-C2-AT-001",
+      "question_id": "AP-C2-Q1",
+      "test": "Compare the effective governance and design records. Determine whether a choice is justified only by brand, familiarity, availability or generic benchmark claims. Identify the system scope and the record that supports each conclusion.",
+      "required_evidence_ids": [
+        "EVD-AP-C2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-C2-AT-002",
+      "question_id": "AP-C2-Q2",
+      "test": "Trace actual configurations or activity for the assessed release. Determine whether runtime routing assigns the same model despite materially different documented requirements, or falls back to an unassessed provider. Attribute each observation to the specific path, time and decision.",
+      "required_evidence_ids": [
+        "EVD-AP-C2-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-C2-AT-003",
+      "question_id": "AP-C2-Q3",
+      "test": "Independently review a current sample of routes, alternatives evidence and representative end-to-end results for both primary and fallback models. Record whether each material mechanism was tested, the observed result and the scope limitations.",
+      "required_evidence_ids": [
+        "EVD-AP-C2-001",
+        "EVD-AP-C2-002",
+        "EVD-AP-C2-003",
+        "EVD-AP-C2-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-C2-001",
+      "title": "Effective design and governance records",
+      "description": "Review the versioned owner decision and relevant specifications for evidence of whether a choice is justified only by brand, familiarity, availability or generic benchmark claims. Preserve material conflict and applicability context.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-C2-002",
+      "title": "Observed condition or enforcement trace",
+      "description": "Use effective configuration or dated operational records to determine whether runtime routing assigns the same model despite materially different documented requirements, or falls back to an unassessed provider. Identify the version, affected paths and period represented.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-C2-003",
+      "title": "Executed scoped comparison",
+      "description": "Provide a current sample of routes, alternatives evidence and representative end-to-end results for both primary and fallback models. Include current scope, expected results, observed results, retained evidence and unresolved cases.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-C2-004",
+      "title": "Independent review and limitations",
+      "description": "An independent reviewer confirms the assessed version, completeness of coverage, result, limitations and whether a material change requires a new test.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "A current sample of routes, alternatives evidence and representative end-to-end results for both primary and fallback models.",
+      "Current version and scope with all material failure paths and cases identified.",
+      "Expected and observed results, attributable records, and independent review of coverage and residual limitations."
+    ]
+  },
+  "evidence_rules": {
+    "sufficiency": [
+      "Presence requires affirmative evidence for a material mechanism. Examine whether a choice is justified only by brand, familiarity, availability or generic benchmark claims, and separately check whether runtime routing assigns the same model despite materially different documented requirements, or falls back to an unassessed provider. A supported mechanism may establish presence within its evidenced scope.",
+      "Keep unresolved or contradictory mechanisms UNKNOWN and preserve the competing records. Refer material interpretation conflicts to the accountable human authority.",
+      "Use TESTED_ABSENT only after a current, executed, successful and independently verified evaluation covers all material paths within scope. Use a current sample of routes, alternatives evidence and representative end-to-end results for both primary and fallback models. Reassess when material changes affect that scope."
+    ],
+    "evidence_ceiling": "A document can identify a declared gap. Effective configuration can demonstrate a reachable condition. Observed records support only their covered period and workflow. TESTED_ABSENT requires the complete scoped absence contract.",
+    "false_positive_guards": [
+      "One model can serve several tasks when each task's evaluation and restrictions support its use.",
+      "Confirm that the observed or alleged condition applies to the current assessed release and a reachable path."
+    ],
+    "prohibited_inferences": [
+      "A gap or UNKNOWN in C2 alone cannot establish AP-C2 presence.",
+      "Missing complaints, incident silence and unsuccessful collection cannot establish absence.",
+      "Model output and tactic selection grant no authority to approve, close a finding or accept risk."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-AP-C2-001",
+      "assessment_object_id": "AP-C2",
+      "title": "Design or intent shows convenience- or brand-driven model selection",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-C2-002",
+      "assessment_object_id": "AP-C2",
+      "title": "Implementation or operating evidence shows convenience- or brand-driven model selection",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-C2-003",
+      "assessment_object_id": "AP-C2",
+      "title": "Presence or tested absence of convenience- or brand-driven model selection is unresolved within scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
