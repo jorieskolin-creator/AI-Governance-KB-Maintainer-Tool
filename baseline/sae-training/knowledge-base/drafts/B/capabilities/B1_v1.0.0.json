@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.1.0",
+  "id": "B1",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-B1",
+  "title": "Data inventory, provenance and lineage",
+  "canonical_definition": "Training, tuning, retrieval, prompt, evaluation, operational and output data are separately identifiable from origin through transformation, storage, transfer and deletion.",
+  "applicability": {
+    "default_state": "CONDITIONALLY_APPLICABLE",
+    "conditions": [
+      "All AI systems that receive, generate, retrieve or learn from data.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "USES_DATA",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "data-inventory",
+    "data-flow",
+    "lineage"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "B1-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are material data classes, sources, owners, destinations and uses inventoried with stable identifiers?"
+    },
+    {
+      "id": "B1-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are lineage, transformation, quality, licensing and transfer controls implemented across the actual data flow?"
+    },
+    {
+      "id": "B1-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Can representative outputs and decisions be traced to current, authorized and sufficiently reliable data evidence?"
+    }
+  ],
+  "capability_indicators": [
+    "Data-flow and lineage records",
+    "Stable dataset identifiers",
+    "Owners and rights are recorded",
+    "Outputs preserve provenance where material"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of data inventory, provenance and lineage to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-B1"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 2.3 (PDF p. 32), MAP 4.1 (PDF p. 32), MEASURE 2.1 (PDF p. 34)",
+      "mapping_rationale": "The voluntary framework provides guidance on documenting data suitability, third-party component risks and evaluation data. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-DATA-B1-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B1-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B1-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make data inventory, provenance and lineage verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "B1 evaluates data inventory, provenance and lineage using evidence from intent through operation. AP-B1 independently assesses evidence of invisible or untraceable data flows.",
+  "atomic_subcriteria": [
+    {
+      "id": "B1-SC-001",
+      "question_id": "B1-Q1",
+      "criterion": "The versioned definition identifies a data catalog with stable identifiers, owners, provenance, use, destinations and quality dispositions for material inputs and derived data. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-B1-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-002",
+      "question_id": "B1-Q2",
+      "criterion": "The current release demonstrates lineage across ingestion, transformations, prompts, retrieval, providers and reuse, including per-hop rights and quality checks. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-B1-001",
+        "EVD-B1-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-003",
+      "question_id": "B1-Q3",
+      "criterion": "Representative, executed evidence provides a reconstruction of sampled outputs and decisions back to the authorized source edition, transformations, transfer and quality evidence. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-B1-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B1-SC-004",
+      "question_id": "B1-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in data inventory, provenance and lineage, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-B1-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-B1-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide a data catalog with stable identifiers, owners, provenance, use, destinations and quality dispositions for material inputs and derived data. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B1-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate lineage across ingestion, transformations, prompts, retrieval, providers and reuse, including per-hop rights and quality checks. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B1-003",
+      "title": "Representative verification results",
+      "description": "Provide a reconstruction of sampled outputs and decisions back to the authorized source edition, transformations, transfer and quality evidence. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B1-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how data inventory, provenance and lineage works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with a data catalog with stable identifiers, owners, provenance, use, destinations and quality dispositions for material inputs and derived data. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use a reconstruction of sampled outputs and decisions back to the authorized source edition, transformations, transfer and quality evidence to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "An alias or abstraction is compatible with traceability when it resolves to a versioned authoritative identifier.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-B1 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-B1-001",
+      "assessment_object_id": "B1",
+      "title": "Material definition or intent gap in data inventory, provenance and lineage",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-B1-002",
+      "assessment_object_id": "B1",
+      "title": "Verified implementation or effectiveness gap in data inventory, provenance and lineage",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-B1-003",
+      "assessment_object_id": "B1",
+      "title": "Evidence remains insufficient for data inventory, provenance and lineage in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
