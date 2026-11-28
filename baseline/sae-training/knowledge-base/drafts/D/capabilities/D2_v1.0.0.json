@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.1.0",
+  "id": "D2",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "D",
+  "domain_title": "Architecture, security, robustness, safety and evaluation",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-D2",
+  "title": "Functional quality, accuracy and reliability",
+  "canonical_definition": "End-to-end performance is evaluated on representative tasks, users, contexts and failure modes against consequence-based acceptance thresholds.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All AI systems; metrics and thresholds must match intended purpose and consequence.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "evaluation",
+    "acceptance-threshold",
+    "reliability"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "D2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are quality attributes, representative cases, failure classes and acceptance thresholds defined for the intended context?"
+    },
+    {
+      "id": "D2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are evaluation, fallback, human review and release controls implemented in the delivery lifecycle?"
+    },
+    {
+      "id": "D2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do repeated, independent where needed, end-to-end tests and operational data demonstrate acceptable performance and reliability?"
+    }
+  ],
+  "capability_indicators": [
+    "Representative evaluation set",
+    "Repeated-run and subgroup analysis",
+    "Risk-based thresholds",
+    "Production performance compared with baseline"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of functional quality, accuracy and reliability to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-D2"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MEASURE 2.1 (PDF p. 34), MEASURE 2.3 (PDF p. 34), MEASURE 2.4 (PDF p. 34), MEASURE 2.5 (PDF p. 34)",
+      "mapping_rationale": "The voluntary framework provides guidance on documenting evaluation methods and demonstrating performance under representative conditions. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D2-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D2-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make functional quality, accuracy and reliability verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "D2 evaluates functional quality, accuracy and reliability using evidence from intent through operation. AP-D2 independently assesses evidence of demo-based quality assurance.",
+  "atomic_subcriteria": [
+    {
+      "id": "D2-SC-001",
+      "question_id": "D2-Q1",
+      "criterion": "The versioned definition identifies use-specific quality thresholds, representative populations, failure categories, retry and repeatability expectations and human review thresholds. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-D2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D2-SC-002",
+      "question_id": "D2-Q2",
+      "criterion": "The current release demonstrates evaluation and release controls with versioned suites, exclusion of critical failures, fallback and review procedures. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-D2-001",
+        "EVD-D2-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D2-SC-003",
+      "question_id": "D2-Q3",
+      "criterion": "Representative, executed evidence provides repeated end-to-end results on representative inputs, stratified critical failures and current operational quality records. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-D2-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D2-SC-004",
+      "question_id": "D2-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in functional quality, accuracy and reliability, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-D2-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-D2-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide use-specific quality thresholds, representative populations, failure categories, retry and repeatability expectations and human review thresholds. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D2-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate evaluation and release controls with versioned suites, exclusion of critical failures, fallback and review procedures. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D2-003",
+      "title": "Representative verification results",
+      "description": "Provide repeated end-to-end results on representative inputs, stratified critical failures and current operational quality records. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D2-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how functional quality, accuracy and reliability works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with use-specific quality thresholds, representative populations, failure categories, retry and repeatability expectations and human review thresholds. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use repeated end-to-end results on representative inputs, stratified critical failures and current operational quality records to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "Demonstrations can illustrate behavior when separate representative results support release claims.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-D2 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-D2-001",
+      "assessment_object_id": "D2",
+      "title": "Material definition or intent gap in functional quality, accuracy and reliability",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-D2-002",
+      "assessment_object_id": "D2",
+      "title": "Verified implementation or effectiveness gap in functional quality, accuracy and reliability",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-D2-003",
+      "assessment_object_id": "D2",
+      "title": "Evidence remains insufficient for functional quality, accuracy and reliability in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
