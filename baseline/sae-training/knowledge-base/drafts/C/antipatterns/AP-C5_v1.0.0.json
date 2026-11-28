@@ -1,0 +1,271 @@
+{
+  "schema_version": "2.1.0",
+  "id": "AP-C5",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "C",
+  "domain_title": "Models, agents, providers, tools and supply chain",
+  "object_type": "ANTIPATTERN",
+  "paired_object_id": "C5",
+  "title": "Silent supply-chain drift",
+  "canonical_definition": "Components or dependencies change without the organization understanding or authorizing their effect on behavior and risk.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All systems with externally sourced or changing AI and software components.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "supply-chain-drift"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "AP-C5-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does the case exhibit Silent supply-chain drift: Components or dependencies change without the organization understanding or authorizing their effect on behavior and risk."
+    },
+    {
+      "id": "AP-C5-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do implemented workflows, data paths or operations show latest aliases in production, untested automatic updates, or silent provider behavior changes?"
+    },
+    {
+      "id": "AP-C5-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence test presence or scoped absence of Silent supply-chain drift, or does it remain unknown?"
+    }
+  ],
+  "antipattern_indicators": [
+    "Latest aliases in production",
+    "Automatic updates lack regression tests",
+    "Provider behavior changes silently",
+    "No provenance or component baseline"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer verified silent supply-chain drift to the accountable authority before progression where the condition materially affects the requested operating scope."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "C5"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 4.2 (PDF p. 32), MANAGE 3.1 (PDF p. 37), MANAGE 3.2 (PDF p. 37)",
+      "mapping_rationale": "The voluntary framework provides guidance on documenting component-level controls and monitoring third-party resources and pre-trained models. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-MODELS-C5-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-MODELS-C5-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-MODELS-C5-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-MODELS-AP-C5-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "failure_mechanism": "The declared or implemented control can be unreliable where the release baseline permits dependencies to change materially without explicit review. The mechanism can have an operational effect where effective component versions or provider behavior differ from the accepted baseline without a material-change record.",
+  "potential_consequences": [
+    "A dependency change may invalidate prior assurance while the service appears unchanged."
+  ],
+  "atomic_tests": [
+    {
+      "id": "AP-C5-AT-001",
+      "question_id": "AP-C5-Q1",
+      "test": "Compare the effective governance and design records. Determine whether the release baseline permits dependencies to change materially without explicit review. Identify the system scope and the record that supports each conclusion.",
+      "required_evidence_ids": [
+        "EVD-AP-C5-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-C5-AT-002",
+      "question_id": "AP-C5-Q2",
+      "test": "Trace actual configurations or activity for the assessed release. Determine whether effective component versions or provider behavior differ from the accepted baseline without a material-change record. Attribute each observation to the specific path, time and decision.",
+      "required_evidence_ids": [
+        "EVD-AP-C5-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-C5-AT-003",
+      "question_id": "AP-C5-Q3",
+      "test": "Independently review a version and provenance reconciliation covering dependencies, aliases, provider changes and rollback. Record whether each material mechanism was tested, the observed result and the scope limitations.",
+      "required_evidence_ids": [
+        "EVD-AP-C5-001",
+        "EVD-AP-C5-002",
+        "EVD-AP-C5-003",
+        "EVD-AP-C5-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-C5-001",
+      "title": "Effective design and governance records",
+      "description": "Review the versioned owner decision and relevant specifications for evidence of whether the release baseline permits dependencies to change materially without explicit review. Preserve material conflict and applicability context.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-C5-002",
+      "title": "Observed condition or enforcement trace",
+      "description": "Use effective configuration or dated operational records to determine whether effective component versions or provider behavior differ from the accepted baseline without a material-change record. Identify the version, affected paths and period represented.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-C5-003",
+      "title": "Executed scoped comparison",
+      "description": "Provide a version and provenance reconciliation covering dependencies, aliases, provider changes and rollback. Include current scope, expected results, observed results, retained evidence and unresolved cases.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-C5-004",
+      "title": "Independent review and limitations",
+      "description": "An independent reviewer confirms the assessed version, completeness of coverage, result, limitations and whether a material change requires a new test.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "A version and provenance reconciliation covering dependencies, aliases, provider changes and rollback.",
+      "Current version and scope with all material failure paths and cases identified.",
+      "Expected and observed results, attributable records, and independent review of coverage and residual limitations."
+    ]
+  },
+  "evidence_rules": {
+    "sufficiency": [
+      "Presence requires affirmative evidence for a material mechanism. Examine whether the release baseline permits dependencies to change materially without explicit review, and separately check whether effective component versions or provider behavior differ from the accepted baseline without a material-change record. A supported mechanism may establish presence within its evidenced scope.",
+      "Keep unresolved or contradictory mechanisms UNKNOWN and preserve the competing records. Refer material interpretation conflicts to the accountable human authority.",
+      "Use TESTED_ABSENT only after a current, executed, successful and independently verified evaluation covers all material paths within scope. Use a version and provenance reconciliation covering dependencies, aliases, provider changes and rollback. Reassess when material changes affect that scope."
+    ],
+    "evidence_ceiling": "A document can identify a declared gap. Effective configuration can demonstrate a reachable condition. Observed records support only their covered period and workflow. TESTED_ABSENT requires the complete scoped absence contract.",
+    "false_positive_guards": [
+      "Automated updates can be governed when integrity, testing, scoped authority and rollback are evidenced.",
+      "Confirm that the observed or alleged condition applies to the current assessed release and a reachable path."
+    ],
+    "prohibited_inferences": [
+      "A gap or UNKNOWN in C5 alone cannot establish AP-C5 presence.",
+      "Missing complaints, incident silence and unsuccessful collection cannot establish absence.",
+      "Model output and tactic selection grant no authority to approve, close a finding or accept risk."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-AP-C5-001",
+      "assessment_object_id": "AP-C5",
+      "title": "Design or intent shows silent supply-chain drift",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-C5-002",
+      "assessment_object_id": "AP-C5",
+      "title": "Implementation or operating evidence shows silent supply-chain drift",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-C5-003",
+      "assessment_object_id": "AP-C5",
+      "title": "Presence or tested absence of silent supply-chain drift is unresolved within scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
