@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.1.0",
+  "id": "B3",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-B3",
+  "title": "Privacy and data-subject governance",
+  "canonical_definition": "Personal-data processing, lawful basis, transparency, rights, privacy risks and impact-assessment duties are operationalized in the system and its lifecycle.",
+  "applicability": {
+    "default_state": "CONDITIONALLY_APPLICABLE",
+    "conditions": [
+      "When personal data may occur in inputs, prompts, logs, outputs, evaluation data or human review.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "PERSONAL_DATA",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "privacy-review",
+    "lawful-basis",
+    "dpia"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "B3-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are personal-data categories, purposes, lawful basis, rights and impact-assessment triggers determined?"
+    },
+    {
+      "id": "B3-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are privacy requirements implemented across architecture, access, logging, retention, providers and user workflows?"
+    },
+    {
+      "id": "B3-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do tests and operational records demonstrate rights fulfilment, deletion, restriction and privacy-control effectiveness?"
+    }
+  ],
+  "capability_indicators": [
+    "Data categories are classified",
+    "Context-specific privacy analysis",
+    "Rights can be fulfilled end to end",
+    "Privacy controls are tested"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of privacy and data-subject governance to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "PRIVACY"
+  },
+  "human_decision_authority": "PRIVACY",
+  "related_criteria": [
+    "AP-B3"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 1.6 (PDF p. 31), MEASURE 2.10 (PDF p. 35), MANAGE 4.1 (PDF p. 38)",
+      "mapping_rationale": "The voluntary framework provides guidance on turning scoped requirements into privacy evaluation and monitoring response. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-DATA-B3-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B3-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B3-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "MIXED",
+  "governance_purpose": "Make privacy and data-subject governance verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "B3 evaluates privacy and data-subject governance using evidence from intent through operation. AP-B3 independently assesses evidence of privacy-by-documentation only.",
+  "atomic_subcriteria": [
+    {
+      "id": "B3-SC-001",
+      "question_id": "B3-Q1",
+      "criterion": "The versioned definition identifies an accountable privacy assessment for the personal-data flows, approved purposes, rights routes and impact-review triggers. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-B3-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B3-SC-002",
+      "question_id": "B3-Q2",
+      "criterion": "The current release demonstrates access, retention, provider, logging and rights handling controls linked to the actual data and derived stores. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-B3-001",
+        "EVD-B3-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B3-SC-003",
+      "question_id": "B3-Q3",
+      "criterion": "Representative, executed evidence provides a scoped rights exercise tracing identity verification, correction, access restriction or deletion to each in-scope destination. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-B3-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B3-SC-004",
+      "question_id": "B3-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in privacy and data-subject governance, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-B3-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-B3-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide an accountable privacy assessment for the personal-data flows, approved purposes, rights routes and impact-review triggers. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B3-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate access, retention, provider, logging and rights handling controls linked to the actual data and derived stores. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B3-003",
+      "title": "Representative verification results",
+      "description": "Provide a scoped rights exercise tracing identity verification, correction, access restriction or deletion to each in-scope destination. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B3-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how privacy and data-subject governance works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with an accountable privacy assessment for the personal-data flows, approved purposes, rights routes and impact-review triggers. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use a scoped rights exercise tracing identity verification, correction, access restriction or deletion to each in-scope destination to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "A documented, authorized retention exception still requires scope, access controls and an accountable disposition.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-B3 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-B3-001",
+      "assessment_object_id": "B3",
+      "title": "Material definition or intent gap in privacy and data-subject governance",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "PRIVACY"
+    },
+    {
+      "id": "FND-B3-002",
+      "assessment_object_id": "B3",
+      "title": "Verified implementation or effectiveness gap in privacy and data-subject governance",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "PRIVACY"
+    },
+    {
+      "id": "FND-B3-003",
+      "assessment_object_id": "B3",
+      "title": "Evidence remains insufficient for privacy and data-subject governance in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "PRIVACY"
+    }
+  ]
+}
