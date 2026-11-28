@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.1.0",
+  "id": "B2",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "B",
+  "domain_title": "Data, privacy, confidentiality and intellectual property",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-B2",
+  "title": "Purpose limitation and data minimization",
+  "canonical_definition": "Only data demonstrably necessary and proportionate for the declared purpose and lifecycle stage are processed and retained.",
+  "applicability": {
+    "default_state": "CONDITIONALLY_APPLICABLE",
+    "conditions": [
+      "All systems processing organizational, personal, customer or third-party information.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "USES_DATA",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "minimization",
+    "retention",
+    "necessity"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "B2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Is necessity defined for each material data category, field and retention period?"
+    },
+    {
+      "id": "B2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are minimization, abstraction, tokenization, synthetic-data and deletion controls implemented in every relevant store and interface?"
+    },
+    {
+      "id": "B2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do tests and operational evidence show that unnecessary content is excluded and deletion or scope changes propagate?"
+    }
+  ],
+  "capability_indicators": [
+    "Field-level necessity record",
+    "Minimized or synthetic prototype data",
+    "Retention tied to purpose",
+    "Scope reassessed after design change"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of purpose limitation and data minimization to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-B2"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 1.6 (PDF p. 31), MEASURE 2.10 (PDF p. 35)",
+      "mapping_rationale": "The voluntary framework provides guidance on deriving system requirements from context and examining privacy risk. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-DATA-B2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B2-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-DATA-B2-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make purpose limitation and data minimization verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "B2 evaluates purpose limitation and data minimization using evidence from intent through operation. AP-B2 independently assesses evidence of convenience-driven data accumulation.",
+  "atomic_subcriteria": [
+    {
+      "id": "B2-SC-001",
+      "question_id": "B2-Q1",
+      "criterion": "The versioned definition identifies field-level necessity and retention decisions for every material purpose, with approved exceptions and expiry. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-B2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-002",
+      "question_id": "B2-Q2",
+      "criterion": "The current release demonstrates allowlisted payloads, redaction or abstraction, retention controls and propagation of deletion across stores and derived copies. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-B2-001",
+        "EVD-B2-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-003",
+      "question_id": "B2-Q3",
+      "criterion": "Representative, executed evidence provides observed minimal payloads and a scoped deletion exercise tracing primary records, indexes, caches, backups and provider boundaries. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-B2-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "B2-SC-004",
+      "question_id": "B2-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in purpose limitation and data minimization, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-B2-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-B2-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide field-level necessity and retention decisions for every material purpose, with approved exceptions and expiry. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B2-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate allowlisted payloads, redaction or abstraction, retention controls and propagation of deletion across stores and derived copies. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B2-003",
+      "title": "Representative verification results",
+      "description": "Provide observed minimal payloads and a scoped deletion exercise tracing primary records, indexes, caches, backups and provider boundaries. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-B2-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how purpose limitation and data minimization works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with field-level necessity and retention decisions for every material purpose, with approved exceptions and expiry. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use observed minimal payloads and a scoped deletion exercise tracing primary records, indexes, caches, backups and provider boundaries to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "A justified scoped and time-limited exception within the authorized purpose is distinguishable from accumulation by default.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-B2 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-B2-001",
+      "assessment_object_id": "B2",
+      "title": "Material definition or intent gap in purpose limitation and data minimization",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-B2-002",
+      "assessment_object_id": "B2",
+      "title": "Verified implementation or effectiveness gap in purpose limitation and data minimization",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-B2-003",
+      "assessment_object_id": "B2",
+      "title": "Evidence remains insufficient for purpose limitation and data minimization in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
