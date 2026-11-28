@@ -1,0 +1,268 @@
+{
+  "schema_version": "2.1.0",
+  "id": "E5",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "E",
+  "domain_title": "Human impact, rights, fairness, transparency, oversight and recourse",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-E5",
+  "title": "Contestability, correction, accessibility and AI literacy",
+  "canonical_definition": "Material outcomes can be questioned and corrected through accessible human recourse, while users, reviewers and decision-makers have role-appropriate competence.",
+  "applicability": {
+    "default_state": "CONDITIONALLY_APPLICABLE",
+    "conditions": [
+      "When people interact with, rely upon or are materially affected by the system.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "INTERACTS_WITH_PEOPLE",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "appeal",
+    "correction",
+    "accessibility"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "E5-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are correction, appeal, accessibility and role-specific competence requirements defined?"
+    },
+    {
+      "id": "E5-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are timely human recourse, accessible interfaces, correction propagation and training implemented?"
+    },
+    {
+      "id": "E5-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do case outcomes, accessibility checks, competence evidence and complaint trends show that recourse works in practice?"
+    }
+  ],
+  "capability_indicators": [
+    "Appeal and correction workflow",
+    "Accessible human review",
+    "Role-specific AI competence",
+    "Errors feed into improvement"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of contestability, correction, accessibility and ai literacy to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-E5"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, GOVERN 2.2 (PDF p. 28), MEASURE 3.3 (PDF p. 36), MANAGE 4.1 (PDF p. 38)",
+      "mapping_rationale": "The voluntary framework provides guidance on supporting role competence, feedback, appeal and override as part of monitoring. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-HUMAN-E5-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-HUMAN-E5-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-HUMAN-E5-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-HUMAN-E5-04",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make contestability, correction, accessibility and ai literacy verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "E5 evaluates contestability, correction, accessibility and ai literacy using evidence from intent through operation. AP-E5 independently assesses evidence of no practical recourse or competence.",
+  "atomic_subcriteria": [
+    {
+      "id": "E5-SC-001",
+      "question_id": "E5-Q1",
+      "criterion": "The versioned definition identifies a recourse and accessibility plan defining who can contest, timelines, human intervention, correction duties and role-specific competence. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-E5-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "E5-SC-002",
+      "question_id": "E5-Q2",
+      "criterion": "The current release demonstrates accessible contact and appeal routes, independent review, linked correction propagation and practical role training. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-E5-001",
+        "EVD-E5-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "E5-SC-003",
+      "question_id": "E5-Q3",
+      "criterion": "Representative, executed evidence provides traced cases from contact to resolution and correction, plus accessibility and role-competence outcomes. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-E5-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "E5-SC-004",
+      "question_id": "E5-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in contestability, correction, accessibility and ai literacy, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-E5-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-E5-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide a recourse and accessibility plan defining who can contest, timelines, human intervention, correction duties and role-specific competence. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-E5-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate accessible contact and appeal routes, independent review, linked correction propagation and practical role training. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-E5-003",
+      "title": "Representative verification results",
+      "description": "Provide traced cases from contact to resolution and correction, plus accessibility and role-competence outcomes. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-E5-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how contestability, correction, accessibility and ai literacy works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with a recourse and accessibility plan defining who can contest, timelines, human intervention, correction duties and role-specific competence. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use traced cases from contact to resolution and correction, plus accessibility and role-competence outcomes to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "A low complaint count may reflect limited channel access and is interpreted with reachability and case evidence.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-E5 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-E5-001",
+      "assessment_object_id": "E5",
+      "title": "Material definition or intent gap in contestability, correction, accessibility and ai literacy",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-E5-002",
+      "assessment_object_id": "E5",
+      "title": "Verified implementation or effectiveness gap in contestability, correction, accessibility and ai literacy",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-E5-003",
+      "assessment_object_id": "E5",
+      "title": "Evidence remains insufficient for contestability, correction, accessibility and ai literacy in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
