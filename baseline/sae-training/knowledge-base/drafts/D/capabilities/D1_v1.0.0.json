@@ -1,0 +1,262 @@
+{
+  "schema_version": "2.1.0",
+  "id": "D1",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "D",
+  "domain_title": "Architecture, security, robustness, safety and evaluation",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-D1",
+  "title": "Secure and isolated AI architecture",
+  "canonical_definition": "The system uses defense in depth, explicit trust boundaries and enforced identity, network, environment, tenant, secrets and data-flow controls.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All AI systems; isolation depth is risk- and stage-dependent.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "threat-model",
+    "trust-boundary",
+    "environment-isolation"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "D1-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Are assets, identities, data flows, trust boundaries, environments and external connections defined?"
+    },
+    {
+      "id": "D1-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are authentication, authorization, network restriction, secrets isolation and tenant/environment separation enforced?"
+    },
+    {
+      "id": "D1-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do architecture review and technical tests demonstrate that stated boundaries resist unauthorized access and cross-environment movement?"
+    }
+  ],
+  "capability_indicators": [
+    "Trust-boundary architecture",
+    "Environment-specific credentials",
+    "Network and identity least privilege",
+    "Tenant and isolation tests"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of secure and isolated ai architecture to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-D1"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MAP 4.2 (PDF p. 32), MEASURE 2.7 (PDF p. 35)",
+      "mapping_rationale": "The voluntary framework provides guidance on mapping internal component controls and evaluating security and resilience. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D1-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D1-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D1-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make secure and isolated ai architecture verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "D1 evaluates secure and isolated ai architecture using evidence from intent through operation. AP-D1 independently assesses evidence of implicit-trust ai architecture.",
+  "atomic_subcriteria": [
+    {
+      "id": "D1-SC-001",
+      "question_id": "D1-Q1",
+      "criterion": "The versioned definition identifies a trust-boundary map naming regulated or sensitive assets, actors, identities, tenant and environment connections. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-D1-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D1-SC-002",
+      "question_id": "D1-Q2",
+      "criterion": "The current release demonstrates enforceable identity, authorization, credential isolation, network restrictions and per-environment resource permissions. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-D1-001",
+        "EVD-D1-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D1-SC-003",
+      "question_id": "D1-Q3",
+      "criterion": "Representative, executed evidence provides independent architecture review and authorized defensive checks showing denied cross-boundary requests and attributable logging. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-D1-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D1-SC-004",
+      "question_id": "D1-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in secure and isolated ai architecture, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-D1-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-D1-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide a trust-boundary map naming regulated or sensitive assets, actors, identities, tenant and environment connections. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D1-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate enforceable identity, authorization, credential isolation, network restrictions and per-environment resource permissions. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D1-003",
+      "title": "Representative verification results",
+      "description": "Provide independent architecture review and authorized defensive checks showing denied cross-boundary requests and attributable logging. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D1-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how secure and isolated ai architecture works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with a trust-boundary map naming regulated or sensitive assets, actors, identities, tenant and environment connections. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use independent architecture review and authorized defensive checks showing denied cross-boundary requests and attributable logging to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "A shared underlying service can be permitted when independently enforced tenant and resource isolation is evidenced.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-D1 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-D1-001",
+      "assessment_object_id": "D1",
+      "title": "Material definition or intent gap in secure and isolated ai architecture",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-D1-002",
+      "assessment_object_id": "D1",
+      "title": "Verified implementation or effectiveness gap in secure and isolated ai architecture",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-D1-003",
+      "assessment_object_id": "D1",
+      "title": "Evidence remains insufficient for secure and isolated ai architecture in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
