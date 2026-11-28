@@ -1,0 +1,384 @@
+{
+  "schema_version": "2.1.0",
+  "id": "AP-A2",
+  "version": "1.0.1",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "A",
+  "domain_title": "Purpose, value, context, roles and classification",
+  "object_type": "ANTIPATTERN",
+  "paired_object_id": "A2",
+  "title": "AI-first solutionism or value theatre",
+  "canonical_definition": "AP-A2 examines whether commitment to AI preceded a defined technology-neutral problem and baseline, whether viable non-AI alternatives were bypassed, whether adoption or activity metrics substituted for outcome evidence, or whether progression continued after recorded results failed agreed conditions.",
+  "failure_mechanism": "Pre-committed AI selection and activity/vanity reporting bypass technology-neutral problem framing, non-AI alternative comparison, total-cost accounting, and objective stop gates.",
+  "potential_consequences": [
+    "Irreversible investment or deployment into an unsuitable or disproportionate AI mechanism",
+    "Activity or usage reporting masking negative net outcomes, human rework, or uncompensated risk",
+    "Continued progression or scaling after trial evidence breaches agreed stop thresholds"
+  ],
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "Applicable wherever AI is proposed, selected, funded, piloted, continued, scaled, or materially changed for an organizational, user, or societal outcome.",
+      "Check decision chronology, purchasing/delivery commitments, alternatives reviews, and actual gate decisions rather than retrospective summaries."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "value-theatre"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "AP-A2-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does the case exhibit AI-first solutionism or value theatre: AI is adopted for novelty, availability or signalling without evidence that it is the best proportionate mechanism."
+    },
+    {
+      "id": "AP-A2-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Do implemented workflows, data paths or operations show a predetermined AI solution, missing baseline comparison, or activity metrics substituting for value?"
+    },
+    {
+      "id": "AP-A2-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Does current evidence test presence or scoped absence of AI-first solutionism or value theatre, or does it remain unknown?"
+    }
+  ],
+  "atomic_tests": [
+    {
+      "id": "AP-A2-AT-001",
+      "question_id": "AP-A2-Q1",
+      "test": "Trace the chronology of problem definition, AI selection, procurement, funding, metric design and approval to determine whether the mechanism was effectively predetermined.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A2-AT-002",
+      "question_id": "AP-A2-Q1",
+      "test": "Determine whether the stated problem and desired outcome remain meaningful and testable without referring to AI, a model, a vendor or technical capability.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A2-AT-003",
+      "question_id": "AP-A2-Q1",
+      "test": "Determine whether a current baseline, counterfactual and feasible non-AI or simpler alternatives were defined before the decision.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A2-AT-004",
+      "question_id": "AP-A2-Q1",
+      "test": "Test whether reported activity, usage, delivery, model or publicity metrics have an explicit causal and measurement link to the desired outcome and complete cost boundary.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-003"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A2-AT-005",
+      "question_id": "AP-A2-Q2",
+      "test": "Compare option assumptions and determine whether alternatives and proportionality were evaluated using consistent outcome, scale, cost, risk and lifecycle criteria.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-002"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A2-AT-006",
+      "question_id": "AP-A2-Q2",
+      "test": "Determine whether total cost, human workload, control burden, dependency, rights and risk evidence are materially omitted or minimized in the value case.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A2-AT-007",
+      "question_id": "AP-A2-Q3",
+      "test": "Review representative comparative results for selective reporting, post-hoc metric changes, excluded failures, subgroup effects, uncertainty and mismatch with the target operating conditions.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-004"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "AP-A2-AT-008",
+      "question_id": "AP-A2-Q3",
+      "test": "Trace continuation, deployment and scaling decisions against pre-defined stop criteria and identify whether sunk cost, schedule, sponsorship or visibility overrode the evidence.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-005"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "AP-A2-AT-009",
+      "question_id": "AP-A2-Q3",
+      "test": "Execute and independently review a complete scoped absence test covering every material AP-A2 mechanism for the current decision and solution boundary.",
+      "required_evidence_ids": [
+        "EVD-AP-A2-006"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "antipattern_indicators": [
+    "The use case starts with a predetermined AI solution",
+    "No baseline or alternative comparison",
+    "Activity metrics substitute for value",
+    "Progress continues despite poor outcome evidence"
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-AP-A2-001",
+      "title": "Decision chronology and solution-selection record",
+      "description": "The AI mechanism was selected or committed before a technology-neutral problem, baseline and value hypothesis were established. Acceptance: Traces problem definition, procurement, technical selection, funding, metric design and approval dates. Identifies pre-commitments, incentives and assumptions that constrained alternatives. Boundary: An early AI hypothesis is not automatically solutionism when selection remains reversible and evidence-gated.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-A2-002",
+      "title": "Baseline and alternatives integrity assessment",
+      "description": "Non-AI or simpler alternatives were omitted, misrepresented or evaluated only after the AI choice was effectively fixed. Acceptance: Reviews feasible process, rules, deterministic automation, data, human and no-change options. Uses the same outcome, scale, cost, risk and lifecycle assumptions for each option. Boundary: A technically inferior alternative may be legitimately rejected when the rationale and evidence are current.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-A2-003",
+      "title": "Metric and causal-chain integrity analysis",
+      "description": "Usage, activity, delivery, benchmark or publicity metrics substitute for attributable outcome value. Acceptance: Maps each reported metric to the desired outcome, baseline, owner, threshold and causal assumptions. Identifies metric changes, omitted costs, displaced work and unmeasured affected-person outcomes. Boundary: A leading activity metric is valid only when its causal role and outcome validation are explicit.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-A2-004",
+      "title": "Comparative result, cost and risk record",
+      "description": "Representative evidence is negative, inconclusive or incomplete while positive claims omit material cost, risk, subgroup or control-burden results. Acceptance: Preserves complete pre-defined metrics, failures, uncertainty, comparator results, costs and limitations. Uses the current system version and representative operating conditions. Boundary: A failed experiment supports learning and is not value theatre unless decision claims or progression disregard the result.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-AP-A2-005",
+      "title": "Continuation and stop-criteria trace",
+      "description": "Funding, deployment, continuation or scale proceeded despite unmet or absent decision thresholds. Acceptance: Compares pre-defined thresholds with the evidence and actual decision. Records any exception, accountable authority, constraints, expiry and reassessment duty. Boundary: An authorized bounded learning experiment may continue after inconclusive results when its purpose and limits remain explicit.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "id": "EVD-AP-A2-006",
+      "title": "Scoped absence-test package",
+      "description": "A current, executed and independently reviewed assessment covers all material AP-A2 failure mechanisms. Acceptance: Covers decision chronology, technology-neutral problem, baseline, alternatives, value metrics, total cost, risk, representative results and stop-criteria enforcement. Identifies scope, versions, decision period, results, limitations and independent reviewer. Boundary: Document presence, project approval, successful delivery or lack of criticism is never TESTED_ABSENT.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Trace each value claim to its metric and decision record; if usage grew while the evaluation missed its agreed outcome threshold, preserve both records and verify what the decision owner did.",
+      "When capability A2 is NOT_SATISFIED or UNKNOWN and AP-A2 evidence is unavailable, AP-A2 remains UNKNOWN rather than defaulting to CONFIRMED_PRESENT or TESTED_ABSENT.",
+      "Use the current solution, target scale, cost structure, alternatives and decision authority.",
+      "Repeat the absence test after material change, metric redesign or continued use beyond the decision expiry.",
+      "Operational evidence must cover the period and scale on which the value claim depends."
+    ],
+    "evidence_ceiling": "Silence, absence of complaints, missing incident logs, or unexecuted discovery never establishes TESTED_ABSENT; TESTED_ABSENT requires a current, executed, and independently reviewed absence test across decision chronology, non-AI comparison, outcome metrics, and continuation decisions for the current version.",
+    "false_positive_guards": [
+      "A time-boxed feasibility exercise that starts with a candidate AI tool while leaving adoption undecided—with baseline, comparison, and stopping conditions governing the next decision—is not AP-A2.",
+      "Do not label a bounded exploratory sandbox pilot as AP-A2 when adoption is explicitly undecided, baseline comparison is scheduled, and stop criteria are enforced.",
+      "Do not treat failed trial outcomes as AP-A2 when governance promptly halts progression in accordance with pre-defined stop criteria."
+    ],
+    "prohibited_inferences": [
+      "Never infer TESTED_ABSENT from silence, lack of complaints, missing incident logs, or unexecuted discovery.",
+      "Never infer AP-A2 CONFIRMED_PRESENT solely from capability A2 being NOT_SATISFIED or UNKNOWN.",
+      "Never infer realized value from login counts, prompt volume, or executive announcements."
+    ]
+  },
+  "absence_test_contract": {
+    "scope_defined": true,
+    "executed": true,
+    "successful": true,
+    "current": true,
+    "independently_verified": true,
+    "required_artifacts": [
+      "Decision chronology and technology-neutral problem formulation",
+      "Baseline and comparable alternatives assessment",
+      "Outcome-metric and causal-chain integrity review",
+      "Complete comparative result, cost, risk and impact evidence",
+      "Continuation and stop-criteria decision trace",
+      "Independent review and residual limitation statement"
+    ]
+  },
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "BLOCK",
+    "conditions": [
+      "Block consequential deployment or scale when the anti-pattern is confirmed or materially present.",
+      "Constrain activity to a bounded learning experiment when the problem, alternatives, metrics or value evidence remain UNKNOWN.",
+      "Block continuation when agreed stop criteria are met and no accountable, time-bounded exception is formally approved."
+    ],
+    "override_authority": "AI_GOVERNANCE_OWNER_WITH_ACCOUNTABLE_BUSINESS_FINANCE_AND_RISK_OWNER"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "A2",
+    "A1",
+    "AP-A1",
+    "A5",
+    "AP-A5",
+    "D2",
+    "F4"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1 (January 2023) MAP 1.4 (p. 31); MAP 3, MAP 3.1 & MAP 3.2 (p. 32); MANAGE 1.1, MANAGE 2.1 & MANAGE 2.4 (p. 37)",
+      "mapping_rationale": "Voluntary risk-management guidance grounding evaluation of business-value definition, benchmarked benefit/cost examination, inclusion of viable non-AI alternatives, and disengagement or deactivation when outcomes miss intended objectives.",
+      "last_verified_on": "2026-08-18"
+    }
+  ],
+  "finding_definitions": [
+    {
+      "id": "FND-AP-A2-001",
+      "assessment_object_id": "AP-A2",
+      "title": "AI was effectively selected before a technology-neutral problem, baseline and value hypothesis were established",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-A2-002",
+      "assessment_object_id": "AP-A2",
+      "title": "Alternative and proportionality assessment is absent, biased or ceremonial",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-A2-003",
+      "assessment_object_id": "AP-A2",
+      "title": "Activity, adoption or technical metrics substitute for measurable outcome value",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-A2-004",
+      "assessment_object_id": "AP-A2",
+      "title": "Negative, inconclusive, cost, risk or impact evidence is omitted or overridden while progression continues",
+      "eligible_states": [
+        "CONFIRMED_PRESENT",
+        "PARTIALLY_PRESENT",
+        "UNKNOWN"
+      ],
+      "severity": "CRITICAL",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-AP-A2-005",
+      "assessment_object_id": "AP-A2",
+      "title": "Absence of AI-first solutionism or value theatre is not established by a scoped current test",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-PURPOSE-A2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A2-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-A2-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-PURPOSE-AP-A2-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_ANTIPATTERN",
+      "mapping_status": "APPROVED"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "normativeSources": "https://REPLACE_WITH_EXACT_BLOB_HOST.public.blob.vercel-storage.com/kb/normativeSources.json",
+  "requirements": "https://REPLACE_WITH_EXACT_BLOB_HOST.public.blob.vercel-storage.com/kb/requirements.json",
+  "controls": "https://REPLACE_WITH_EXACT_BLOB_HOST.public.blob.vercel-storage.com/kb/controls.json",
+  "antipatterns": "https://REPLACE_WITH_EXACT_BLOB_HOST.public.blob.vercel-storage.com/kb/antipatterns.json",
+  "tactics": "https://REPLACE_WITH_EXACT_BLOB_HOST.public.blob.vercel-storage.com/kb/tactics.json",
+  "intakeQuestionnaire": "https://REPLACE_WITH_EXACT_BLOB_HOST.public.blob.vercel-storage.com/kb/intakeQuestionnaire.json"
+}
