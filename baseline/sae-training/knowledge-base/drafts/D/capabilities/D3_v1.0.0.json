@@ -1,0 +1,281 @@
+{
+  "schema_version": "2.1.0",
+  "id": "D3",
+  "version": "1.0.0",
+  "release_status": "DRAFT",
+  "approval_record": null,
+  "domain": "D",
+  "domain_title": "Architecture, security, robustness, safety and evaluation",
+  "object_type": "CAPABILITY",
+  "paired_object_id": "AP-D3",
+  "title": "AI-specific security and adversarial resilience",
+  "canonical_definition": "The system identifies and controls attack paths that exploit AI models, prompts, training or retrieval data, generated outputs, tools and feedback loops, and verifies resilience through representative adversarial testing and monitoring.",
+  "applicability": {
+    "default_state": "APPLICABLE",
+    "conditions": [
+      "All AI systems; attack modules are selected by model type, data flow, exposure, learning behavior, retrieval and agent authority.",
+      "Record the assessed release, operating scope and evidence that supports any applicability decision."
+    ]
+  },
+  "runtime_applicability": "ALWAYS",
+  "runtime_severity": "HIGH",
+  "runtime_signals": [
+    "prompt-injection",
+    "data-leakage",
+    "red-team",
+    "adversarial-test"
+  ],
+  "lifecycle_stages": [
+    "QUALIFICATION_AND_REGISTRATION",
+    "DESIGN_AND_DEVELOPMENT",
+    "VERIFICATION_AND_VALIDATION",
+    "DEPLOYMENT",
+    "OPERATION_AND_MONITORING",
+    "REVIEW_AND_EVALUATION",
+    "RETIREMENT"
+  ],
+  "primary_questions": [
+    {
+      "id": "D3-Q1",
+      "dimension": "DEFINITION_AND_INTENT",
+      "question": "Does a system-specific threat model cover applicable AI attack surfaces, attacker goals, assets, trust boundaries and consequences?"
+    },
+    {
+      "id": "D3-Q2",
+      "dimension": "IMPLEMENTATION_AND_OPERATION",
+      "question": "Are enforceable controls implemented outside model discretion for untrusted inputs, retrieval, outputs, tools, data, models and privileged actions?"
+    },
+    {
+      "id": "D3-Q3",
+      "dimension": "EVIDENCE_AND_EFFECTIVENESS",
+      "question": "Do representative adversarial tests, regression evidence and operational monitoring demonstrate control effectiveness and expose residual limitations?"
+    }
+  ],
+  "capability_indicators": [
+    "AI-specific threat model and abuse cases",
+    "Deterministic validation and authorization boundaries",
+    "Representative adversarial regression suite",
+    "AI-security telemetry and response playbook"
+  ],
+  "target_assurance_by_lifecycle_stage": [
+    {
+      "lifecycle_stage": "QUALIFICATION_AND_REGISTRATION",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DESIGN_AND_DEVELOPMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "VERIFICATION_AND_VALIDATION",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "DEPLOYMENT",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    },
+    {
+      "lifecycle_stage": "OPERATION_AND_MONITORING",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "REVIEW_AND_EVALUATION",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "lifecycle_stage": "RETIREMENT",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "FORMALLY_APPROVED"
+    }
+  ],
+  "hard_gate_effect": {
+    "effect": "WARN",
+    "conditions": [
+      "Refer a material failure of ai-specific security and adversarial resilience to the accountable authority before a consequential transition."
+    ],
+    "override_authority": "GOVERNANCE"
+  },
+  "human_decision_authority": "GOVERNANCE",
+  "related_criteria": [
+    "AP-D3"
+  ],
+  "normative_source_mappings": [
+    {
+      "source_id": "SRC-NIST-AI-RMF",
+      "relevant_locator": "NIST AI 100-1, MEASURE 2.7 (PDF p. 35), MEASURE 2.13 (PDF p. 35), MAP 4.2 (PDF p. 32)",
+      "mapping_rationale": "The voluntary framework provides guidance on evaluating security and resilience, validating evaluation methods and mapping component controls. The SAE criteria define the object-specific rules. Confirm any binding obligation through the accountable authority and its applicable source.",
+      "last_verified_on": "2026-11-28"
+    }
+  ],
+  "candidate_tactic_refs": [
+    {
+      "tactic_id": "TAC-MODELS-C3-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D3-01",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D3-02",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D3-03",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D3-04",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    },
+    {
+      "tactic_id": "TAC-ARCHITECTURE-D3-05",
+      "tactic_version": "1.0.0",
+      "relationship": "REMEDIATES_CAPABILITY_GAP",
+      "mapping_status": "APPROVED"
+    }
+  ],
+  "runtime_authority": "INTERNAL_PROCESS",
+  "governance_purpose": "Make ai-specific security and adversarial resilience verifiable against the current AI system, decision context and accountable ownership.",
+  "distinct_claim": "D3 evaluates ai-specific security and adversarial resilience using evidence from intent through operation. AP-D3 independently assesses evidence of prompt-only or model-mediated security boundary.",
+  "atomic_subcriteria": [
+    {
+      "id": "D3-SC-001",
+      "question_id": "D3-Q1",
+      "criterion": "The versioned definition identifies a threat model tying applicable AI attack surfaces to assets, trust boundaries, affected actions and residual-risk owners. Record the accountable owner, scope and material assumptions.",
+      "required_evidence_ids": [
+        "EVD-D3-001"
+      ],
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D3-SC-002",
+      "question_id": "D3-Q2",
+      "criterion": "The current release demonstrates externally enforced input and output policies, data isolation, authorization of actions and controlled handling of untrusted material. Trace the decisions and controls to attributable records.",
+      "required_evidence_ids": [
+        "EVD-D3-001",
+        "EVD-D3-002"
+      ],
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D3-SC-003",
+      "question_id": "D3-Q3",
+      "criterion": "Representative, executed evidence provides authorized defensive evaluations showing applicable controls reject out-of-policy requests and monitoring detects drift, with stated limitations. Compare expected and observed outcomes and record exceptions.",
+      "required_evidence_ids": [
+        "EVD-D3-003"
+      ],
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "D3-SC-004",
+      "question_id": "D3-Q3",
+      "criterion": "For an operating system, current records cover the material paths involved in ai-specific security and adversarial resilience, including relevant exceptions and changes.",
+      "required_evidence_ids": [
+        "EVD-D3-004"
+      ],
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "required_evidence": [
+    {
+      "id": "EVD-D3-001",
+      "title": "Versioned scope and control definition",
+      "description": "Provide a threat model tying applicable AI attack surfaces to assets, trust boundaries, affected actions and residual-risk owners. Include the affected workflow, current version and accountable owner.",
+      "minimum_technical_assurance": "DECLARED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D3-002",
+      "title": "Effective implementation records",
+      "description": "Demonstrate externally enforced input and output policies, data isolation, authorization of actions and controlled handling of untrusted material. Trace the scope, control and authority to the current implementation, including exceptions.",
+      "minimum_technical_assurance": "IMPLEMENTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D3-003",
+      "title": "Representative verification results",
+      "description": "Provide authorized defensive evaluations showing applicable controls reject out-of-policy requests and monitoring detects drift, with stated limitations. Include current version, test scope, criteria, expected and observed outcomes, and unresolved failures.",
+      "minimum_technical_assurance": "TESTED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    },
+    {
+      "id": "EVD-D3-004",
+      "title": "Current operating or change evidence",
+      "description": "Retain dated records that show how ai-specific security and adversarial resilience works for the assessed scope, including the relevant exceptions and any material change since the evidence was captured.",
+      "minimum_technical_assurance": "OPERATIONALLY_OBSERVED",
+      "required_human_assurance": "HUMAN_VALIDATED"
+    }
+  ],
+  "evidence_rules": {
+    "sufficiency": [
+      "Start with a threat model tying applicable AI attack surfaces to assets, trust boundaries, affected actions and residual-risk owners. Reconcile it against the effective controls and representative results for the same operating scope and version.",
+      "Use authorized defensive evaluations showing applicable controls reject out-of-policy requests and monitoring detects drift, with stated limitations to support effectiveness at the relevant lifecycle stage. Record missing paths and unresolved conflicts as UNKNOWN. A verified shortfall can support a gap without resolving the other questions.",
+      "Reassess affected evidence after a material change. An accountable human validates or approves the result where required by the lifecycle target."
+    ],
+    "evidence_ceiling": "A specification supports DECLARED intent. Effective implementation records may support IMPLEMENTED. Representative executed tests support TESTED within their scope. Current operating evidence supports OPERATIONALLY_OBSERVED for covered paths and time. Record human assurance independently.",
+    "false_positive_guards": [
+      "Model behavior can contribute defense in depth when independent policy retains and enforces decision authority.",
+      "Reconcile document claims with the effective release, actual operation and relevant exceptions before recording satisfaction."
+    ],
+    "prohibited_inferences": [
+      "A capability gap alone cannot establish AP-D3 presence.",
+      "An approved design or evidence plan cannot establish test execution or operational effectiveness.",
+      "Satisfying this capability cannot by itself authorize progression or establish legal compliance."
+    ]
+  },
+  "finding_definitions": [
+    {
+      "id": "FND-D3-001",
+      "assessment_object_id": "D3",
+      "title": "Material definition or intent gap in ai-specific security and adversarial resilience",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-D3-002",
+      "assessment_object_id": "D3",
+      "title": "Verified implementation or effectiveness gap in ai-specific security and adversarial resilience",
+      "eligible_states": [
+        "PARTIALLY_SATISFIED",
+        "NOT_SATISFIED"
+      ],
+      "severity": "HIGH",
+      "human_decision_authority": "GOVERNANCE"
+    },
+    {
+      "id": "FND-D3-003",
+      "assessment_object_id": "D3",
+      "title": "Evidence remains insufficient for ai-specific security and adversarial resilience in the assessed scope",
+      "eligible_states": [
+        "UNKNOWN"
+      ],
+      "severity": "MEDIUM",
+      "human_decision_authority": "GOVERNANCE"
+    }
+  ]
+}
